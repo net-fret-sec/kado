@@ -1,11 +1,28 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
+import HomeView from './views/HomeView.vue';
+import LanguageSwitcher from './components/LanguageSwitcher.vue';
+const { t } = useI18n()
+
+</script>
 
 <template>
-  <div class="container py-4">
-    <h1 class="mb-3">Mon projet</h1>
-    <p class="lead">Base Vue + Pinia + Bootstrap + PWA</p>
-    <button class="btn btn-primary">Test Bootstrap</button>
+<div class="container py-4 bg-light">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-2">{{ t('app.title') }}</h1>
+      <p class="lead mb-0">{{ t('app.tagline') }}</p>
+    </div>
+
+    <LanguageSwitcher />
   </div>
+
+  <div class="container py-4">
+    <HomeView />
+  </div>
+</div>
 </template>
 
 <style scoped></style>

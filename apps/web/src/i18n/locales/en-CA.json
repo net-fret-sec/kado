@@ -1,0 +1,17 @@
+{
+  "app": {
+    "title": "Kado",
+    "tagline": "Secret present exchanges made simple"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About"
+  },
+  "actions": {
+    "changeLanguage": "Change language"
+  },
+  "presentCard": {
+    "title": "Present Exchange",
+    "description": "Organize secret present exchanges with your friends and family."
+  }
+}

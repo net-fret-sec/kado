@@ -1,0 +1,17 @@
+{
+  "app": {
+    "title": "Kado",
+    "tagline": "Échanges de cadeaux simples"
+  },
+  "nav": {
+    "home": "Accueil",
+    "about": "À propos"
+  },
+  "actions": {
+    "changeLanguage": "Changer la langue"
+  },
+  "presentCard": {
+    "title": "Fiche de cadeau",
+    "description": "Détails d'un cadeau"
+  }
+}

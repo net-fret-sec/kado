@@ -1,11 +1,9 @@
 import { fileURLToPath, URL } from 'node:url'
-
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
@@ -14,9 +12,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'robots.txt'],
       manifest: {
-        name: 'Mon projet',
-        short_name: 'MonProjet',
-        description: 'Application web Vue 3 + Pinia + Bootstrap',
+        name: 'Kado',
+        short_name: 'kado',
+        description: 'Gestion de piges de cadeaux',
         theme_color: '#0d6efd',
         background_color: '#ffffff',
         display: 'standalone',
