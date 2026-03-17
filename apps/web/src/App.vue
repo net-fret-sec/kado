@@ -8,9 +8,9 @@ const { t } = useI18n()
 </script>
 
 <template>
-<div class="container py-4 bg-light">
+<div class="container py-4">
 
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-4  bg-light rounded-3 p-3">
     <div>
       <h1 class="mb-2">{{ t('app.title') }}</h1>
       <p class="lead mb-0">{{ t('app.tagline') }}</p>
