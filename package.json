@@ -1,0 +1,15 @@
+{
+  "name": "kado",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Échangeons des cadeaux entre amis !",
+  "scripts": {
+    "dev:web": "pnpm --dir apps/web dev",
+    "build:web": "pnpm --dir apps/web build",
+    "preview:web": "pnpm --dir apps/web preview"
+  },
+  "keywords": [],
+  "author": "Dave Létourneau <daveletourneau@gmail.com>",
+  "license": "ISC",
+  "packageManager": "pnpm@10.32.1"
+}
