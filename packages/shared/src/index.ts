@@ -1,5 +1,7 @@
 export * from "./exchange/exchange.dto"
-export * from "./exchange/exchange.schema"
+export * from './exchange/exchange.types'
+export * from './exchange/exchange.schema'
 
 export * from "./participant/participant.dto"
-export * from "./participant/participant.schema"
+export * from './participant/participant.types'
+export * from './participant/participant.schema'

@@ -1,0 +1,63 @@
+interface ExchangeRecord {
+  id: string
+  name: string
+  description?: string
+  organizerName?: string
+  status: 'draft' | 'ready' | 'drawn' | 'archived'
+  eventDate?: string
+  budget?: number
+  budgetCurrency?: string
+  drawAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
+interface AdminAccessRecord {
+  exchangeId: string
+  passwordHash: string
+  createdAt: string
+  updatedAt: string
+}
+
+interface AdminSessionRecord {
+  id: string
+  exchangeId: string
+  tokenHash: string
+  createdAt: string
+  expiresAt: string
+}
+
+const exchanges = new Map<string, ExchangeRecord>()
+const adminAccessByExchangeId = new Map<string, AdminAccessRecord>()
+const adminSessions = new Map<string, AdminSessionRecord>()
+
+export const exchangeRepository = {
+  create(exchange: ExchangeRecord) {
+    exchanges.set(exchange.id, exchange)
+    return exchange
+  },
+
+  findById(exchangeId: string) {
+    return exchanges.get(exchangeId)
+  },
+
+  createAdminAccess(record: AdminAccessRecord) {
+    adminAccessByExchangeId.set(record.exchangeId, record)
+    return record
+  },
+
+  findAdminAccess(exchangeId: string) {
+    return adminAccessByExchangeId.get(exchangeId)
+  },
+
+  createAdminSession(record: AdminSessionRecord) {
+    adminSessions.set(record.id, record)
+    return record
+  },
+
+  findAdminSessionByTokenHash(tokenHash: string) {
+    return Array.from(adminSessions.values()).find(
+      (session) => session.tokenHash === tokenHash,
+    )
+  },
+}
