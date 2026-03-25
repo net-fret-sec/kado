@@ -2,7 +2,7 @@ import type {
   CreateParticipantInputDto,
   CreateParticipantResultDto,
   ParticipantDto,
-} from '@mon-projet/shared'
+} from '@kado/shared'
 import { NotFoundError } from '../lib/http-errors'
 import { generateId, generateOpaqueToken, sha256 } from '../lib/crypto'
 import { exchangeRepository } from '../repositories/exchange.repository'

@@ -1,8 +1,9 @@
 import { Router } from 'express'
+import type { Request } from 'express'
 import {
   createParticipantInputSchema,
   exchangeIdParamSchema,
-} from '@mon-projet/shared'
+} from '@kado/shared'
 import { validateBody, validateParams } from '../middleware/validate'
 import { createParticipant } from '../services/participant.service'
 
@@ -12,7 +13,11 @@ router.post(
   '/:exchangeId/participants',
   validateParams(exchangeIdParamSchema),
   validateBody(createParticipantInputSchema),
-  async (req, res, next) => {
+  async (
+    req: Request<{ exchangeId: string }>,
+    res,
+    next,
+  ) => {
     try {
       const result = await createParticipant(req.params.exchangeId, req.body)
       res.status(201).json(result)

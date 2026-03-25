@@ -2,7 +2,7 @@ import type {
   CreateExchangeInputDto,
   CreateExchangeResultDto,
   ExchangeDto,
-} from '@mon-projet/shared'
+} from '@kado/shared'
 import { exchangeRepository } from '../repositories/exchange.repository'
 import { generateId, generateOpaqueToken, hashPassword, sha256 } from '../lib/crypto'
 

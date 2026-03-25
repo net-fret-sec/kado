@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { createExchangeInputSchema } from '@mon-projet/shared'
+import { createExchangeInputSchema } from '@kado/shared'
 import { validateBody } from '../middleware/validate'
 import { createExchange } from '../services/exchange.service'
 

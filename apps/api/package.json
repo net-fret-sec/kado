@@ -1,7 +1,13 @@
 {
-	"name": "kado-api",
+	"name": "@kado/api",
 	"private": true,
+	"scripts": {
+		"dev": "tsx src/server.ts",
+		"build": "tsc --build",
+		"lint": "echo \"No lint configured for api yet\""
+	},
 	"dependencies": {
+		"@kado/shared": "workspace:*",
 		"cors": "^2.8.6",
 		"express": "^5.2.1",
 		"helmet": "^8.1.0",
