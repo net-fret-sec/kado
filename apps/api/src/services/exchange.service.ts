@@ -3,6 +3,7 @@ import type {
   CreateExchangeResultDto,
   ExchangeDto,
 } from '@kado/shared'
+import { NotFoundError } from '../lib/http-errors'
 import { exchangeRepository } from '../repositories/exchange.repository'
 import { generateId, generateOpaqueToken, hashPassword, sha256 } from '../lib/crypto'
 
@@ -46,4 +47,18 @@ export async function createExchange(
     exchange,
     adminSessionToken,
   }
+}
+
+export async function getExchangeById(exchangeId: string): Promise<ExchangeDto> {
+  const exchange = exchangeRepository.findById(exchangeId)
+
+  if (!exchange) {
+    throw new NotFoundError('Exchange not found.')
+  }
+
+  return exchange
+}
+
+export async function listExchanges(): Promise<ExchangeDto[]> {
+  return exchangeRepository.findAll()
 }

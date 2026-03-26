@@ -41,6 +41,10 @@ export const exchangeRepository = {
     return exchanges.get(exchangeId)
   },
 
+  findAll() {
+    return Array.from(exchanges.values())
+  },
+
   createAdminAccess(record: AdminAccessRecord) {
     adminAccessByExchangeId.set(record.exchangeId, record)
     return record

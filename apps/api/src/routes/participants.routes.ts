@@ -5,9 +5,25 @@ import {
   exchangeIdParamSchema,
 } from '@kado/shared'
 import { validateBody, validateParams } from '../middleware/validate'
-import { createParticipant } from '../services/participant.service'
+import {
+  createParticipant,
+  getParticipantsByExchangeId,
+} from '../services/participant.service'
 
 const router = Router()
+
+router.get(
+  '/:exchangeId/participants',
+  validateParams(exchangeIdParamSchema),
+  async (req: Request<{ exchangeId: string }>, res, next) => {
+    try {
+      const participants = await getParticipantsByExchangeId(req.params.exchangeId)
+      res.status(200).json(participants)
+    } catch (error) {
+      next(error)
+    }
+  },
+)
 
 router.post(
   '/:exchangeId/participants',

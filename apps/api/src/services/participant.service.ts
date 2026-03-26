@@ -52,3 +52,7 @@ export async function createParticipant(
     accessLink: `${PUBLIC_BASE_URL}/p/${rawToken}`,
   }
 }
+
+export async function getParticipantsByExchangeId(exchangeId: string) {
+  return participantRepository.findByExchangeId(exchangeId)
+}

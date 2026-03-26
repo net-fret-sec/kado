@@ -21,7 +21,7 @@ export function validateBody(schema: ZodTypeAny) {
 export function validateParams(schema: ZodTypeAny) {
   return (req: Request, _res: Response, next: NextFunction) => {
     try {
-      req.params = schema.parse(req.params)
+      req.params = schema.parse(req.params) as Request['params']
       next()
     } catch (error) {
       if (error instanceof ZodError) {
