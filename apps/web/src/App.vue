@@ -20,7 +20,7 @@ const { t } = useI18n()
   </div>
 
   <div class="container py-4">
-    <HomeView />
+    <router-view />
   </div>
 </div>
 </template>

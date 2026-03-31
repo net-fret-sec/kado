@@ -4,7 +4,7 @@
       "id": "exc_test1",
       "name": "Échange de Noël Test",
       "description": "Un échange de cadeaux pour tester l'API",
-      "organizerName": "Alice",
+      "organizerId": "par_alice",
       "status": "draft",
       "eventDate": "2026-12-25",
       "budget": 50,
@@ -16,7 +16,7 @@
       "id": "exc_test2",
       "name": "Échange Anniversaire",
       "description": "Célébration d'anniversaire avec échange",
-      "organizerName": "Bob",
+      "organizerId": "par_bob",
       "status": "ready",
       "eventDate": "2026-05-15",
       "budget": 30,
@@ -26,6 +26,28 @@
     }
   ],
   "participants": [
+    {
+      "id": "par_alice",
+      "exchangeId": "exc_test1",
+      "name": "Alice",
+      "email": "alice@example.com",
+      "wishlist": "Livres, musique",
+      "note": "Organisatrice",
+      "status": "active",
+      "createdAt": "2026-03-31T10:30:00.000Z",
+      "updatedAt": "2026-03-31T10:30:00.000Z"
+    },
+    {
+      "id": "par_bob",
+      "exchangeId": "exc_test2",
+      "name": "Bob",
+      "email": "bob@example.com",
+      "wishlist": "Électronique, sports",
+      "note": "Organisateur",
+      "status": "active",
+      "createdAt": "2026-03-30T15:30:00.000Z",
+      "updatedAt": "2026-03-30T15:30:00.000Z"
+    },
     {
       "id": "par_test1",
       "exchangeId": "exc_test1",

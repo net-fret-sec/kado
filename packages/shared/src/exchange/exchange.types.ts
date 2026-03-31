@@ -8,6 +8,7 @@ export interface ExchangeDto {
   id: string
   name: string
   description?: string
+  organizerId: string
   organizerName?: string
   status: ExchangeStatus
   eventDate?: string
@@ -22,6 +23,7 @@ export interface CreateExchangeInputDto {
   name: string
   description?: string
   organizerName?: string
+  organizerParticipates?: boolean
   eventDate?: string
   budget?: number
   budgetCurrency?: string

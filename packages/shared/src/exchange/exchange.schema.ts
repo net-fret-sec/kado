@@ -24,6 +24,7 @@ export const createExchangeInputSchema = z.object({
   name: z.string().trim().min(1).max(150),
   description: optionalText(2000),
   organizerName: optionalText(150),
+  organizerParticipates: z.boolean().optional().default(true),
   eventDate: emptyStringToUndefined(
     z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
   ),
@@ -35,7 +36,7 @@ export const createExchangeInputSchema = z.object({
 export const updateExchangeInputSchema = z.object({
   name: optionalText(150),
   description: optionalText(2000),
-  organizerName: optionalText(150),
+  organizerId: z.string().optional(),
   eventDate: emptyStringToUndefined(
     z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
   ),

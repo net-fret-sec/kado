@@ -10,6 +10,7 @@ router.post(
   validateBody(createExchangeInputSchema),
   async (req, res, next) => {
     try {
+      console.log("[POST /api/exchanges] Body reçu:", req.body);
       const result = await createExchange(req.body);
       res.status(201).json(result);
     } catch (error) {

@@ -6,12 +6,7 @@ const app = useAppStore()
 
 <template>
   <main class="container py-4">
-    <button
-      type="button"
-      class="btn btn-primary"
-      @click="app.setLoading(!app.isLoading)"
-    >
-      Loading: {{ app.isLoading ? 'on' : 'off' }}
-    </button>
+    <!-- Bouton de test supprimé -->
+    <router-link to="/exchanges" class="btn btn-secondary">View Exchanges</router-link>
   </main>
 </template>

@@ -6,7 +6,9 @@ import type {
 } from '@kado/shared'
 import { NotFoundError } from '../lib/http-errors'
 import { exchangeRepository } from '../repositories/exchange.repository'
+import { participantRepository } from '../repositories/participant.repository'
 import { generateId, generateOpaqueToken, hashPassword, sha256 } from '../lib/crypto'
+import { createParticipant } from './participant.service'
 
 export async function createExchange(
   input: CreateExchangeInputDto,
@@ -17,7 +19,7 @@ export async function createExchange(
     id: generateId('exc'),
     name: input.name,
     description: input.description,
-    organizerName: input.organizerName,
+    organizerId: '', // Temporary
     status: 'draft',
     eventDate: input.eventDate,
     budget: input.budget,
@@ -27,6 +29,27 @@ export async function createExchange(
   }
 
   exchangeRepository.create(exchange)
+
+  // Create organizer participant if name provided
+  let organizerId = ''
+  if (input.organizerName) {
+    const organizerParticipant = await createParticipant(exchange.id, {
+      name: input.organizerName,
+      email: undefined,
+      wishlist: undefined,
+      note: undefined,
+    })
+    organizerId = organizerParticipant.participant.id
+
+    // Update exchange with organizerId
+    exchangeRepository.update(exchange.id, { organizerId })
+
+    // If not participates, remove from participants list (but keep as organizer)
+    if (!(input.organizerParticipates ?? true)) {
+      // For now, since participants are fetched separately, we can handle in getExchangeById
+      // But to keep simple, if not participates, we don't add to participants, but organizerId is set
+    }
+  }
 
   exchangeRepository.createAdminAccess({
     exchangeId: exchange.id,
@@ -45,7 +68,7 @@ export async function createExchange(
   })
 
   return {
-    exchange,
+    exchange: { ...exchange, organizerId },
     adminSessionToken,
   }
 }
@@ -57,11 +80,30 @@ export async function getExchangeById(exchangeId: string): Promise<ExchangeDto> 
     throw new NotFoundError('Exchange not found.')
   }
 
-  return exchange
+  const participants = participantRepository.findByExchangeId(exchangeId)
+
+  // Get organizer name from participant
+  const organizer = participants.find(p => p.id === exchange.organizerId)
+  const organizerName = organizer ? organizer.name : 'Unknown'
+
+  return {
+    ...exchange,
+    organizerName, // Add for display
+    participants,
+  }
 }
 
 export async function listExchanges(): Promise<ExchangeDto[]> {
-  return exchangeRepository.findAll()
+  const exchanges = exchangeRepository.findAll()
+  return exchanges.map(exchange => {
+    const participants = participantRepository.findByExchangeId(exchange.id)
+    const organizer = participants.find(p => p.id === exchange.organizerId)
+    return {
+      ...exchange,
+      organizerName: organizer ? organizer.name : 'Unknown',
+      participants,
+    }
+  })
 }
 
 export async function updateExchange(

@@ -2,7 +2,7 @@ interface ExchangeRecord {
   id: string
   name: string
   description?: string
-  organizerName?: string
+  organizerId: string
   status: 'draft' | 'ready' | 'drawn' | 'archived'
   eventDate?: string
   budget?: number

@@ -1,5 +1,7 @@
 // packages/shared/src/dto/exchange.dto.ts
 
+import type { ParticipantDto } from "../participant/participant.dto";
+
 export type ExchangeStatus =
   | 'draft'
   | 'ready'
@@ -10,7 +12,8 @@ export interface ExchangeDto {
   id: string
   name: string
   description?: string
-  organizerName?: string
+  organizerId: string
+  organizerName?: string // Computed for display
 
   status: ExchangeStatus
 
@@ -21,12 +24,15 @@ export interface ExchangeDto {
   drawAt?: string
   createdAt: string
   updatedAt: string
+
+  participants?: ParticipantDto[]
 }
 
 export interface CreateExchangeInputDto {
   name: string
   description?: string
   organizerName?: string
+  organizerParticipates?: boolean
 
   eventDate?: string
   budget?: number
@@ -43,7 +49,7 @@ export interface CreateExchangeResultDto {
 export interface UpdateExchangeInputDto {
   name?: string
   description?: string
-  organizerName?: string
+  organizerId?: string
 
   eventDate?: string
   budget?: number
