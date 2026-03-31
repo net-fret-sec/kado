@@ -8,10 +8,65 @@
     "about": "À propos"
   },
   "actions": {
-    "changeLanguage": "Changer la langue"
+    "changeLanguage": "Changer la langue",
+    "cancel": "Annuler"
   },
-  "presentCard": {
-    "title": "Fiche de cadeau",
-    "description": "Détails d'un cadeau"
+  "languages": {
+    "fr": "Français",
+    "en": "English"
+  },
+  "home": {
+    "viewExchanges": "Voir les échanges"
+  },
+  "exchanges": {
+    "title": "Échanges",
+    "createExchange": "Créer un échange",
+    "loading": "Chargement...",
+    "status": "Statut",
+    "createModal": {
+      "title": "Créer un échange",
+      "name": "Nom de l'échange",
+      "description": "Description",
+      "organizerName": "Nom de l'organisateur",
+      "organizerParticipates": "L'organisateur participe à l'échange",
+      "adminPassword": "Mot de passe admin",
+      "submit": "Créer l'échange"
+    }
+  },
+  "exchangeDetail": {
+    "loading": "Chargement...",
+    "editExchange": "Modifier l'échange",
+    "name": "Nom",
+    "description": "Description",
+    "status": "Statut",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "organizer": "Organisateur",
+    "eventDate": "Date de l'événement",
+    "budget": "Budget",
+    "createdAt": "Créé le",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "participants": "Participants",
+    "addParticipant": "Ajouter un participant",
+    "noParticipants": "Aucun participant pour cet échange.",
+    "wishlist": "Liste de souhaits",
+    "note": "Note",
+    "addModal": {
+      "title": "Ajouter un participant",
+      "name": "Nom",
+      "email": "Email",
+      "wishlist": "Liste de souhaits",
+      "note": "Note",
+      "submit": "Ajouter"
+    },
+    "editModal": {
+      "title": "Modifier le participant",
+      "submit": "Enregistrer"
+    },
+    "confirmDeleteExchange": "Supprimer cet échange ?",
+    "confirmDeleteParticipant": "Supprimer ce participant ?"
   }
 }

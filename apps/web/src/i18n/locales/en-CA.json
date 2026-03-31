@@ -8,10 +8,65 @@
     "about": "About"
   },
   "actions": {
-    "changeLanguage": "Change language"
+    "changeLanguage": "Change language",
+    "cancel": "Cancel"
   },
-  "presentCard": {
-    "title": "Present sheet",
-    "description": "Details of a present"
+  "languages": {
+    "fr": "Français",
+    "en": "English"
+  },
+  "home": {
+    "viewExchanges": "View Exchanges"
+  },
+  "exchanges": {
+    "title": "Exchanges",
+    "createExchange": "Create Exchange",
+    "loading": "Loading...",
+    "status": "Status",
+    "createModal": {
+      "title": "Create Exchange",
+      "name": "Exchange Name",
+      "description": "Description",
+      "organizerName": "Organizer Name",
+      "organizerParticipates": "Organizer participates in the exchange",
+      "adminPassword": "Admin Password",
+      "submit": "Create Exchange"
+    }
+  },
+  "exchangeDetail": {
+    "loading": "Loading...",
+    "editExchange": "Edit Exchange",
+    "name": "Name",
+    "description": "Description",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "save": "Save",
+    "cancel": "Cancel",
+    "organizer": "Organizer",
+    "eventDate": "Event Date",
+    "budget": "Budget",
+    "createdAt": "Created on",
+    "edit": "Edit",
+    "delete": "Delete",
+    "participants": "Participants",
+    "addParticipant": "Add Participant",
+    "noParticipants": "No participants for this exchange.",
+    "wishlist": "Wishlist",
+    "note": "Note",
+    "addModal": {
+      "title": "Add Participant",
+      "name": "Name",
+      "email": "Email",
+      "wishlist": "Wishlist",
+      "note": "Note",
+      "submit": "Add"
+    },
+    "editModal": {
+      "title": "Edit Participant",
+      "submit": "Save"
+    },
+    "confirmDeleteExchange": "Delete this exchange?",
+    "confirmDeleteParticipant": "Delete this participant?"
   }
 }

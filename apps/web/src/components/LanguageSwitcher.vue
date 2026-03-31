@@ -16,8 +16,8 @@ const { t, currentLocale } = useLocale()
       class="form-select"
       style="min-width: 14rem"
     >
-      <option value="fr-CA">Français</option>
-      <option value="en-CA">English</option>
+      <option value="fr-CA">{{ t('languages.fr') }}</option>
+      <option value="en-CA">{{ t('languages.en') }}</option>
     </select>
 
   </div>

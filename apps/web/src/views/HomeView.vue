@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { useAppStore } from '@/stores/app'
+import { useI18n } from 'vue-i18n'
 
-const app = useAppStore()
+const { t } = useI18n()
 </script>
 
 <template>
-  <main class="container py-4">
     <!-- Bouton de test supprimé -->
-    <router-link to="/exchanges" class="btn btn-secondary">View Exchanges</router-link>
-  </main>
+    <router-link to="/exchanges" class="btn btn-secondary">{{ t('home.viewExchanges') }}</router-link>
 </template>

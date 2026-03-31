@@ -4,7 +4,9 @@ import { useRoute } from 'vue-router'
 import { useExchangesStore } from '@/stores/exchanges'
 import type { ExchangeDto } from '@kado/shared'
 import type { ParticipantDto } from '@kado/shared'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const route = useRoute()
 const exchangesStore = useExchangesStore()
 const exchange = ref<ExchangeDto | null>(null)
@@ -77,7 +79,7 @@ async function saveEdit() {
 
 async function handleDelete() {
   if (!exchange.value) return
-  if (!confirm('Supprimer cet échange ?')) return
+  if (!confirm(t('exchangeDetail.confirmDeleteExchange'))) return
   try {
     await exchangesStore.deleteExchange(exchange.value.id)
     window.location.href = '/exchanges'
@@ -149,7 +151,7 @@ async function updateParticipant() {
 
 async function deleteParticipant(participantId: string) {
   if (!exchange.value) return
-  if (!confirm('Supprimer ce participant ?')) return
+  if (!confirm(t('exchangeDetail.confirmDeleteParticipant'))) return
   try {
     const response = await fetch(`http://localhost:3000/api/exchanges/${exchange.value.id}/participants/${participantId}`, {
       method: 'DELETE',
@@ -164,126 +166,132 @@ async function deleteParticipant(participantId: string) {
 
 <template>
   <main class="container py-4">
-    <div v-if="isLoading">Chargement...</div>
+    <div v-if="isLoading">{{ t('exchangeDetail.loading') }}</div>
     <div v-else-if="error">{{ error }}</div>
     <div v-else-if="exchange">
       <div v-if="isEditing">
-        <h2>Modifier l'échange</h2>
+        <h2>{{ t('exchangeDetail.editExchange') }}</h2>
         <form @submit.prevent="saveEdit" class="mb-3">
           <div class="mb-2">
-            <input v-model="editName" type="text" placeholder="Nom" class="form-control" required />
+            <input v-model="editName" type="text" :placeholder="t('exchangeDetail.name')" class="form-control" required />
           </div>
           <div class="mb-2">
-            <input v-model="editDescription" type="text" placeholder="Description" class="form-control" />
+            <input v-model="editDescription" type="text" :placeholder="t('exchangeDetail.description')" class="form-control" />
           </div>
           <div class="mb-2">
             <select v-model="editStatus" class="form-select">
-              <option value="active">Actif</option>
-              <option value="inactive">Inactif</option>
+              <option value="active">{{ t('exchangeDetail.active') }}</option>
+              <option value="inactive">{{ t('exchangeDetail.inactive') }}</option>
             </select>
           </div>
-          <button type="submit" class="btn btn-success">Enregistrer</button>
-          <button type="button" class="btn btn-secondary ms-2" @click="isEditing = false">Annuler</button>
+          <button type="submit" class="btn btn-success">{{ t('exchangeDetail.save') }}</button>
+          <button type="button" class="btn btn-secondary ms-2" @click="isEditing = false">{{ t('exchangeDetail.cancel') }}</button>
         </form>
       </div>
       <div v-else>
         <h2>{{ exchange.name }}</h2>
         <p>{{ exchange.description }}</p>
         <ul>
-          <li><b>Organisateur :</b> {{ exchange.organizerName }}</li>
-          <li><b>Status :</b> {{ exchange.status }}</li>
-          <li v-if="exchange.eventDate"><b>Date de l'événement :</b> {{ exchange.eventDate }}</li>
-          <li v-if="exchange.budget"><b>Budget :</b> {{ exchange.budget }} {{ exchange.budgetCurrency }}</li>
-          <li><b>Créé le :</b> {{ new Date(exchange.createdAt).toLocaleString() }}</li>
+          <li><b>{{ t('exchangeDetail.organizer') }} :</b> {{ exchange.organizerName }}</li>
+          <li><b>{{ t('exchangeDetail.status') }} :</b> {{ exchange.status }}</li>
+          <li v-if="exchange.eventDate"><b>{{ t('exchangeDetail.eventDate') }} :</b> {{ exchange.eventDate }}</li>
+          <li v-if="exchange.budget"><b>{{ t('exchangeDetail.budget') }} :</b> {{ exchange.budget }} {{ exchange.budgetCurrency }}</li>
+          <li><b>{{ t('exchangeDetail.createdAt') }} :</b> {{ new Date(exchange.createdAt).toLocaleString() }}</li>
         </ul>
-        <button class="btn btn-warning me-2" @click="startEdit">Modifier</button>
-        <button class="btn btn-danger" @click="handleDelete">Supprimer</button>
+        <button class="btn btn-warning me-2" @click="startEdit">{{ t('exchangeDetail.edit') }}</button>
+        <button class="btn btn-danger" @click="handleDelete">{{ t('exchangeDetail.delete') }}</button>
       </div>
       <div v-if="exchange.participants && exchange.participants.length">
-        <h3>Participants</h3>
-        <button class="btn btn-primary mb-3" @click="openAddParticipantModal">Ajouter un participant</button>
+        <h3>{{ t('exchangeDetail.participants') }}</h3>
+        <button class="btn btn-primary mb-3" @click="openAddParticipantModal">{{ t('exchangeDetail.addParticipant') }}</button>
         <ul class="list-group">
           <li v-for="participant in participants" :key="participant.id" class="list-group-item d-flex justify-content-between align-items-center">
             <div>
               <strong>{{ participant.name }}</strong>
               <span v-if="participant.email" class="text-muted"> ({{ participant.email }})</span>
-              <div v-if="participant.wishlist" class="small">Liste de souhaits: {{ participant.wishlist }}</div>
-              <div v-if="participant.note" class="small">Note: {{ participant.note }}</div>
+              <div v-if="participant.wishlist" class="small">{{ t('exchangeDetail.wishlist') }}: {{ participant.wishlist }}</div>
+              <div v-if="participant.note" class="small">{{ t('exchangeDetail.note') }}: {{ participant.note }}</div>
             </div>
             <div>
-              <button class="btn btn-sm btn-outline-primary me-2" @click="openEditParticipantModal(participant)">Modifier</button>
-              <button class="btn btn-sm btn-outline-danger" @click="deleteParticipant(participant.id)">Supprimer</button>
+              <button class="btn btn-sm btn-outline-primary me-2" @click="openEditParticipantModal(participant)">{{ t('exchangeDetail.edit') }}</button>
+              <button class="btn btn-sm btn-outline-danger" @click="deleteParticipant(participant.id)">{{ t('exchangeDetail.delete') }}</button>
             </div>
           </li>
         </ul>
       </div>
       <div v-else>
-        <h3>Participants</h3>
-        <p><em>Aucun participant pour cet échange.</em></p>
-        <button class="btn btn-primary" @click="openAddParticipantModal">Ajouter un participant</button>
+        <h3>{{ t('exchangeDetail.participants') }}</h3>
+        <p><em>{{ t('exchangeDetail.noParticipants') }}</em></p>
+        <button class="btn btn-primary" @click="openAddParticipantModal">{{ t('exchangeDetail.addParticipant') }}</button>
       </div>
 
       <!-- Modale pour ajouter un participant -->
-      <dialog v-if="showAddParticipantModal" open class="modal">
+      <dialog v-if="showAddParticipantModal" open class="modal" @close="showAddParticipantModal = false">
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Ajouter un participant</h5>
+              <h5 class="modal-title">{{ t('exchangeDetail.addModal.title') }}</h5>
               <button type="button" class="btn-close" @click="showAddParticipantModal = false"></button>
             </div>
             <div class="modal-body">
               <form @submit.prevent="addParticipant">
                 <div class="mb-3">
-                  <label for="participantName" class="form-label">Nom</label>
+                  <label for="participantName" class="form-label">{{ t('exchangeDetail.addModal.name') }}</label>
                   <input v-model="newParticipantName" type="text" class="form-control" id="participantName" required />
                 </div>
                 <div class="mb-3">
-                  <label for="participantEmail" class="form-label">Email</label>
+                  <label for="participantEmail" class="form-label">{{ t('exchangeDetail.addModal.email') }}</label>
                   <input v-model="newParticipantEmail" type="email" class="form-control" id="participantEmail" />
                 </div>
                 <div class="mb-3">
-                  <label for="participantWishlist" class="form-label">Liste de souhaits</label>
+                  <label for="participantWishlist" class="form-label">{{ t('exchangeDetail.addModal.wishlist') }}</label>
                   <textarea v-model="newParticipantWishlist" class="form-control" id="participantWishlist"></textarea>
                 </div>
                 <div class="mb-3">
-                  <label for="participantNote" class="form-label">Note</label>
+                  <label for="participantNote" class="form-label">{{ t('exchangeDetail.addModal.note') }}</label>
                   <textarea v-model="newParticipantNote" class="form-control" id="participantNote"></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary">Ajouter</button>
               </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="showAddParticipantModal = false">{{ t('actions.cancel') }}</button>
+              <button type="submit" class="btn btn-primary" @click="addParticipant">{{ t('exchangeDetail.addModal.submit') }}</button>
             </div>
           </div>
         </div>
       </dialog>
 
       <!-- Modale pour modifier un participant -->
-      <dialog v-if="showEditParticipantModal" open class="modal">
+      <dialog v-if="showEditParticipantModal" open class="modal" @close="showEditParticipantModal = false">
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Modifier le participant</h5>
+              <h5 class="modal-title">{{ t('exchangeDetail.editModal.title') }}</h5>
               <button type="button" class="btn-close" @click="showEditParticipantModal = false"></button>
             </div>
             <div class="modal-body">
               <form @submit.prevent="updateParticipant">
                 <div class="mb-3">
-                  <label for="editParticipantName" class="form-label">Nom</label>
+                  <label for="editParticipantName" class="form-label">{{ t('exchangeDetail.addModal.name') }}</label>
                   <input v-model="newParticipantName" type="text" class="form-control" id="editParticipantName" required />
                 </div>
                 <div class="mb-3">
-                  <label for="editParticipantEmail" class="form-label">Email</label>
+                  <label for="editParticipantEmail" class="form-label">{{ t('exchangeDetail.addModal.email') }}</label>
                   <input v-model="newParticipantEmail" type="email" class="form-control" id="editParticipantEmail" />
                 </div>
                 <div class="mb-3">
-                  <label for="editParticipantWishlist" class="form-label">Liste de souhaits</label>
+                  <label for="editParticipantWishlist" class="form-label">{{ t('exchangeDetail.addModal.wishlist') }}</label>
                   <textarea v-model="newParticipantWishlist" class="form-control" id="editParticipantWishlist"></textarea>
                 </div>
                 <div class="mb-3">
-                  <label for="editParticipantNote" class="form-label">Note</label>
+                  <label for="editParticipantNote" class="form-label">{{ t('exchangeDetail.addModal.note') }}</label>
                   <textarea v-model="newParticipantNote" class="form-control" id="editParticipantNote"></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary">Enregistrer</button>
               </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="showEditParticipantModal = false">{{ t('actions.cancel') }}</button>
+              <button type="submit" class="btn btn-primary" @click="updateParticipant">{{ t('exchangeDetail.editModal.submit') }}</button>
             </div>
           </div>
         </div>
