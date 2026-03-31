@@ -2,7 +2,7 @@
   "name": "@kado/api",
   "private": true,
   "scripts": {
-    "dev": "tsx src/server.ts",
+    "dev": "tsx --watch src/server.ts",
     "build": "tsc --build",
     "lint": "echo \"No lint configured for api yet\"",
     "test": "jest"

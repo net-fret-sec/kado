@@ -63,4 +63,16 @@ export const participantRepository = {
       }
     }
   },
+
+  loadTestData(data: {
+    participants: ParticipantRecord[]
+    participantAccess: ParticipantAccessRecord[]
+  }) {
+    for (const participant of data.participants) {
+      participants.set(participant.id, participant)
+    }
+    for (const access of data.participantAccess) {
+      participantAccess.set(access.id, access)
+    }
+  },
 }

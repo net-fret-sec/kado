@@ -76,4 +76,20 @@ export const exchangeRepository = {
       (session) => session.tokenHash === tokenHash,
     )
   },
+
+  loadTestData(data: {
+    exchanges: ExchangeRecord[]
+    adminAccess: AdminAccessRecord[]
+    adminSessions: AdminSessionRecord[]
+  }) {
+    for (const exchange of data.exchanges) {
+      exchanges.set(exchange.id, exchange)
+    }
+    for (const access of data.adminAccess) {
+      adminAccessByExchangeId.set(access.exchangeId, access)
+    }
+    for (const session of data.adminSessions) {
+      adminSessions.set(session.id, session)
+    }
+  },
 }

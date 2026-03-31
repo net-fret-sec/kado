@@ -1,0 +1,122 @@
+{
+  "exchanges": [
+    {
+      "id": "exc_test1",
+      "name": "Échange de Noël Test",
+      "description": "Un échange de cadeaux pour tester l'API",
+      "organizerName": "Alice",
+      "status": "draft",
+      "eventDate": "2026-12-25",
+      "budget": 50,
+      "budgetCurrency": "EUR",
+      "createdAt": "2026-03-31T10:00:00.000Z",
+      "updatedAt": "2026-03-31T10:00:00.000Z"
+    },
+    {
+      "id": "exc_test2",
+      "name": "Échange Anniversaire",
+      "description": "Célébration d'anniversaire avec échange",
+      "organizerName": "Bob",
+      "status": "ready",
+      "eventDate": "2026-05-15",
+      "budget": 30,
+      "budgetCurrency": "USD",
+      "createdAt": "2026-03-30T15:00:00.000Z",
+      "updatedAt": "2026-03-30T15:00:00.000Z"
+    }
+  ],
+  "participants": [
+    {
+      "id": "par_test1",
+      "exchangeId": "exc_test1",
+      "name": "Charlie",
+      "email": "charlie@example.com",
+      "wishlist": "Livres, gadgets",
+      "note": "Aime les surprises",
+      "status": "active",
+      "createdAt": "2026-03-31T11:00:00.000Z",
+      "updatedAt": "2026-03-31T11:00:00.000Z"
+    },
+    {
+      "id": "par_test2",
+      "exchangeId": "exc_test1",
+      "name": "Diana",
+      "email": "diana@example.com",
+      "wishlist": "Vêtements, parfums",
+      "note": "Préférences écologiques",
+      "status": "active",
+      "createdAt": "2026-03-31T12:00:00.000Z",
+      "updatedAt": "2026-03-31T12:00:00.000Z"
+    },
+    {
+      "id": "par_test3",
+      "exchangeId": "exc_test2",
+      "name": "Eve",
+      "email": "eve@example.com",
+      "wishlist": "Bijoux, accessoires",
+      "note": "Fan de mode",
+      "status": "active",
+      "createdAt": "2026-03-30T16:00:00.000Z",
+      "updatedAt": "2026-03-30T16:00:00.000Z"
+    }
+  ],
+  "adminAccess": [
+    {
+      "exchangeId": "exc_test1",
+      "passwordHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+      "createdAt": "2026-03-31T10:00:00.000Z",
+      "updatedAt": "2026-03-31T10:00:00.000Z"
+    },
+    {
+      "exchangeId": "exc_test2",
+      "passwordHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+      "createdAt": "2026-03-30T15:00:00.000Z",
+      "updatedAt": "2026-03-30T15:00:00.000Z"
+    }
+  ],
+  "adminSessions": [
+    {
+      "id": "ses_test1",
+      "exchangeId": "exc_test1",
+      "tokenHash": "b665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+      "createdAt": "2026-03-31T10:00:00.000Z",
+      "expiresAt": "2027-03-31T10:00:00.000Z"
+    },
+    {
+      "id": "ses_test2",
+      "exchangeId": "exc_test2",
+      "tokenHash": "c665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+      "createdAt": "2026-03-30T15:00:00.000Z",
+      "expiresAt": "2027-03-30T15:00:00.000Z"
+    }
+  ],
+  "participantAccess": [
+    {
+      "id": "acc_test1",
+      "exchangeId": "exc_test1",
+      "participantId": "par_test1",
+      "tokenHash": "d665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+      "tokenPreview": "abc123",
+      "status": "active",
+      "createdAt": "2026-03-31T11:00:00.000Z"
+    },
+    {
+      "id": "acc_test2",
+      "exchangeId": "exc_test1",
+      "participantId": "par_test2",
+      "tokenHash": "e665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+      "tokenPreview": "def456",
+      "status": "active",
+      "createdAt": "2026-03-31T12:00:00.000Z"
+    },
+    {
+      "id": "acc_test3",
+      "exchangeId": "exc_test2",
+      "participantId": "par_test3",
+      "tokenHash": "f665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+      "tokenPreview": "ghi789",
+      "status": "active",
+      "createdAt": "2026-03-30T16:00:00.000Z"
+    }
+  ]
+}
