@@ -1,5 +1,5 @@
-import type { NextFunction, Request, Response } from 'express'
-import { HttpError } from '../lib/http-errors'
+import type { NextFunction, Request, Response } from "express";
+import { HttpError } from "../lib/http-errors";
 
 export function errorHandler(
   error: unknown,
@@ -13,15 +13,15 @@ export function errorHandler(
         message: error.message,
         details: error.details,
       },
-    })
-    return
+    });
+    return;
   }
 
-  console.error(error)
+  console.error(error);
 
   res.status(500).json({
     error: {
-      message: 'Internal server error.',
+      message: "Internal server error.",
     },
-  })
+  });
 }

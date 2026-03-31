@@ -29,10 +29,26 @@ export const participantRepository = {
     return participant
   },
 
+  findById(participantId: string) {
+    return participants.get(participantId)
+  },
+
   findByExchangeId(exchangeId: string) {
     return Array.from(participants.values()).filter(
       (participant) => participant.exchangeId === exchangeId,
     )
+  },
+
+  update(participantId: string, updates: Partial<ParticipantRecord>) {
+    const participant = participants.get(participantId)
+    if (!participant) return null
+    const updated = { ...participant, ...updates, updatedAt: new Date().toISOString() }
+    participants.set(participantId, updated)
+    return updated
+  },
+
+  delete(participantId: string) {
+    return participants.delete(participantId)
   },
 
   createAccess(record: ParticipantAccessRecord) {

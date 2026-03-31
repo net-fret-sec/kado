@@ -2,6 +2,7 @@ import type {
   CreateParticipantInputDto,
   CreateParticipantResultDto,
   ParticipantDto,
+  UpdateParticipantInputDto,
 } from '@kado/shared'
 import { NotFoundError } from '../lib/http-errors'
 import { generateId, generateOpaqueToken, sha256 } from '../lib/crypto'
@@ -55,4 +56,43 @@ export async function createParticipant(
 
 export async function getParticipantsByExchangeId(exchangeId: string) {
   return participantRepository.findByExchangeId(exchangeId)
+}
+
+export async function getParticipantById(participantId: string): Promise<ParticipantDto> {
+  const participant = participantRepository.findById(participantId)
+
+  if (!participant) {
+    throw new NotFoundError('Participant not found.')
+  }
+
+  return participant
+}
+
+export async function updateParticipant(
+  participantId: string,
+  input: UpdateParticipantInputDto,
+): Promise<ParticipantDto> {
+  const participant = participantRepository.findById(participantId)
+
+  if (!participant) {
+    throw new NotFoundError('Participant not found.')
+  }
+
+  const updated = participantRepository.update(participantId, input)
+
+  if (!updated) {
+    throw new NotFoundError('Participant not found.')
+  }
+
+  return updated
+}
+
+export async function deleteParticipant(participantId: string): Promise<void> {
+  const participant = participantRepository.findById(participantId)
+
+  if (!participant) {
+    throw new NotFoundError('Participant not found.')
+  }
+
+  participantRepository.delete(participantId)
 }

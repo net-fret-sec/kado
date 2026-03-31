@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { createExchangeInputSchema, exchangeIdParamSchema } from "@kado/shared";
+import { createExchangeInputSchema, exchangeIdParamSchema, updateExchangeInputSchema } from "@kado/shared";
 import { validateBody, validateParams } from "../middleware/validate";
-import { createExchange, getExchangeById, listExchanges } from "../services/exchange.service";
+import { createExchange, getExchangeById, listExchanges, updateExchange, deleteExchange } from "../services/exchange.service";
 
 const router = Router();
 
@@ -39,9 +39,44 @@ router.get(
       const exchange = await getExchangeById(exchangeId);
       res.status(200).json(exchange);
     } catch (error) {
-      next(error);
+      next(error)
     }
   },
 );
 
-export default router;
+router.put(
+  "/:exchangeId",
+  validateParams(exchangeIdParamSchema),
+  validateBody(updateExchangeInputSchema),
+  async (req, res, next) => {
+    try {
+      const exchangeId = Array.isArray(req.params.exchangeId)
+        ? req.params.exchangeId[0]
+        : req.params.exchangeId;
+
+      const exchange = await updateExchange(exchangeId, req.body);
+      res.status(200).json(exchange);
+    } catch (error) {
+      next(error)
+    }
+  },
+);
+
+router.delete(
+  "/:exchangeId",
+  validateParams(exchangeIdParamSchema),
+  async (req, res, next) => {
+    try {
+      const exchangeId = Array.isArray(req.params.exchangeId)
+        ? req.params.exchangeId[0]
+        : req.params.exchangeId;
+
+      await deleteExchange(exchangeId);
+      res.status(204).send();
+    } catch (error) {
+      next(error)
+    }
+  },
+);
+
+export default router

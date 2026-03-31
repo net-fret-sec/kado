@@ -4,7 +4,13 @@
   "scripts": {
     "dev": "tsx src/server.ts",
     "build": "tsc --build",
-    "lint": "echo \"No lint configured for api yet\""
+    "lint": "echo \"No lint configured for api yet\"",
+    "test": "jest"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": ["<rootDir>/src"]
   },
   "dependencies": {
     "@kado/shared": "workspace:*",
@@ -17,8 +23,13 @@
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.12.0",
+    "@types/supertest": "^7.2.0",
+    "jest": "^30.3.0",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.6",
     "tsx": "^4.21.0",
     "typescript": "~5.9.3"
   }

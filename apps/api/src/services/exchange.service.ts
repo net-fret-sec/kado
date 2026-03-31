@@ -2,6 +2,7 @@ import type {
   CreateExchangeInputDto,
   CreateExchangeResultDto,
   ExchangeDto,
+  UpdateExchangeInputDto,
 } from '@kado/shared'
 import { NotFoundError } from '../lib/http-errors'
 import { exchangeRepository } from '../repositories/exchange.repository'
@@ -61,4 +62,33 @@ export async function getExchangeById(exchangeId: string): Promise<ExchangeDto> 
 
 export async function listExchanges(): Promise<ExchangeDto[]> {
   return exchangeRepository.findAll()
+}
+
+export async function updateExchange(
+  exchangeId: string,
+  input: UpdateExchangeInputDto,
+): Promise<ExchangeDto> {
+  const exchange = exchangeRepository.findById(exchangeId)
+
+  if (!exchange) {
+    throw new NotFoundError('Exchange not found.')
+  }
+
+  const updated = exchangeRepository.update(exchangeId, input)
+
+  if (!updated) {
+    throw new NotFoundError('Exchange not found.')
+  }
+
+  return updated
+}
+
+export async function deleteExchange(exchangeId: string): Promise<void> {
+  const exchange = exchangeRepository.findById(exchangeId)
+
+  if (!exchange) {
+    throw new NotFoundError('Exchange not found.')
+  }
+
+  exchangeRepository.delete(exchangeId)
 }

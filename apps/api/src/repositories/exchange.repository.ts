@@ -45,6 +45,18 @@ export const exchangeRepository = {
     return Array.from(exchanges.values())
   },
 
+  update(exchangeId: string, updates: Partial<ExchangeRecord>) {
+    const exchange = exchanges.get(exchangeId)
+    if (!exchange) return null
+    const updated = { ...exchange, ...updates, updatedAt: new Date().toISOString() }
+    exchanges.set(exchangeId, updated)
+    return updated
+  },
+
+  delete(exchangeId: string) {
+    return exchanges.delete(exchangeId)
+  },
+
   createAdminAccess(record: AdminAccessRecord) {
     adminAccessByExchangeId.set(record.exchangeId, record)
     return record

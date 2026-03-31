@@ -32,9 +32,22 @@ export const createExchangeInputSchema = z.object({
   adminPassword: z.string().min(10).max(256),
 })
 
+export const updateExchangeInputSchema = z.object({
+  name: optionalText(150),
+  description: optionalText(2000),
+  organizerName: optionalText(150),
+  eventDate: emptyStringToUndefined(
+    z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
+  ),
+  budget: z.number().nonnegative().optional(),
+  budgetCurrency: optionalText(3),
+})
+
+
 export const exchangeIdParamSchema = z.object({
   exchangeId: z.string().min(1),
 })
 
 export type CreateExchangeInput = z.infer<typeof createExchangeInputSchema>
 export type ExchangeIdParam = z.infer<typeof exchangeIdParamSchema>
+export type UpdateExchangeInput = z.infer<typeof updateExchangeInputSchema>

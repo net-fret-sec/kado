@@ -20,9 +20,23 @@ export const createParticipantInputSchema = z.object({
   note: optionalText(2000),
 })
 
+export const updateParticipantInputSchema = z.object({
+  name: optionalText(150),
+  email: emptyStringToUndefined(z.email().optional()),
+  wishlist: optionalText(4000),
+  note: optionalText(2000),
+})
+
 export const participantIdParamSchema = z.object({
+  participantId: z.string().min(1),
+})
+
+export const exchangeAndParticipantIdParamSchema = z.object({
+  exchangeId: z.string().min(1),
   participantId: z.string().min(1),
 })
 
 export type CreateParticipantInput = z.infer<typeof createParticipantInputSchema>
 export type ParticipantIdParam = z.infer<typeof participantIdParamSchema>
+export type ExchangeAndParticipantIdParam = z.infer<typeof exchangeAndParticipantIdParamSchema>
+export type UpdateParticipantInput = z.infer<typeof updateParticipantInputSchema>
