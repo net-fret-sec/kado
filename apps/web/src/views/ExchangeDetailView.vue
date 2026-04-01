@@ -3,9 +3,11 @@ import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useExchangesStore } from '@/stores/exchanges'
 import type { ExchangeDto } from '@kado/shared'
-import type { ParticipantDto } from '@kado/shared'
+import type { ParticipantDto, GiftSuggestionDto } from '@kado/shared'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
+import IconPicker from '@/components/IconPicker.vue'
+import Draggable from 'vuedraggable'
 import { useToastsStore } from '@/stores/toasts'
 
 const api = useApi()
@@ -31,6 +33,12 @@ const newParticipantName = ref('')
 const newParticipantEmail = ref('')
 const newParticipantWishlist = ref('')
 const newParticipantNote = ref('')
+const wishlistMode = ref<'text' | 'list'>('text')
+const newParticipantWishlistList = ref<GiftSuggestionDto[]>([])
+
+function isSuggestionList(val: unknown): val is GiftSuggestionDto[] {
+  return Array.isArray(val) && val.every((v) => v && typeof v === 'object' && 'title' in v)
+}
 
 async function copyToClipboard(text: string) {
   try {
@@ -104,6 +112,8 @@ function openAddParticipantModal() {
   newParticipantName.value = ''
   newParticipantEmail.value = ''
   newParticipantWishlist.value = ''
+  newParticipantWishlistList.value = []
+  wishlistMode.value = 'text'
   newParticipantNote.value = ''
   showAddParticipantModal.value = true
 }
@@ -112,7 +122,15 @@ function openEditParticipantModal(participant: ParticipantDto) {
   editingParticipant.value = participant
   newParticipantName.value = participant.name
   newParticipantEmail.value = participant.email || ''
-  newParticipantWishlist.value = participant.wishlist || ''
+  if (isSuggestionList(participant.wishlist)) {
+    wishlistMode.value = 'list'
+    newParticipantWishlistList.value = [...participant.wishlist]
+    newParticipantWishlist.value = ''
+  } else {
+    wishlistMode.value = 'text'
+    newParticipantWishlist.value = participant.wishlist || ''
+    newParticipantWishlistList.value = []
+  }
   newParticipantNote.value = participant.note || ''
   showEditParticipantModal.value = true
 }
@@ -120,10 +138,11 @@ function openEditParticipantModal(participant: ParticipantDto) {
 async function addParticipant() {
   if (!exchange.value) return
   try {
+    const wishlistPayload = wishlistMode.value === 'list' ? newParticipantWishlistList.value : newParticipantWishlist.value
     const result = await api.post<{ participant: ParticipantDto; accessLink: string }>(`/api/exchanges/${exchange.value.id}/participants`, {
       name: newParticipantName.value,
       email: newParticipantEmail.value,
-      wishlist: newParticipantWishlist.value,
+      wishlist: wishlistPayload,
       note: newParticipantNote.value,
     })
     showAddParticipantModal.value = false
@@ -139,10 +158,11 @@ async function addParticipant() {
 async function updateParticipant() {
   if (!editingParticipant.value || !exchange.value) return
   try {
+    const wishlistPayload = wishlistMode.value === 'list' ? newParticipantWishlistList.value : newParticipantWishlist.value
     await api.put(`/api/exchanges/${exchange.value.id}/participants/${editingParticipant.value.id}`, {
       name: newParticipantName.value,
       email: newParticipantEmail.value,
-      wishlist: newParticipantWishlist.value,
+      wishlist: wishlistPayload,
       note: newParticipantNote.value,
     })
     showEditParticipantModal.value = false
@@ -164,6 +184,26 @@ async function deleteParticipant(participantId: string) {
     toasts.error(err instanceof Error ? err.message : 'Erreur lors de la suppression')
   }
 }
+
+// function moveSuggestionUp(idx: number) {
+//   const arr = newParticipantWishlistList.value
+//   if (idx <= 0 || idx >= arr.length) return
+//   const prev = arr[idx - 1]
+//   const curr = arr[idx]
+//   if (!prev || !curr) return
+//   arr[idx - 1] = curr
+//   arr[idx] = prev
+// }
+
+// function moveSuggestionDown(idx: number) {
+//   const arr = newParticipantWishlistList.value
+//   if (idx < 0 || idx >= arr.length - 1) return
+//   const next = arr[idx + 1]
+//   const curr = arr[idx]
+//   if (!next || !curr) return
+//   arr[idx + 1] = curr
+//   arr[idx] = next
+// }
 
 async function regenerateParticipantLink(participantId: string) {
   if (!exchange.value) return
@@ -209,7 +249,15 @@ async function regenerateParticipantLink(participantId: string) {
             <div>
               <strong>{{ participant.name }}</strong>
               <span v-if="participant.email" class="text-muted"> ({{ participant.email }})</span>
-              <div v-if="participant.wishlist" class="small">{{ t('exchangeDetail.wishlist') }}: {{ participant.wishlist }}</div>
+              <div v-if="participant.wishlist" class="small">
+                <span class="me-1">{{ t('exchangeDetail.wishlist') }}:</span>
+                <template v-if="isSuggestionList(participant.wishlist)">
+                  <span class="badge text-bg-light">{{ participant.wishlist.length }} suggestions</span>
+                </template>
+                <template v-else>
+                  <span>{{ participant.wishlist }}</span>
+                </template>
+              </div>
               <div v-if="participant.note" class="small">{{ t('exchangeDetail.note') }}: {{ participant.note }}</div>
             </div>
             <div>
@@ -280,8 +328,49 @@ async function regenerateParticipantLink(participantId: string) {
                   <input v-model="newParticipantEmail" type="email" class="form-control" id="participantEmail" />
                 </div>
                 <div class="mb-3">
-                  <label for="participantWishlist" class="form-label">{{ t('exchangeDetail.addModal.wishlist') }}</label>
-                  <textarea v-model="newParticipantWishlist" class="form-control" id="participantWishlist"></textarea>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <label class="form-label mb-0">{{ t('exchangeDetail.addModal.wishlist') }}</label>
+                    <div class="btn-group btn-group-sm" role="group" aria-label="wishlist mode">
+                      <button type="button" class="btn" :class="wishlistMode === 'text' ? 'btn-primary' : 'btn-outline-primary'" @click="wishlistMode = 'text'">Texte</button>
+                      <button type="button" class="btn" :class="wishlistMode === 'list' ? 'btn-primary' : 'btn-outline-primary'" @click="wishlistMode = 'list'">Liste</button>
+                    </div>
+                  </div>
+                  <div v-if="wishlistMode === 'text'" class="mt-2">
+                    <textarea v-model="newParticipantWishlist" class="form-control" id="participantWishlist"></textarea>
+                  </div>
+                  <div v-else class="mt-2">
+                    <Draggable v-model="newParticipantWishlistList" handle=".drag-handle" :animation="200" ghost-class="drag-ghost">
+                      <template #item="{ element: s, index: idx }">
+                        <div class="list-group-item">
+                          <div class="row g-2 align-items-end">
+                            <div class="col-auto d-flex align-items-center">
+                              <span class="drag-handle me-2" title="Réordonner" style="cursor: grab"><i class="bi bi-grip-vertical"></i></span>
+                            </div>
+                            <div class="col-12 col-md-5">
+                              <label class="form-label">Titre</label>
+                              <input v-model="s.title" type="text" class="form-control" />
+                            </div>
+                            <div class="col-12 col-md-3">
+                              <label class="form-label">Icône</label>
+                              <IconPicker v-model="s.icon" placeholder="ex: gift, heart" />
+                            </div>
+                            <div class="col-12 col-md-4">
+                              <label class="form-label">Image URL</label>
+                              <input v-model="s.imageUrl" type="url" class="form-control" />
+                            </div>
+                            <div class="col-12">
+                              <label class="form-label">Lien</label>
+                              <input v-model="s.linkUrl" type="url" class="form-control" />
+                            </div>
+                            <div class="col-12 d-flex justify-content-end mt-2">
+                              <button type="button" class="btn btn-sm btn-outline-danger" @click="newParticipantWishlistList.splice(idx, 1)"><i class="bi bi-trash"></i></button>
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+                    </Draggable>
+                    <button type="button" class="btn btn-sm btn-outline-primary" @click="newParticipantWishlistList.push({ title: '' })"><i class="bi bi-plus-lg"></i> Ajouter une suggestion</button>
+                  </div>
                 </div>
                 <div class="mb-3">
                   <label for="participantNote" class="form-label">{{ t('exchangeDetail.addModal.note') }}</label>
@@ -316,8 +405,49 @@ async function regenerateParticipantLink(participantId: string) {
                   <input v-model="newParticipantEmail" type="email" class="form-control" id="editParticipantEmail" />
                 </div>
                 <div class="mb-3">
-                  <label for="editParticipantWishlist" class="form-label">{{ t('exchangeDetail.addModal.wishlist') }}</label>
-                  <textarea v-model="newParticipantWishlist" class="form-control" id="editParticipantWishlist"></textarea>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <label class="form-label mb-0">{{ t('exchangeDetail.addModal.wishlist') }}</label>
+                    <div class="btn-group btn-group-sm" role="group" aria-label="wishlist mode">
+                      <button type="button" class="btn" :class="wishlistMode === 'text' ? 'btn-primary' : 'btn-outline-primary'" @click="wishlistMode = 'text'">Texte</button>
+                      <button type="button" class="btn" :class="wishlistMode === 'list' ? 'btn-primary' : 'btn-outline-primary'" @click="wishlistMode = 'list'">Liste</button>
+                    </div>
+                  </div>
+                  <div v-if="wishlistMode === 'text'" class="mt-2">
+                    <textarea v-model="newParticipantWishlist" class="form-control" id="editParticipantWishlist"></textarea>
+                  </div>
+                  <div v-else class="mt-2">
+                    <Draggable v-model="newParticipantWishlistList" handle=".drag-handle" :animation="200" ghost-class="drag-ghost">
+                      <template #item="{ element: s, index: idx }">
+                        <div class="list-group-item">
+                          <div class="row g-2 align-items-end">
+                            <div class="col-auto d-flex align-items-center">
+                              <span class="drag-handle me-2" title="Réordonner" style="cursor: grab"><i class="bi bi-grip-vertical"></i></span>
+                            </div>
+                            <div class="col-12 col-md-5">
+                              <label class="form-label">Titre</label>
+                              <input v-model="s.title" type="text" class="form-control" />
+                            </div>
+                            <div class="col-12 col-md-3">
+                              <label class="form-label">Icône</label>
+                              <IconPicker v-model="s.icon" placeholder="ex: gift, heart" />
+                            </div>
+                            <div class="col-12 col-md-4">
+                              <label class="form-label">Image URL</label>
+                              <input v-model="s.imageUrl" type="url" class="form-control" />
+                            </div>
+                            <div class="col-12">
+                              <label class="form-label">Lien</label>
+                              <input v-model="s.linkUrl" type="url" class="form-control" />
+                            </div>
+                            <div class="col-12 d-flex justify-content-end mt-2">
+                              <button type="button" class="btn btn-sm btn-outline-danger" @click="newParticipantWishlistList.splice(idx, 1)"><i class="bi bi-trash"></i></button>
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+                    </Draggable>
+                    <button type="button" class="btn btn-sm btn-outline-primary" @click="newParticipantWishlistList.push({ title: '' })"><i class="bi bi-plus-lg"></i> Ajouter une suggestion</button>
+                  </div>
                 </div>
                 <div class="mb-3">
                   <label for="editParticipantNote" class="form-label">{{ t('exchangeDetail.addModal.note') }}</label>
@@ -382,5 +512,9 @@ async function regenerateParticipantLink(participantId: string) {
 
 .modal-body {
   padding: 1rem;
+}
+
+.drag-ghost {
+  background-color: rgba(0,0,0,0.03);
 }
 </style>

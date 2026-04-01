@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { exchangeRepository } from './repositories/exchange.repository'
 import { participantRepository } from './repositories/participant.repository'
+import type { GiftSuggestionDto } from '@kado/shared'
 
 interface TestData {
   exchanges: Array<{
@@ -21,7 +22,7 @@ interface TestData {
     exchangeId: string
     name: string
     email?: string
-    wishlist?: string
+    wishlist?: string | GiftSuggestionDto[]
     note?: string
     status: 'active' | 'removed'
     createdAt: string

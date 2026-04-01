@@ -8,6 +8,7 @@ import { i18n, setupI18n } from './i18n'
 
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap'
+import 'bootstrap-icons/font/bootstrap-icons.css'
 
 async function bootstrap() {
   const app = createApp(App)
