@@ -18,6 +18,7 @@ interface ParticipantAccessRecord {
   tokenPreview: string
   status: 'active' | 'revoked'
   createdAt: string
+  lastAccessedAt?: string
 }
 
 const participants = new Map<string, ParticipantRecord>()
@@ -54,6 +55,23 @@ export const participantRepository = {
   createAccess(record: ParticipantAccessRecord) {
     participantAccess.set(record.id, record)
     return record
+  },
+
+  findActiveAccessByTokenHash(tokenHash: string) {
+    for (const access of participantAccess.values()) {
+      if (access.tokenHash === tokenHash && access.status === 'active') {
+        return access
+      }
+    }
+    return undefined
+  },
+
+  touchAccess(accessId: string) {
+    const rec = participantAccess.get(accessId)
+    if (rec) {
+      rec.lastAccessedAt = new Date().toISOString()
+      participantAccess.set(accessId, rec)
+    }
   },
 
   revokeActiveAccessForParticipant(participantId: string) {

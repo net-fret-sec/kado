@@ -78,4 +78,16 @@
     "confirmDeleteExchange": "Delete this exchange?",
     "confirmDeleteParticipant": "Delete this participant?"
   }
+  ,
+  "participant": {
+    "loading": "Loading...",
+    "yourInfo": "Your information",
+    "name": "Name",
+    "wishlist": "Wishlist",
+    "note": "Note",
+    "yourRecipient": "Your recipient",
+    "recipientName": "Name",
+    "recipientWishlist": "Their wishlist",
+    "recipientNote": "Their note"
+  }
 }

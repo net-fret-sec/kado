@@ -120,7 +120,7 @@ function openEditParticipantModal(participant: ParticipantDto) {
 async function addParticipant() {
   if (!exchange.value) return
   try {
-    const result = await api.post<{ participant: ParticipantDto; accessLink: string }, any>(`/api/exchanges/${exchange.value.id}/participants`, {
+    const result = await api.post<{ participant: ParticipantDto; accessLink: string }>(`/api/exchanges/${exchange.value.id}/participants`, {
       name: newParticipantName.value,
       email: newParticipantEmail.value,
       wishlist: newParticipantWishlist.value,

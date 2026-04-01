@@ -6,6 +6,7 @@ import morgan from "morgan"
 import healthRoutes from "./routes/health.routes"
 import exchangesRoutes from "./routes/exchanges.routes"
 import participantsRoutes from "./routes/participants.routes"
+import publicRoutes from './routes/public.routes'
 import { errorHandler } from "./middleware/error-handler"
 
 export function createApp() {
@@ -17,6 +18,7 @@ export function createApp() {
   app.use(express.json())
 
   app.use("/health", healthRoutes)
+  app.use('/api', publicRoutes)
   app.use("/api/exchanges", exchangesRoutes)
   app.use("/api/exchanges", participantsRoutes)
 

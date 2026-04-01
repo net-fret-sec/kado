@@ -129,3 +129,44 @@ export async function regenerateParticipantAccess(
     accessLink: `${PUBLIC_BASE_URL}/p/${rawToken}`,
   }
 }
+
+export async function getParticipantSelfViewByToken(
+  rawToken: string,
+): Promise<import('@kado/shared').ParticipantSelfViewDto> {
+  const tokenHash = sha256(rawToken)
+  const access = participantRepository.findActiveAccessByTokenHash(tokenHash)
+  if (!access) {
+    throw new NotFoundError('Invalid or expired link.')
+  }
+
+  const participant = participantRepository.findById(access.participantId)
+  if (!participant) {
+    throw new NotFoundError('Participant not found.')
+  }
+
+  const exchange = exchangeRepository.findById(access.exchangeId)
+  if (!exchange) {
+    throw new NotFoundError('Exchange not found.')
+  }
+
+  participantRepository.touchAccess(access.id)
+
+  return {
+    exchange: {
+      id: exchange.id,
+      name: exchange.name,
+      description: exchange.description,
+      status: exchange.status,
+      eventDate: exchange.eventDate,
+      budget: exchange.budget,
+      budgetCurrency: exchange.budgetCurrency,
+    },
+    participant: {
+      id: participant.id,
+      name: participant.name,
+      wishlist: participant.wishlist,
+      note: participant.note,
+    },
+    assignment: undefined,
+  }
+}

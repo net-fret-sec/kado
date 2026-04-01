@@ -78,4 +78,16 @@
     "confirmDeleteExchange": "Supprimer cet échange ?",
     "confirmDeleteParticipant": "Supprimer ce participant ?"
   }
+  ,
+  "participant": {
+    "loading": "Chargement...",
+    "yourInfo": "Vos informations",
+    "name": "Nom",
+    "wishlist": "Liste de souhaits",
+    "note": "Note",
+    "yourRecipient": "Votre personne assignée",
+    "recipientName": "Nom",
+    "recipientWishlist": "Sa liste de souhaits",
+    "recipientNote": "Sa note"
+  }
 }
