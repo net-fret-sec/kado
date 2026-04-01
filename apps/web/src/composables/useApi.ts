@@ -1,0 +1,89 @@
+// TypeScript composable to centralize API calls
+const BASE = (import.meta.env.VITE_API_BASE ?? 'http://localhost:3000') as string
+
+function buildUrl(path: string) {
+  if (path.startsWith('http://') || path.startsWith('https://')) return path
+  const cleaned = path.startsWith('/') ? path : `/${path}`
+  return `${BASE}${cleaned}`
+}
+
+type ErrorLike = { error?: { message?: unknown }; message?: unknown }
+
+function extractMessage(data: unknown): string | undefined {
+  if (typeof data === 'string') return data
+  if (data && typeof data === 'object') {
+    const e = data as ErrorLike
+    if (typeof e.error?.message === 'string') return e.error.message as string
+    if (typeof e.message === 'string') return e.message as string
+  }
+  return undefined
+}
+
+class HttpError extends Error {
+  status: number
+  data: unknown
+  constructor(message: string, status: number, data: unknown) {
+    super(message)
+    this.name = 'HttpError'
+    this.status = status
+    this.data = data
+  }
+}
+
+async function parseResponse<T = unknown>(response: Response): Promise<T> {
+  const text = await response.text()
+  let data: unknown = null
+  try {
+    data = text ? JSON.parse(text) : null
+  } catch {
+    // response not JSON
+    data = text
+  }
+
+  if (!response.ok) {
+    const msg = extractMessage(data) ?? response.statusText
+    throw new HttpError(msg, response.status, data)
+  }
+
+  return data as T
+}
+
+function normalizeHeaders(input?: HeadersInit): Headers {
+  return new Headers(input)
+}
+
+async function request<T = unknown, B = unknown>(
+  method: string,
+  path: string,
+  body?: B,
+  init?: RequestInit,
+): Promise<T> {
+  const url = buildUrl(path)
+  const headers = normalizeHeaders(init?.headers)
+  headers.set('Accept', 'application/json')
+
+  const opts: RequestInit = {
+    method,
+    ...init,
+    headers,
+  }
+
+  if (body !== undefined && !(body instanceof FormData)) {
+    if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
+    opts.body = typeof body === 'string' ? body : JSON.stringify(body)
+  } else if (body instanceof FormData) {
+    opts.body = body
+  }
+
+  const response = await fetch(url, opts)
+  return await parseResponse<T>(response)
+}
+
+export function useApi() {
+  return {
+    get: <T = unknown>(path: string, init?: RequestInit) => request<T>('GET', path, undefined, init),
+    post: <T = unknown, B = unknown>(path: string, body?: B, init?: RequestInit) => request<T, B>('POST', path, body, init),
+    put: <T = unknown, B = unknown>(path: string, body?: B, init?: RequestInit) => request<T, B>('PUT', path, body, init),
+    delete: <T = unknown>(path: string, init?: RequestInit) => request<T>('DELETE', path, undefined, init),
+  }
+}

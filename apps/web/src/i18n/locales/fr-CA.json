@@ -1,7 +1,8 @@
 {
   "app": {
     "title": "Kado",
-    "tagline": "Échanges de cadeaux simples"
+    "tagline": "Échanges de cadeaux simples",
+    "description": "Kado est une application d'échange de cadeaux qui facilite la création et la gestion d'échanges de cadeaux pour les groupes d'amis, les familles ou les collègues. Créez un échange, invitez des participants, et laissez Kado faire le reste !"
   },
   "nav": {
     "home": "Accueil",
@@ -54,6 +55,10 @@
     "noParticipants": "Aucun participant pour cet échange.",
     "wishlist": "Liste de souhaits",
     "note": "Note",
+    "generateLink": "Lien magique",
+    "linkCopied": "Lien copié dans le presse-papier",
+    "copyFailed": "Échec de la copie du lien",
+    "generateFailed": "Échec de la génération du lien",
     "addModal": {
       "title": "Ajouter un participant",
       "name": "Nom",
@@ -64,6 +69,10 @@
     },
     "editModal": {
       "title": "Modifier le participant",
+      "submit": "Enregistrer"
+    },
+    "editExchangeModal": {
+      "title": "Modifier l'échange",
       "submit": "Enregistrer"
     },
     "confirmDeleteExchange": "Supprimer cet échange ?",

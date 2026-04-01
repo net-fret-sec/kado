@@ -9,7 +9,8 @@ import { generateId, generateOpaqueToken, sha256 } from '../lib/crypto'
 import { exchangeRepository } from '../repositories/exchange.repository'
 import { participantRepository } from '../repositories/participant.repository'
 
-const PUBLIC_BASE_URL = 'http://localhost:5173'
+const PUBLIC_BASE_URL =
+  process.env.PUBLIC_BASE_URL || process.env.FRONTEND_BASE_URL || 'http://localhost:5173'
 
 export async function createParticipant(
   exchangeId: string,
@@ -95,4 +96,36 @@ export async function deleteParticipant(participantId: string): Promise<void> {
   }
 
   participantRepository.delete(participantId)
+}
+
+export async function regenerateParticipantAccess(
+  participantId: string,
+  revokeExisting: boolean = true,
+): Promise<{ participantId: string; accessLink: string }> {
+  const participant = participantRepository.findById(participantId)
+  if (!participant) {
+    throw new NotFoundError('Participant not found.')
+  }
+
+  const now = new Date().toISOString()
+  const rawToken = generateOpaqueToken('p')
+
+  if (revokeExisting) {
+    participantRepository.revokeActiveAccessForParticipant(participantId)
+  }
+
+  participantRepository.createAccess({
+    id: generateId('pacc'),
+    exchangeId: participant.exchangeId,
+    participantId: participant.id,
+    tokenHash: sha256(rawToken),
+    tokenPreview: `${rawToken.slice(0, 6)}…${rawToken.slice(-4)}`,
+    status: 'active',
+    createdAt: now,
+  })
+
+  return {
+    participantId: participant.id,
+    accessLink: `${PUBLIC_BASE_URL}/p/${rawToken}`,
+  }
 }

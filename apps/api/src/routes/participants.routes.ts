@@ -5,6 +5,7 @@ import {
   exchangeIdParamSchema,
   exchangeAndParticipantIdParamSchema,
   updateParticipantInputSchema,
+  regenerateParticipantAccessInputSchema,
 } from '@kado/shared'
 import { validateBody, validateParams } from '../middleware/validate'
 import {
@@ -13,6 +14,7 @@ import {
   getParticipantById,
   updateParticipant,
   deleteParticipant,
+  regenerateParticipantAccess,
 } from '../services/participant.service'
 
 const router = Router()
@@ -82,6 +84,27 @@ router.delete(
     try {
       await deleteParticipant(req.params.participantId)
       res.status(204).send()
+    } catch (error) {
+      next(error)
+    }
+  },
+)
+
+router.post(
+  '/:exchangeId/participants/:participantId/access/regenerate',
+  validateParams(exchangeAndParticipantIdParamSchema),
+  validateBody(regenerateParticipantAccessInputSchema),
+  async (
+    req: Request<{ exchangeId: string; participantId: string }, any, { revokeExisting?: boolean }>,
+    res,
+    next,
+  ) => {
+    try {
+      const result = await regenerateParticipantAccess(
+        req.params.participantId,
+        req.body?.revokeExisting ?? true,
+      )
+      res.status(201).json(result)
     } catch (error) {
       next(error)
     }

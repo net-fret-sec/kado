@@ -27,6 +27,10 @@ export const updateParticipantInputSchema = z.object({
   note: optionalText(2000),
 })
 
+export const regenerateParticipantAccessInputSchema = z.object({
+  revokeExisting: z.boolean().optional().default(true),
+})
+
 export const participantIdParamSchema = z.object({
   participantId: z.string().min(1),
 })
@@ -40,3 +44,4 @@ export type CreateParticipantInput = z.infer<typeof createParticipantInputSchema
 export type ParticipantIdParam = z.infer<typeof participantIdParamSchema>
 export type ExchangeAndParticipantIdParam = z.infer<typeof exchangeAndParticipantIdParamSchema>
 export type UpdateParticipantInput = z.infer<typeof updateParticipantInputSchema>
+export type RegenerateParticipantAccessInput = z.infer<typeof regenerateParticipantAccessInputSchema>

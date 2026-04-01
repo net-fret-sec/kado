@@ -5,6 +5,11 @@ import { useExchangesStore } from '@/stores/exchanges'
 import type { ExchangeDto } from '@kado/shared'
 import type { ParticipantDto } from '@kado/shared'
 import { useI18n } from 'vue-i18n'
+import { useApi } from '@/composables/useApi'
+import { useToastsStore } from '@/stores/toasts'
+
+const api = useApi()
+const toasts = useToastsStore()
 
 const { t } = useI18n()
 const route = useRoute()
@@ -13,10 +18,10 @@ const exchange = ref<ExchangeDto | null>(null)
 const participants = ref<ParticipantDto[]>([])
 const isLoading = ref(true)
 const error = ref<string | null>(null)
-const isEditing = ref(false)
 const editName = ref('')
 const editDescription = ref('')
 const editStatus = ref('active')
+const showEditExchangeModal = ref(false)
 
 // Pour les participants
 const showAddParticipantModal = ref(false)
@@ -27,21 +32,25 @@ const newParticipantEmail = ref('')
 const newParticipantWishlist = ref('')
 const newParticipantNote = ref('')
 
+async function copyToClipboard(text: string) {
+  try {
+    await navigator.clipboard.writeText(text)
+    toasts.success(t('exchangeDetail.linkCopied'))
+  } catch {
+    toasts.error(t('exchangeDetail.copyFailed'))
+  }
+}
+
 async function fetchExchange() {
   isLoading.value = true
   error.value = null
   try {
     const id = route.params.id as string
-    const response = await fetch(`http://localhost:3000/api/exchanges/${id}`)
-    if (!response.ok) throw new Error('Exchange introuvable')
-    exchange.value = await response.json()
-    // Fetch participants
-    const participantsResponse = await fetch(`http://localhost:3000/api/exchanges/${id}/participants`)
-    if (participantsResponse.ok) {
-      participants.value = await participantsResponse.json()
-    }
+    exchange.value = await api.get<ExchangeDto>(`/api/exchanges/${id}`)
+    participants.value = await api.get<ParticipantDto[]>(`/api/exchanges/${id}/participants`)
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Erreur inconnue'
+    toasts.error(error.value || 'Erreur inconnue')
   } finally {
     isLoading.value = false
   }
@@ -57,10 +66,10 @@ onMounted(() => {
 
 function startEdit() {
   if (!exchange.value) return
-  isEditing.value = true
   editName.value = exchange.value.name
   editDescription.value = exchange.value.description || ''
   editStatus.value = exchange.value.status || 'active'
+  showEditExchangeModal.value = true
 }
 
 async function saveEdit() {
@@ -70,10 +79,11 @@ async function saveEdit() {
       name: editName.value,
       description: editDescription.value
     })
-    isEditing.value = false
+    showEditExchangeModal.value = false
     await fetchExchange()
   } catch (err) {
     console.error(err)
+    toasts.error(err instanceof Error ? err.message : 'Erreur lors de l\'ajout')
   }
 }
 
@@ -85,6 +95,7 @@ async function handleDelete() {
     window.location.href = '/exchanges'
   } catch (err) {
     console.error(err)
+    toasts.error(err instanceof Error ? err.message : 'Erreur lors de la modification')
   }
 }
 
@@ -109,18 +120,16 @@ function openEditParticipantModal(participant: ParticipantDto) {
 async function addParticipant() {
   if (!exchange.value) return
   try {
-    const response = await fetch(`http://localhost:3000/api/exchanges/${exchange.value.id}/participants`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: newParticipantName.value,
-        email: newParticipantEmail.value,
-        wishlist: newParticipantWishlist.value,
-        note: newParticipantNote.value,
-      }),
+    const result = await api.post<{ participant: ParticipantDto; accessLink: string }, any>(`/api/exchanges/${exchange.value.id}/participants`, {
+      name: newParticipantName.value,
+      email: newParticipantEmail.value,
+      wishlist: newParticipantWishlist.value,
+      note: newParticipantNote.value,
     })
-    if (!response.ok) throw new Error('Erreur lors de l\'ajout')
     showAddParticipantModal.value = false
+    if (result?.accessLink) {
+      await copyToClipboard(result.accessLink)
+    }
     await fetchExchange()
   } catch (err) {
     console.error(err)
@@ -130,17 +139,12 @@ async function addParticipant() {
 async function updateParticipant() {
   if (!editingParticipant.value || !exchange.value) return
   try {
-    const response = await fetch(`http://localhost:3000/api/exchanges/${exchange.value.id}/participants/${editingParticipant.value.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: newParticipantName.value,
-        email: newParticipantEmail.value,
-        wishlist: newParticipantWishlist.value,
-        note: newParticipantNote.value,
-      }),
+    await api.put(`/api/exchanges/${exchange.value.id}/participants/${editingParticipant.value.id}`, {
+      name: newParticipantName.value,
+      email: newParticipantEmail.value,
+      wishlist: newParticipantWishlist.value,
+      note: newParticipantNote.value,
     })
-    if (!response.ok) throw new Error('Erreur lors de la modification')
     showEditParticipantModal.value = false
     editingParticipant.value = null
     await fetchExchange()
@@ -153,13 +157,28 @@ async function deleteParticipant(participantId: string) {
   if (!exchange.value) return
   if (!confirm(t('exchangeDetail.confirmDeleteParticipant'))) return
   try {
-    const response = await fetch(`http://localhost:3000/api/exchanges/${exchange.value.id}/participants/${participantId}`, {
-      method: 'DELETE',
-    })
-    if (!response.ok) throw new Error('Erreur lors de la suppression')
+    await api.delete(`/api/exchanges/${exchange.value.id}/participants/${participantId}`)
     await fetchExchange()
   } catch (err) {
     console.error(err)
+    toasts.error(err instanceof Error ? err.message : 'Erreur lors de la suppression')
+  }
+}
+
+async function regenerateParticipantLink(participantId: string) {
+  if (!exchange.value) return
+  try {
+    const payload = { revokeExisting: true }
+    const result = await api.post<{ participantId: string; accessLink: string }, typeof payload>(
+      `/api/exchanges/${exchange.value.id}/participants/${participantId}/access/regenerate`,
+      payload,
+    )
+    if (result?.accessLink) {
+      await copyToClipboard(result.accessLink)
+    }
+  } catch (err) {
+    console.error(err)
+    toasts.error(err instanceof Error ? err.message : t('exchangeDetail.generateFailed'))
   }
 }
 </script>
@@ -169,26 +188,7 @@ async function deleteParticipant(participantId: string) {
     <div v-if="isLoading">{{ t('exchangeDetail.loading') }}</div>
     <div v-else-if="error">{{ error }}</div>
     <div v-else-if="exchange">
-      <div v-if="isEditing">
-        <h2>{{ t('exchangeDetail.editExchange') }}</h2>
-        <form @submit.prevent="saveEdit" class="mb-3">
-          <div class="mb-2">
-            <input v-model="editName" type="text" :placeholder="t('exchangeDetail.name')" class="form-control" required />
-          </div>
-          <div class="mb-2">
-            <input v-model="editDescription" type="text" :placeholder="t('exchangeDetail.description')" class="form-control" />
-          </div>
-          <div class="mb-2">
-            <select v-model="editStatus" class="form-select">
-              <option value="active">{{ t('exchangeDetail.active') }}</option>
-              <option value="inactive">{{ t('exchangeDetail.inactive') }}</option>
-            </select>
-          </div>
-          <button type="submit" class="btn btn-success">{{ t('exchangeDetail.save') }}</button>
-          <button type="button" class="btn btn-secondary ms-2" @click="isEditing = false">{{ t('exchangeDetail.cancel') }}</button>
-        </form>
-      </div>
-      <div v-else>
+      <div>
         <h2>{{ exchange.name }}</h2>
         <p>{{ exchange.description }}</p>
         <ul>
@@ -214,6 +214,7 @@ async function deleteParticipant(participantId: string) {
             </div>
             <div>
               <button class="btn btn-sm btn-outline-primary me-2" @click="openEditParticipantModal(participant)">{{ t('exchangeDetail.edit') }}</button>
+              <button class="btn btn-sm btn-outline-secondary me-2" @click="regenerateParticipantLink(participant.id)">{{ t('exchangeDetail.generateLink') }}</button>
               <button class="btn btn-sm btn-outline-danger" @click="deleteParticipant(participant.id)">{{ t('exchangeDetail.delete') }}</button>
             </div>
           </li>
@@ -224,6 +225,41 @@ async function deleteParticipant(participantId: string) {
         <p><em>{{ t('exchangeDetail.noParticipants') }}</em></p>
         <button class="btn btn-primary" @click="openAddParticipantModal">{{ t('exchangeDetail.addParticipant') }}</button>
       </div>
+
+      <!-- Modale pour modifier l'échange -->
+      <dialog v-if="showEditExchangeModal" open class="modal" @close="showEditExchangeModal = false">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">{{ t('exchangeDetail.editExchangeModal.title') }}</h5>
+              <button type="button" class="btn-close" @click="showEditExchangeModal = false"></button>
+            </div>
+            <div class="modal-body">
+              <form @submit.prevent="saveEdit">
+                <div class="mb-3">
+                  <label for="editExchangeName" class="form-label">{{ t('exchangeDetail.name') }}</label>
+                  <input v-model="editName" type="text" class="form-control" id="editExchangeName" required />
+                </div>
+                <div class="mb-3">
+                  <label for="editExchangeDescription" class="form-label">{{ t('exchangeDetail.description') }}</label>
+                  <input v-model="editDescription" type="text" class="form-control" id="editExchangeDescription" />
+                </div>
+                <div class="mb-3">
+                  <label for="editExchangeStatus" class="form-label">{{ t('exchangeDetail.status') }}</label>
+                  <select v-model="editStatus" class="form-select" id="editExchangeStatus">
+                    <option value="active">{{ t('exchangeDetail.active') }}</option>
+                    <option value="inactive">{{ t('exchangeDetail.inactive') }}</option>
+                  </select>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="showEditExchangeModal = false">{{ t('actions.cancel') }}</button>
+              <button type="submit" class="btn btn-primary" @click="saveEdit">{{ t('exchangeDetail.editExchangeModal.submit') }}</button>
+            </div>
+          </div>
+        </div>
+      </dialog>
 
       <!-- Modale pour ajouter un participant -->
       <dialog v-if="showAddParticipantModal" open class="modal" @close="showAddParticipantModal = false">

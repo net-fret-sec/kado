@@ -1,7 +1,8 @@
 {
   "app": {
     "title": "Kado",
-    "tagline": "Secret present exchanges made simple"
+    "tagline": "Secret present exchanges made simple",
+    "description": "Kado is a secret present exchange app that makes it easy to create and manage gift exchanges for groups of friends, families, or colleagues. Create an exchange, invite participants, and let Kado do the rest!"
   },
   "nav": {
     "home": "Home",
@@ -54,6 +55,10 @@
     "noParticipants": "No participants for this exchange.",
     "wishlist": "Wishlist",
     "note": "Note",
+    "generateLink": "Magic link",
+    "linkCopied": "Link copied to clipboard",
+    "copyFailed": "Failed to copy link",
+    "generateFailed": "Failed to generate link",
     "addModal": {
       "title": "Add Participant",
       "name": "Name",
@@ -64,6 +69,10 @@
     },
     "editModal": {
       "title": "Edit Participant",
+      "submit": "Save"
+    },
+    "editExchangeModal": {
+      "title": "Edit Exchange",
       "submit": "Save"
     },
     "confirmDeleteExchange": "Delete this exchange?",
