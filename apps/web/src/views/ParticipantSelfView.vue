@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { useApi } from '@/composables/useApi'
 import type { ParticipantSelfViewDto, GiftSuggestionDto } from '@kado/shared'
 import { useI18n } from 'vue-i18n'
+import WishlistSuggestionItem from '@/components/WishlistSuggestionItem.vue'
 
 const { t } = useI18n()
 const api = useApi()
@@ -49,25 +50,8 @@ onMounted(fetchSelf)
             <strong class="d-block mb-1">{{ t('participant.wishlist') }}:</strong>
             <template v-if="isSuggestionList(view.participant.wishlist)">
               <ol class="list-group list-group-numbered">
-                <li
-                  class="list-group-item d-flex align-items-center"
-                  v-for="(s, idx) in view.participant.wishlist"
-                  :key="idx"
-                >
-                  <img
-                    v-if="s.imageUrl"
-                    class="rounded me-2 flex-shrink-0"
-                    :src="s.imageUrl"
-                    :alt="s.title"
-                    width="40"
-                    height="40"
-                    style="object-fit: cover;"
-                  />
-                  <i v-else-if="s.icon" class="me-2 bi" :class="`bi-${s.icon}`" aria-hidden="true"></i>
-                  <span class="flex-grow-1">
-                    <a v-if="s.linkUrl" :href="s.linkUrl" target="_blank" rel="noopener noreferrer">{{ s.title }}</a>
-                    <span v-else>{{ s.title }}</span>
-                  </span>
+                <li class="list-group-item" v-for="(s, idx) in view.participant.wishlist" :key="idx">
+                  <WishlistSuggestionItem :modelValue="s" mode="detail" />
                 </li>
               </ol>
             </template>
@@ -89,25 +73,8 @@ onMounted(fetchSelf)
             <strong class="d-block mb-1">{{ t('participant.recipientWishlist') }}:</strong>
             <template v-if="isSuggestionList(view.assignment?.receiverWishlist)">
               <ol class="list-group list-group-numbered">
-                <li
-                  class="list-group-item d-flex align-items-center"
-                  v-for="(s, idx) in (view.assignment?.receiverWishlist as GiftSuggestionDto[])"
-                  :key="idx"
-                >
-                  <img
-                    v-if="s.imageUrl"
-                    class="rounded me-2 flex-shrink-0"
-                    :src="s.imageUrl"
-                    :alt="s.title"
-                    width="40"
-                    height="40"
-                    style="object-fit: cover;"
-                  />
-                  <i v-else-if="s.icon" class="me-2 bi" :class="`bi-${s.icon}`" aria-hidden="true"></i>
-                  <span class="flex-grow-1">
-                    <a v-if="s.linkUrl" :href="s.linkUrl" target="_blank" rel="noopener noreferrer">{{ s.title }}</a>
-                    <span v-else>{{ s.title }}</span>
-                  </span>
+                <li class="list-group-item" v-for="(s, idx) in (view.assignment?.receiverWishlist as GiftSuggestionDto[])" :key="idx">
+                  <WishlistSuggestionItem :modelValue="s" mode="detail" />
                 </li>
               </ol>
             </template>
