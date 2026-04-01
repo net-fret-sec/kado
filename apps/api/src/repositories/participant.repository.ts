@@ -1,9 +1,11 @@
+import type { GiftSuggestionDto } from '@kado/shared'
+
 interface ParticipantRecord {
   id: string
   exchangeId: string
   name: string
   email?: string
-  wishlist?: string
+  wishlist?: string | GiftSuggestionDto[]
   note?: string
   status: 'active' | 'removed'
   createdAt: string

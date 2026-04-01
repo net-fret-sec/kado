@@ -2,6 +2,13 @@
 
 import type { ExchangeDto } from "../exchange/exchange.dto";
 
+export interface GiftSuggestionDto {
+  title: string;
+  imageUrl?: string;
+  icon?: string; // bootstrap-icons name, optional
+  linkUrl?: string;
+}
+
 export type ParticipantStatus = "active" | "removed";
 
 export interface ParticipantDto {
@@ -9,7 +16,8 @@ export interface ParticipantDto {
   exchangeId: string;
   name: string;
   email?: string;
-  wishlist?: string;
+  // Transition: can be legacy free-text or structured list
+  wishlist?: string | GiftSuggestionDto[];
   note?: string;
   status: ParticipantStatus;
   createdAt: string;
@@ -19,14 +27,16 @@ export interface ParticipantDto {
 export interface CreateParticipantInputDto {
   name: string;
   email?: string;
-  wishlist?: string;
+  // Accept legacy free-text or structured list
+  wishlist?: string | GiftSuggestionDto[];
   note?: string;
 }
 
 export interface UpdateParticipantInputDto {
   name?: string;
   email?: string;
-  wishlist?: string;
+  // Accept legacy free-text or structured list
+  wishlist?: string | GiftSuggestionDto[];
   note?: string;
 }
 
@@ -47,7 +57,8 @@ export interface RegenerateParticipantAccessResultDto {
 
 export interface ParticipantAssignmentDto {
   receiverName: string;
-  receiverWishlist?: string;
+  // May be free-text or structured list
+  receiverWishlist?: string | GiftSuggestionDto[];
   receiverNote?: string;
 }
 

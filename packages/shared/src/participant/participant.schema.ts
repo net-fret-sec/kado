@@ -13,17 +13,33 @@ const optionalText = (max: number) =>
     z.string().trim().min(1).max(max).optional()
   )
 
+const optionalUrl = () =>
+  emptyStringToUndefined(z.string().url().optional())
+
+export const giftSuggestionSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  imageUrl: optionalUrl(),
+  icon: emptyStringToUndefined(z.string().trim().min(1).max(50).optional()),
+  linkUrl: optionalUrl(),
+})
+
+const optionalGiftSuggestionList = emptyStringToUndefined(
+  z.array(giftSuggestionSchema).min(1).max(100).optional(),
+)
+
 export const createParticipantInputSchema = z.object({
   name: z.string().trim().min(1).max(150),
   email: emptyStringToUndefined(z.email().optional()),
-  wishlist: optionalText(4000),
+  // Transition: accept either legacy free-text or structured list
+  wishlist: z.union([optionalText(4000), optionalGiftSuggestionList]).optional(),
   note: optionalText(2000),
 })
 
 export const updateParticipantInputSchema = z.object({
   name: optionalText(150),
   email: emptyStringToUndefined(z.email().optional()),
-  wishlist: optionalText(4000),
+  // Transition: accept either legacy free-text or structured list
+  wishlist: z.union([optionalText(4000), optionalGiftSuggestionList]).optional(),
   note: optionalText(2000),
 })
 
@@ -45,3 +61,4 @@ export type ParticipantIdParam = z.infer<typeof participantIdParamSchema>
 export type ExchangeAndParticipantIdParam = z.infer<typeof exchangeAndParticipantIdParamSchema>
 export type UpdateParticipantInput = z.infer<typeof updateParticipantInputSchema>
 export type RegenerateParticipantAccessInput = z.infer<typeof regenerateParticipantAccessInputSchema>
+export type GiftSuggestion = z.infer<typeof giftSuggestionSchema>
