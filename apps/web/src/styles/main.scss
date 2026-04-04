@@ -7,6 +7,7 @@
   $font-family-base: vars.$font-family-base,
   $headings-font-family: vars.$headings-font-family,
   $font-size-base: vars.$font-size-base,
+  $line-height-base: vars.$line-height-base,
   $headings-margin-bottom: vars.$headings-margin-bottom,
   $border-radius: vars.$border-radius,
   $border-radius-lg: vars.$border-radius-lg,
@@ -22,16 +23,117 @@
 );
 @use "./_custom-overrides";
 
-/* Optional: expose a simple dark theme class using CSS variables */
+/* Typography and spacing scale tuned for readability across viewports */
 :root {
+  --font-body: "Source Sans 3", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --step--1: clamp(0.88rem, 0.84rem + 0.12vw, 0.95rem);
+  --step-0: clamp(1.02rem, 0.98rem + 0.2vw, 1.14rem);
+  --step-1: clamp(1.22rem, 1.1rem + 0.42vw, 1.42rem);
+  --step-2: clamp(1.46rem, 1.26rem + 0.72vw, 1.84rem);
+  --step-3: clamp(1.8rem, 1.44rem + 1.1vw, 2.36rem);
+  --step-4: clamp(2.2rem, 1.66rem + 1.72vw, 3.08rem);
+  --space-2xs: 0.375rem;
+  --space-xs: 0.625rem;
+  --space-sm: 0.875rem;
+  --space-md: 1.25rem;
+  --space-lg: 1.75rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 3.5rem;
+  --content-max: 72ch;
   --bs-body-bg: #F8FAFC;
   --bs-body-color: #0F172A;
 }
 
+html {
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.65;
+}
+
+h1,
+h2,
+h3,
+h4,
+.h1,
+.h2,
+.h3,
+.h4 {
+  font-family: var(--font-body);
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+}
+
+h1,
+.h1 {
+  font-size: var(--step-4);
+  margin-block-end: var(--space-sm);
+}
+
+h2,
+.h2 {
+  font-size: var(--step-3);
+  margin-block-end: var(--space-xs);
+}
+
+h3,
+.h3 {
+  font-size: var(--step-2);
+  margin-block-end: var(--space-xs);
+}
+
+p,
+li,
+.lead {
+  max-inline-size: var(--content-max);
+}
+
+p,
+ul,
+ol,
+.lead {
+  margin-block-end: var(--space-md);
+}
+
+main > * + * {
+  margin-block-start: var(--space-xl);
+}
+
+.app-shell {
+  padding-block: var(--space-lg) var(--space-2xl);
+}
+
+.app-header {
+  padding: var(--space-md);
+  margin-block-end: var(--space-lg);
+}
+
+.app-main {
+  padding-block: var(--space-sm) var(--space-xl);
+}
+
+.card,
+.list-group-item,
+.modal-content {
+  border-radius: 0.75rem;
+}
+
+.btn {
+  padding: 0.56rem 1rem;
+  font-weight: 600;
+}
+
+/* Optional: expose a simple dark theme class using CSS variables */
 .theme-dark {
   --bs-body-bg: #0B1220;
   --bs-body-color: #E6EEF8;
-  body { background: var(--bs-body-bg); color: var(--bs-body-color); }
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
   .card { background-color: #0F1724; box-shadow: 0 6px 18px rgba(2,6,23,0.45); }
   .btn.btn-primary { box-shadow: 0 6px 18px rgba(79,70,229,0.14); }
 }

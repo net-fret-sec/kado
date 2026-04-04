@@ -7,18 +7,18 @@ const { t } = useI18n()
 </script>
 
 <template>
-<div class="container py-4">
+<div class="container app-shell">
 
-  <div class="d-flex justify-content-between align-items-center mb-4  bg-light rounded-3 p-3">
+  <header class="app-header d-flex justify-content-between align-items-center bg-light rounded-3">
     <div>
       <h1 class="mb-2"><a href="/">{{ t('app.title') }}</a></h1>
       <p class="lead mb-0">{{ t('app.tagline') }}</p>
     </div>
 
     <LanguageSwitcher />
-  </div>
+  </header>
 
-  <main class="container py-4">
+  <main class="app-main">
     <router-view />
   </main>
 
