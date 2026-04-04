@@ -1,0 +1,18 @@
+// main.scss - importer vos variables avant Bootstrap
+@import "./_bootstrap-variables.scss";
+@import "bootstrap/scss/bootstrap";
+@import "./_custom-overrides.scss";
+
+/* Optional: expose a simple dark theme class using CSS variables */
+:root {
+  --bs-body-bg: #F8FAFC;
+  --bs-body-color: #0F172A;
+}
+
+.theme-dark {
+  --bs-body-bg: #0B1220;
+  --bs-body-color: #E6EEF8;
+  body { background: var(--bs-body-bg); color: var(--bs-body-color); }
+  .card { background-color: #0F1724; box-shadow: 0 6px 18px rgba(2,6,23,0.45); }
+  .btn.btn-primary { box-shadow: 0 6px 18px rgba(79,70,229,0.14); }
+}

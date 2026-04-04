@@ -6,7 +6,7 @@ import App from './App.vue'
 import router from './router'
 import { i18n, setupI18n } from './i18n'
 
-import 'bootstrap/dist/css/bootstrap.min.css'
+import './styles/main.scss'
 import 'bootstrap'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 

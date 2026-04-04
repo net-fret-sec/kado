@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useExchangesStore } from '@/stores/exchanges'
 import type { ExchangeDto } from '@kado/shared'
@@ -39,6 +39,39 @@ const newParticipantWishlistList = ref<GiftSuggestionDto[]>([])
 function isSuggestionList(val: unknown): val is GiftSuggestionDto[] {
   return Array.isArray(val) && val.every((v) => v && typeof v === 'object' && 'title' in v)
 }
+
+function isValidUrl(u?: string | null) {
+  if (!u) return true
+  try {
+    const parsed = new URL(u)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+function isValidSuggestion(s: GiftSuggestionDto) {
+  const titleOk = !!s?.title && s.title.trim().length > 0
+  const imgOk = isValidUrl(s?.imageUrl)
+  const linkOk = isValidUrl(s?.linkUrl)
+  return titleOk && imgOk && linkOk
+}
+
+const isListModeValid = computed(() => {
+  if (wishlistMode.value !== 'list') return true
+  if (!newParticipantWishlistList.value || newParticipantWishlistList.value.length === 0) return false
+  return newParticipantWishlistList.value.every(isValidSuggestion)
+})
+
+const isAddFormValid = computed(() => {
+  const nameOk = newParticipantName.value.trim().length > 0
+  return nameOk && isListModeValid.value
+})
+
+const isEditFormValid = computed(() => {
+  const nameOk = newParticipantName.value.trim().length > 0
+  return nameOk && isListModeValid.value
+})
 
 async function copyToClipboard(text: string) {
   try {
@@ -365,7 +398,7 @@ async function regenerateParticipantLink(participantId: string) {
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" @click="showAddParticipantModal = false">{{ t('actions.cancel') }}</button>
-              <button type="submit" class="btn btn-primary" @click="addParticipant">{{ t('exchangeDetail.addModal.submit') }}</button>
+              <button type="submit" class="btn btn-primary" :disabled="!isAddFormValid" @click="addParticipant">{{ t('exchangeDetail.addModal.submit') }}</button>
             </div>
           </div>
         </div>
@@ -424,7 +457,7 @@ async function regenerateParticipantLink(participantId: string) {
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" @click="showEditParticipantModal = false">{{ t('actions.cancel') }}</button>
-            <button type="submit" class="btn btn-primary" @click="updateParticipant">{{ t('exchangeDetail.editModal.submit') }}</button>
+              <button type="submit" class="btn btn-primary" :disabled="!isEditFormValid" @click="updateParticipant">{{ t('exchangeDetail.editModal.submit') }}</button>
           </div>
         </div>
       </dialog>
