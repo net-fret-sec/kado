@@ -31,14 +31,8 @@ const showEditParticipantModal = ref(false)
 const editingParticipant = ref<ParticipantDto | null>(null)
 const newParticipantName = ref('')
 const newParticipantEmail = ref('')
-const newParticipantWishlist = ref('')
 const newParticipantNote = ref('')
-const wishlistMode = ref<'text' | 'list'>('text')
 const newParticipantWishlistList = ref<GiftSuggestionDto[]>([])
-
-function isSuggestionList(val: unknown): val is GiftSuggestionDto[] {
-  return Array.isArray(val) && val.every((v) => v && typeof v === 'object' && 'title' in v)
-}
 
 function isValidUrl(u?: string | null) {
   if (!u) return true
@@ -58,7 +52,6 @@ function isValidSuggestion(s: GiftSuggestionDto) {
 }
 
 const isListModeValid = computed(() => {
-  if (wishlistMode.value !== 'list') return true
   if (!newParticipantWishlistList.value || newParticipantWishlistList.value.length === 0) return false
   return newParticipantWishlistList.value.every(isValidSuggestion)
 })
@@ -144,9 +137,7 @@ async function handleDelete() {
 function openAddParticipantModal() {
   newParticipantName.value = ''
   newParticipantEmail.value = ''
-  newParticipantWishlist.value = ''
   newParticipantWishlistList.value = []
-  wishlistMode.value = 'text'
   newParticipantNote.value = ''
   showAddParticipantModal.value = true
 }
@@ -155,15 +146,7 @@ function openEditParticipantModal(participant: ParticipantDto) {
   editingParticipant.value = participant
   newParticipantName.value = participant.name
   newParticipantEmail.value = participant.email || ''
-  if (isSuggestionList(participant.wishlist)) {
-    wishlistMode.value = 'list'
-    newParticipantWishlistList.value = [...participant.wishlist]
-    newParticipantWishlist.value = ''
-  } else {
-    wishlistMode.value = 'text'
-    newParticipantWishlist.value = participant.wishlist || ''
-    newParticipantWishlistList.value = []
-  }
+  newParticipantWishlistList.value = [...(participant.wishlist || [])]
   newParticipantNote.value = participant.note || ''
   showEditParticipantModal.value = true
 }
@@ -171,11 +154,10 @@ function openEditParticipantModal(participant: ParticipantDto) {
 async function addParticipant() {
   if (!exchange.value) return
   try {
-    const wishlistPayload = wishlistMode.value === 'list' ? newParticipantWishlistList.value : newParticipantWishlist.value
     const result = await api.post<{ participant: ParticipantDto; accessLink: string }>(`/api/exchanges/${exchange.value.id}/participants`, {
       name: newParticipantName.value,
       email: newParticipantEmail.value,
-      wishlist: wishlistPayload,
+      wishlist: newParticipantWishlistList.value,
       note: newParticipantNote.value,
     })
     showAddParticipantModal.value = false
@@ -191,11 +173,10 @@ async function addParticipant() {
 async function updateParticipant() {
   if (!editingParticipant.value || !exchange.value) return
   try {
-    const wishlistPayload = wishlistMode.value === 'list' ? newParticipantWishlistList.value : newParticipantWishlist.value
     await api.put(`/api/exchanges/${exchange.value.id}/participants/${editingParticipant.value.id}`, {
       name: newParticipantName.value,
       email: newParticipantEmail.value,
-      wishlist: wishlistPayload,
+      wishlist: newParticipantWishlistList.value,
       note: newParticipantNote.value,
     })
     showEditParticipantModal.value = false
@@ -284,14 +265,9 @@ async function regenerateParticipantLink(participantId: string) {
             <div>
               <strong>{{ participant.name }}</strong>
               <span v-if="participant.email" class="text-muted"> ({{ participant.email }})</span>
-              <div v-if="participant.wishlist" class="small">
+              <div v-if="participant.wishlist?.length" class="small">
                 <span class="me-1">{{ t('exchangeDetail.wishlist') }}:</span>
-                <template v-if="isSuggestionList(participant.wishlist)">
-                  <span class="badge text-bg-light">{{ participant.wishlist.length }} suggestions</span>
-                </template>
-                <template v-else>
-                  <span>{{ participant.wishlist }}</span>
-                </template>
+                <span class="badge text-bg-light">{{ participant.wishlist.length }} suggestions</span>
               </div>
               <div v-if="participant.note" class="small">{{ t('exchangeDetail.note') }}: {{ participant.note }}</div>
             </div>
@@ -363,17 +339,8 @@ async function regenerateParticipantLink(participantId: string) {
                   <input v-model="newParticipantEmail" type="email" class="form-control" id="participantEmail" />
                 </div>
                 <div class="mb-3">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <label class="form-label mb-0">{{ t('exchangeDetail.addModal.wishlist') }}</label>
-                    <div class="btn-group btn-group-sm" role="group" aria-label="wishlist mode">
-                      <button type="button" class="btn" :class="wishlistMode === 'text' ? 'btn-primary' : 'btn-outline-primary'" @click="wishlistMode = 'text'">Texte</button>
-                      <button type="button" class="btn" :class="wishlistMode === 'list' ? 'btn-primary' : 'btn-outline-primary'" @click="wishlistMode = 'list'">Liste</button>
-                    </div>
-                  </div>
-                  <div v-if="wishlistMode === 'text'" class="mt-2">
-                    <textarea v-model="newParticipantWishlist" class="form-control" id="participantWishlist"></textarea>
-                  </div>
-                  <div v-else class="mt-2">
+                  <label class="form-label mb-0">{{ t('exchangeDetail.addModal.wishlist') }}</label>
+                  <div class="mt-2">
                     <Draggable v-model="newParticipantWishlistList" handle=".drag-handle" :animation="200" ghost-class="drag-ghost">
                       <template #item="{ element: s, index: idx }">
                         <WishlistSuggestionItem
@@ -422,17 +389,8 @@ async function regenerateParticipantLink(participantId: string) {
                 <input v-model="newParticipantEmail" type="email" class="form-control" id="editParticipantEmail" />
               </div>
               <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center">
-                  <label class="form-label mb-0">{{ t('exchangeDetail.addModal.wishlist') }}</label>
-                  <div class="btn-group btn-group-sm" role="group" aria-label="wishlist mode">
-                    <button type="button" class="btn" :class="wishlistMode === 'text' ? 'btn-primary' : 'btn-outline-primary'" @click="wishlistMode = 'text'">Texte</button>
-                    <button type="button" class="btn" :class="wishlistMode === 'list' ? 'btn-primary' : 'btn-outline-primary'" @click="wishlistMode = 'list'">Liste</button>
-                  </div>
-                </div>
-                <div v-if="wishlistMode === 'text'" class="mt-2">
-                  <textarea v-model="newParticipantWishlist" class="form-control" id="editParticipantWishlist"></textarea>
-                </div>
-                <div v-else class="mt-2">
+                <label class="form-label mb-0">{{ t('exchangeDetail.addModal.wishlist') }}</label>
+                <div class="mt-2">
                   <Draggable v-model="newParticipantWishlistList" handle=".drag-handle" :animation="200" ghost-class="drag-ghost">
                     <template #item="{ element: s, index: idx }">
                       <WishlistSuggestionItem

@@ -5,8 +5,7 @@ export interface Participant {
   name: string
   email?: string
 
-  // Transition: accept legacy free-text or structured list
-  wishlist?: string | {
+  wishlist?: {
     title: string
     imageUrl?: string
     icon?: string

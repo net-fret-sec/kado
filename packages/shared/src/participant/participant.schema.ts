@@ -30,16 +30,14 @@ const optionalGiftSuggestionList = emptyStringToUndefined(
 export const createParticipantInputSchema = z.object({
   name: z.string().trim().min(1).max(150),
   email: emptyStringToUndefined(z.email().optional()),
-  // Transition: accept either legacy free-text or structured list
-  wishlist: z.union([optionalText(4000), optionalGiftSuggestionList]).optional(),
+  wishlist: optionalGiftSuggestionList,
   note: optionalText(2000),
 })
 
 export const updateParticipantInputSchema = z.object({
   name: optionalText(150),
   email: emptyStringToUndefined(z.email().optional()),
-  // Transition: accept either legacy free-text or structured list
-  wishlist: z.union([optionalText(4000), optionalGiftSuggestionList]).optional(),
+  wishlist: optionalGiftSuggestionList,
   note: optionalText(2000),
 })
 

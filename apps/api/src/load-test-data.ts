@@ -22,7 +22,7 @@ interface TestData {
     exchangeId: string
     name: string
     email?: string
-    wishlist?: string | GiftSuggestionDto[]
+    wishlist?: GiftSuggestionDto[]
     note?: string
     status: 'active' | 'removed'
     createdAt: string

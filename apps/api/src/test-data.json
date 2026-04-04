@@ -31,7 +31,14 @@
       "exchangeId": "exc_test1",
       "name": "Alice",
       "email": "alice@example.com",
-      "wishlist": "Livres, musique",
+      "wishlist": [
+        {
+          "title": "Livres"
+        },
+        {
+          "title": "Musique"
+        }
+      ],
       "note": "Organisatrice",
       "status": "active",
       "createdAt": "2026-03-31T10:30:00.000Z",
@@ -42,7 +49,14 @@
       "exchangeId": "exc_test2",
       "name": "Bob",
       "email": "bob@example.com",
-      "wishlist": "Électronique, sports",
+      "wishlist": [
+        {
+          "title": "Électronique"
+        },
+        {
+          "title": "Sports"
+        }
+      ],
       "note": "Organisateur",
       "status": "active",
       "createdAt": "2026-03-30T15:30:00.000Z",
@@ -74,7 +88,14 @@
       "exchangeId": "exc_test1",
       "name": "Diana",
       "email": "diana@example.com",
-      "wishlist": "Vêtements, parfums",
+      "wishlist": [
+        {
+          "title": "Vêtements"
+        },
+        {
+          "title": "Parfums"
+        }
+      ],
       "note": "Préférences écologiques",
       "status": "active",
       "createdAt": "2026-03-31T12:00:00.000Z",
@@ -85,7 +106,14 @@
       "exchangeId": "exc_test2",
       "name": "Eve",
       "email": "eve@example.com",
-      "wishlist": "Bijoux, accessoires",
+      "wishlist": [
+        {
+          "title": "Bijoux"
+        },
+        {
+          "title": "Accessoires"
+        }
+      ],
       "note": "Fan de mode",
       "status": "active",
       "createdAt": "2026-03-30T16:00:00.000Z",

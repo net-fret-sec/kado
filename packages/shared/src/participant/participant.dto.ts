@@ -16,8 +16,7 @@ export interface ParticipantDto {
   exchangeId: string;
   name: string;
   email?: string;
-  // Transition: can be legacy free-text or structured list
-  wishlist?: string | GiftSuggestionDto[];
+  wishlist?: GiftSuggestionDto[];
   note?: string;
   status: ParticipantStatus;
   createdAt: string;
@@ -27,16 +26,14 @@ export interface ParticipantDto {
 export interface CreateParticipantInputDto {
   name: string;
   email?: string;
-  // Accept legacy free-text or structured list
-  wishlist?: string | GiftSuggestionDto[];
+  wishlist?: GiftSuggestionDto[];
   note?: string;
 }
 
 export interface UpdateParticipantInputDto {
   name?: string;
   email?: string;
-  // Accept legacy free-text or structured list
-  wishlist?: string | GiftSuggestionDto[];
+  wishlist?: GiftSuggestionDto[];
   note?: string;
 }
 
@@ -57,8 +54,7 @@ export interface RegenerateParticipantAccessResultDto {
 
 export interface ParticipantAssignmentDto {
   receiverName: string;
-  // May be free-text or structured list
-  receiverWishlist?: string | GiftSuggestionDto[];
+  receiverWishlist?: GiftSuggestionDto[];
   receiverNote?: string;
 }
 

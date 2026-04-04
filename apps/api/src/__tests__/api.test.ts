@@ -86,12 +86,12 @@ describe('API Tests', () => {
         .put(`/api/exchanges/${participantExchangeId}/participants/${participantId}`)
         .send({
           name: 'Updated Participant',
-          wishlist: 'Updated wishlist'
+          wishlist: [{ title: 'Updated wishlist' }]
         })
         .expect(200)
 
       expect(response.body.name).toBe('Updated Participant')
-      expect(response.body.wishlist).toBe('Updated wishlist')
+      expect(response.body.wishlist).toEqual([{ title: 'Updated wishlist' }])
     })
 
     it('should delete a participant', async () => {
