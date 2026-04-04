@@ -1,3 +1,5 @@
+@use "sass:color";
+
 // _bootstrap-variables.scss
 // Tokens — palette & typographie
 $primary: #4F46E5;
@@ -23,7 +25,6 @@ $theme-colors: (
 
 $body-bg: #F8FAFC;
 $body-color: #0F172A;
-$base-line-height: 1.5;
 
 $font-family-sans-serif: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 $font-family-base: $font-family-sans-serif;
@@ -45,6 +46,6 @@ $input-padding-x: .75rem;
 $input-border-radius: .5rem;
 $input-border-color: rgba(15,23,42,.16);
 
-$form-focus-box-shadow: 0 0 0 .15rem rgba($primary, .18);
+$form-focus-box-shadow: 0 0 0 .15rem color.change($primary, $alpha: .18);
 
 $enable-reduced-motion: true;

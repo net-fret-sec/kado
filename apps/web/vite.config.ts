@@ -16,7 +16,7 @@ export default defineConfig({
         name: 'Kado',
         short_name: 'kado',
         description: 'Gestion de piges de cadeaux',
-        theme_color: '#0d6efd',
+        theme_color: '#4F46E5',
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '/',
@@ -41,6 +41,13 @@ export default defineConfig({
       },
     }),
   ],
+  css: {
+    preprocessorOptions: {
+      scss: {
+        quietDeps: true,
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

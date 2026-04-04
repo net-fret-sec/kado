@@ -1,7 +1,26 @@
 // main.scss - importer vos variables avant Bootstrap
-@import "./_bootstrap-variables.scss";
-@import "bootstrap/scss/bootstrap";
-@import "./_custom-overrides.scss";
+@use "./_bootstrap-variables" as vars;
+@use "bootstrap/scss/bootstrap" with (
+  $theme-colors: vars.$theme-colors,
+  $body-bg: vars.$body-bg,
+  $body-color: vars.$body-color,
+  $font-family-base: vars.$font-family-base,
+  $headings-font-family: vars.$headings-font-family,
+  $font-size-base: vars.$font-size-base,
+  $headings-margin-bottom: vars.$headings-margin-bottom,
+  $border-radius: vars.$border-radius,
+  $border-radius-lg: vars.$border-radius-lg,
+  $btn-border-radius: vars.$btn-border-radius,
+  $enable-gradients: vars.$enable-gradients,
+  $enable-shadows: vars.$enable-shadows,
+  $spacer: vars.$spacer,
+  $input-padding-y: vars.$input-padding-y,
+  $input-padding-x: vars.$input-padding-x,
+  $input-border-radius: vars.$input-border-radius,
+  $input-border-color: vars.$input-border-color,
+  $enable-reduced-motion: vars.$enable-reduced-motion
+);
+@use "./_custom-overrides";
 
 /* Optional: expose a simple dark theme class using CSS variables */
 :root {
