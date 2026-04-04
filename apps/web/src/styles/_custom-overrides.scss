@@ -10,7 +10,7 @@
 
   &.btn-primary {
     border: none;
-    border-radius: 999px;
+    border-radius: vars.$border-radius;
     background-color: vars.$primary;
     color: #fff;
     box-shadow: 0 6px 18px color.change(vars.$primary, $alpha: .12);
@@ -32,7 +32,7 @@
 
   &.btn-accent {
     border: none;
-    border-radius: 999px;
+    border-radius: vars.$border-radius;
     background-color: vars.$accent;
     color: #0F1724;
     box-shadow: 0 6px 18px color.change(vars.$accent, $alpha: .12);
@@ -60,7 +60,7 @@
 // Card — elevation soft, borderless by default
 .card {
   border: none;
-  border-radius: vars.$border-radius-lg;
+  border-radius: vars.$border-radius;
   background-color: #fff;
   box-shadow: 0 6px 18px rgba(2,6,23,0.06);
 

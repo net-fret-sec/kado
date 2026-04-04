@@ -27,6 +27,8 @@ Ce dossier contient la base de customisation Bootstrap de l'application web.
 ## Regles de style
 
 - Eviter les gradients sur les boutons primaires si cela degrade le contraste.
+- Appliquer un radius unique et modere (`0.5rem`) pour boutons, cartes et champs.
+- Eviter les formes `pill` (coins totalement arrondis) sauf exigence fonctionnelle explicite.
 - Conserver un focus ring visible (`:focus-visible`) sur les elements interactifs.
 - Eviter `!important` sauf cas exceptionnel documente.
 - Garder les transitions courtes et discretes (environ 120ms a 180ms).

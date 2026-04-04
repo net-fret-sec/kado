@@ -33,9 +33,11 @@ $headings-font-family: $font-family-sans-serif;
 $font-size-base: 1rem;
 $headings-margin-bottom: .5rem;
 
+// Radius policy: one consistent, moderate radius across interactive surfaces.
+$radius-base: .5rem;
 $border-radius: .5rem;
-$border-radius-lg: .75rem;
-$btn-border-radius: .75rem;
+$border-radius-lg: $radius-base;
+$btn-border-radius: $radius-base;
 $enable-gradients: false;
 $enable-shadows: true;
 
@@ -43,7 +45,7 @@ $spacer: 1rem;
 
 $input-padding-y: .5rem;
 $input-padding-x: .75rem;
-$input-border-radius: .5rem;
+$input-border-radius: $radius-base;
 $input-border-color: rgba(15,23,42,.16);
 
 $form-focus-box-shadow: 0 0 0 .15rem color.change($primary, $alpha: .18);
