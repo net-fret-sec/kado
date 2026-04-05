@@ -5,7 +5,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <div class="home-view">
+  <section class="home-view py-4">
 
     <!-- Hero -->
     <section class="text-center py-4 mb-4 content-center">
@@ -93,5 +93,5 @@ const { t } = useI18n()
       </router-link>
     </div>
 
-  </div>
+  </section>
 </template>

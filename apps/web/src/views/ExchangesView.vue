@@ -95,7 +95,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="container py-4">
+  <section class="py-4">
     <h1>{{ t('exchanges.title') }}</h1>
 
     <button class="btn btn-primary mb-3" @click="openCreateModal">{{ t('exchanges.createExchange') }}</button>
@@ -199,5 +199,5 @@ onMounted(() => {
         </div>
       </div>
     </dialog>
-  </main>
+  </section>
 </template>

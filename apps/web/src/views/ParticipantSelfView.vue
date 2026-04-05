@@ -114,7 +114,7 @@ onMounted(fetchSelf)
 </script>
 
 <template>
-  <main class="container py-4">
+  <section class="py-4">
     <div v-if="isLoading">{{ t('participant.loading') }}</div>
     <div v-else-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-else-if="view">
@@ -221,6 +221,6 @@ onMounted(fetchSelf)
         </div>
       </section>
     </div>
-  </main>
+  </section>
 
 </template>

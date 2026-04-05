@@ -379,7 +379,7 @@ async function cancelDraw() {
 </script>
 
 <template>
-  <main class="container py-4">
+  <section class="py-4">
     <div v-if="isLoading">{{ t('exchangeDetail.loading') }}</div>
     <div v-else-if="error">{{ error }}</div>
     <div v-else-if="exchange">
@@ -602,5 +602,5 @@ async function cancelDraw() {
         </div>
       </dialog>
     </div>
-  </main>
+  </section>
 </template>
