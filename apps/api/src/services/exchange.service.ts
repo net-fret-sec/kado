@@ -187,3 +187,28 @@ export async function drawExchange(exchangeId: string): Promise<ExchangeDto> {
 
   return updated
 }
+
+export async function cancelExchangeDraw(exchangeId: string): Promise<ExchangeDto> {
+  const exchange = exchangeRepository.findById(exchangeId)
+
+  if (!exchange) {
+    throw new NotFoundError('Exchange not found.')
+  }
+
+  if (exchange.status === 'archived') {
+    throw new BadRequestError('Archived exchanges cannot be modified.')
+  }
+
+  assignmentRepository.deleteByExchangeId(exchangeId)
+
+  const updated = exchangeRepository.update(exchangeId, {
+    status: 'ready',
+    drawAt: undefined,
+  })
+
+  if (!updated) {
+    throw new NotFoundError('Exchange not found.')
+  }
+
+  return updated
+}

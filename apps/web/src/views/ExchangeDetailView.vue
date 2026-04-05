@@ -24,6 +24,7 @@ const editName = ref('')
 const editDescription = ref('')
 const editStatus = ref('active')
 const showEditExchangeModal = ref(false)
+const isDrawActionLoading = ref(false)
 
 // Pour les participants
 const showAddParticipantModal = ref(false)
@@ -73,6 +74,16 @@ const isAddFormValid = computed(() => {
 const isEditFormValid = computed(() => {
   const nameOk = newParticipantName.value.trim().length > 0
   return nameOk && isListModeValid.value
+})
+
+const canTriggerDraw = computed(() => {
+  if (!exchange.value) return false
+  return exchange.value.status === 'draft' || exchange.value.status === 'ready'
+})
+
+const canCancelDraw = computed(() => {
+  if (!exchange.value) return false
+  return exchange.value.status === 'drawn'
 })
 
 function legacyCopy(text: string) {
@@ -305,6 +316,36 @@ async function regenerateParticipantLink(participantId: string) {
     toasts.error(err instanceof Error ? err.message : t('exchangeDetail.generateFailed'))
   }
 }
+
+async function triggerDraw() {
+  if (!exchange.value || !canTriggerDraw.value || isDrawActionLoading.value) return
+
+  isDrawActionLoading.value = true
+  try {
+    await api.post(`/api/exchanges/${exchange.value.id}/draw`)
+    toasts.success(t('exchangeDetail.drawSuccess'))
+    await fetchExchange()
+  } catch (err) {
+    toasts.error(err instanceof Error ? err.message : t('exchangeDetail.drawFailed'))
+  } finally {
+    isDrawActionLoading.value = false
+  }
+}
+
+async function cancelDraw() {
+  if (!exchange.value || !canCancelDraw.value || isDrawActionLoading.value) return
+
+  isDrawActionLoading.value = true
+  try {
+    await api.post(`/api/exchanges/${exchange.value.id}/draw/cancel`)
+    toasts.success(t('exchangeDetail.cancelDrawSuccess'))
+    await fetchExchange()
+  } catch (err) {
+    toasts.error(err instanceof Error ? err.message : t('exchangeDetail.cancelDrawFailed'))
+  } finally {
+    isDrawActionLoading.value = false
+  }
+}
 </script>
 
 <template>
@@ -323,6 +364,20 @@ async function regenerateParticipantLink(participantId: string) {
           <li><b>{{ t('exchangeDetail.createdAt') }} :</b> {{ new Date(exchange.createdAt).toLocaleString() }}</li>
         </ul>
         <button class="btn btn-warning me-2" @click="startEdit">{{ t('exchangeDetail.edit') }}</button>
+        <button
+          class="btn btn-success me-2"
+          :disabled="!canTriggerDraw || isDrawActionLoading"
+          @click="triggerDraw"
+        >
+          {{ t('exchangeDetail.triggerDraw') }}
+        </button>
+        <button
+          class="btn btn-outline-warning me-2"
+          :disabled="!canCancelDraw || isDrawActionLoading"
+          @click="cancelDraw"
+        >
+          {{ t('exchangeDetail.cancelDraw') }}
+        </button>
         <button class="btn btn-danger" @click="handleDelete">{{ t('exchangeDetail.delete') }}</button>
       </div>
       <div v-if="exchange.participants && exchange.participants.length">

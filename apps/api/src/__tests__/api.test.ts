@@ -228,5 +228,21 @@ describe('API Tests', () => {
 
       expect(response.body.error.message).toMatch(/at least 2 active participants/i)
     })
+
+    it('should cancel draw and reopen exchange state', async () => {
+      const cancelResponse = await request(app)
+        .post(`/api/exchanges/${drawExchangeId}/draw/cancel`)
+        .expect(200)
+
+      expect(cancelResponse.body.status).toBe('ready')
+      expect(cancelResponse.body.drawAt).toBeFalsy()
+
+      const selfViewResponse = await request(app)
+        .get(`/api/p/${drawParticipantToken}`)
+        .expect(200)
+
+      expect(selfViewResponse.body.exchange.status).toBe('ready')
+      expect(selfViewResponse.body.assignment).toBeFalsy()
+    })
   })
 })
