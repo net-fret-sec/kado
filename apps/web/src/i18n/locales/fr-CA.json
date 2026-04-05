@@ -17,13 +17,47 @@
     "en": "English"
   },
   "home": {
-    "viewExchanges": "Voir les échanges"
+    "viewExchanges": "Voir les échanges",
+    "hero": {
+      "intro": "Kado est un outil libre et gratuit pour organiser des échanges de cadeaux — la « pige » — entre amis, en famille ou entre collègues.",
+      "principles": "Aucun compte requis. Aucune publicité. Aucun traçage. Juste l'essentiel."
+    },
+    "features": {
+      "openSource": "Code source ouvert",
+      "openSourceDesc": "Kado est un logiciel libre. Inspectez-le, modifiez-le ou hébergez-le vous-même.",
+      "anonymous": "Anonymat par défaut",
+      "anonymousDesc": "Aucune information identifiante n'est requise. Participez sous le nom de votre choix.",
+      "noAds": "Sans pub ni traçage",
+      "noAdsDesc": "Aucun cookie de traçage, aucune régie publicitaire, aucune revente de données."
+    },
+    "cta": {
+      "organizerTitle": "Je veux créer une pige",
+      "organizerDesc": "Créez un échange, ajoutez les participants et lancez le tirage au sort. Chaque participant recevra un lien unique à partager via le moyen de communication de votre choix.",
+      "organizerAction": "Créer une pige",
+      "participantTitle": "J'ai reçu un lien pour participer",
+      "participantDesc": "L'organisateur vous a transmis un lien unique — par courriel, texto ou autre. Utilisez ce lien directement : aucun compte, aucun mot de passe requis.",
+      "participantHint": "Vous n'avez pas reçu de lien ? Contactez la personne qui organise la pige."
+    },
+    "adminLink": "Accès administrateur (développement)"
   },
   "exchanges": {
     "title": "Échanges",
     "createExchange": "Créer un échange",
     "loading": "Chargement...",
     "status": "Statut",
+    "statusValues": {
+      "draft": "Brouillon",
+      "ready": "Prête",
+      "drawn": "Pigée",
+      "archived": "Archivée"
+    },
+    "empty": "Aucun échange pour le moment.",
+    "noDescription": "Aucune description.",
+    "organizer": "Organisateur",
+    "participantsCount": "Participants",
+    "eventDate": "Date de l'événement",
+    "budget": "Budget",
+    "updatedAt": "Mis à jour",
     "createModal": {
       "title": "Créer un échange",
       "name": "Nom de l'échange",

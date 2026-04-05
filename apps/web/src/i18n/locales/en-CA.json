@@ -17,13 +17,47 @@
     "en": "English"
   },
   "home": {
-    "viewExchanges": "View Exchanges"
+    "viewExchanges": "View Exchanges",
+    "hero": {
+      "intro": "Kado is a free, open-source tool for organizing secret gift exchanges among friends, family, or colleagues.",
+      "principles": "No account required. No ads. No tracking. Just what you need."
+    },
+    "features": {
+      "openSource": "Open source",
+      "openSourceDesc": "Kado is free software. Inspect it, modify it, or self-host it.",
+      "anonymous": "Anonymous by default",
+      "anonymousDesc": "No identifying information required. Participate under any name you choose.",
+      "noAds": "No ads, no tracking",
+      "noAdsDesc": "No tracking cookies, no ad networks, no data reselling."
+    },
+    "cta": {
+      "organizerTitle": "I want to organize a gift draw",
+      "organizerDesc": "Create an exchange, add participants, and run the draw. Each participant will receive a unique link to share via the communication channel of your choice.",
+      "organizerAction": "Create a draw",
+      "participantTitle": "I received a link to participate",
+      "participantDesc": "The organizer sent you a unique link — by email, text, or otherwise. Use that link directly: no account, no password required.",
+      "participantHint": "Didn't receive a link? Contact the person organizing the draw."
+    },
+    "adminLink": "Administrator access (development)"
   },
   "exchanges": {
     "title": "Exchanges",
     "createExchange": "Create Exchange",
     "loading": "Loading...",
     "status": "Status",
+    "statusValues": {
+      "draft": "Draft",
+      "ready": "Ready",
+      "drawn": "Drawn",
+      "archived": "Archived"
+    },
+    "empty": "No exchanges yet.",
+    "noDescription": "No description.",
+    "organizer": "Organizer",
+    "participantsCount": "Participants",
+    "eventDate": "Event date",
+    "budget": "Budget",
+    "updatedAt": "Updated",
     "createModal": {
       "title": "Create Exchange",
       "name": "Exchange Name",

@@ -3,6 +3,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useExchangesStore } from '@/stores/exchanges'
 import { useI18n } from 'vue-i18n'
+import type { ExchangeDto } from '@kado/shared'
 
 const { t } = useI18n()
 const exchangesStore = useExchangesStore()
@@ -16,6 +17,47 @@ const showCreateModal = ref(false)
 
 const fieldErrors = computed(() => exchangesStore.fieldErrors || {})
 const formErrors = computed(() => exchangesStore.formErrors || [])
+
+const sortedExchanges = computed(() => {
+  return [...exchangesStore.exchanges].sort((a, b) => {
+    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  })
+})
+
+function statusBadgeClass(status: ExchangeDto['status']) {
+  switch (status) {
+    case 'draft':
+      return 'text-bg-secondary'
+    case 'ready':
+      return 'text-bg-info'
+    case 'drawn':
+      return 'text-bg-success'
+    case 'archived':
+      return 'text-bg-dark'
+    default:
+      return 'text-bg-light'
+  }
+}
+
+function statusLabel(status: ExchangeDto['status']) {
+  return t(`exchanges.statusValues.${status}`)
+}
+
+function formatDate(value?: string) {
+  if (!value) return '-'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString()
+}
+
+function formatBudget(exchange: ExchangeDto) {
+  if (!exchange.budget) return '-'
+  const currency = exchange.budgetCurrency || 'CAD'
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(exchange.budget)
+}
+
+function participantsCount(exchange: ExchangeDto) {
+  return exchange.participants?.length ?? 0
+}
 
 function openCreateModal() {
   showCreateModal.value = true
@@ -60,16 +102,50 @@ onMounted(() => {
 
     <div v-if="exchangesStore.isLoading">{{ t('exchanges.loading') }}</div>
     <div v-else-if="exchangesStore.error">{{ exchangesStore.error }}</div>
+    <div v-else-if="!sortedExchanges.length" class="alert alert-light border">
+      {{ t('exchanges.empty') }}
+    </div>
     <div v-else>
-      <ul class="list-group">
-        <li v-for="exchange in exchangesStore.exchanges" :key="exchange.id" class="list-group-item">
-          <router-link :to="{ name: 'exchange-detail', params: { id: exchange.id } }" class="text-decoration-none">
-            <h5>{{ exchange.name }}</h5>
-            <p>{{ exchange.description }}</p>
-            <small>{{ t('exchanges.status') }}: {{ exchange.status }}</small>
+      <div class="row g-3">
+        <div v-for="exchange in sortedExchanges" :key="exchange.id" class="col-12 col-lg-6">
+          <router-link
+            :to="{ name: 'exchange-detail', params: { id: exchange.id } }"
+            class="text-decoration-none text-reset"
+          >
+            <article class="exchange-card card h-100">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                  <h5 class="card-title mb-0">{{ exchange.name }}</h5>
+                  <span class="badge" :class="statusBadgeClass(exchange.status)">
+                    {{ statusLabel(exchange.status) }}
+                  </span>
+                </div>
+
+                <p class="text-muted mb-3 exchange-description">
+                  {{ exchange.description || t('exchanges.noDescription') }}
+                </p>
+
+                <dl class="row mb-0 small exchange-meta">
+                  <dt class="col-5">{{ t('exchanges.organizer') }}</dt>
+                  <dd class="col-7 mb-2">{{ exchange.organizerName || '-' }}</dd>
+
+                  <dt class="col-5">{{ t('exchanges.participantsCount') }}</dt>
+                  <dd class="col-7 mb-2">{{ participantsCount(exchange) }}</dd>
+
+                  <dt class="col-5">{{ t('exchanges.eventDate') }}</dt>
+                  <dd class="col-7 mb-2">{{ formatDate(exchange.eventDate) }}</dd>
+
+                  <dt class="col-5">{{ t('exchanges.budget') }}</dt>
+                  <dd class="col-7 mb-2">{{ formatBudget(exchange) }}</dd>
+
+                  <dt class="col-5">{{ t('exchanges.updatedAt') }}</dt>
+                  <dd class="col-7 mb-0">{{ formatDate(exchange.updatedAt) }}</dd>
+                </dl>
+              </div>
+            </article>
           </router-link>
-        </li>
-      </ul>
+        </div>
+      </div>
     </div>
 
     <!-- Modale pour créer un échange -->
@@ -167,5 +243,24 @@ onMounted(() => {
 
 .modal-body {
   padding: 1rem;
+}
+
+.exchange-card {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.exchange-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+}
+
+.exchange-description {
+  min-height: 2.8rem;
+}
+
+.exchange-meta dt {
+  color: #6c757d;
+  font-weight: 600;
 }
 </style>
