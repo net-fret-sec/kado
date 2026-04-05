@@ -69,6 +69,6 @@ export interface ParticipantSelfViewDto {
     | "budget"
     | "budgetCurrency"
   >;
-  participant: Pick<ParticipantDto, "id" | "name" | "wishlist" | "note">;
+  participant: Pick<ParticipantDto, "id" | "name" | "email" | "wishlist" | "note">;
   assignment?: ParticipantAssignmentDto;
 }

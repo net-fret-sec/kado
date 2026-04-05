@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { exchangeRepository } from './repositories/exchange.repository'
 import { participantRepository } from './repositories/participant.repository'
+import { assignmentRepository } from './repositories/assignment.repository'
 import type { GiftSuggestionDto } from '@kado/shared'
 
 interface TestData {
@@ -50,6 +51,13 @@ interface TestData {
     status: 'active' | 'revoked'
     createdAt: string
   }>
+  assignments?: Array<{
+    id: string
+    exchangeId: string
+    giverParticipantId: string
+    receiverParticipantId: string
+    createdAt: string
+  }>
 }
 
 export function loadTestData() {
@@ -73,6 +81,10 @@ export function loadTestData() {
     participantRepository.loadTestData({
       participants: data.participants,
       participantAccess: data.participantAccess || [],
+    })
+
+    assignmentRepository.loadTestData({
+      assignments: data.assignments || [],
     })
 
     console.log(`Loaded ${data.exchanges.length} exchanges, ${data.participants.length} participants, and related data from test-data.json`)

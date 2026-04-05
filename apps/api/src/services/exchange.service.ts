@@ -4,11 +4,12 @@ import type {
   ExchangeDto,
   UpdateExchangeInputDto,
 } from '@kado/shared'
-import { NotFoundError } from '../lib/http-errors'
+import { BadRequestError, NotFoundError } from '../lib/http-errors'
 import { exchangeRepository } from '../repositories/exchange.repository'
 import { participantRepository } from '../repositories/participant.repository'
 import { generateId, generateOpaqueToken, hashPassword, sha256 } from '../lib/crypto'
 import { createParticipant } from './participant.service'
+import { assignmentRepository } from '../repositories/assignment.repository'
 
 export async function createExchange(
   input: CreateExchangeInputDto,
@@ -133,4 +134,56 @@ export async function deleteExchange(exchangeId: string): Promise<void> {
   }
 
   exchangeRepository.delete(exchangeId)
+}
+
+export async function drawExchange(exchangeId: string): Promise<ExchangeDto> {
+  const exchange = exchangeRepository.findById(exchangeId)
+
+  if (!exchange) {
+    throw new NotFoundError('Exchange not found.')
+  }
+
+  if (exchange.status === 'archived') {
+    throw new BadRequestError('Archived exchanges cannot be drawn.')
+  }
+
+  if (exchange.status === 'drawn') {
+    return exchange
+  }
+
+  const participants = participantRepository
+    .findByExchangeId(exchangeId)
+    .filter(p => p.status === 'active')
+
+  if (participants.length < 2) {
+    throw new BadRequestError('At least 2 active participants are required to draw.')
+  }
+
+  // Deterministic round-robin draw to keep tests stable.
+  const ordered = [...participants].sort((a, b) => a.id.localeCompare(b.id))
+  const now = new Date().toISOString()
+  const assignments = ordered.map((giver, index) => {
+    const receiver = ordered[(index + 1) % ordered.length]
+    return {
+      id: generateId('asg'),
+      exchangeId,
+      giverParticipantId: giver.id,
+      receiverParticipantId: receiver.id,
+      createdAt: now,
+    }
+  })
+
+  assignmentRepository.deleteByExchangeId(exchangeId)
+  assignmentRepository.createMany(assignments)
+
+  const updated = exchangeRepository.update(exchangeId, {
+    status: 'drawn',
+    drawAt: now,
+  })
+
+  if (!updated) {
+    throw new NotFoundError('Exchange not found.')
+  }
+
+  return updated
 }

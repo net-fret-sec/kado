@@ -2,12 +2,14 @@ import type {
   CreateParticipantInputDto,
   CreateParticipantResultDto,
   ParticipantDto,
+  ParticipantSelfViewDto,
   UpdateParticipantInputDto,
 } from '@kado/shared'
-import { NotFoundError } from '../lib/http-errors'
+import { BadRequestError, NotFoundError } from '../lib/http-errors'
 import { generateId, generateOpaqueToken, sha256 } from '../lib/crypto'
 import { exchangeRepository } from '../repositories/exchange.repository'
 import { participantRepository } from '../repositories/participant.repository'
+import { assignmentRepository } from '../repositories/assignment.repository'
 
 const PUBLIC_BASE_URL =
   process.env.PUBLIC_BASE_URL || process.env.FRONTEND_BASE_URL || 'http://localhost:5173'
@@ -132,7 +134,86 @@ export async function regenerateParticipantAccess(
 
 export async function getParticipantSelfViewByToken(
   rawToken: string,
-): Promise<import('@kado/shared').ParticipantSelfViewDto> {
+): Promise<ParticipantSelfViewDto> {
+  const { access, participant, exchange } = resolveParticipantAccess(rawToken)
+
+  participantRepository.touchAccess(access.id)
+
+  const assignment =
+    exchange.status === 'drawn'
+      ? assignmentRepository.findByExchangeAndGiver(exchange.id, participant.id)
+      : undefined
+
+  const receiver = assignment
+    ? participantRepository.findById(assignment.receiverParticipantId)
+    : undefined
+
+  return {
+    exchange: {
+      id: exchange.id,
+      name: exchange.name,
+      description: exchange.description,
+      status: exchange.status,
+      eventDate: exchange.eventDate,
+      budget: exchange.budget,
+      budgetCurrency: exchange.budgetCurrency,
+    },
+    participant: {
+      id: participant.id,
+      name: participant.name,
+      email: participant.email,
+      wishlist: participant.wishlist,
+      note: participant.note,
+    },
+    assignment: receiver
+      ? {
+          receiverName: receiver.name,
+          receiverWishlist: receiver.wishlist,
+          receiverNote: receiver.note,
+        }
+      : undefined,
+  }
+}
+
+export async function updateParticipantSelfByToken(
+  rawToken: string,
+  input: UpdateParticipantInputDto,
+): Promise<ParticipantSelfViewDto> {
+  const { access, participant, exchange } = resolveParticipantAccess(rawToken)
+
+  if (exchange.status === 'drawn' || exchange.status === 'archived') {
+    throw new BadRequestError('Participant updates are closed for this exchange.')
+  }
+
+  const updated = participantRepository.update(participant.id, input)
+  if (!updated) {
+    throw new NotFoundError('Participant not found.')
+  }
+
+  participantRepository.touchAccess(access.id)
+
+  return {
+    exchange: {
+      id: exchange.id,
+      name: exchange.name,
+      description: exchange.description,
+      status: exchange.status,
+      eventDate: exchange.eventDate,
+      budget: exchange.budget,
+      budgetCurrency: exchange.budgetCurrency,
+    },
+    participant: {
+      id: updated.id,
+      name: updated.name,
+      email: updated.email,
+      wishlist: updated.wishlist,
+      note: updated.note,
+    },
+    assignment: undefined,
+  }
+}
+
+function resolveParticipantAccess(rawToken: string) {
   const tokenHash = sha256(rawToken)
   const access = participantRepository.findActiveAccessByTokenHash(tokenHash)
   if (!access) {
@@ -149,24 +230,5 @@ export async function getParticipantSelfViewByToken(
     throw new NotFoundError('Exchange not found.')
   }
 
-  participantRepository.touchAccess(access.id)
-
-  return {
-    exchange: {
-      id: exchange.id,
-      name: exchange.name,
-      description: exchange.description,
-      status: exchange.status,
-      eventDate: exchange.eventDate,
-      budget: exchange.budget,
-      budgetCurrency: exchange.budgetCurrency,
-    },
-    participant: {
-      id: participant.id,
-      name: participant.name,
-      wishlist: participant.wishlist,
-      note: participant.note,
-    },
-    assignment: undefined,
-  }
+  return { access, participant, exchange }
 }

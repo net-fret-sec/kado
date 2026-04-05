@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createExchangeInputSchema, exchangeIdParamSchema, updateExchangeInputSchema } from "@kado/shared";
 import { validateBody, validateParams } from "../middleware/validate";
-import { createExchange, getExchangeById, listExchanges, updateExchange, deleteExchange } from "../services/exchange.service";
+import { createExchange, getExchangeById, listExchanges, updateExchange, deleteExchange, drawExchange } from "../services/exchange.service";
 
 const router = Router();
 
@@ -74,6 +74,23 @@ router.delete(
 
       await deleteExchange(exchangeId);
       res.status(204).send();
+    } catch (error) {
+      next(error)
+    }
+  },
+);
+
+router.post(
+  "/:exchangeId/draw",
+  validateParams(exchangeIdParamSchema),
+  async (req, res, next) => {
+    try {
+      const exchangeId = Array.isArray(req.params.exchangeId)
+        ? req.params.exchangeId[0]
+        : req.params.exchangeId;
+
+      const exchange = await drawExchange(exchangeId);
+      res.status(200).json(exchange);
     } catch (error) {
       next(error)
     }

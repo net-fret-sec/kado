@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useExchangesStore } from '@/stores/exchanges'
 import type { ExchangeDto } from '@kado/shared'
@@ -28,7 +28,10 @@ const showEditExchangeModal = ref(false)
 // Pour les participants
 const showAddParticipantModal = ref(false)
 const showEditParticipantModal = ref(false)
+const showAccessLinkModal = ref(false)
 const editingParticipant = ref<ParticipantDto | null>(null)
+const accessLinkInput = ref<HTMLInputElement | null>(null)
+const latestAccessLink = ref('')
 const newParticipantName = ref('')
 const newParticipantEmail = ref('')
 const newParticipantNote = ref('')
@@ -51,6 +54,12 @@ function isValidSuggestion(s: GiftSuggestionDto) {
   return titleOk && imgOk && linkOk
 }
 
+function isValidEmail(value: string) {
+  const email = value.trim()
+  if (!email) return true
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
 const isListModeValid = computed(() => {
   if (!newParticipantWishlistList.value || newParticipantWishlistList.value.length === 0) return false
   return newParticipantWishlistList.value.every(isValidSuggestion)
@@ -58,7 +67,7 @@ const isListModeValid = computed(() => {
 
 const isAddFormValid = computed(() => {
   const nameOk = newParticipantName.value.trim().length > 0
-  return nameOk && isListModeValid.value
+  return nameOk && isValidEmail(newParticipantEmail.value)
 })
 
 const isEditFormValid = computed(() => {
@@ -66,13 +75,72 @@ const isEditFormValid = computed(() => {
   return nameOk && isListModeValid.value
 })
 
-async function copyToClipboard(text: string) {
+function legacyCopy(text: string) {
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.setAttribute('readonly', '')
+  textarea.style.position = 'fixed'
+  textarea.style.left = '-9999px'
+  document.body.appendChild(textarea)
+  textarea.select()
+  textarea.setSelectionRange(0, textarea.value.length)
+
+  let copied = false
   try {
-    await navigator.clipboard.writeText(text)
-    toasts.success(t('exchangeDetail.linkCopied'))
-  } catch {
-    toasts.error(t('exchangeDetail.copyFailed'))
+    copied = document.execCommand('copy')
+  } finally {
+    document.body.removeChild(textarea)
   }
+
+  return copied
+}
+
+async function copyToClipboard(text: string) {
+  if (!text) {
+    toasts.error(t('exchangeDetail.copyFailed'))
+    return
+  }
+
+  try {
+    if (window.isSecureContext && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text)
+      toasts.success(t('exchangeDetail.linkCopied'))
+      return
+    }
+  } catch {
+    // Ignore and try legacy copy below.
+  }
+
+  if (legacyCopy(text)) {
+    toasts.success(t('exchangeDetail.linkCopied'))
+    return
+  }
+
+  toasts.error(t('exchangeDetail.copyFailed'))
+}
+
+function closeAccessLinkModal() {
+  showAccessLinkModal.value = false
+  latestAccessLink.value = ''
+}
+
+function selectAccessLink() {
+  accessLinkInput.value?.focus()
+  accessLinkInput.value?.select()
+}
+
+function openAccessLinkModal(link: string) {
+  latestAccessLink.value = link
+  showAccessLinkModal.value = true
+  void nextTick(() => {
+    selectAccessLink()
+  })
+}
+
+async function copyAccessLinkFromModal() {
+  if (!latestAccessLink.value) return
+  await copyToClipboard(latestAccessLink.value)
+  selectAccessLink()
 }
 
 async function fetchExchange() {
@@ -157,12 +225,11 @@ async function addParticipant() {
     const result = await api.post<{ participant: ParticipantDto; accessLink: string }>(`/api/exchanges/${exchange.value.id}/participants`, {
       name: newParticipantName.value,
       email: newParticipantEmail.value,
-      wishlist: newParticipantWishlistList.value,
-      note: newParticipantNote.value,
     })
     showAddParticipantModal.value = false
     if (result?.accessLink) {
       await copyToClipboard(result.accessLink)
+      openAccessLinkModal(result.accessLink)
     }
     await fetchExchange()
   } catch (err) {
@@ -231,6 +298,7 @@ async function regenerateParticipantLink(participantId: string) {
     )
     if (result?.accessLink) {
       await copyToClipboard(result.accessLink)
+      openAccessLinkModal(result.accessLink)
     }
   } catch (err) {
     console.error(err)
@@ -338,29 +406,6 @@ async function regenerateParticipantLink(participantId: string) {
                   <label for="participantEmail" class="form-label">{{ t('exchangeDetail.addModal.email') }}</label>
                   <input v-model="newParticipantEmail" type="email" class="form-control" id="participantEmail" />
                 </div>
-                <div class="mb-3">
-                  <label class="form-label mb-0">{{ t('exchangeDetail.addModal.wishlist') }}</label>
-                  <div class="mt-2">
-                    <Draggable v-model="newParticipantWishlistList" handle=".drag-handle" :animation="200" ghost-class="drag-ghost">
-                      <template #item="{ element: s, index: idx }">
-                        <WishlistSuggestionItem
-                          :modelValue="s"
-                          @update:modelValue="v => newParticipantWishlistList.splice(idx, 1, v)"
-                          mode="edit"
-                          :removable="true"
-                          :showHandle="true"
-                          :asListItem="true"
-                          @remove="newParticipantWishlistList.splice(idx, 1)"
-                        />
-                      </template>
-                    </Draggable>
-                    <button type="button" class="btn btn-sm btn-outline-primary" @click="newParticipantWishlistList.push({ title: '' })"><i class="bi bi-plus-lg"></i> Ajouter une suggestion</button>
-                  </div>
-                </div>
-                <div class="mb-3">
-                  <label for="participantNote" class="form-label">{{ t('exchangeDetail.addModal.note') }}</label>
-                  <textarea v-model="newParticipantNote" class="form-control" id="participantNote"></textarea>
-                </div>
               </form>
             </div>
             <div class="modal-footer">
@@ -416,6 +461,33 @@ async function regenerateParticipantLink(participantId: string) {
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" @click="showEditParticipantModal = false">{{ t('actions.cancel') }}</button>
               <button type="submit" class="btn btn-primary" :disabled="!isEditFormValid" @click="updateParticipant">{{ t('exchangeDetail.editModal.submit') }}</button>
+          </div>
+        </div>
+      </dialog>
+
+      <!-- Modale d'affichage du lien d'accès participant -->
+      <dialog v-if="showAccessLinkModal" open class="modal" @close="closeAccessLinkModal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">{{ t('exchangeDetail.linkModal.title') }}</h5>
+              <button type="button" class="btn-close" @click="closeAccessLinkModal"></button>
+            </div>
+            <div class="modal-body">
+              <p class="mb-2">{{ t('exchangeDetail.linkModal.description') }}</p>
+              <input
+                ref="accessLinkInput"
+                :value="latestAccessLink"
+                type="text"
+                class="form-control"
+                readonly
+                @focus="selectAccessLink"
+              />
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="closeAccessLinkModal">{{ t('exchangeDetail.linkModal.close') }}</button>
+              <button type="button" class="btn btn-primary" @click="copyAccessLinkFromModal">{{ t('exchangeDetail.linkModal.copy') }}</button>
+            </div>
           </div>
         </div>
       </dialog>
