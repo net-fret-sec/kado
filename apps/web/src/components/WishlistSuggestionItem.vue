@@ -4,7 +4,9 @@
     <template v-if="mode === 'edit'">
       <div class="row g-2 align-items-end">
         <div v-if="showHandle" class="col-auto d-flex align-items-center">
-          <span class="drag-handle me-2" title="Réordonner" style="cursor: grab"><i class="bi bi-grip-vertical"></i></span>
+          <button type="button" class="drag-handle btn btn-link text-body-secondary p-0 me-2" title="Réordonner" tabindex="-1">
+            <i class="bi bi-grip-vertical"></i>
+          </button>
         </div>
         <div class="col-12 col-md-5">
           <label class="form-label">Titre</label>
@@ -63,12 +65,11 @@
       <div class="d-flex align-items-center">
         <img
           v-if="modelValue?.imageUrl"
-          class="rounded me-2 flex-shrink-0"
+          class="rounded object-fit-cover me-2 flex-shrink-0"
           :src="modelValue.imageUrl"
           :alt="modelValue.title"
           width="40"
           height="40"
-          style="object-fit: cover;"
         />
         <i v-else-if="modelValue?.icon" class="me-2 bi" :class="`bi-${modelValue.icon}`" aria-hidden="true"></i>
         <span class="flex-grow-1">
@@ -146,6 +147,3 @@ const linkUrlError = computed(() =>
 
 const iconAndImageBoth = computed(() => !!(props.modelValue?.icon && props.modelValue?.imageUrl))
 </script>
-
-<style scoped>
-</style>

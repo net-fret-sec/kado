@@ -38,6 +38,11 @@
       "participantDesc": "L'organisateur vous a transmis un lien unique — par courriel, texto ou autre. Utilisez ce lien directement : aucun compte, aucun mot de passe requis.",
       "participantHint": "Vous n'avez pas reçu de lien ? Contactez la personne qui organise la pige."
     },
+    "support": {
+      "text": "Kado est gratuit et le restera toujours.",
+      "subtext": "Si vous souhaitez encourager le projet et aider à couvrir les frais d'hébergement, un petit coup de pouce est toujours apprécié !",
+      "button": "Soutenir le projet"
+    },
     "adminLink": "Accès administrateur (développement)"
   },
   "exchanges": {

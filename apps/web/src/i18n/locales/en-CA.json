@@ -38,6 +38,11 @@
       "participantDesc": "The organizer sent you a unique link — by email, text, or otherwise. Use that link directly: no account, no password required.",
       "participantHint": "Didn't receive a link? Contact the person organizing the draw."
     },
+    "support": {
+      "text": "Kado is free and will always be.",
+      "subtext": "If you'd like to support the project and help cover hosting costs, any contribution is warmly appreciated!",
+      "button": "Support the project"
+    },
     "adminLink": "Administrator access (development)"
   },
   "exchanges": {

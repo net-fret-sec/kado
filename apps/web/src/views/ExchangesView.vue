@@ -112,7 +112,7 @@ onMounted(() => {
             :to="{ name: 'exchange-detail', params: { id: exchange.id } }"
             class="text-decoration-none text-reset"
           >
-            <article class="exchange-card card h-100">
+            <article class="card h-100 border shadow-sm">
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                   <h5 class="card-title mb-0">{{ exchange.name }}</h5>
@@ -121,24 +121,24 @@ onMounted(() => {
                   </span>
                 </div>
 
-                <p class="text-muted mb-3 exchange-description">
+                <p class="text-muted mb-3">
                   {{ exchange.description || t('exchanges.noDescription') }}
                 </p>
 
-                <dl class="row mb-0 small exchange-meta">
-                  <dt class="col-5">{{ t('exchanges.organizer') }}</dt>
+                <dl class="row mb-0 small">
+                  <dt class="col-5 text-body-secondary fw-semibold">{{ t('exchanges.organizer') }}</dt>
                   <dd class="col-7 mb-2">{{ exchange.organizerName || '-' }}</dd>
 
-                  <dt class="col-5">{{ t('exchanges.participantsCount') }}</dt>
+                  <dt class="col-5 text-body-secondary fw-semibold">{{ t('exchanges.participantsCount') }}</dt>
                   <dd class="col-7 mb-2">{{ participantsCount(exchange) }}</dd>
 
-                  <dt class="col-5">{{ t('exchanges.eventDate') }}</dt>
+                  <dt class="col-5 text-body-secondary fw-semibold">{{ t('exchanges.eventDate') }}</dt>
                   <dd class="col-7 mb-2">{{ formatDate(exchange.eventDate) }}</dd>
 
-                  <dt class="col-5">{{ t('exchanges.budget') }}</dt>
+                  <dt class="col-5 text-body-secondary fw-semibold">{{ t('exchanges.budget') }}</dt>
                   <dd class="col-7 mb-2">{{ formatBudget(exchange) }}</dd>
 
-                  <dt class="col-5">{{ t('exchanges.updatedAt') }}</dt>
+                  <dt class="col-5 text-body-secondary fw-semibold">{{ t('exchanges.updatedAt') }}</dt>
                   <dd class="col-7 mb-0">{{ formatDate(exchange.updatedAt) }}</dd>
                 </dl>
               </div>
@@ -149,8 +149,13 @@ onMounted(() => {
     </div>
 
     <!-- Modale pour créer un échange -->
-    <dialog v-if="showCreateModal" open class="modal" @close="showCreateModal = false">
-      <div class="modal-dialog">
+    <dialog
+      v-if="showCreateModal"
+      open
+      class="modal d-block position-fixed top-0 start-0 w-100 h-100 border-0 bg-dark bg-opacity-50 p-0 m-0"
+      @close="showCreateModal = false"
+    >
+      <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">{{ t('exchanges.createModal.title') }}</h5>
@@ -196,71 +201,3 @@ onMounted(() => {
     </dialog>
   </main>
 </template>
-
-<style scoped>
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1050;
-}
-
-.modal-dialog {
-  max-width: 500px;
-  width: 90%;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 0.375rem;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
-
-.modal-header {
-  padding: 1rem;
-  border-bottom: 1px solid #dee2e6;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-title {
-  margin: 0;
-}
-
-.btn-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-}
-
-.modal-body {
-  padding: 1rem;
-}
-
-.exchange-card {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-
-.exchange-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
-}
-
-.exchange-description {
-  min-height: 2.8rem;
-}
-
-.exchange-meta dt {
-  color: #6c757d;
-  font-weight: 600;
-}
-</style>

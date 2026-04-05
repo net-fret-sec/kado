@@ -224,7 +224,3 @@ onMounted(fetchSelf)
   </main>
 
 </template>
-
-<style scoped>
-.card { box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-</style>

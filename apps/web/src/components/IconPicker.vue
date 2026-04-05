@@ -2,7 +2,7 @@
   <div class="icon-picker">
     <div class="input-group">
       <span class="input-group-text">
-        <i class="bi" :class="iconClass" aria-hidden="true"></i>
+        <i class="bi fs-5" :class="iconClass" aria-hidden="true"></i>
       </span>
       <input
         :list="datalistId"
@@ -71,7 +71,3 @@ function isKnown(name: string) {
   return suggestions.value.includes(name)
 }
 </script>
-
-<style scoped>
-.icon-picker .input-group-text i { font-size: 1.1rem; }
-</style>

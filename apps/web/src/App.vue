@@ -25,5 +25,3 @@ const { t } = useI18n()
 </div>
 <AppToasts />
 </template>
-
-<style scoped></style>

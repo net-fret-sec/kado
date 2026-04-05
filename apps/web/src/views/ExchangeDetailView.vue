@@ -442,8 +442,13 @@ async function cancelDraw() {
       </div>
 
       <!-- Modale pour modifier l'échange -->
-      <dialog v-if="showEditExchangeModal" open class="modal" @close="showEditExchangeModal = false">
-        <div class="modal-dialog">
+      <dialog
+        v-if="showEditExchangeModal"
+        open
+        class="modal d-block position-fixed top-0 start-0 w-100 h-100 border-0 bg-dark bg-opacity-50 p-0 m-0"
+        @close="showEditExchangeModal = false"
+      >
+        <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">{{ t('exchangeDetail.editExchangeModal.title') }}</h5>
@@ -477,8 +482,13 @@ async function cancelDraw() {
       </dialog>
 
       <!-- Modale pour ajouter un participant -->
-      <dialog v-if="showAddParticipantModal" open class="modal" @close="showAddParticipantModal = false">
-        <div class="modal-dialog">
+      <dialog
+        v-if="showAddParticipantModal"
+        open
+        class="modal d-block position-fixed top-0 start-0 w-100 h-100 border-0 bg-dark bg-opacity-50 p-0 m-0"
+        @close="showAddParticipantModal = false"
+      >
+        <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">{{ t('exchangeDetail.addModal.title') }}</h5>
@@ -505,57 +515,69 @@ async function cancelDraw() {
       </dialog>
 
       <!-- Modale pour modifier un participant -->
-      <dialog v-if="showEditParticipantModal" open class="modal" @close="showEditParticipantModal = false">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">{{ t('exchangeDetail.editModal.title') }}</h5>
-            <button type="button" class="btn-close" @click="showEditParticipantModal = false"></button>
-          </div>
-          <div class="modal-body">
-            <form @submit.prevent="updateParticipant">
-              <div class="mb-3">
-                <label for="editParticipantName" class="form-label">{{ t('exchangeDetail.addModal.name') }}</label>
-                <input v-model="newParticipantName" type="text" class="form-control" id="editParticipantName" required />
-              </div>
-              <div class="mb-3">
-                <label for="editParticipantEmail" class="form-label">{{ t('exchangeDetail.addModal.email') }}</label>
-                <input v-model="newParticipantEmail" type="email" class="form-control" id="editParticipantEmail" />
-              </div>
-              <div class="mb-3">
-                <label class="form-label mb-0">{{ t('exchangeDetail.addModal.wishlist') }}</label>
-                <div class="mt-2">
-                  <Draggable v-model="newParticipantWishlistList" handle=".drag-handle" :animation="200" ghost-class="drag-ghost">
-                    <template #item="{ element: s, index: idx }">
-                      <WishlistSuggestionItem
-                        :modelValue="s"
-                        @update:modelValue="v => newParticipantWishlistList.splice(idx, 1, v)"
-                        mode="edit"
-                        :removable="true"
-                        :showHandle="true"
-                        :asListItem="true"
-                        @remove="newParticipantWishlistList.splice(idx, 1)"
-                      />
-                    </template>
-                  </Draggable>
-                  <button type="button" class="btn btn-sm btn-outline-primary" @click="newParticipantWishlistList.push({ title: '' })"><i class="bi bi-plus-lg"></i> Ajouter une suggestion</button>
+      <dialog
+        v-if="showEditParticipantModal"
+        open
+        class="modal d-block position-fixed top-0 start-0 w-100 h-100 border-0 bg-dark bg-opacity-50 p-0 m-0"
+        @close="showEditParticipantModal = false"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">{{ t('exchangeDetail.editModal.title') }}</h5>
+              <button type="button" class="btn-close" @click="showEditParticipantModal = false"></button>
+            </div>
+            <div class="modal-body">
+              <form @submit.prevent="updateParticipant">
+                <div class="mb-3">
+                  <label for="editParticipantName" class="form-label">{{ t('exchangeDetail.addModal.name') }}</label>
+                  <input v-model="newParticipantName" type="text" class="form-control" id="editParticipantName" required />
                 </div>
-              </div>
-              <div class="mb-3">
-                <label for="editParticipantNote" class="form-label">{{ t('exchangeDetail.addModal.note') }}</label>
-                <textarea v-model="newParticipantNote" class="form-control" id="editParticipantNote"></textarea>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="showEditParticipantModal = false">{{ t('actions.cancel') }}</button>
+                <div class="mb-3">
+                  <label for="editParticipantEmail" class="form-label">{{ t('exchangeDetail.addModal.email') }}</label>
+                  <input v-model="newParticipantEmail" type="email" class="form-control" id="editParticipantEmail" />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label mb-0">{{ t('exchangeDetail.addModal.wishlist') }}</label>
+                  <div class="mt-2">
+                    <Draggable v-model="newParticipantWishlistList" handle=".drag-handle" :animation="200">
+                      <template #item="{ element: s, index: idx }">
+                        <WishlistSuggestionItem
+                          :modelValue="s"
+                          @update:modelValue="v => newParticipantWishlistList.splice(idx, 1, v)"
+                          mode="edit"
+                          :removable="true"
+                          :showHandle="true"
+                          :asListItem="true"
+                          @remove="newParticipantWishlistList.splice(idx, 1)"
+                        />
+                      </template>
+                    </Draggable>
+                    <button type="button" class="btn btn-sm btn-outline-primary" @click="newParticipantWishlistList.push({ title: '' })"><i class="bi bi-plus-lg"></i> Ajouter une suggestion</button>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label for="editParticipantNote" class="form-label">{{ t('exchangeDetail.addModal.note') }}</label>
+                  <textarea v-model="newParticipantNote" class="form-control" id="editParticipantNote"></textarea>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="showEditParticipantModal = false">{{ t('actions.cancel') }}</button>
               <button type="submit" class="btn btn-primary" :disabled="!isEditFormValid" @click="updateParticipant">{{ t('exchangeDetail.editModal.submit') }}</button>
+            </div>
           </div>
         </div>
       </dialog>
 
       <!-- Modale d'affichage du lien d'accès participant -->
-      <dialog v-if="showAccessLinkModal" open class="modal" @close="closeAccessLinkModal">
-        <div class="modal-dialog">
+      <dialog
+        v-if="showAccessLinkModal"
+        open
+        class="modal d-block position-fixed top-0 start-0 w-100 h-100 border-0 bg-dark bg-opacity-50 p-0 m-0"
+        @close="closeAccessLinkModal"
+      >
+        <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">{{ t('exchangeDetail.linkModal.title') }}</h5>
@@ -582,56 +604,3 @@ async function cancelDraw() {
     </div>
   </main>
 </template>
-
-<style scoped>
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1050;
-}
-
-.modal-dialog {
-  max-width: 500px;
-  width: 90%;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 0.375rem;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
-
-.modal-header {
-  padding: 1rem;
-  border-bottom: 1px solid #dee2e6;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-title {
-  margin: 0;
-}
-
-.btn-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-}
-
-.modal-body {
-  padding: 1rem;
-}
-
-.drag-ghost {
-  background-color: rgba(0,0,0,0.03);
-}
-</style>
