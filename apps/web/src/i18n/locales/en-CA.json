@@ -2,7 +2,6 @@
   "app": {
     "title": "Kado"
   },
-
   "actions": {
     "changeLanguage": "Change language",
     "cancel": "Cancel"
@@ -43,12 +42,7 @@
     "title": "Exchanges",
     "createExchange": "Create Exchange",
     "loading": "Loading...",
-    "statusValues": {
-      "draft": "Draft",
-      "ready": "Ready",
-      "drawn": "Drawn",
-      "archived": "Archived"
-    },
+    "statusValues": {},
     "empty": "No exchanges yet.",
     "noDescription": "No description.",
     "organizer": "Organizer",
@@ -143,5 +137,6 @@
     "recipientName": "Name",
     "recipientWishlist": "Their wishlist",
     "recipientNote": "Their note"
-  }
+  },
+  "close": "Close"
 }
