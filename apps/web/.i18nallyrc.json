@@ -1,0 +1,9 @@
+{
+  "locales": ["fr-CA", "en-CA"],
+  "sourceLanguage": "en-CA",
+  "messages": {
+    "en-CA": "src/i18n/locales/en-CA.json",
+    "fr-CA": "src/i18n/locales/fr-CA.json"
+  },
+  "ignoreFiles": []
+}
