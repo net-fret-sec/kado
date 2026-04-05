@@ -13,8 +13,8 @@ const { t, currentLocale } = useLocale()
     <select
       id="locale-select"
       v-model="currentLocale"
-      class="form-select"
-      style="min-width: 14rem"
+      class=" form-select-sm"
+      style="min-width: 10rem"
     >
       <option value="fr-CA">{{ t('languages.fr') }}</option>
       <option value="en-CA">{{ t('languages.en') }}</option>

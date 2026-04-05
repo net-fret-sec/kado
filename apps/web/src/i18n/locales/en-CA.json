@@ -1,13 +1,8 @@
 {
   "app": {
-    "title": "Kado",
-    "tagline": "Secret present exchanges made simple",
-    "description": "Kado is a secret present exchange app that makes it easy to create and manage gift exchanges for groups of friends, families, or colleagues. Create an exchange, invite participants, and let Kado do the rest!"
+    "title": "Kado"
   },
-  "nav": {
-    "home": "Home",
-    "about": "About"
-  },
+
   "actions": {
     "changeLanguage": "Change language",
     "cancel": "Cancel"
@@ -17,7 +12,6 @@
     "en": "English"
   },
   "home": {
-    "viewExchanges": "View Exchanges",
     "hero": {
       "intro": "Kado is a free, open-source tool for organizing secret gift exchanges among friends, family, or colleagues.",
       "principles": "No account required. No ads. No tracking. Just what you need."
@@ -49,7 +43,6 @@
     "title": "Exchanges",
     "createExchange": "Create Exchange",
     "loading": "Loading...",
-    "status": "Status",
     "statusValues": {
       "draft": "Draft",
       "ready": "Ready",
@@ -75,7 +68,6 @@
   },
   "exchangeDetail": {
     "loading": "Loading...",
-    "editExchange": "Edit Exchange",
     "name": "Name",
     "description": "Description",
     "status": "Status",
@@ -87,8 +79,6 @@
     },
     "active": "Active",
     "inactive": "Inactive",
-    "save": "Save",
-    "cancel": "Cancel",
     "organizer": "Organizer",
     "eventDate": "Event Date",
     "budget": "Budget",
@@ -134,8 +124,7 @@
     },
     "confirmDeleteExchange": "Delete this exchange?",
     "confirmDeleteParticipant": "Delete this participant?"
-  }
-  ,
+  },
   "participant": {
     "loading": "Loading...",
     "yourInfo": "Your information",

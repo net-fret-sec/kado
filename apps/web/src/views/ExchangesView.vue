@@ -13,7 +13,6 @@ const description = ref('')
 const organizerName = ref('')
 const organizerParticipates = ref(true)
 const adminPassword = ref('')
-const showCreateModal = ref(false)
 
 const fieldErrors = computed(() => exchangesStore.fieldErrors || {})
 const formErrors = computed(() => exchangesStore.formErrors || [])
@@ -59,10 +58,6 @@ function participantsCount(exchange: ExchangeDto) {
   return exchange.participants?.length ?? 0
 }
 
-function openCreateModal() {
-  showCreateModal.value = true
-}
-
 async function handleCreate() {
   exchangesStore.fieldErrors = null
   exchangesStore.formErrors = null
@@ -83,7 +78,6 @@ async function handleCreate() {
     organizerName.value = ''
     organizerParticipates.value = true
     adminPassword.value = ''
-    showCreateModal.value = false
   } catch {
     // Error is handled in store
   }
@@ -98,7 +92,7 @@ onMounted(() => {
   <section class="py-4">
     <h1>{{ t('exchanges.title') }}</h1>
 
-    <button class="btn btn-primary mb-3" @click="openCreateModal">{{ t('exchanges.createExchange') }}</button>
+    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createExchangeModal">{{ t('exchanges.createExchange') }}</button>
 
     <div v-if="exchangesStore.isLoading">{{ t('exchanges.loading') }}</div>
     <div v-else-if="exchangesStore.error">{{ exchangesStore.error }}</div>
@@ -147,19 +141,15 @@ onMounted(() => {
         </div>
       </div>
     </div>
+  </section>
 
     <!-- Modale pour créer un échange -->
-    <dialog
-      v-if="showCreateModal"
-      open
-      class="modal d-block position-fixed top-0 start-0 w-100 h-100 border-0 bg-dark bg-opacity-50 p-0 m-0"
-      @close="showCreateModal = false"
-    >
-      <div class="modal-dialog modal-dialog-centered">
+    <section class="modal" id="createExchangeModal">
+      <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">{{ t('exchanges.createModal.title') }}</h5>
-            <button type="button" class="btn-close" @click="showCreateModal = false"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <form @submit.prevent="handleCreate">
@@ -193,11 +183,11 @@ onMounted(() => {
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="showCreateModal = false">{{ t('actions.cancel') }}</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('actions.cancel') }}</button>
             <button type="submit" class="btn btn-primary" @click="handleCreate">{{ t('exchanges.createModal.submit') }}</button>
           </div>
         </div>
       </div>
-    </dialog>
-  </section>
+    </section>
+
 </template>
