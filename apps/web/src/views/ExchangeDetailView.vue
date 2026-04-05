@@ -86,6 +86,36 @@ const canCancelDraw = computed(() => {
   return exchange.value.status === 'drawn'
 })
 
+const statusBadgeClass = computed(() => {
+  switch (exchange.value?.status) {
+    case 'draft':
+      return 'text-bg-secondary'
+    case 'ready':
+      return 'text-bg-info'
+    case 'drawn':
+      return 'text-bg-success'
+    case 'archived':
+      return 'text-bg-dark'
+    default:
+      return 'text-bg-light'
+  }
+})
+
+const statusLabel = computed(() => {
+  switch (exchange.value?.status) {
+    case 'draft':
+      return t('exchangeDetail.statusValues.draft')
+    case 'ready':
+      return t('exchangeDetail.statusValues.ready')
+    case 'drawn':
+      return t('exchangeDetail.statusValues.drawn')
+    case 'archived':
+      return t('exchangeDetail.statusValues.archived')
+    default:
+      return exchange.value?.status ?? '-'
+  }
+})
+
 function legacyCopy(text: string) {
   const textarea = document.createElement('textarea')
   textarea.value = text
@@ -358,7 +388,10 @@ async function cancelDraw() {
         <p>{{ exchange.description }}</p>
         <ul>
           <li><b>{{ t('exchangeDetail.organizer') }} :</b> {{ exchange.organizerName }}</li>
-          <li><b>{{ t('exchangeDetail.status') }} :</b> {{ exchange.status }}</li>
+          <li>
+            <b>{{ t('exchangeDetail.status') }} :</b>
+            <span class="badge ms-1" :class="statusBadgeClass">{{ statusLabel }}</span>
+          </li>
           <li v-if="exchange.eventDate"><b>{{ t('exchangeDetail.eventDate') }} :</b> {{ exchange.eventDate }}</li>
           <li v-if="exchange.budget"><b>{{ t('exchangeDetail.budget') }} :</b> {{ exchange.budget }} {{ exchange.budgetCurrency }}</li>
           <li><b>{{ t('exchangeDetail.createdAt') }} :</b> {{ new Date(exchange.createdAt).toLocaleString() }}</li>

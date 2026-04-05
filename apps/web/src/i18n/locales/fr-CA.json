@@ -40,6 +40,12 @@
     "name": "Nom",
     "description": "Description",
     "status": "Statut",
+    "statusValues": {
+      "draft": "Brouillon",
+      "ready": "Prête",
+      "drawn": "Pigée",
+      "archived": "Archivée"
+    },
     "active": "Actif",
     "inactive": "Inactif",
     "save": "Enregistrer",

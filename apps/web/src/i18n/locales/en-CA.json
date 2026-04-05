@@ -40,6 +40,12 @@
     "name": "Name",
     "description": "Description",
     "status": "Status",
+    "statusValues": {
+      "draft": "Draft",
+      "ready": "Ready",
+      "drawn": "Drawn",
+      "archived": "Archived"
+    },
     "active": "Active",
     "inactive": "Inactive",
     "save": "Save",
