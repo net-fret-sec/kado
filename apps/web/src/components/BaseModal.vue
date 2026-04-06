@@ -80,17 +80,17 @@ onBeforeUnmount(() => {
 
 <template>
   <section ref="modalRef" class="modal fade" tabindex="-1" aria-hidden="true">
-    <div :class="dialogClass">
+    <div :class="dialogClass" class="modal-fullscreen-md-down">
       <div class="modal-content">
-        <div class="modal-header">
+        <div class="modal-header bg-dark text-white">
           <slot name="header">
             <h5 class="modal-title">{{ title }}</h5>
-            <button
+            <!-- <button
               type="button"
               class="btn-close"
               data-bs-dismiss="modal"
               aria-label="Close"
-            ></button>
+            ></button> -->
           </slot>
         </div>
 

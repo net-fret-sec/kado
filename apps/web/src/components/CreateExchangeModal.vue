@@ -92,6 +92,7 @@ async function handleHidden() {
 <template>
   <BaseModal
     :model-value="modelValue"
+    size="lg"
     :title="t('exchanges.createModal.title')"
     @update:model-value="(value) => emit('update:modelValue', value)"
     @hidden="handleHidden"
@@ -104,15 +105,29 @@ async function handleHidden() {
       </div>
 
       <div class="mb-3">
-        <label for="exchangeDescription" class="form-label">{{ t('exchanges.createModal.description') }}</label>
+        <label for="exchangeDescription" class="form-label">{{
+          t('exchanges.createModal.description')
+        }}</label>
         <input v-model="description" type="text" class="form-control" id="exchangeDescription" />
-        <div v-if="fieldErrors.description" class="text-danger small">{{ fieldErrors.description[0] }}</div>
+        <div v-if="fieldErrors.description" class="text-danger small">
+          {{ fieldErrors.description[0] }}
+        </div>
       </div>
 
       <div class="mb-3">
-        <label for="organizerName" class="form-label">{{ t('exchanges.createModal.organizerName') }}</label>
-        <input v-model="organizerName" type="text" class="form-control" id="organizerName" required />
-        <div v-if="fieldErrors.organizerName" class="text-danger small">{{ fieldErrors.organizerName[0] }}</div>
+        <label for="organizerName" class="form-label">{{
+          t('exchanges.createModal.organizerName')
+        }}</label>
+        <input
+          v-model="organizerName"
+          type="text"
+          class="form-control"
+          id="organizerName"
+          required
+        />
+        <div v-if="fieldErrors.organizerName" class="text-danger small">
+          {{ fieldErrors.organizerName[0] }}
+        </div>
       </div>
 
       <div class="mb-3 form-check">
@@ -140,9 +155,19 @@ async function handleHidden() {
       </div>
 
       <div class="mb-3">
-        <label for="adminPassword" class="form-label">{{ t('exchanges.createModal.adminPassword') }}</label>
-        <input v-model="adminPassword" type="password" class="form-control" id="adminPassword" required />
-        <div v-if="fieldErrors.adminPassword" class="text-danger small">{{ fieldErrors.adminPassword[0] }}</div>
+        <label for="adminPassword" class="form-label">{{
+          t('exchanges.createModal.adminPassword')
+        }}</label>
+        <input
+          v-model="adminPassword"
+          type="password"
+          class="form-control"
+          id="adminPassword"
+          required
+        />
+        <div v-if="fieldErrors.adminPassword" class="text-danger small">
+          {{ fieldErrors.adminPassword[0] }}
+        </div>
       </div>
 
       <div v-if="formErrors.length" class="text-danger mt-2">
@@ -151,7 +176,9 @@ async function handleHidden() {
     </form>
 
     <template #footer>
-      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('actions.cancel') }}</button>
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        {{ t('actions.cancel') }}
+      </button>
       <button type="submit" class="btn btn-primary" form="createExchangeForm">
         {{ t('exchanges.createModal.submit') }}
       </button>
