@@ -42,6 +42,18 @@ const newParticipantName = ref('')
 const newParticipantEmail = ref('')
 const newParticipantNote = ref('')
 const newParticipantWishlistList = ref<GiftSuggestionDto[]>([])
+const wishlistSuggestionKeys = new WeakMap<GiftSuggestionDto, string>()
+let wishlistSuggestionKeySequence = 0
+
+function getWishlistSuggestionKey(suggestion: GiftSuggestionDto) {
+  let key = wishlistSuggestionKeys.get(suggestion)
+  if (!key) {
+    wishlistSuggestionKeySequence += 1
+    key = `suggestion-${wishlistSuggestionKeySequence}`
+    wishlistSuggestionKeys.set(suggestion, key)
+  }
+  return key
+}
 
 function isValidUrl(u?: string | null) {
   if (!u) return true
@@ -782,6 +794,7 @@ async function cancelDraw() {
                 v-model="newParticipantWishlistList"
                 handle=".drag-handle"
                 :animation="200"
+                :item-key="getWishlistSuggestionKey"
               >
                 <template #item="{ element: s, index: idx }">
                   <WishlistSuggestionItem

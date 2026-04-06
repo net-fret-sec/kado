@@ -29,12 +29,37 @@ kado/
     - `services/` pour la logique metier
     - `repositories/` pour le stockage en memoire (in-memory)
     - `middleware/` pour validation et gestion d'erreurs
+  - routes majeures:
+    - admin: `/api/exchanges/*`
+    - participant public (lien magique): `/api/p/:token`
 - `apps/web`
   - Vue 3 + Vite + Vue Router + Pinia
   - i18n (`vue-i18n`) avec locales `fr-CA` et `en-CA`
   - UI basee sur Bootstrap 5
+  - parcours admin (`/exchanges/:id`) + parcours participant (`/p/:token`)
 - `packages/shared`
   - schemas Zod et DTO communs, importes par l'API et le Web
+
+## Fonctionnalites actuellement couvertes
+
+- Gestion des echanges
+  - creation, lecture, edition, suppression
+  - statut d'echange (`draft`, `ready`, `drawn`, `archived`)
+  - options de creation: organisateur, budget, date, `noMutualAssignments`, mot de passe admin
+- Gestion des participants
+  - CRUD des participants cote admin
+  - regeneration de lien d'acces participant
+- Gestion des exclusions
+  - ajout/suppression de regles d'exclusion entre participants
+  - verrouillage des exclusions une fois la pige effectuee ou archivee
+- Pige (draw)
+  - lancement et annulation de pige
+  - solveur deterministe avec contraintes d'exclusion
+  - option anti-reciprocite (`noMutualAssignments`)
+  - erreurs detaillees si la pige est impossible (`DRAW_IMPOSSIBLE` + details)
+- Espace participant public
+  - consultation/mise a jour de son profil via lien magique (`/p/:token`)
+  - affichage du destinataire une fois la pige effectuee
 
 ## Librairies et standards utilises
 
@@ -90,6 +115,20 @@ Par defaut:
 - API: http://localhost:3000
 - Web: http://localhost:5173
 
+## Previsualisation locale
+
+Previsualiser la version build:
+
+```bash
+pnpm preview:web
+```
+
+Previsualiser l'API build (si script de preview implemente localement):
+
+```bash
+pnpm preview:api
+```
+
 ## Build
 
 Build de l'application Web:
@@ -124,6 +163,32 @@ Lint Web:
 pnpm --dir apps/web lint
 ```
 
+## Endpoints principaux API
+
+- Sante
+  - `GET /health`
+- Echanges (admin)
+  - `GET /api/exchanges`
+  - `POST /api/exchanges`
+  - `GET /api/exchanges/:exchangeId`
+  - `PUT /api/exchanges/:exchangeId`
+  - `DELETE /api/exchanges/:exchangeId`
+  - `POST /api/exchanges/:exchangeId/draw`
+  - `POST /api/exchanges/:exchangeId/draw/cancel`
+- Participants (admin)
+  - `GET /api/exchanges/:exchangeId/participants`
+  - `POST /api/exchanges/:exchangeId/participants`
+  - `PUT /api/exchanges/:exchangeId/participants/:participantId`
+  - `DELETE /api/exchanges/:exchangeId/participants/:participantId`
+  - `POST /api/exchanges/:exchangeId/participants/:participantId/access/regenerate`
+- Exclusions
+  - `GET /api/exchanges/:exchangeId/exclusions`
+  - `POST /api/exchanges/:exchangeId/exclusions`
+  - `DELETE /api/exchanges/:exchangeId/exclusions/:ruleId`
+- Espace participant public
+  - `GET /api/p/:token`
+  - `PUT /api/p/:token`
+
 ## Variables d'environnement utiles
 
 ### API (`apps/api`)
@@ -134,9 +199,10 @@ pnpm --dir apps/web lint
 
 ### Web (`apps/web`)
 
-- `VITE_API_BASE`: base URL de l'API (defaut: `http://localhost:3000`)
+- `VITE_API_BASE`: base URL de l'API (recommande de la definir explicitement, voir `apps/web/.env.example`)
 
 ## Notes
 
 - Le stockage actuel cote API est en memoire (repositories in-memory), adapte au dev/tests.
 - Le package `@kado/shared` centralise les contrats pour garder le front et le back synchronises.
+- Au demarrage de l'API, des donnees de test sont chargees automatiquement depuis `apps/api/src/test-data.json` via `load-test-data.ts`.
