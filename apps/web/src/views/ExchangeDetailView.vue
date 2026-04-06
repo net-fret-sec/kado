@@ -23,6 +23,7 @@ const error = ref<string | null>(null)
 const editName = ref('')
 const editDescription = ref('')
 const editStatus = ref('active')
+const editNoMutualAssignments = ref(false)
 const showEditExchangeModal = ref(false)
 const isDrawActionLoading = ref(false)
 
@@ -212,6 +213,7 @@ function startEdit() {
   editName.value = exchange.value.name
   editDescription.value = exchange.value.description || ''
   editStatus.value = exchange.value.status || 'active'
+  editNoMutualAssignments.value = exchange.value.noMutualAssignments ?? false
   showEditExchangeModal.value = true
 }
 
@@ -220,7 +222,8 @@ async function saveEdit() {
   try {
     await exchangesStore.updateExchange(exchange.value.id, {
       name: editName.value,
-      description: editDescription.value
+      description: editDescription.value,
+      noMutualAssignments: editNoMutualAssignments.value,
     })
     showEditExchangeModal.value = false
     await fetchExchange()
@@ -394,6 +397,10 @@ async function cancelDraw() {
           </li>
           <li v-if="exchange.eventDate"><b>{{ t('exchangeDetail.eventDate') }} :</b> {{ exchange.eventDate }}</li>
           <li v-if="exchange.budget"><b>{{ t('exchangeDetail.budget') }} :</b> {{ exchange.budget }} {{ exchange.budgetCurrency }}</li>
+          <li>
+            <b>{{ t('exchangeDetail.noMutualAssignments') }} :</b>
+            {{ exchange.noMutualAssignments ? t('exchangeDetail.enabled') : t('exchangeDetail.disabled') }}
+          </li>
           <li><b>{{ t('exchangeDetail.createdAt') }} :</b> {{ new Date(exchange.createdAt).toLocaleString() }}</li>
         </ul>
         <button class="btn btn-warning me-2" @click="startEdit">{{ t('exchangeDetail.edit') }}</button>
@@ -470,6 +477,17 @@ async function cancelDraw() {
                     <option value="active">{{ t('exchangeDetail.active') }}</option>
                     <option value="inactive">{{ t('exchangeDetail.inactive') }}</option>
                   </select>
+                </div>
+                <div class="mb-3 form-check">
+                  <input
+                    id="editNoMutualAssignments"
+                    v-model="editNoMutualAssignments"
+                    type="checkbox"
+                    class="form-check-input"
+                  />
+                  <label class="form-check-label" for="editNoMutualAssignments">
+                    {{ t('exchangeDetail.noMutualAssignments') }}
+                  </label>
                 </div>
               </form>
             </div>

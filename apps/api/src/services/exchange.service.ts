@@ -12,6 +12,94 @@ import { createParticipant } from './participant.service'
 import { assignmentRepository } from '../repositories/assignment.repository'
 import { exclusionRuleRepository } from '../repositories/exclusion-rule.repository'
 
+interface DrawAssignment {
+  giverParticipantId: string
+  receiverParticipantId: string
+}
+
+function buildAssignmentsWithExclusions(
+  participantIds: string[],
+  exclusions: Array<{ giverParticipantId: string; receiverParticipantId: string }>,
+  noMutualAssignments: boolean,
+): DrawAssignment[] | null {
+  const forbiddenByGiver = new Map<string, Set<string>>()
+
+  for (const giverId of participantIds) {
+    forbiddenByGiver.set(giverId, new Set([giverId]))
+  }
+
+  for (const exclusion of exclusions) {
+    const forbidden = forbiddenByGiver.get(exclusion.giverParticipantId)
+    if (forbidden) {
+      forbidden.add(exclusion.receiverParticipantId)
+    }
+  }
+
+  const remainingGivers = new Set(participantIds)
+  const usedReceivers = new Set<string>()
+  const assignments = new Map<string, string>()
+
+  function solve(): boolean {
+    if (remainingGivers.size === 0) {
+      return true
+    }
+
+    let selectedGiverId: string | undefined
+    let selectedCandidates: string[] = []
+
+    for (const giverId of remainingGivers) {
+      const forbidden = forbiddenByGiver.get(giverId) ?? new Set<string>()
+
+      const candidates = participantIds
+        .filter((receiverId) => !usedReceivers.has(receiverId) && !forbidden.has(receiverId))
+        .sort((a, b) => a.localeCompare(b))
+
+      if (!selectedGiverId || candidates.length < selectedCandidates.length) {
+        selectedGiverId = giverId
+        selectedCandidates = candidates
+      }
+
+      if (candidates.length === 0) {
+        return false
+      }
+    }
+
+    if (!selectedGiverId) {
+      return false
+    }
+
+    remainingGivers.delete(selectedGiverId)
+
+    for (const receiverId of selectedCandidates) {
+      if (noMutualAssignments && assignments.get(receiverId) === selectedGiverId) {
+        continue
+      }
+
+      assignments.set(selectedGiverId, receiverId)
+      usedReceivers.add(receiverId)
+
+      if (solve()) {
+        return true
+      }
+
+      assignments.delete(selectedGiverId)
+      usedReceivers.delete(receiverId)
+    }
+
+    remainingGivers.add(selectedGiverId)
+    return false
+  }
+
+  if (!solve()) {
+    return null
+  }
+
+  return participantIds.map((giverParticipantId) => ({
+    giverParticipantId,
+    receiverParticipantId: assignments.get(giverParticipantId) as string,
+  }))
+}
+
 export async function createExchange(
   input: CreateExchangeInputDto,
 ): Promise<CreateExchangeResultDto> {
@@ -26,6 +114,7 @@ export async function createExchange(
     eventDate: input.eventDate,
     budget: input.budget,
     budgetCurrency: input.budgetCurrency,
+    noMutualAssignments: input.noMutualAssignments ?? false,
     createdAt: now,
     updatedAt: now,
   }
@@ -161,16 +250,44 @@ export async function drawExchange(exchangeId: string): Promise<ExchangeDto> {
     throw new BadRequestError('At least 2 active participants are required to draw.')
   }
 
-  // Deterministic round-robin draw to keep tests stable.
   const ordered = [...participants].sort((a, b) => a.id.localeCompare(b.id))
+  const participantIds = ordered.map((participant) => participant.id)
+  const exclusions = exclusionRuleRepository.findByExchangeId(exchangeId)
+
+  const drawAssignments = buildAssignmentsWithExclusions(
+    participantIds,
+    exclusions,
+    exchange.noMutualAssignments ?? false,
+  )
+
+  if (!drawAssignments) {
+    const noMutualAssignments = exchange.noMutualAssignments ?? false
+    const hasExclusionRules = exclusions.length > 0
+
+    let message = 'No valid draw is possible with the current settings.'
+    if (hasExclusionRules && noMutualAssignments) {
+      message =
+        'No valid draw is possible with the current exclusion rules and no-mutual-assignment setting.'
+    } else if (hasExclusionRules) {
+      message = 'No valid draw is possible with the current exclusion rules.'
+    } else if (noMutualAssignments) {
+      message = 'No valid draw is possible with the no-mutual-assignment setting.'
+    }
+
+    throw new BadRequestError(message, {
+      code: 'DRAW_IMPOSSIBLE',
+      hasExclusionRules,
+      noMutualAssignments,
+    })
+  }
+
   const now = new Date().toISOString()
-  const assignments = ordered.map((giver, index) => {
-    const receiver = ordered[(index + 1) % ordered.length]
+  const assignments = drawAssignments.map((assignment) => {
     return {
       id: generateId('asg'),
       exchangeId,
-      giverParticipantId: giver.id,
-      receiverParticipantId: receiver.id,
+      giverParticipantId: assignment.giverParticipantId,
+      receiverParticipantId: assignment.receiverParticipantId,
       createdAt: now,
     }
   })

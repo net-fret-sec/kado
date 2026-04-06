@@ -244,6 +244,163 @@ describe('API Tests', () => {
       expect(selfViewResponse.body.exchange.status).toBe('ready')
       expect(selfViewResponse.body.assignment).toBeFalsy()
     })
+
+    it('should respect exclusion rules during draw', async () => {
+      const exchangeResponse = await request(app)
+        .post('/api/exchanges')
+        .send({
+          name: 'Exclusion-aware draw',
+          adminPassword: 'testpassword123',
+        })
+        .expect(201)
+
+      const exclusionAwareExchangeId = exchangeResponse.body.exchange.id
+
+      const annaResponse = await request(app)
+        .post(`/api/exchanges/${exclusionAwareExchangeId}/participants`)
+        .send({ name: 'Anna' })
+        .expect(201)
+
+      const benResponse = await request(app)
+        .post(`/api/exchanges/${exclusionAwareExchangeId}/participants`)
+        .send({ name: 'Ben' })
+        .expect(201)
+
+      await request(app)
+        .post(`/api/exchanges/${exclusionAwareExchangeId}/participants`)
+        .send({ name: 'Chloe' })
+        .expect(201)
+
+      await request(app)
+        .post(`/api/exchanges/${exclusionAwareExchangeId}/exclusions`)
+        .send({
+          giverParticipantId: annaResponse.body.participant.id,
+          receiverParticipantId: benResponse.body.participant.id,
+        })
+        .expect(201)
+
+      await request(app)
+        .post(`/api/exchanges/${exclusionAwareExchangeId}/draw`)
+        .expect(200)
+
+      const annaToken = new URL(annaResponse.body.accessLink).pathname.split('/').pop() as string
+      const annaSelfView = await request(app)
+        .get(`/api/p/${annaToken}`)
+        .expect(200)
+
+      expect(annaSelfView.body.assignment.receiverName).not.toBe('Ben')
+    })
+
+    it('should reject draw when exclusion rules make assignments impossible', async () => {
+      const exchangeResponse = await request(app)
+        .post('/api/exchanges')
+        .send({
+          name: 'Impossible exclusion draw',
+          adminPassword: 'testpassword123',
+        })
+        .expect(201)
+
+      const impossibleExchangeId = exchangeResponse.body.exchange.id
+
+      const p1Response = await request(app)
+        .post(`/api/exchanges/${impossibleExchangeId}/participants`)
+        .send({ name: 'Ariane' })
+        .expect(201)
+
+      const p2Response = await request(app)
+        .post(`/api/exchanges/${impossibleExchangeId}/participants`)
+        .send({ name: 'Bruno' })
+        .expect(201)
+
+      await request(app)
+        .post(`/api/exchanges/${impossibleExchangeId}/exclusions`)
+        .send({
+          giverParticipantId: p1Response.body.participant.id,
+          receiverParticipantId: p2Response.body.participant.id,
+        })
+        .expect(201)
+
+      await request(app)
+        .post(`/api/exchanges/${impossibleExchangeId}/exclusions`)
+        .send({
+          giverParticipantId: p2Response.body.participant.id,
+          receiverParticipantId: p1Response.body.participant.id,
+        })
+        .expect(201)
+
+      const drawResponse = await request(app)
+        .post(`/api/exchanges/${impossibleExchangeId}/draw`)
+        .expect(400)
+
+      expect(drawResponse.body.error.message).toMatch(/no valid draw is possible/i)
+    })
+
+    it('should reject draw with 2 participants when no mutual assignments is enabled', async () => {
+      const exchangeResponse = await request(app)
+        .post('/api/exchanges')
+        .send({
+          name: 'No mutual with 2 participants',
+          adminPassword: 'testpassword123',
+          noMutualAssignments: true,
+        })
+        .expect(201)
+
+      const noMutualExchangeId = exchangeResponse.body.exchange.id
+
+      await request(app)
+        .post(`/api/exchanges/${noMutualExchangeId}/participants`)
+        .send({ name: 'Alice' })
+        .expect(201)
+
+      await request(app)
+        .post(`/api/exchanges/${noMutualExchangeId}/participants`)
+        .send({ name: 'Bob' })
+        .expect(201)
+
+      const drawResponse = await request(app)
+        .post(`/api/exchanges/${noMutualExchangeId}/draw`)
+        .expect(400)
+
+      expect(drawResponse.body.error.message).toMatch(/no valid draw is possible/i)
+      expect(drawResponse.body.error.details).toMatchObject({
+        code: 'DRAW_IMPOSSIBLE',
+        noMutualAssignments: true,
+      })
+    })
+
+    it('should allow draw with 3 participants when no mutual assignments is enabled', async () => {
+      const exchangeResponse = await request(app)
+        .post('/api/exchanges')
+        .send({
+          name: 'No mutual with 3 participants',
+          adminPassword: 'testpassword123',
+          noMutualAssignments: true,
+        })
+        .expect(201)
+
+      const noMutualExchangeId = exchangeResponse.body.exchange.id
+
+      await request(app)
+        .post(`/api/exchanges/${noMutualExchangeId}/participants`)
+        .send({ name: 'Alice' })
+        .expect(201)
+
+      await request(app)
+        .post(`/api/exchanges/${noMutualExchangeId}/participants`)
+        .send({ name: 'Bob' })
+        .expect(201)
+
+      await request(app)
+        .post(`/api/exchanges/${noMutualExchangeId}/participants`)
+        .send({ name: 'Charlie' })
+        .expect(201)
+
+      const drawResponse = await request(app)
+        .post(`/api/exchanges/${noMutualExchangeId}/draw`)
+        .expect(200)
+
+      expect(drawResponse.body.status).toBe('drawn')
+    })
   })
 
   describe('Exclusion rules', () => {

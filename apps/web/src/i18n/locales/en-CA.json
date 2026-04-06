@@ -61,6 +61,7 @@
       "description": "Description",
       "organizerName": "Organizer Name",
       "organizerParticipates": "Organizer participates in the exchange",
+      "noMutualAssignments": "Disallow mutual assignments",
       "adminPassword": "Admin Password",
       "submit": "Create Exchange"
     }
@@ -81,6 +82,9 @@
     "organizer": "Organizer",
     "eventDate": "Event Date",
     "budget": "Budget",
+    "noMutualAssignments": "Mutual assignments blocked",
+    "enabled": "Yes",
+    "disabled": "No",
     "createdAt": "Created on",
     "edit": "Edit",
     "delete": "Delete",

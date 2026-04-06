@@ -30,6 +30,7 @@ export const createExchangeInputSchema = z.object({
   ),
   budget: z.number().nonnegative().optional(),
   budgetCurrency: optionalText(3),
+  noMutualAssignments: z.boolean().optional().default(false),
   adminPassword: z.string().min(10).max(256),
 })
 
@@ -42,6 +43,7 @@ export const updateExchangeInputSchema = z.object({
   ),
   budget: z.number().nonnegative().optional(),
   budgetCurrency: optionalText(3),
+  noMutualAssignments: z.boolean().optional(),
 })
 
 

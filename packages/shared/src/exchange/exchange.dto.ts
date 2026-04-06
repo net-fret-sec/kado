@@ -20,6 +20,7 @@ export interface ExchangeDto {
   eventDate?: string
   budget?: number
   budgetCurrency?: string
+  noMutualAssignments?: boolean
 
   drawAt?: string
   createdAt: string
@@ -37,6 +38,7 @@ export interface CreateExchangeInputDto {
   eventDate?: string
   budget?: number
   budgetCurrency?: string
+  noMutualAssignments?: boolean
 
   adminPassword: string
 }
@@ -54,6 +56,7 @@ export interface UpdateExchangeInputDto {
   eventDate?: string
   budget?: number
   budgetCurrency?: string
+  noMutualAssignments?: boolean
 }
 
 export interface ExchangeAdminViewDto {

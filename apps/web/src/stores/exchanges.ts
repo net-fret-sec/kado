@@ -38,6 +38,7 @@ export const useExchangesStore = defineStore('exchanges', () => {
       description?: string;
       organizerName: string;
       organizerParticipates?: boolean;
+      noMutualAssignments?: boolean;
       adminPassword: string;
       eventDate?: string;
       budget?: number;

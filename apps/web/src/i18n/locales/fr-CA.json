@@ -61,6 +61,7 @@
       "description": "Description",
       "organizerName": "Nom de l'organisateur",
       "organizerParticipates": "L'organisateur participe à l'échange",
+      "noMutualAssignments": "Interdire les piges mutuelles",
       "adminPassword": "Mot de passe admin",
       "submit": "Créer l'échange"
     }
@@ -81,6 +82,9 @@
     "organizer": "Organisateur",
     "eventDate": "Date de l'événement",
     "budget": "Budget",
+    "noMutualAssignments": "Piges mutuelles interdites",
+    "enabled": "Oui",
+    "disabled": "Non",
     "createdAt": "Créé le",
     "edit": "Modifier",
     "delete": "Supprimer",

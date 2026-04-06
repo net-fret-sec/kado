@@ -15,6 +15,7 @@ interface TestData {
     eventDate?: string
     budget?: number
     budgetCurrency?: string
+    noMutualAssignments?: boolean
     createdAt: string
     updatedAt: string
   }>

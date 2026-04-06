@@ -12,6 +12,7 @@ const name = ref('')
 const description = ref('')
 const organizerName = ref('')
 const organizerParticipates = ref(true)
+const noMutualAssignments = ref(false)
 const adminPassword = ref('')
 
 const fieldErrors = computed(() => exchangesStore.fieldErrors || {})
@@ -71,12 +72,14 @@ async function handleCreate() {
       description: description.value,
       organizerName: organizerName.value,
       organizerParticipates: organizerParticipates.value,
+      noMutualAssignments: noMutualAssignments.value,
       adminPassword: adminPassword.value
     })
     name.value = ''
     description.value = ''
     organizerName.value = ''
     organizerParticipates.value = true
+    noMutualAssignments.value = false
     adminPassword.value = ''
   } catch {
     // Error is handled in store
@@ -171,6 +174,10 @@ onMounted(() => {
               <div class="mb-3 form-check">
                 <input v-model="organizerParticipates" type="checkbox" class="form-check-input" id="organizerParticipates" />
                 <label class="form-check-label" for="organizerParticipates">{{ t('exchanges.createModal.organizerParticipates') }}</label>
+              </div>
+              <div class="mb-3 form-check">
+                <input v-model="noMutualAssignments" type="checkbox" class="form-check-input" id="noMutualAssignments" />
+                <label class="form-check-label" for="noMutualAssignments">{{ t('exchanges.createModal.noMutualAssignments') }}</label>
               </div>
               <div class="mb-3">
                 <label for="adminPassword" class="form-label">{{ t('exchanges.createModal.adminPassword') }}</label>

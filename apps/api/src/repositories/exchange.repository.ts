@@ -7,6 +7,7 @@ interface ExchangeRecord {
   eventDate?: string
   budget?: number
   budgetCurrency?: string
+  noMutualAssignments?: boolean
   drawAt?: string
   createdAt: string
   updatedAt: string
