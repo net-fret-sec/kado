@@ -42,7 +42,12 @@
     "title": "Exchanges",
     "createExchange": "Create Exchange",
     "loading": "Loading...",
-    "statusValues": {},
+    "statusValues": {
+      "draft": "Draft",
+      "ready": "Ready",
+      "drawn": "Drawn",
+      "archived": "Archived"
+    },
     "empty": "No exchanges yet.",
     "noDescription": "No description.",
     "organizer": "Organizer",

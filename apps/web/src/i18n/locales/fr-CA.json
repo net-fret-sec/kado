@@ -42,7 +42,12 @@
     "title": "Échanges",
     "createExchange": "Créer un échange",
     "loading": "Chargement...",
-    "statusValues": {},
+    "statusValues": {
+      "draft": "Brouillon",
+      "ready": "Prête",
+      "drawn": "Pigée",
+      "archived": "Archivée"
+    },
     "empty": "Aucun échange pour le moment.",
     "noDescription": "Aucune description.",
     "organizer": "Organisateur",

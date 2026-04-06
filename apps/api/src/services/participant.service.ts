@@ -11,8 +11,12 @@ import { exchangeRepository } from '../repositories/exchange.repository'
 import { participantRepository } from '../repositories/participant.repository'
 import { assignmentRepository } from '../repositories/assignment.repository'
 
-const PUBLIC_BASE_URL =
-  process.env.PUBLIC_BASE_URL || process.env.FRONTEND_BASE_URL || 'http://localhost:5173'
+function getPublicBaseUrl(): string {
+  const base =
+    process.env.PUBLIC_BASE_URL || process.env.FRONTEND_BASE_URL || 'http://localhost:5173'
+
+  return base.endsWith('/') ? base.slice(0, -1) : base
+}
 
 export async function createParticipant(
   exchangeId: string,
@@ -53,7 +57,7 @@ export async function createParticipant(
 
   return {
     participant,
-    accessLink: `${PUBLIC_BASE_URL}/p/${rawToken}`,
+    accessLink: `${getPublicBaseUrl()}/p/${rawToken}`,
   }
 }
 
@@ -128,7 +132,7 @@ export async function regenerateParticipantAccess(
 
   return {
     participantId: participant.id,
-    accessLink: `${PUBLIC_BASE_URL}/p/${rawToken}`,
+    accessLink: `${getPublicBaseUrl()}/p/${rawToken}`,
   }
 }
 

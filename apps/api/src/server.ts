@@ -1,9 +1,6 @@
-import dotenv from 'dotenv'
-import path from 'path'
+import 'dotenv/config'
 import { createApp } from './app'
 import { loadTestData } from './load-test-data'
-
-dotenv.config({ path: path.resolve(__dirname, '../.env') })
 
 const PORT = Number(process.env.SERVER_PORT) || 3000
 

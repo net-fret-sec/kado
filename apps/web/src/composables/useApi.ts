@@ -1,5 +1,5 @@
 // TypeScript composable to centralize API calls
-const BASE = (import.meta.env.VITE_API_BASE ?? 'http://localhost:3000') as string
+const BASE = (import.meta.env.VITE_API_BASE ?? 'http://192.168.0.145:3000') as string
 
 function buildUrl(path: string) {
   if (path.startsWith('http://') || path.startsWith('https://')) return path
