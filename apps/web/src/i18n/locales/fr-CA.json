@@ -125,6 +125,19 @@
       "title": "Modifier l'échange",
       "submit": "Enregistrer"
     },
+    "exceptions": {
+      "title": "Exceptions de pige",
+      "cannotDraw": "Ne peut pas piger",
+      "none": "Aucune exception.",
+      "selectReceiver": "Choisir un participant",
+      "add": "Ajouter",
+      "remove": "Retirer",
+      "added": "Exception ajoutée.",
+      "removed": "Exception retirée.",
+      "addFailed": "Échec de l'ajout de l'exception.",
+      "removeFailed": "Échec du retrait de l'exception.",
+      "locked": "Les exceptions ne peuvent plus être modifiées après la pige."
+    },
     "confirmDeleteExchange": "Supprimer cet échange ?",
     "confirmDeleteParticipant": "Supprimer ce participant ?"
   },
@@ -146,6 +159,24 @@
     "recipientName": "Nom",
     "recipientWishlist": "Sa liste de souhaits",
     "recipientNote": "Sa note"
+  },
+  "apiErrors": {
+    "UNKNOWN": "Une erreur inattendue est survenue.",
+    "DRAW_MIN_ACTIVE_PARTICIPANTS": "Au moins 3 participants actifs sont requis pour lancer la pige.",
+    "DRAW_IMPOSSIBLE": "Aucune pige valide n'est possible avec les paramètres actuels.",
+    "EXCHANGE_ARCHIVED_CANNOT_DRAW": "Une pige archivée ne peut pas être lancée.",
+    "EXCHANGE_ARCHIVED_CANNOT_MODIFY": "Une pige archivée ne peut pas être modifiée.",
+    "EXCHANGE_NOT_FOUND": "La pige demandée est introuvable.",
+    "PARTICIPANT_NOT_FOUND": "Le participant demandé est introuvable.",
+    "PARTICIPANT_UPDATES_CLOSED": "Les modifications du participant sont fermées pour cette pige.",
+    "PARTICIPANT_LINK_INVALID_OR_EXPIRED": "Ce lien participant est invalide ou expiré.",
+    "EXCLUSION_RULES_LOCKED": "Les exceptions de pige ne peuvent pas être modifiées pour cette pige.",
+    "PARTICIPANT_OUTSIDE_EXCHANGE": "Le participant n'appartient pas à cette pige.",
+    "EXCLUSION_SELF_NOT_ALLOWED": "Un participant ne peut pas s'exclure lui-même.",
+    "EXCLUSION_RULE_ALREADY_EXISTS": "Cette exception de pige existe déjà.",
+    "EXCLUSION_RULE_NOT_FOUND": "L'exception de pige demandée est introuvable.",
+    "INVALID_REQUEST_BODY": "Le corps de la requête est invalide.",
+    "INVALID_ROUTE_PARAMETERS": "Les paramètres de route sont invalides."
   },
   "close": "Fermer"
 }

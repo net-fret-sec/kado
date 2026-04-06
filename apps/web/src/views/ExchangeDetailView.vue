@@ -2,13 +2,14 @@
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useExchangesStore } from '@/stores/exchanges'
-import type { ExchangeDto } from '@kado/shared'
+import type { ExchangeDto, ExclusionRule } from '@kado/shared'
 import type { ParticipantDto, GiftSuggestionDto } from '@kado/shared'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
 import WishlistSuggestionItem from '@/components/WishlistSuggestionItem.vue'
 import Draggable from 'vuedraggable'
 import { useToastsStore } from '@/stores/toasts'
+import { getApiErrorMessage } from '@/composables/useApiErrorMessage'
 
 const api = useApi()
 const toasts = useToastsStore()
@@ -18,6 +19,8 @@ const route = useRoute()
 const exchangesStore = useExchangesStore()
 const exchange = ref<ExchangeDto | null>(null)
 const participants = ref<ParticipantDto[]>([])
+const exclusionRules = ref<ExclusionRule[]>([])
+const selectedExceptionReceiverByParticipant = ref<Record<string, string>>({})
 const isLoading = ref(true)
 const error = ref<string | null>(null)
 const editName = ref('')
@@ -75,6 +78,20 @@ const isAddFormValid = computed(() => {
 const isEditFormValid = computed(() => {
   const nameOk = newParticipantName.value.trim().length > 0
   return nameOk && isListModeValid.value
+})
+
+const isExclusionEditingLocked = computed(() => {
+  if (!exchange.value) return true
+  return exchange.value.status === 'drawn' || exchange.value.status === 'archived'
+})
+
+const activeParticipants = computed(() => participants.value.filter((participant) => participant.status === 'active'))
+
+const participantNameById = computed(() => {
+  return activeParticipants.value.reduce<Record<string, string>>((acc, participant) => {
+    acc[participant.id] = participant.name
+    return acc
+  }, {})
 })
 
 const canTriggerDraw = computed(() => {
@@ -190,13 +207,67 @@ async function fetchExchange() {
   error.value = null
   try {
     const id = route.params.id as string
-    exchange.value = await api.get<ExchangeDto>(`/api/exchanges/${id}`)
-    participants.value = await api.get<ParticipantDto[]>(`/api/exchanges/${id}/participants`)
+    const [exchangeResponse, participantsResponse, exclusionsResponse] = await Promise.all([
+      api.get<ExchangeDto>(`/api/exchanges/${id}`),
+      api.get<ParticipantDto[]>(`/api/exchanges/${id}/participants`),
+      api.get<ExclusionRule[]>(`/api/exchanges/${id}/exclusions`),
+    ])
+
+    exchange.value = exchangeResponse
+    participants.value = participantsResponse
+    exclusionRules.value = exclusionsResponse
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Erreur inconnue'
-    toasts.error(error.value || 'Erreur inconnue')
+    const message = getApiErrorMessage(err)
+    error.value = message
+    toasts.error(message)
   } finally {
     isLoading.value = false
+  }
+}
+
+function getParticipantExclusions(participantId: string) {
+  return exclusionRules.value.filter((rule) => rule.giverParticipantId === participantId)
+}
+
+function getReceiverCandidates(participantId: string) {
+  const excludedReceiverIds = new Set(
+    getParticipantExclusions(participantId).map((rule) => rule.receiverParticipantId),
+  )
+
+  return activeParticipants.value.filter((candidate) => {
+    return candidate.id !== participantId && !excludedReceiverIds.has(candidate.id)
+  })
+}
+
+async function addParticipantExclusion(giverParticipantId: string) {
+  if (!exchange.value || isExclusionEditingLocked.value) return
+
+  const receiverParticipantId = selectedExceptionReceiverByParticipant.value[giverParticipantId]
+  if (!receiverParticipantId) return
+
+  try {
+    const createdRule = await api.post<ExclusionRule>(`/api/exchanges/${exchange.value.id}/exclusions`, {
+      giverParticipantId,
+      receiverParticipantId,
+    })
+
+    exclusionRules.value.push(createdRule)
+    selectedExceptionReceiverByParticipant.value[giverParticipantId] = ''
+    toasts.success(t('exchangeDetail.exceptions.added'))
+  } catch (err) {
+    toasts.error(getApiErrorMessage(err, { fallbackKey: 'exchangeDetail.exceptions.addFailed' }))
+  }
+}
+
+async function removeParticipantExclusion(ruleId: string) {
+  if (!exchange.value || isExclusionEditingLocked.value) return
+
+  try {
+    await api.delete(`/api/exchanges/${exchange.value.id}/exclusions/${ruleId}`)
+    exclusionRules.value = exclusionRules.value.filter((rule) => rule.id !== ruleId)
+    toasts.success(t('exchangeDetail.exceptions.removed'))
+  } catch (err) {
+    toasts.error(getApiErrorMessage(err, { fallbackKey: 'exchangeDetail.exceptions.removeFailed' }))
   }
 }
 
@@ -229,7 +300,7 @@ async function saveEdit() {
     await fetchExchange()
   } catch (err) {
     console.error(err)
-    toasts.error(err instanceof Error ? err.message : 'Erreur lors de l\'ajout')
+    toasts.error(getApiErrorMessage(err, { fallbackMessage: 'Erreur lors de l\'ajout' }))
   }
 }
 
@@ -241,7 +312,7 @@ async function handleDelete() {
     window.location.href = '/exchanges'
   } catch (err) {
     console.error(err)
-    toasts.error(err instanceof Error ? err.message : 'Erreur lors de la modification')
+    toasts.error(getApiErrorMessage(err, { fallbackMessage: 'Erreur lors de la modification' }))
   }
 }
 
@@ -306,7 +377,7 @@ async function deleteParticipant(participantId: string) {
     await fetchExchange()
   } catch (err) {
     console.error(err)
-    toasts.error(err instanceof Error ? err.message : 'Erreur lors de la suppression')
+    toasts.error(getApiErrorMessage(err, { fallbackMessage: 'Erreur lors de la suppression' }))
   }
 }
 
@@ -346,7 +417,7 @@ async function regenerateParticipantLink(participantId: string) {
     }
   } catch (err) {
     console.error(err)
-    toasts.error(err instanceof Error ? err.message : t('exchangeDetail.generateFailed'))
+    toasts.error(getApiErrorMessage(err, { fallbackKey: 'exchangeDetail.generateFailed' }))
   }
 }
 
@@ -359,7 +430,7 @@ async function triggerDraw() {
     toasts.success(t('exchangeDetail.drawSuccess'))
     await fetchExchange()
   } catch (err) {
-    toasts.error(err instanceof Error ? err.message : t('exchangeDetail.drawFailed'))
+    toasts.error(getApiErrorMessage(err, { fallbackKey: 'exchangeDetail.drawFailed' }))
   } finally {
     isDrawActionLoading.value = false
   }
@@ -374,7 +445,7 @@ async function cancelDraw() {
     toasts.success(t('exchangeDetail.cancelDrawSuccess'))
     await fetchExchange()
   } catch (err) {
-    toasts.error(err instanceof Error ? err.message : t('exchangeDetail.cancelDrawFailed'))
+    toasts.error(getApiErrorMessage(err, { fallbackKey: 'exchangeDetail.cancelDrawFailed' }))
   } finally {
     isDrawActionLoading.value = false
   }
@@ -433,6 +504,56 @@ async function cancelDraw() {
                 <span class="badge text-bg-light">{{ participant.wishlist.length }} suggestions</span>
               </div>
               <div v-if="participant.note" class="small">{{ t('exchangeDetail.note') }}: {{ participant.note }}</div>
+              <div class="small mt-2">
+                <div class="fw-semibold mb-1">{{ t('exchangeDetail.exceptions.title') }}</div>
+                <ul v-if="getParticipantExclusions(participant.id).length" class="mb-2 ps-3">
+                  <li
+                    v-for="rule in getParticipantExclusions(participant.id)"
+                    :key="rule.id"
+                    class="d-flex align-items-center gap-2 mb-1"
+                  >
+                    <span>
+                      {{ t('exchangeDetail.exceptions.cannotDraw') }} {{ participantNameById[rule.receiverParticipantId] || rule.receiverParticipantId }}
+                    </span>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-danger"
+                      :disabled="isExclusionEditingLocked"
+                      @click="removeParticipantExclusion(rule.id)"
+                    >
+                      {{ t('exchangeDetail.exceptions.remove') }}
+                    </button>
+                  </li>
+                </ul>
+                <p v-else class="mb-2 text-muted">{{ t('exchangeDetail.exceptions.none') }}</p>
+                <div class="d-flex gap-2 align-items-center" v-if="participant.status === 'active'">
+                  <select
+                    class="form-select form-select-sm"
+                    :disabled="isExclusionEditingLocked || !getReceiverCandidates(participant.id).length"
+                    v-model="selectedExceptionReceiverByParticipant[participant.id]"
+                  >
+                    <option value="">{{ t('exchangeDetail.exceptions.selectReceiver') }}</option>
+                    <option
+                      v-for="candidate in getReceiverCandidates(participant.id)"
+                      :key="candidate.id"
+                      :value="candidate.id"
+                    >
+                      {{ candidate.name }}
+                    </option>
+                  </select>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary"
+                    :disabled="isExclusionEditingLocked || !selectedExceptionReceiverByParticipant[participant.id]"
+                    @click="addParticipantExclusion(participant.id)"
+                  >
+                    {{ t('exchangeDetail.exceptions.add') }}
+                  </button>
+                </div>
+                <p v-if="isExclusionEditingLocked" class="mb-0 text-muted">
+                  {{ t('exchangeDetail.exceptions.locked') }}
+                </p>
+              </div>
             </div>
             <div>
               <button class="btn btn-sm btn-outline-primary me-2" @click="openEditParticipantModal(participant)">{{ t('exchangeDetail.edit') }}</button>

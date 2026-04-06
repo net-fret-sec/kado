@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import CreateExchangeModal from '@/components/CreateExchangeModal.vue'
 
 const { t } = useI18n()
+const isCreateModalOpen = ref(false)
 </script>
 
 <template>
@@ -51,9 +54,9 @@ const { t } = useI18n()
           <div class="card-body d-flex flex-column">
             <h2 class="card-title h4">{{ t('home.cta.organizerTitle') }}</h2>
             <p class="card-text text-muted flex-grow-1">{{ t('home.cta.organizerDesc') }}</p>
-            <router-link to="/exchanges" class="btn btn-primary mt-3 align-self-start">
+            <button type="button" class="btn btn-primary mt-3 align-self-start" @click="isCreateModalOpen = true">
               {{ t('home.cta.organizerAction') }}
-            </router-link>
+            </button>
           </div>
         </div>
       </div>
@@ -92,6 +95,8 @@ const { t } = useI18n()
         {{ t('home.adminLink') }}
       </router-link>
     </div>
+
+    <CreateExchangeModal v-model="isCreateModalOpen" />
 
   </section>
 </template>

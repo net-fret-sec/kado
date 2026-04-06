@@ -6,6 +6,7 @@ import type { GiftSuggestionDto, ParticipantSelfViewDto, UpdateParticipantInputD
 import { useI18n } from 'vue-i18n'
 import WishlistSuggestionItem from '@/components/WishlistSuggestionItem.vue'
 import { useToastsStore } from '@/stores/toasts'
+import { getApiErrorMessage } from '@/composables/useApiErrorMessage'
 
 const { t } = useI18n()
 const api = useApi()
@@ -72,7 +73,7 @@ async function fetchSelf() {
     view.value = await api.get<ParticipantSelfViewDto>(`/api/p/${encodeURIComponent(token)}`)
     hydrateForm()
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Unknown error'
+    error.value = getApiErrorMessage(err)
   } finally {
     isLoading.value = false
   }
@@ -99,8 +100,9 @@ async function saveSelf() {
     hydrateForm()
     toasts.success(t('participant.saveSuccess'))
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Unknown error'
-    toasts.error(error.value)
+    const message = getApiErrorMessage(err)
+    error.value = message
+    toasts.error(message)
   } finally {
     isSaving.value = false
   }

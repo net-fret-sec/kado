@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import type { ExchangeDto } from '@kado/shared'
 import { useApi } from '@/composables/useApi'
 import { useToastsStore } from '@/stores/toasts'
+import { getApiErrorMessage } from '@/composables/useApiErrorMessage'
 
 export const useExchangesStore = defineStore('exchanges', () => {
   const exchanges = ref<ExchangeDto[]>([])
@@ -19,7 +20,7 @@ export const useExchangesStore = defineStore('exchanges', () => {
     try {
       exchanges.value = await api.get<ExchangeDto[]>('/api/exchanges')
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Unknown error'
+      error.value = getApiErrorMessage(err)
       toasts.error(error.value)
     } finally {
       isLoading.value = false
@@ -54,7 +55,7 @@ export const useExchangesStore = defineStore('exchanges', () => {
         return data.exchange
       } catch (err) {
         if (!error.value) {
-          error.value = err instanceof Error ? err.message : 'Erreur inconnue';
+          error.value = getApiErrorMessage(err);
         }
         toasts.error(error.value)
         throw err;
@@ -72,7 +73,7 @@ export const useExchangesStore = defineStore('exchanges', () => {
         if (idx !== -1) exchanges.value[idx] = updated;
         return updated;
       } catch (err) {
-        error.value = err instanceof Error ? err.message : 'Erreur inconnue';
+        error.value = getApiErrorMessage(err);
         toasts.error(error.value)
         throw err;
       } finally {
@@ -87,7 +88,7 @@ export const useExchangesStore = defineStore('exchanges', () => {
         await api.delete(`/api/exchanges/${id}`)
         exchanges.value = exchanges.value.filter(e => e.id !== id);
       } catch (err) {
-        error.value = err instanceof Error ? err.message : 'Erreur inconnue';
+        error.value = getApiErrorMessage(err);
         toasts.error(error.value)
         throw err;
       } finally {

@@ -4,19 +4,12 @@ import { ref, onMounted, computed } from 'vue'
 import { useExchangesStore } from '@/stores/exchanges'
 import { useI18n } from 'vue-i18n'
 import type { ExchangeDto } from '@kado/shared'
+import CreateExchangeModal from '@/components/CreateExchangeModal.vue'
 
 const { t } = useI18n()
 const exchangesStore = useExchangesStore()
 
-const name = ref('')
-const description = ref('')
-const organizerName = ref('')
-const organizerParticipates = ref(true)
-const noMutualAssignments = ref(false)
-const adminPassword = ref('')
-
-const fieldErrors = computed(() => exchangesStore.fieldErrors || {})
-const formErrors = computed(() => exchangesStore.formErrors || [])
+const isCreateModalOpen = ref(false)
 
 const sortedExchanges = computed(() => {
   return [...exchangesStore.exchanges].sort((a, b) => {
@@ -59,33 +52,6 @@ function participantsCount(exchange: ExchangeDto) {
   return exchange.participants?.length ?? 0
 }
 
-async function handleCreate() {
-  exchangesStore.fieldErrors = null
-  exchangesStore.formErrors = null
-  if (!name.value.trim()) {
-    // Handle client-side validation if needed
-    return
-  }
-  try {
-    await exchangesStore.createExchange({
-      name: name.value,
-      description: description.value,
-      organizerName: organizerName.value,
-      organizerParticipates: organizerParticipates.value,
-      noMutualAssignments: noMutualAssignments.value,
-      adminPassword: adminPassword.value
-    })
-    name.value = ''
-    description.value = ''
-    organizerName.value = ''
-    organizerParticipates.value = true
-    noMutualAssignments.value = false
-    adminPassword.value = ''
-  } catch {
-    // Error is handled in store
-  }
-}
-
 onMounted(() => {
   exchangesStore.fetchExchanges()
 })
@@ -95,7 +61,9 @@ onMounted(() => {
   <section class="py-4">
     <h1>{{ t('exchanges.title') }}</h1>
 
-    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createExchangeModal">{{ t('exchanges.createExchange') }}</button>
+    <button type="button" class="btn btn-primary mb-3" @click="isCreateModalOpen = true">
+      {{ t('exchanges.createExchange') }}
+    </button>
 
     <div v-if="exchangesStore.isLoading">{{ t('exchanges.loading') }}</div>
     <div v-else-if="exchangesStore.error">{{ exchangesStore.error }}</div>
@@ -146,55 +114,6 @@ onMounted(() => {
     </div>
   </section>
 
-    <!-- Modale pour créer un échange -->
-    <section class="modal" id="createExchangeModal">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">{{ t('exchanges.createModal.title') }}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" :aria-label="t('close')"></button>
-          </div>
-          <div class="modal-body">
-            <form @submit.prevent="handleCreate">
-              <div class="mb-3">
-                <label for="exchangeName" class="form-label">{{ t('exchanges.createModal.name') }}</label>
-                <input v-model="name" type="text" class="form-control" id="exchangeName" required />
-                <div v-if="fieldErrors.name" class="text-danger small">{{ fieldErrors.name[0] }}</div>
-              </div>
-              <div class="mb-3">
-                <label for="exchangeDescription" class="form-label">{{ t('exchanges.createModal.description') }}</label>
-                <input v-model="description" type="text" class="form-control" id="exchangeDescription" />
-                <div v-if="fieldErrors.description" class="text-danger small">{{ fieldErrors.description[0] }}</div>
-              </div>
-              <div class="mb-3">
-                <label for="organizerName" class="form-label">{{ t('exchanges.createModal.organizerName') }}</label>
-                <input v-model="organizerName" type="text" class="form-control" id="organizerName" required />
-                <div v-if="fieldErrors.organizerName" class="text-danger small">{{ fieldErrors.organizerName[0] }}</div>
-              </div>
-              <div class="mb-3 form-check">
-                <input v-model="organizerParticipates" type="checkbox" class="form-check-input" id="organizerParticipates" />
-                <label class="form-check-label" for="organizerParticipates">{{ t('exchanges.createModal.organizerParticipates') }}</label>
-              </div>
-              <div class="mb-3 form-check">
-                <input v-model="noMutualAssignments" type="checkbox" class="form-check-input" id="noMutualAssignments" />
-                <label class="form-check-label" for="noMutualAssignments">{{ t('exchanges.createModal.noMutualAssignments') }}</label>
-              </div>
-              <div class="mb-3">
-                <label for="adminPassword" class="form-label">{{ t('exchanges.createModal.adminPassword') }}</label>
-                <input v-model="adminPassword" type="password" class="form-control" id="adminPassword" required />
-                <div v-if="fieldErrors.adminPassword" class="text-danger small">{{ fieldErrors.adminPassword[0] }}</div>
-              </div>
-              <div v-if="formErrors.length" class="text-danger mt-2">
-                <div v-for="err in formErrors" :key="err">{{ err }}</div>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('actions.cancel') }}</button>
-            <button type="submit" class="btn btn-primary" @click="handleCreate">{{ t('exchanges.createModal.submit') }}</button>
-          </div>
-        </div>
-      </div>
-    </section>
+  <CreateExchangeModal v-model="isCreateModalOpen" />
 
 </template>

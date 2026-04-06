@@ -156,6 +156,9 @@ describe('API Tests', () => {
         .expect(400)
 
       expect(response.body.error.message).toMatch(/updates are closed/i)
+      expect(response.body.error.details).toMatchObject({
+        code: 'PARTICIPANT_UPDATES_CLOSED',
+      })
     })
   })
 
@@ -184,6 +187,11 @@ describe('API Tests', () => {
         .send({ name: 'Ben', wishlist: [{ title: 'Jeu' }] })
         .expect(201)
 
+      await request(app)
+        .post(`/api/exchanges/${drawExchangeId}/participants`)
+        .send({ name: 'Chloe', wishlist: [{ title: 'Puzzle' }] })
+        .expect(201)
+
       drawParticipantToken = new URL(p1.body.accessLink).pathname.split('/').pop() as string
     })
 
@@ -206,7 +214,7 @@ describe('API Tests', () => {
       expect(response.body.assignment.receiverName).toBeTruthy()
     })
 
-    it('should reject draw when exchange has less than 2 participants', async () => {
+    it('should reject draw when exchange has less than 3 participants', async () => {
       const exchangeResponse = await request(app)
         .post('/api/exchanges')
         .send({
@@ -226,7 +234,10 @@ describe('API Tests', () => {
         .post(`/api/exchanges/${exchangeId}/draw`)
         .expect(400)
 
-      expect(response.body.error.message).toMatch(/at least 2 active participants/i)
+      expect(response.body.error.message).toMatch(/at least 3 active participants/i)
+      expect(response.body.error.details).toMatchObject({
+        code: 'DRAW_MIN_ACTIVE_PARTICIPANTS',
+      })
     })
 
     it('should cancel draw and reopen exchange state', async () => {
@@ -312,11 +323,24 @@ describe('API Tests', () => {
         .send({ name: 'Bruno' })
         .expect(201)
 
+      const p3Response = await request(app)
+        .post(`/api/exchanges/${impossibleExchangeId}/participants`)
+        .send({ name: 'Clara' })
+        .expect(201)
+
       await request(app)
         .post(`/api/exchanges/${impossibleExchangeId}/exclusions`)
         .send({
           giverParticipantId: p1Response.body.participant.id,
           receiverParticipantId: p2Response.body.participant.id,
+        })
+        .expect(201)
+
+      await request(app)
+        .post(`/api/exchanges/${impossibleExchangeId}/exclusions`)
+        .send({
+          giverParticipantId: p1Response.body.participant.id,
+          receiverParticipantId: p3Response.body.participant.id,
         })
         .expect(201)
 
@@ -333,6 +357,9 @@ describe('API Tests', () => {
         .expect(400)
 
       expect(drawResponse.body.error.message).toMatch(/no valid draw is possible/i)
+      expect(drawResponse.body.error.details).toMatchObject({
+        code: 'DRAW_IMPOSSIBLE',
+      })
     })
 
     it('should reject draw with 2 participants when no mutual assignments is enabled', async () => {
@@ -361,10 +388,9 @@ describe('API Tests', () => {
         .post(`/api/exchanges/${noMutualExchangeId}/draw`)
         .expect(400)
 
-      expect(drawResponse.body.error.message).toMatch(/no valid draw is possible/i)
+      expect(drawResponse.body.error.message).toMatch(/at least 3 active participants/i)
       expect(drawResponse.body.error.details).toMatchObject({
-        code: 'DRAW_IMPOSSIBLE',
-        noMutualAssignments: true,
+        code: 'DRAW_MIN_ACTIVE_PARTICIPANTS',
       })
     })
 
@@ -479,6 +505,9 @@ describe('API Tests', () => {
         .expect(400)
 
       expect(response.body.error.message).toMatch(/cannot be excluded from drawing themselves/i)
+      expect(response.body.error.details).toMatchObject({
+        code: 'EXCLUSION_SELF_NOT_ALLOWED',
+      })
     })
 
     it('should reject duplicate exclusion rule', async () => {
@@ -488,6 +517,9 @@ describe('API Tests', () => {
         .expect(400)
 
       expect(response.body.error.message).toMatch(/already exists/i)
+      expect(response.body.error.details).toMatchObject({
+        code: 'EXCLUSION_RULE_ALREADY_EXISTS',
+      })
     })
 
     it('should reject exclusion rule when participant is outside exchange', async () => {
@@ -497,6 +529,9 @@ describe('API Tests', () => {
         .expect(400)
 
       expect(response.body.error.message).toMatch(/does not belong to this exchange/i)
+      expect(response.body.error.details).toMatchObject({
+        code: 'PARTICIPANT_OUTSIDE_EXCHANGE',
+      })
     })
 
     it('should delete exclusion rule', async () => {
@@ -520,12 +555,18 @@ describe('API Tests', () => {
         .expect(400)
 
       expect(createResponse.body.error.message).toMatch(/cannot be modified/i)
+      expect(createResponse.body.error.details).toMatchObject({
+        code: 'EXCLUSION_RULES_LOCKED',
+      })
 
       const deleteResponse = await request(app)
         .delete(`/api/exchanges/${exclusionExchangeId}/exclusions/non-existent-rule`)
         .expect(400)
 
       expect(deleteResponse.body.error.message).toMatch(/cannot be modified/i)
+      expect(deleteResponse.body.error.details).toMatchObject({
+        code: 'EXCLUSION_RULES_LOCKED',
+      })
     })
   })
 })

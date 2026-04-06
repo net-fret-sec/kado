@@ -7,7 +7,12 @@ function buildUrl(path: string) {
   return `${BASE}${cleaned}`
 }
 
-type ErrorLike = { error?: { message?: unknown }; message?: unknown }
+type ErrorLike = {
+  error?: { message?: unknown; code?: unknown; details?: { code?: unknown } }
+  message?: unknown
+  code?: unknown
+  details?: { code?: unknown }
+}
 
 function extractMessage(data: unknown): string | undefined {
   if (typeof data === 'string') return data
@@ -19,14 +24,27 @@ function extractMessage(data: unknown): string | undefined {
   return undefined
 }
 
-class HttpError extends Error {
+function extractCode(data: unknown): string | undefined {
+  if (data && typeof data === 'object') {
+    const e = data as ErrorLike
+    if (typeof e.error?.code === 'string') return e.error.code as string
+    if (typeof e.error?.details?.code === 'string') return e.error.details.code as string
+    if (typeof e.code === 'string') return e.code as string
+    if (typeof e.details?.code === 'string') return e.details.code as string
+  }
+  return undefined
+}
+
+export class HttpError extends Error {
   status: number
   data: unknown
-  constructor(message: string, status: number, data: unknown) {
+  code?: string
+  constructor(message: string, status: number, data: unknown, code?: string) {
     super(message)
     this.name = 'HttpError'
     this.status = status
     this.data = data
+    this.code = code
   }
 }
 
@@ -42,7 +60,8 @@ async function parseResponse<T = unknown>(response: Response): Promise<T> {
 
   if (!response.ok) {
     const msg = extractMessage(data) ?? response.statusText
-    throw new HttpError(msg, response.status, data)
+    const code = extractCode(data)
+    throw new HttpError(msg, response.status, data, code)
   }
 
   return data as T

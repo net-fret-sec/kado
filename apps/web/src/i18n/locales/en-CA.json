@@ -125,6 +125,19 @@
       "title": "Edit Exchange",
       "submit": "Save"
     },
+    "exceptions": {
+      "title": "Draw exceptions",
+      "cannotDraw": "Cannot draw",
+      "none": "No exceptions.",
+      "selectReceiver": "Select a participant",
+      "add": "Add",
+      "remove": "Remove",
+      "added": "Exception added.",
+      "removed": "Exception removed.",
+      "addFailed": "Failed to add exception.",
+      "removeFailed": "Failed to remove exception.",
+      "locked": "Exceptions can no longer be edited after the draw."
+    },
     "confirmDeleteExchange": "Delete this exchange?",
     "confirmDeleteParticipant": "Delete this participant?"
   },
@@ -146,6 +159,24 @@
     "recipientName": "Name",
     "recipientWishlist": "Their wishlist",
     "recipientNote": "Their note"
+  },
+  "apiErrors": {
+    "UNKNOWN": "An unexpected error occurred.",
+    "DRAW_MIN_ACTIVE_PARTICIPANTS": "At least 3 active participants are required to run the draw.",
+    "DRAW_IMPOSSIBLE": "No valid draw is possible with the current settings.",
+    "EXCHANGE_ARCHIVED_CANNOT_DRAW": "Archived exchanges cannot be drawn.",
+    "EXCHANGE_ARCHIVED_CANNOT_MODIFY": "Archived exchanges cannot be modified.",
+    "EXCHANGE_NOT_FOUND": "The requested exchange was not found.",
+    "PARTICIPANT_NOT_FOUND": "The requested participant was not found.",
+    "PARTICIPANT_UPDATES_CLOSED": "Participant updates are closed for this exchange.",
+    "PARTICIPANT_LINK_INVALID_OR_EXPIRED": "This participant link is invalid or expired.",
+    "EXCLUSION_RULES_LOCKED": "Exclusion rules cannot be modified for this exchange.",
+    "PARTICIPANT_OUTSIDE_EXCHANGE": "The participant does not belong to this exchange.",
+    "EXCLUSION_SELF_NOT_ALLOWED": "A participant cannot be excluded from drawing themselves.",
+    "EXCLUSION_RULE_ALREADY_EXISTS": "This exclusion rule already exists.",
+    "EXCLUSION_RULE_NOT_FOUND": "The requested exclusion rule was not found.",
+    "INVALID_REQUEST_BODY": "The request body is invalid.",
+    "INVALID_ROUTE_PARAMETERS": "The route parameters are invalid."
   },
   "close": "Close"
 }

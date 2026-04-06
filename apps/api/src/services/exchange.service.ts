@@ -168,7 +168,9 @@ export async function getExchangeById(exchangeId: string): Promise<ExchangeDto> 
   const exchange = exchangeRepository.findById(exchangeId)
 
   if (!exchange) {
-    throw new NotFoundError('Exchange not found.')
+    throw new NotFoundError('Exchange not found.', {
+      code: 'EXCHANGE_NOT_FOUND',
+    })
   }
 
   const participants = participantRepository.findByExchangeId(exchangeId)
@@ -204,13 +206,17 @@ export async function updateExchange(
   const exchange = exchangeRepository.findById(exchangeId)
 
   if (!exchange) {
-    throw new NotFoundError('Exchange not found.')
+    throw new NotFoundError('Exchange not found.', {
+      code: 'EXCHANGE_NOT_FOUND',
+    })
   }
 
   const updated = exchangeRepository.update(exchangeId, input)
 
   if (!updated) {
-    throw new NotFoundError('Exchange not found.')
+    throw new NotFoundError('Exchange not found.', {
+      code: 'EXCHANGE_NOT_FOUND',
+    })
   }
 
   return updated
@@ -220,7 +226,9 @@ export async function deleteExchange(exchangeId: string): Promise<void> {
   const exchange = exchangeRepository.findById(exchangeId)
 
   if (!exchange) {
-    throw new NotFoundError('Exchange not found.')
+    throw new NotFoundError('Exchange not found.', {
+      code: 'EXCHANGE_NOT_FOUND',
+    })
   }
 
   exclusionRuleRepository.deleteByExchangeId(exchangeId)
@@ -231,11 +239,15 @@ export async function drawExchange(exchangeId: string): Promise<ExchangeDto> {
   const exchange = exchangeRepository.findById(exchangeId)
 
   if (!exchange) {
-    throw new NotFoundError('Exchange not found.')
+    throw new NotFoundError('Exchange not found.', {
+      code: 'EXCHANGE_NOT_FOUND',
+    })
   }
 
   if (exchange.status === 'archived') {
-    throw new BadRequestError('Archived exchanges cannot be drawn.')
+    throw new BadRequestError('Archived exchanges cannot be drawn.', {
+      code: 'EXCHANGE_ARCHIVED_CANNOT_DRAW',
+    })
   }
 
   if (exchange.status === 'drawn') {
@@ -246,8 +258,10 @@ export async function drawExchange(exchangeId: string): Promise<ExchangeDto> {
     .findByExchangeId(exchangeId)
     .filter(p => p.status === 'active')
 
-  if (participants.length < 2) {
-    throw new BadRequestError('At least 2 active participants are required to draw.')
+  if (participants.length < 3) {
+    throw new BadRequestError('At least 3 active participants are required to draw.', {
+      code: 'DRAW_MIN_ACTIVE_PARTICIPANTS',
+    })
   }
 
   const ordered = [...participants].sort((a, b) => a.id.localeCompare(b.id))
@@ -301,7 +315,9 @@ export async function drawExchange(exchangeId: string): Promise<ExchangeDto> {
   })
 
   if (!updated) {
-    throw new NotFoundError('Exchange not found.')
+    throw new NotFoundError('Exchange not found.', {
+      code: 'EXCHANGE_NOT_FOUND',
+    })
   }
 
   return updated
@@ -311,11 +327,15 @@ export async function cancelExchangeDraw(exchangeId: string): Promise<ExchangeDt
   const exchange = exchangeRepository.findById(exchangeId)
 
   if (!exchange) {
-    throw new NotFoundError('Exchange not found.')
+    throw new NotFoundError('Exchange not found.', {
+      code: 'EXCHANGE_NOT_FOUND',
+    })
   }
 
   if (exchange.status === 'archived') {
-    throw new BadRequestError('Archived exchanges cannot be modified.')
+    throw new BadRequestError('Archived exchanges cannot be modified.', {
+      code: 'EXCHANGE_ARCHIVED_CANNOT_MODIFY',
+    })
   }
 
   assignmentRepository.deleteByExchangeId(exchangeId)
@@ -326,7 +346,9 @@ export async function cancelExchangeDraw(exchangeId: string): Promise<ExchangeDt
   })
 
   if (!updated) {
-    throw new NotFoundError('Exchange not found.')
+    throw new NotFoundError('Exchange not found.', {
+      code: 'EXCHANGE_NOT_FOUND',
+    })
   }
 
   return updated

@@ -10,8 +10,8 @@ export class HttpError extends Error {
 }
 
 export class NotFoundError extends HttpError {
-  constructor(message = 'Resource not found.') {
-    super(404, message)
+  constructor(message = 'Resource not found.', details?: unknown) {
+    super(404, message, details)
   }
 }
 
@@ -22,7 +22,7 @@ export class BadRequestError extends HttpError {
 }
 
 export class UnauthorizedError extends HttpError {
-  constructor(message = 'Unauthorized.') {
-    super(401, message)
+  constructor(message = 'Unauthorized.', details?: unknown) {
+    super(401, message, details)
   }
 }

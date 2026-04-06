@@ -8,7 +8,9 @@ import { participantRepository } from '../repositories/participant.repository'
 function assertExchangeExists(exchangeId: string) {
   const exchange = exchangeRepository.findById(exchangeId)
   if (!exchange) {
-    throw new NotFoundError('Exchange not found.')
+    throw new NotFoundError('Exchange not found.', {
+      code: 'EXCHANGE_NOT_FOUND',
+    })
   }
   return exchange
 }
@@ -17,7 +19,9 @@ function assertExchangeEditable(exchangeId: string) {
   const exchange = assertExchangeExists(exchangeId)
 
   if (exchange.status === 'drawn' || exchange.status === 'archived') {
-    throw new BadRequestError('Exclusion rules cannot be modified for this exchange.')
+    throw new BadRequestError('Exclusion rules cannot be modified for this exchange.', {
+      code: 'EXCLUSION_RULES_LOCKED',
+    })
   }
 
   return exchange
@@ -27,7 +31,9 @@ function assertParticipantBelongsToExchange(exchangeId: string, participantId: s
   const participant = participantRepository.findById(participantId)
 
   if (!participant || participant.exchangeId !== exchangeId || participant.status !== 'active') {
-    throw new BadRequestError('Participant does not belong to this exchange.')
+    throw new BadRequestError('Participant does not belong to this exchange.', {
+      code: 'PARTICIPANT_OUTSIDE_EXCHANGE',
+    })
   }
 
   return participant
@@ -45,7 +51,9 @@ export async function createExclusionRule(
   assertExchangeEditable(exchangeId)
 
   if (input.giverParticipantId === input.receiverParticipantId) {
-    throw new BadRequestError('A participant cannot be excluded from drawing themselves.')
+    throw new BadRequestError('A participant cannot be excluded from drawing themselves.', {
+      code: 'EXCLUSION_SELF_NOT_ALLOWED',
+    })
   }
 
   assertParticipantBelongsToExchange(exchangeId, input.giverParticipantId)
@@ -58,7 +66,9 @@ export async function createExclusionRule(
       input.receiverParticipantId,
     )
   ) {
-    throw new BadRequestError('This exclusion rule already exists.')
+    throw new BadRequestError('This exclusion rule already exists.', {
+      code: 'EXCLUSION_RULE_ALREADY_EXISTS',
+    })
   }
 
   const rule: ExclusionRule = {
@@ -79,7 +89,9 @@ export async function deleteExclusionRule(exchangeId: string, ruleId: string): P
   const rule = exclusionRuleRepository.findById(ruleId)
 
   if (!rule || rule.exchangeId !== exchangeId) {
-    throw new NotFoundError('Exclusion rule not found.')
+    throw new NotFoundError('Exclusion rule not found.', {
+      code: 'EXCLUSION_RULE_NOT_FOUND',
+    })
   }
 
   exclusionRuleRepository.deleteById(ruleId)

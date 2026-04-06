@@ -25,7 +25,9 @@ export async function createParticipant(
   const exchange = exchangeRepository.findById(exchangeId)
 
   if (!exchange) {
-    throw new NotFoundError('Exchange not found.')
+    throw new NotFoundError('Exchange not found.', {
+      code: 'EXCHANGE_NOT_FOUND',
+    })
   }
 
   const now = new Date().toISOString()
@@ -69,7 +71,9 @@ export async function getParticipantById(participantId: string): Promise<Partici
   const participant = participantRepository.findById(participantId)
 
   if (!participant) {
-    throw new NotFoundError('Participant not found.')
+    throw new NotFoundError('Participant not found.', {
+      code: 'PARTICIPANT_NOT_FOUND',
+    })
   }
 
   return participant
@@ -82,13 +86,17 @@ export async function updateParticipant(
   const participant = participantRepository.findById(participantId)
 
   if (!participant) {
-    throw new NotFoundError('Participant not found.')
+    throw new NotFoundError('Participant not found.', {
+      code: 'PARTICIPANT_NOT_FOUND',
+    })
   }
 
   const updated = participantRepository.update(participantId, input)
 
   if (!updated) {
-    throw new NotFoundError('Participant not found.')
+    throw new NotFoundError('Participant not found.', {
+      code: 'PARTICIPANT_NOT_FOUND',
+    })
   }
 
   return updated
@@ -98,7 +106,9 @@ export async function deleteParticipant(participantId: string): Promise<void> {
   const participant = participantRepository.findById(participantId)
 
   if (!participant) {
-    throw new NotFoundError('Participant not found.')
+    throw new NotFoundError('Participant not found.', {
+      code: 'PARTICIPANT_NOT_FOUND',
+    })
   }
 
   participantRepository.delete(participantId)
@@ -110,7 +120,9 @@ export async function regenerateParticipantAccess(
 ): Promise<{ participantId: string; accessLink: string }> {
   const participant = participantRepository.findById(participantId)
   if (!participant) {
-    throw new NotFoundError('Participant not found.')
+    throw new NotFoundError('Participant not found.', {
+      code: 'PARTICIPANT_NOT_FOUND',
+    })
   }
 
   const now = new Date().toISOString()
@@ -186,12 +198,16 @@ export async function updateParticipantSelfByToken(
   const { access, participant, exchange } = resolveParticipantAccess(rawToken)
 
   if (exchange.status === 'drawn' || exchange.status === 'archived') {
-    throw new BadRequestError('Participant updates are closed for this exchange.')
+    throw new BadRequestError('Participant updates are closed for this exchange.', {
+      code: 'PARTICIPANT_UPDATES_CLOSED',
+    })
   }
 
   const updated = participantRepository.update(participant.id, input)
   if (!updated) {
-    throw new NotFoundError('Participant not found.')
+    throw new NotFoundError('Participant not found.', {
+      code: 'PARTICIPANT_NOT_FOUND',
+    })
   }
 
   participantRepository.touchAccess(access.id)
@@ -221,17 +237,23 @@ function resolveParticipantAccess(rawToken: string) {
   const tokenHash = sha256(rawToken)
   const access = participantRepository.findActiveAccessByTokenHash(tokenHash)
   if (!access) {
-    throw new NotFoundError('Invalid or expired link.')
+    throw new NotFoundError('Invalid or expired link.', {
+      code: 'PARTICIPANT_LINK_INVALID_OR_EXPIRED',
+    })
   }
 
   const participant = participantRepository.findById(access.participantId)
   if (!participant) {
-    throw new NotFoundError('Participant not found.')
+    throw new NotFoundError('Participant not found.', {
+      code: 'PARTICIPANT_NOT_FOUND',
+    })
   }
 
   const exchange = exchangeRepository.findById(access.exchangeId)
   if (!exchange) {
-    throw new NotFoundError('Exchange not found.')
+    throw new NotFoundError('Exchange not found.', {
+      code: 'EXCHANGE_NOT_FOUND',
+    })
   }
 
   return { access, participant, exchange }

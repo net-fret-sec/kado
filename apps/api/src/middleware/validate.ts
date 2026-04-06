@@ -10,7 +10,12 @@ export function validateBody(schema: ZodTypeAny) {
       next()
     } catch (error) {
       if (error instanceof ZodError) {
-        next(new BadRequestError('Invalid request body.', error.flatten()))
+        next(
+          new BadRequestError('Invalid request body.', {
+            code: 'INVALID_REQUEST_BODY',
+            ...error.flatten(),
+          }),
+        )
         return
       }
       next(error)
@@ -25,7 +30,12 @@ export function validateParams(schema: ZodTypeAny) {
       next()
     } catch (error) {
       if (error instanceof ZodError) {
-        next(new BadRequestError('Invalid route parameters.', error.flatten()))
+        next(
+          new BadRequestError('Invalid route parameters.', {
+            code: 'INVALID_ROUTE_PARAMETERS',
+            ...error.flatten(),
+          }),
+        )
         return
       }
       next(error)
