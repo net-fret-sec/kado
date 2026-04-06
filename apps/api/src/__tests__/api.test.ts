@@ -245,4 +245,130 @@ describe('API Tests', () => {
       expect(selfViewResponse.body.assignment).toBeFalsy()
     })
   })
+
+  describe('Exclusion rules', () => {
+    let exclusionExchangeId: string
+    let p1Id: string
+    let p2Id: string
+    let otherExchangeParticipantId: string
+    let createdRuleId: string
+
+    beforeAll(async () => {
+      const exchangeResponse = await request(app)
+        .post('/api/exchanges')
+        .send({
+          name: 'Exchange with exclusions',
+          adminPassword: 'testpassword123',
+        })
+        .expect(201)
+
+      exclusionExchangeId = exchangeResponse.body.exchange.id
+
+      const p1Response = await request(app)
+        .post(`/api/exchanges/${exclusionExchangeId}/participants`)
+        .send({ name: 'Alex' })
+        .expect(201)
+
+      p1Id = p1Response.body.participant.id
+
+      const p2Response = await request(app)
+        .post(`/api/exchanges/${exclusionExchangeId}/participants`)
+        .send({ name: 'Camille' })
+        .expect(201)
+
+      p2Id = p2Response.body.participant.id
+
+      const otherExchangeResponse = await request(app)
+        .post('/api/exchanges')
+        .send({
+          name: 'Other exchange for validation',
+          adminPassword: 'testpassword123',
+        })
+        .expect(201)
+
+      const otherParticipantResponse = await request(app)
+        .post(`/api/exchanges/${otherExchangeResponse.body.exchange.id}/participants`)
+        .send({ name: 'Outside Participant' })
+        .expect(201)
+
+      otherExchangeParticipantId = otherParticipantResponse.body.participant.id
+    })
+
+    it('should create and list exclusion rules', async () => {
+      const createResponse = await request(app)
+        .post(`/api/exchanges/${exclusionExchangeId}/exclusions`)
+        .send({ giverParticipantId: p1Id, receiverParticipantId: p2Id })
+        .expect(201)
+
+      expect(createResponse.body).toHaveProperty('id')
+      expect(createResponse.body.giverParticipantId).toBe(p1Id)
+      expect(createResponse.body.receiverParticipantId).toBe(p2Id)
+      expect(createResponse.body.type).toBe('manual')
+
+      createdRuleId = createResponse.body.id
+
+      const listResponse = await request(app)
+        .get(`/api/exchanges/${exclusionExchangeId}/exclusions`)
+        .expect(200)
+
+      expect(listResponse.body).toHaveLength(1)
+      expect(listResponse.body[0].id).toBe(createdRuleId)
+    })
+
+    it('should reject self exclusion', async () => {
+      const response = await request(app)
+        .post(`/api/exchanges/${exclusionExchangeId}/exclusions`)
+        .send({ giverParticipantId: p1Id, receiverParticipantId: p1Id })
+        .expect(400)
+
+      expect(response.body.error.message).toMatch(/cannot be excluded from drawing themselves/i)
+    })
+
+    it('should reject duplicate exclusion rule', async () => {
+      const response = await request(app)
+        .post(`/api/exchanges/${exclusionExchangeId}/exclusions`)
+        .send({ giverParticipantId: p1Id, receiverParticipantId: p2Id })
+        .expect(400)
+
+      expect(response.body.error.message).toMatch(/already exists/i)
+    })
+
+    it('should reject exclusion rule when participant is outside exchange', async () => {
+      const response = await request(app)
+        .post(`/api/exchanges/${exclusionExchangeId}/exclusions`)
+        .send({ giverParticipantId: p1Id, receiverParticipantId: otherExchangeParticipantId })
+        .expect(400)
+
+      expect(response.body.error.message).toMatch(/does not belong to this exchange/i)
+    })
+
+    it('should delete exclusion rule', async () => {
+      await request(app)
+        .delete(`/api/exchanges/${exclusionExchangeId}/exclusions/${createdRuleId}`)
+        .expect(204)
+
+      const listResponse = await request(app)
+        .get(`/api/exchanges/${exclusionExchangeId}/exclusions`)
+        .expect(200)
+
+      expect(listResponse.body).toHaveLength(0)
+    })
+
+    it('should reject exclusion changes after draw', async () => {
+      exchangeRepository.update(exclusionExchangeId, { status: 'drawn' })
+
+      const createResponse = await request(app)
+        .post(`/api/exchanges/${exclusionExchangeId}/exclusions`)
+        .send({ giverParticipantId: p2Id, receiverParticipantId: p1Id })
+        .expect(400)
+
+      expect(createResponse.body.error.message).toMatch(/cannot be modified/i)
+
+      const deleteResponse = await request(app)
+        .delete(`/api/exchanges/${exclusionExchangeId}/exclusions/non-existent-rule`)
+        .expect(400)
+
+      expect(deleteResponse.body.error.message).toMatch(/cannot be modified/i)
+    })
+  })
 })

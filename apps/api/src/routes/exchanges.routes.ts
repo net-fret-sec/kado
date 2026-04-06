@@ -1,7 +1,18 @@
 import { Router } from "express";
-import { createExchangeInputSchema, exchangeIdParamSchema, updateExchangeInputSchema } from "@kado/shared";
+import {
+  createExchangeInputSchema,
+  createExclusionRuleInputSchema,
+  exchangeAndExclusionRuleIdParamSchema,
+  exchangeIdParamSchema,
+  updateExchangeInputSchema,
+} from "@kado/shared";
 import { validateBody, validateParams } from "../middleware/validate";
 import { createExchange, getExchangeById, listExchanges, updateExchange, deleteExchange, drawExchange, cancelExchangeDraw } from "../services/exchange.service";
+import {
+  createExclusionRule,
+  deleteExclusionRule,
+  listExclusionRules,
+} from '../services/exclusion-rule.service'
 
 const router = Router();
 
@@ -113,5 +124,60 @@ router.post(
     }
   },
 );
+
+router.get(
+  '/:exchangeId/exclusions',
+  validateParams(exchangeIdParamSchema),
+  async (req, res, next) => {
+    try {
+      const exchangeId = Array.isArray(req.params.exchangeId)
+        ? req.params.exchangeId[0]
+        : req.params.exchangeId
+
+      const rules = await listExclusionRules(exchangeId)
+      res.status(200).json(rules)
+    } catch (error) {
+      next(error)
+    }
+  },
+)
+
+router.post(
+  '/:exchangeId/exclusions',
+  validateParams(exchangeIdParamSchema),
+  validateBody(createExclusionRuleInputSchema),
+  async (req, res, next) => {
+    try {
+      const exchangeId = Array.isArray(req.params.exchangeId)
+        ? req.params.exchangeId[0]
+        : req.params.exchangeId
+
+      const rule = await createExclusionRule(exchangeId, req.body)
+      res.status(201).json(rule)
+    } catch (error) {
+      next(error)
+    }
+  },
+)
+
+router.delete(
+  '/:exchangeId/exclusions/:ruleId',
+  validateParams(exchangeAndExclusionRuleIdParamSchema),
+  async (req, res, next) => {
+    try {
+      const exchangeId = Array.isArray(req.params.exchangeId)
+        ? req.params.exchangeId[0]
+        : req.params.exchangeId
+      const ruleId = Array.isArray(req.params.ruleId)
+        ? req.params.ruleId[0]
+        : req.params.ruleId
+
+      await deleteExclusionRule(exchangeId, ruleId)
+      res.status(204).send()
+    } catch (error) {
+      next(error)
+    }
+  },
+)
 
 export default router

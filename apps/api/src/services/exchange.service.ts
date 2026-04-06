@@ -10,6 +10,7 @@ import { participantRepository } from '../repositories/participant.repository'
 import { generateId, generateOpaqueToken, hashPassword, sha256 } from '../lib/crypto'
 import { createParticipant } from './participant.service'
 import { assignmentRepository } from '../repositories/assignment.repository'
+import { exclusionRuleRepository } from '../repositories/exclusion-rule.repository'
 
 export async function createExchange(
   input: CreateExchangeInputDto,
@@ -133,6 +134,7 @@ export async function deleteExchange(exchangeId: string): Promise<void> {
     throw new NotFoundError('Exchange not found.')
   }
 
+  exclusionRuleRepository.deleteByExchangeId(exchangeId)
   exchangeRepository.delete(exchangeId)
 }
 

@@ -9,3 +9,8 @@ export interface ExclusionRule {
 
   createdAt: string
 }
+
+export interface CreateExclusionRuleInputDto {
+  giverParticipantId: string
+  receiverParticipantId: string
+}
