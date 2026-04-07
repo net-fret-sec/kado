@@ -92,6 +92,7 @@
     "addParticipant": "Add Participant",
     "noParticipants": "No participants for this exchange.",
     "wishlist": "Wishlist",
+      "wishlistSuggestions": "{count} suggestion | {count} suggestions",
     "note": "Note",
     "generateLink": "Magic link",
     "triggerDraw": "Run draw",
@@ -139,7 +140,9 @@
       "locked": "Exceptions can no longer be edited after the draw."
     },
     "confirmDeleteExchange": "Delete this exchange?",
-    "confirmDeleteParticipant": "Delete this participant?"
+    "confirmDeleteParticipant": "Delete this participant?",
+    "confirmTriggerDraw": "Run the draw for this exchange?",
+    "confirmCancelDraw": "Cancel the draw for this exchange?"
   },
   "participant": {
     "loading": "Loading...",

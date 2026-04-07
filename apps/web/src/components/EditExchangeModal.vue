@@ -77,12 +77,11 @@ function handleSubmit() {
         <label for="editExchangeDescription" class="form-label">{{
           t('exchangeDetail.description')
         }}</label>
-        <input
+        <textarea
           v-model="editDescription"
-          type="text"
           class="form-control"
           id="editExchangeDescription"
-        />
+        ></textarea>
       </div>
       <div class="mb-3">
         <label for="editExchangeStatus" class="form-label">{{ t('exchangeDetail.status') }}</label>

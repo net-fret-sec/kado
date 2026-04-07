@@ -92,6 +92,7 @@
     "addParticipant": "Ajouter un participant",
     "noParticipants": "Aucun participant pour cet échange.",
     "wishlist": "Liste de souhaits",
+      "wishlistSuggestions": "{count} suggestion | {count} suggestions",
     "note": "Note",
     "generateLink": "Lien magique",
     "triggerDraw": "Lancer la pige",
@@ -139,7 +140,9 @@
       "locked": "Les exceptions ne peuvent plus être modifiées après la pige."
     },
     "confirmDeleteExchange": "Supprimer cet échange ?",
-    "confirmDeleteParticipant": "Supprimer ce participant ?"
+    "confirmDeleteParticipant": "Supprimer ce participant ?",
+    "confirmTriggerDraw": "Lancer la pige pour cet échange ?",
+    "confirmCancelDraw": "Annuler la pige pour cet échange ?"
   },
   "participant": {
     "loading": "Chargement...",

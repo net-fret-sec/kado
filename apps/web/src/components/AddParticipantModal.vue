@@ -59,12 +59,6 @@ function handleSubmit() {
         }}</label>
         <input v-model="name" type="text" class="form-control" id="participantName" required />
       </div>
-      <div class="mb-3">
-        <label for="participantEmail" class="form-label">{{
-          t('exchangeDetail.addModal.email')
-        }}</label>
-        <input v-model="email" type="email" class="form-control" id="participantEmail" />
-      </div>
     </form>
 
     <template #footer>

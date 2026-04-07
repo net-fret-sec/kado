@@ -111,12 +111,12 @@ function handleSubmit() {
         }}</label>
         <input v-model="name" type="text" class="form-control" id="editParticipantName" required />
       </div>
-      <div class="mb-3">
+      <!-- <div class="mb-3">
         <label for="editParticipantEmail" class="form-label">{{
           t('exchangeDetail.addModal.email')
         }}</label>
         <input v-model="email" type="email" class="form-control" id="editParticipantEmail" />
-      </div>
+      </div> -->
       <div class="mb-3">
         <label class="form-label mb-0">{{ t('exchangeDetail.addModal.wishlist') }}</label>
         <div class="mt-2">

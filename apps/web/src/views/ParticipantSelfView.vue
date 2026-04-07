@@ -146,7 +146,7 @@ onMounted(fetchSelf)
               />
             </div>
 
-            <div class="mb-3">
+            <!-- <div class="mb-3">
               <label for="participant-email" class="form-label">{{ t('participant.email') }}</label>
               <input
                 id="participant-email"
@@ -157,7 +157,7 @@ onMounted(fetchSelf)
                 :disabled="!canEdit || isSaving"
                 placeholder="alex@example.com"
               />
-            </div>
+            </div> -->
 
             <div class="mb-3">
               <label class="form-label mb-2">{{ t('participant.wishlist') }}</label>

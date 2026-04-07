@@ -108,7 +108,7 @@ async function handleHidden() {
         <label for="exchangeDescription" class="form-label">{{
           t('exchanges.createModal.description')
         }}</label>
-        <input v-model="description" type="text" class="form-control" id="exchangeDescription" />
+        <textarea v-model="description" class="form-control" id="exchangeDescription"></textarea>
         <div v-if="fieldErrors.description" class="text-danger small">
           {{ fieldErrors.description[0] }}
         </div>
