@@ -178,5 +178,8 @@
     "INVALID_REQUEST_BODY": "The request body is invalid.",
     "INVALID_ROUTE_PARAMETERS": "The route parameters are invalid."
   },
-  "close": "Close"
+  "common": {
+    "close": "close"
+  },
+  "close": "close"
 }

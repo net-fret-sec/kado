@@ -178,5 +178,8 @@
     "INVALID_REQUEST_BODY": "Le corps de la requête est invalide.",
     "INVALID_ROUTE_PARAMETERS": "Les paramètres de route sont invalides."
   },
-  "close": "Fermer"
+  "close": "Fermer",
+  "common": {
+    "close": "fermer"
+  }
 }
