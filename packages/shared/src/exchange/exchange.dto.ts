@@ -2,66 +2,63 @@
 
 import type { ParticipantDto } from "../participant/participant.dto";
 
-export type ExchangeStatus =
-  | 'draft'
-  | 'ready'
-  | 'drawn'
-  | 'archived'
+export type ExchangeStatus = "draft" | "ready" | "drawn" | "archived";
 
 export interface ExchangeDto {
-  id: string
-  name: string
-  description?: string
-  organizerId: string
-  organizerName?: string // Computed for display
+  id: string;
+  name: string;
+  description?: string;
+  organizerId: string;
+  organizerName?: string; // Computed for display
 
-  status: ExchangeStatus
+  status: ExchangeStatus;
 
-  eventDate?: string
-  budget?: number
-  budgetCurrency?: string
-  noMutualAssignments?: boolean
+  eventDate?: string;
+  budget?: number;
+  budgetCurrency?: string;
+  noMutualAssignments?: boolean;
 
-  drawAt?: string
-  createdAt: string
-  updatedAt: string
+  drawAt?: string;
+  createdAt: string;
+  updatedAt: string;
 
-  participants?: ParticipantDto[]
+  participants?: ParticipantDto[];
 }
 
 export interface CreateExchangeInputDto {
-  name: string
-  description?: string
-  organizerName?: string
-  organizerParticipates?: boolean
+  name: string;
+  description?: string;
+  organizerName?: string;
+  organizerParticipates?: boolean;
 
-  eventDate?: string
-  budget?: number
-  budgetCurrency?: string
-  noMutualAssignments?: boolean
+  eventDate?: string;
+  budget?: number;
+  budgetCurrency?: string;
+  noMutualAssignments?: boolean;
 
-  adminPassword: string
+  adminPassword: string;
 }
 
 export interface CreateExchangeResultDto {
-  exchange: ExchangeDto
-  adminSessionToken: string
+  exchange: ExchangeDto;
+  adminSessionToken: string;
 }
 
 export interface UpdateExchangeInputDto {
-  name?: string
-  description?: string
-  organizerId?: string
+  name?: string;
+  description?: string;
+  organizerId?: string;
+  status?: ExchangeStatus;
 
-  eventDate?: string
-  budget?: number
-  budgetCurrency?: string
-  noMutualAssignments?: boolean
+  eventDate?: string;
+  budget?: number;
+  budgetCurrency?: string;
+  noMutualAssignments?: boolean;
 }
 
 export interface ExchangeAdminViewDto {
-  exchange: ExchangeDto
-  participantsCount: number
-  exclusionRulesCount: number
-  assignmentsExist: boolean
+  exchange: ExchangeDto;
+  participantsCount: number;
+  exclusionRulesCount: number;
+  assignmentsExist: boolean;
 }

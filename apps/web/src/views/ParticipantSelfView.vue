@@ -2,7 +2,11 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useApi } from '@/composables/useApi'
-import type { GiftSuggestionDto, ParticipantSelfViewDto, UpdateParticipantInputDto } from '@kado/shared'
+import type {
+  GiftSuggestionDto,
+  ParticipantSelfViewDto,
+  UpdateParticipantInputDto,
+} from '@kado/shared'
 import { useI18n } from 'vue-i18n'
 import WishlistSuggestionItem from '@/components/WishlistSuggestionItem.vue'
 import { useToastsStore } from '@/stores/toasts'
@@ -116,7 +120,7 @@ onMounted(fetchSelf)
 </script>
 
 <template>
-  <section class="py-4">
+  <section id="participant-self-view">
     <div v-if="isLoading">{{ t('participant.loading') }}</div>
     <div v-else-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-else-if="view">
@@ -179,7 +183,9 @@ onMounted(fetchSelf)
                 <i class="bi bi-plus-lg"></i>
                 {{ t('participant.addSuggestion') }}
               </button>
-              <p class="text-muted mb-0 mt-2" v-if="!wishlist.length">{{ t('participant.noSuggestions') }}</p>
+              <p class="text-muted mb-0 mt-2" v-if="!wishlist.length">
+                {{ t('participant.noSuggestions') }}
+              </p>
             </div>
 
             <div class="mb-3">
@@ -208,21 +214,28 @@ onMounted(fetchSelf)
       <section class="card" v-if="hasRecipient">
         <div class="card-body">
           <h5 class="card-title">{{ t('participant.yourRecipient') }}</h5>
-          <p class="mb-1"><strong>{{ t('participant.recipientName') }}:</strong> {{ view.assignment?.receiverName }}</p>
+          <p class="mb-1">
+            <strong>{{ t('participant.recipientName') }}:</strong>
+            {{ view.assignment?.receiverName }}
+          </p>
           <div class="mb-1" v-if="view.assignment?.receiverWishlist?.length">
             <strong class="d-block mb-1">{{ t('participant.recipientWishlist') }}:</strong>
             <ol class="list-group list-group-numbered">
-              <li class="list-group-item" v-for="(s, idx) in view.assignment?.receiverWishlist" :key="idx">
+              <li
+                class="list-group-item"
+                v-for="(s, idx) in view.assignment?.receiverWishlist"
+                :key="idx"
+              >
                 <WishlistSuggestionItem :modelValue="s" mode="detail" />
               </li>
             </ol>
           </div>
           <p class="mb-0" v-if="view.assignment?.receiverNote">
-            <strong>{{ t('participant.recipientNote') }}:</strong> {{ view.assignment?.receiverNote }}
+            <strong>{{ t('participant.recipientNote') }}:</strong>
+            {{ view.assignment?.receiverNote }}
           </p>
         </div>
       </section>
     </div>
   </section>
-
 </template>

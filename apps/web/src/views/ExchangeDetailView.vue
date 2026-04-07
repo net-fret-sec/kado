@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useExchangesStore } from '@/stores/exchanges'
 import type { ExchangeDto, ExclusionRule } from '@kado/shared'
-import type { ParticipantDto, GiftSuggestionDto } from '@kado/shared'
+import type { ParticipantDto } from '@kado/shared'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
-import WishlistSuggestionItem from '@/components/WishlistSuggestionItem.vue'
-import BaseModal from '@/components/BaseModal.vue'
-import Draggable from 'vuedraggable'
+import EditExchangeModal from '@/components/EditExchangeModal.vue'
+import AddParticipantModal from '@/components/AddParticipantModal.vue'
+import EditParticipantModal from '@/components/EditParticipantModal.vue'
+import ParticipantAccessLinkModal from '@/components/ParticipantAccessLinkModal.vue'
 import { useToastsStore } from '@/stores/toasts'
 import { getApiErrorMessage } from '@/composables/useApiErrorMessage'
 
@@ -24,10 +25,6 @@ const exclusionRules = ref<ExclusionRule[]>([])
 const selectedExceptionReceiverByParticipant = ref<Record<string, string>>({})
 const isLoading = ref(true)
 const error = ref<string | null>(null)
-const editName = ref('')
-const editDescription = ref('')
-const editStatus = ref('active')
-const editNoMutualAssignments = ref(false)
 const showEditExchangeModal = ref(false)
 const isDrawActionLoading = ref(false)
 
@@ -36,63 +33,7 @@ const showAddParticipantModal = ref(false)
 const showEditParticipantModal = ref(false)
 const showAccessLinkModal = ref(false)
 const editingParticipant = ref<ParticipantDto | null>(null)
-const accessLinkInput = ref<HTMLInputElement | null>(null)
 const latestAccessLink = ref('')
-const newParticipantName = ref('')
-const newParticipantEmail = ref('')
-const newParticipantNote = ref('')
-const newParticipantWishlistList = ref<GiftSuggestionDto[]>([])
-const wishlistSuggestionKeys = new WeakMap<GiftSuggestionDto, string>()
-let wishlistSuggestionKeySequence = 0
-
-function getWishlistSuggestionKey(suggestion: GiftSuggestionDto) {
-  let key = wishlistSuggestionKeys.get(suggestion)
-  if (!key) {
-    wishlistSuggestionKeySequence += 1
-    key = `suggestion-${wishlistSuggestionKeySequence}`
-    wishlistSuggestionKeys.set(suggestion, key)
-  }
-  return key
-}
-
-function isValidUrl(u?: string | null) {
-  if (!u) return true
-  try {
-    const parsed = new URL(u)
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
-  } catch {
-    return false
-  }
-}
-
-function isValidSuggestion(s: GiftSuggestionDto) {
-  const titleOk = !!s?.title && s.title.trim().length > 0
-  const imgOk = isValidUrl(s?.imageUrl)
-  const linkOk = isValidUrl(s?.linkUrl)
-  return titleOk && imgOk && linkOk
-}
-
-function isValidEmail(value: string) {
-  const email = value.trim()
-  if (!email) return true
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-}
-
-const isListModeValid = computed(() => {
-  if (!newParticipantWishlistList.value || newParticipantWishlistList.value.length === 0)
-    return false
-  return newParticipantWishlistList.value.every(isValidSuggestion)
-})
-
-const isAddFormValid = computed(() => {
-  const nameOk = newParticipantName.value.trim().length > 0
-  return nameOk && isValidEmail(newParticipantEmail.value)
-})
-
-const isEditFormValid = computed(() => {
-  const nameOk = newParticipantName.value.trim().length > 0
-  return nameOk && isListModeValid.value
-})
 
 const isExclusionEditingLocked = computed(() => {
   if (!exchange.value) return true
@@ -194,28 +135,14 @@ async function copyToClipboard(text: string) {
   toasts.error(t('exchangeDetail.copyFailed'))
 }
 
-function closeAccessLinkModal() {
-  showAccessLinkModal.value = false
-  latestAccessLink.value = ''
-}
-
-function selectAccessLink() {
-  accessLinkInput.value?.focus()
-  accessLinkInput.value?.select()
-}
-
 function openAccessLinkModal(link: string) {
   latestAccessLink.value = link
   showAccessLinkModal.value = true
-  void nextTick(() => {
-    selectAccessLink()
-  })
 }
 
 async function copyAccessLinkFromModal() {
   if (!latestAccessLink.value) return
   await copyToClipboard(latestAccessLink.value)
-  selectAccessLink()
 }
 
 async function fetchExchange() {
@@ -300,20 +227,22 @@ onMounted(() => {
 
 function startEdit() {
   if (!exchange.value) return
-  editName.value = exchange.value.name
-  editDescription.value = exchange.value.description || ''
-  editStatus.value = exchange.value.status || 'active'
-  editNoMutualAssignments.value = exchange.value.noMutualAssignments ?? false
   showEditExchangeModal.value = true
 }
 
-async function saveEdit() {
+async function saveEdit(payload: {
+  name: string
+  description: string
+  status: ExchangeDto['status']
+  noMutualAssignments: boolean
+}) {
   if (!exchange.value) return
   try {
     await exchangesStore.updateExchange(exchange.value.id, {
-      name: editName.value,
-      description: editDescription.value,
-      noMutualAssignments: editNoMutualAssignments.value,
+      name: payload.name,
+      description: payload.description,
+      status: payload.status,
+      noMutualAssignments: payload.noMutualAssignments,
     })
     showEditExchangeModal.value = false
     await fetchExchange()
@@ -337,30 +266,36 @@ async function handleDelete() {
 
 // Fonctions pour les participants
 function openAddParticipantModal() {
-  newParticipantName.value = ''
-  newParticipantEmail.value = ''
-  newParticipantWishlistList.value = []
-  newParticipantNote.value = ''
   showAddParticipantModal.value = true
 }
 
 function openEditParticipantModal(participant: ParticipantDto) {
   editingParticipant.value = participant
-  newParticipantName.value = participant.name
-  newParticipantEmail.value = participant.email || ''
-  newParticipantWishlistList.value = [...(participant.wishlist || [])]
-  newParticipantNote.value = participant.note || ''
   showEditParticipantModal.value = true
 }
 
-async function addParticipant() {
+function setEditParticipantModalVisibility(value: boolean) {
+  showEditParticipantModal.value = value
+  if (!value) {
+    editingParticipant.value = null
+  }
+}
+
+function setAccessLinkModalVisibility(value: boolean) {
+  showAccessLinkModal.value = value
+  if (!value) {
+    latestAccessLink.value = ''
+  }
+}
+
+async function addParticipant(payload: { name: string; email: string }) {
   if (!exchange.value) return
   try {
     const result = await api.post<{ participant: ParticipantDto; accessLink: string }>(
       `/api/exchanges/${exchange.value.id}/participants`,
       {
-        name: newParticipantName.value,
-        email: newParticipantEmail.value,
+        name: payload.name,
+        email: payload.email,
       },
     )
     showAddParticipantModal.value = false
@@ -374,20 +309,24 @@ async function addParticipant() {
   }
 }
 
-async function updateParticipant() {
+async function updateParticipant(payload: {
+  name: string
+  email: string
+  wishlist: ParticipantDto['wishlist']
+  note: string
+}) {
   if (!editingParticipant.value || !exchange.value) return
   try {
     await api.put(
       `/api/exchanges/${exchange.value.id}/participants/${editingParticipant.value.id}`,
       {
-        name: newParticipantName.value,
-        email: newParticipantEmail.value,
-        wishlist: newParticipantWishlistList.value,
-        note: newParticipantNote.value,
+        name: payload.name,
+        email: payload.email,
+        wishlist: payload.wishlist,
+        note: payload.note,
       },
     )
-    showEditParticipantModal.value = false
-    editingParticipant.value = null
+    setEditParticipantModalVisibility(false)
     await fetchExchange()
   } catch (err) {
     console.error(err)
@@ -404,28 +343,6 @@ async function deleteParticipant(participantId: string) {
     console.error(err)
     toasts.error(getApiErrorMessage(err, { fallbackMessage: 'Erreur lors de la suppression' }))
   }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function moveSuggestionUp(idx: number) {
-  const arr = newParticipantWishlistList.value
-  if (idx <= 0 || idx >= arr.length) return
-  const prev = arr[idx - 1]
-  const curr = arr[idx]
-  if (!prev || !curr) return
-  arr[idx - 1] = curr
-  arr[idx] = prev
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function moveSuggestionDown(idx: number) {
-  const arr = newParticipantWishlistList.value
-  if (idx < 0 || idx >= arr.length - 1) return
-  const next = arr[idx + 1]
-  const curr = arr[idx]
-  if (!next || !curr) return
-  arr[idx + 1] = curr
-  arr[idx] = next
 }
 
 async function regenerateParticipantLink(participantId: string) {
@@ -478,7 +395,7 @@ async function cancelDraw() {
 </script>
 
 <template>
-  <section class="py-4">
+  <section id="exchange-detail-view">
     <div v-if="isLoading">{{ t('exchangeDetail.loading') }}</div>
     <div v-else-if="error">{{ error }}</div>
     <div v-else-if="exchange">
@@ -650,225 +567,35 @@ async function cancelDraw() {
         </button>
       </div>
 
-      <!-- Modale pour modifier l'échange -->
-      <BaseModal
+      <EditExchangeModal
         :model-value="showEditExchangeModal"
-        :title="t('exchangeDetail.editExchangeModal.title')"
+        :name="exchange.name"
+        :description="exchange.description || ''"
+        :status="exchange.status"
+        :no-mutual-assignments="exchange.noMutualAssignments"
         @update:model-value="(value) => (showEditExchangeModal = value)"
-      >
-        <form id="editExchangeForm" @submit.prevent="saveEdit">
-          <div class="mb-3">
-            <label for="editExchangeName" class="form-label">{{ t('exchangeDetail.name') }}</label>
-            <input
-              v-model="editName"
-              type="text"
-              class="form-control"
-              id="editExchangeName"
-              required
-            />
-          </div>
-          <div class="mb-3">
-            <label for="editExchangeDescription" class="form-label">{{
-              t('exchangeDetail.description')
-            }}</label>
-            <input
-              v-model="editDescription"
-              type="text"
-              class="form-control"
-              id="editExchangeDescription"
-            />
-          </div>
-          <div class="mb-3">
-            <label for="editExchangeStatus" class="form-label">{{
-              t('exchangeDetail.status')
-            }}</label>
-            <select v-model="editStatus" class="form-select" id="editExchangeStatus">
-              <option value="active">{{ t('exchangeDetail.active') }}</option>
-              <option value="inactive">{{ t('exchangeDetail.inactive') }}</option>
-            </select>
-          </div>
-          <div class="mb-3 form-check">
-            <input
-              id="editNoMutualAssignments"
-              v-model="editNoMutualAssignments"
-              type="checkbox"
-              class="form-check-input"
-            />
-            <label class="form-check-label" for="editNoMutualAssignments">
-              {{ t('exchangeDetail.noMutualAssignments') }}
-            </label>
-          </div>
-        </form>
+        @submit="saveEdit"
+      />
 
-        <template #footer>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            {{ t('actions.cancel') }}
-          </button>
-          <button type="submit" class="btn btn-primary" form="editExchangeForm">
-            {{ t('exchangeDetail.editExchangeModal.submit') }}
-          </button>
-        </template>
-      </BaseModal>
-
-      <!-- Modale pour ajouter un participant -->
-      <BaseModal
+      <AddParticipantModal
         :model-value="showAddParticipantModal"
-        :title="t('exchangeDetail.addModal.title')"
         @update:model-value="(value) => (showAddParticipantModal = value)"
-      >
-        <form id="addParticipantForm" @submit.prevent="addParticipant">
-          <div class="mb-3">
-            <label for="participantName" class="form-label">{{
-              t('exchangeDetail.addModal.name')
-            }}</label>
-            <input
-              v-model="newParticipantName"
-              type="text"
-              class="form-control"
-              id="participantName"
-              required
-            />
-          </div>
-          <div class="mb-3">
-            <label for="participantEmail" class="form-label">{{
-              t('exchangeDetail.addModal.email')
-            }}</label>
-            <input
-              v-model="newParticipantEmail"
-              type="email"
-              class="form-control"
-              id="participantEmail"
-            />
-          </div>
-        </form>
+        @submit="addParticipant"
+      />
 
-        <template #footer>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            {{ t('actions.cancel') }}
-          </button>
-          <button
-            type="submit"
-            class="btn btn-primary"
-            form="addParticipantForm"
-            :disabled="!isAddFormValid"
-          >
-            {{ t('exchangeDetail.addModal.submit') }}
-          </button>
-        </template>
-      </BaseModal>
-
-      <!-- Modale pour modifier un participant -->
-      <BaseModal
+      <EditParticipantModal
         :model-value="showEditParticipantModal"
-        :title="t('exchangeDetail.editModal.title')"
-        @update:model-value="(value) => (showEditParticipantModal = value)"
-      >
-        <form id="editParticipantForm" @submit.prevent="updateParticipant">
-          <div class="mb-3">
-            <label for="editParticipantName" class="form-label">{{
-              t('exchangeDetail.addModal.name')
-            }}</label>
-            <input
-              v-model="newParticipantName"
-              type="text"
-              class="form-control"
-              id="editParticipantName"
-              required
-            />
-          </div>
-          <div class="mb-3">
-            <label for="editParticipantEmail" class="form-label">{{
-              t('exchangeDetail.addModal.email')
-            }}</label>
-            <input
-              v-model="newParticipantEmail"
-              type="email"
-              class="form-control"
-              id="editParticipantEmail"
-            />
-          </div>
-          <div class="mb-3">
-            <label class="form-label mb-0">{{ t('exchangeDetail.addModal.wishlist') }}</label>
-            <div class="mt-2">
-              <Draggable
-                v-model="newParticipantWishlistList"
-                handle=".drag-handle"
-                :animation="200"
-                :item-key="getWishlistSuggestionKey"
-              >
-                <template #item="{ element: s, index: idx }">
-                  <WishlistSuggestionItem
-                    :modelValue="s"
-                    @update:modelValue="(v) => newParticipantWishlistList.splice(idx, 1, v)"
-                    mode="edit"
-                    :removable="true"
-                    :showHandle="true"
-                    :asListItem="true"
-                    @remove="newParticipantWishlistList.splice(idx, 1)"
-                  />
-                </template>
-              </Draggable>
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-primary"
-                @click="newParticipantWishlistList.push({ title: '' })"
-              >
-                <i class="bi bi-plus-lg"></i> Ajouter une suggestion
-              </button>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label for="editParticipantNote" class="form-label">{{
-              t('exchangeDetail.addModal.note')
-            }}</label>
-            <textarea
-              v-model="newParticipantNote"
-              class="form-control"
-              id="editParticipantNote"
-            ></textarea>
-          </div>
-        </form>
+        :participant="editingParticipant"
+        @update:model-value="setEditParticipantModalVisibility"
+        @submit="updateParticipant"
+      />
 
-        <template #footer>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            {{ t('actions.cancel') }}
-          </button>
-          <button
-            type="submit"
-            class="btn btn-primary"
-            form="editParticipantForm"
-            :disabled="!isEditFormValid"
-          >
-            {{ t('exchangeDetail.editModal.submit') }}
-          </button>
-        </template>
-      </BaseModal>
-
-      <!-- Modale d'affichage du lien d'accès participant -->
-      <BaseModal
+      <ParticipantAccessLinkModal
         :model-value="showAccessLinkModal"
-        :title="t('exchangeDetail.linkModal.title')"
-        @update:model-value="(value) => (showAccessLinkModal = value)"
-      >
-        <p class="mb-2">{{ t('exchangeDetail.linkModal.description') }}</p>
-        <input
-          ref="accessLinkInput"
-          :value="latestAccessLink"
-          type="text"
-          class="form-control"
-          readonly
-          @focus="selectAccessLink"
-        />
-
-        <template #footer>
-          <button type="button" class="btn btn-secondary" @click="closeAccessLinkModal">
-            {{ t('exchangeDetail.linkModal.close') }}
-          </button>
-          <button type="button" class="btn btn-primary" @click="copyAccessLinkFromModal">
-            {{ t('exchangeDetail.linkModal.copy') }}
-          </button>
-        </template>
-      </BaseModal>
+        :link="latestAccessLink"
+        @update:model-value="setAccessLinkModalVisibility"
+        @copy="copyAccessLinkFromModal"
+      />
     </div>
   </section>
 </template>

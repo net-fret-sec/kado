@@ -1,4 +1,3 @@
-
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useExchangesStore } from '@/stores/exchanges'
@@ -58,7 +57,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="py-4">
+  <section id="exchanges-view">
     <h1>{{ t('exchanges.title') }}</h1>
 
     <button type="button" class="btn btn-primary mb-3" @click="isCreateModalOpen = true">
@@ -91,19 +90,27 @@ onMounted(() => {
                 </p>
 
                 <dl class="row mb-0 small">
-                  <dt class="col-5 text-body-secondary fw-semibold">{{ t('exchanges.organizer') }}</dt>
+                  <dt class="col-5 text-body-secondary fw-semibold">
+                    {{ t('exchanges.organizer') }}
+                  </dt>
                   <dd class="col-7 mb-2">{{ exchange.organizerName || '-' }}</dd>
 
-                  <dt class="col-5 text-body-secondary fw-semibold">{{ t('exchanges.participantsCount') }}</dt>
+                  <dt class="col-5 text-body-secondary fw-semibold">
+                    {{ t('exchanges.participantsCount') }}
+                  </dt>
                   <dd class="col-7 mb-2">{{ participantsCount(exchange) }}</dd>
 
-                  <dt class="col-5 text-body-secondary fw-semibold">{{ t('exchanges.eventDate') }}</dt>
+                  <dt class="col-5 text-body-secondary fw-semibold">
+                    {{ t('exchanges.eventDate') }}
+                  </dt>
                   <dd class="col-7 mb-2">{{ formatDate(exchange.eventDate) }}</dd>
 
                   <dt class="col-5 text-body-secondary fw-semibold">{{ t('exchanges.budget') }}</dt>
                   <dd class="col-7 mb-2">{{ formatBudget(exchange) }}</dd>
 
-                  <dt class="col-5 text-body-secondary fw-semibold">{{ t('exchanges.updatedAt') }}</dt>
+                  <dt class="col-5 text-body-secondary fw-semibold">
+                    {{ t('exchanges.updatedAt') }}
+                  </dt>
                   <dd class="col-7 mb-0">{{ formatDate(exchange.updatedAt) }}</dd>
                 </dl>
               </div>
@@ -115,5 +122,4 @@ onMounted(() => {
   </section>
 
   <CreateExchangeModal v-model="isCreateModalOpen" />
-
 </template>

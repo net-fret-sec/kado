@@ -8,8 +8,7 @@ const isCreateModalOpen = ref(false)
 </script>
 
 <template>
-  <section class="home-view py-4">
-
+  <section id="home-view">
     <!-- Hero -->
     <section class="text-center py-4 mb-4 content-center">
       <p class="lead">{{ t('home.hero.intro') }}</p>
@@ -21,27 +20,27 @@ const isCreateModalOpen = ref(false)
       <div class="col-md-4">
         <div class="card h-100 bg-light border-0">
           <div class="card-body p-3">
-          <div class="fs-2 mb-2">🔓</div>
-          <strong>{{ t('home.features.openSource') }}</strong>
-          <p class="small text-muted mt-1 mb-0">{{ t('home.features.openSourceDesc') }}</p>
+            <div class="fs-2 mb-2">🔓</div>
+            <strong>{{ t('home.features.openSource') }}</strong>
+            <p class="small text-muted mt-1 mb-0">{{ t('home.features.openSourceDesc') }}</p>
           </div>
         </div>
       </div>
       <div class="col-md-4">
         <div class="card h-100 bg-light border-0">
           <div class="card-body p-3">
-          <div class="fs-2 mb-2">🕶️</div>
-          <strong>{{ t('home.features.anonymous') }}</strong>
-          <p class="small text-muted mt-1 mb-0">{{ t('home.features.anonymousDesc') }}</p>
+            <div class="fs-2 mb-2">🕶️</div>
+            <strong>{{ t('home.features.anonymous') }}</strong>
+            <p class="small text-muted mt-1 mb-0">{{ t('home.features.anonymousDesc') }}</p>
           </div>
         </div>
       </div>
       <div class="col-md-4">
         <div class="card h-100 bg-light border-0">
           <div class="card-body p-3">
-          <div class="fs-2 mb-2">🚫</div>
-          <strong>{{ t('home.features.noAds') }}</strong>
-          <p class="small text-muted mt-1 mb-0">{{ t('home.features.noAdsDesc') }}</p>
+            <div class="fs-2 mb-2">🚫</div>
+            <strong>{{ t('home.features.noAds') }}</strong>
+            <p class="small text-muted mt-1 mb-0">{{ t('home.features.noAdsDesc') }}</p>
           </div>
         </div>
       </div>
@@ -54,7 +53,11 @@ const isCreateModalOpen = ref(false)
           <div class="card-body d-flex flex-column">
             <h2 class="card-title h4">{{ t('home.cta.organizerTitle') }}</h2>
             <p class="card-text text-muted flex-grow-1">{{ t('home.cta.organizerDesc') }}</p>
-            <button type="button" class="btn btn-primary mt-3 align-self-start" @click="isCreateModalOpen = true">
+            <button
+              type="button"
+              class="btn btn-primary mt-3 align-self-start"
+              @click="isCreateModalOpen = true"
+            >
               {{ t('home.cta.organizerAction') }}
             </button>
           </div>
@@ -65,7 +68,9 @@ const isCreateModalOpen = ref(false)
           <div class="card-body d-flex flex-column">
             <h2 class="card-title h4">{{ t('home.cta.participantTitle') }}</h2>
             <p class="card-text text-muted flex-grow-1">{{ t('home.cta.participantDesc') }}</p>
-            <p class="small text-muted fst-italic mt-auto pt-3 mb-0">{{ t('home.cta.participantHint') }}</p>
+            <p class="small text-muted fst-italic mt-auto pt-3 mb-0">
+              {{ t('home.cta.participantHint') }}
+            </p>
           </div>
         </div>
       </div>
@@ -97,6 +102,5 @@ const isCreateModalOpen = ref(false)
     </div>
 
     <CreateExchangeModal v-model="isCreateModalOpen" />
-
   </section>
 </template>
