@@ -463,10 +463,12 @@ async function cancelDraw() {
       <!-- Participants -->
       <section id="participants">
         <div v-if="participants.length">
-          <h3>{{ t('exchangeDetail.participants') }}</h3>
-          <button class="btn btn-primary mb-3" @click="openAddParticipantModal">
-            {{ t('exchangeDetail.addParticipant') }}
-          </button>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h3>{{ t('exchangeDetail.participants') }}</h3>
+            <button class="btn btn-sm btn-primary" @click="openAddParticipantModal">
+              {{ t('exchangeDetail.addParticipant') }}
+            </button>
+          </div>
 
           <ul class="list-group">
             <li

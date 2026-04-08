@@ -38,6 +38,10 @@
     },
     "adminLink": "Administrator access (development)"
   },
+  "iconPicker": {
+    "search": "Search for an icon...",
+    "unknownIcon": "Unknown icon, please check the name (e.g. gift, heart-fill)."
+  },
   "exchanges": {
     "title": "Exchanges",
     "createExchange": "Create Exchange",

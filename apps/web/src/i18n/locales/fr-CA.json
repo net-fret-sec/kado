@@ -66,6 +66,10 @@
       "submit": "Créer l'échange"
     }
   },
+  "iconPicker": {
+    "search": "Rechercher une icône...",
+    "unknownIcon": "Icône inconnue, vérifiez le nom (ex: gift, heart-fill)."
+  },
   "exchangeDetail": {
     "loading": "Chargement...",
     "name": "Nom",
