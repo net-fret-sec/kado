@@ -1,5 +1,5 @@
 // TypeScript composable to centralize API calls
-const BASE = (import.meta.env.VITE_API_BASE ?? 'http://192.168.0.145:3000') as string
+const BASE = (import.meta.env.VITE_API_BASE ?? '/api') as string
 
 function buildUrl(path: string) {
   if (path.startsWith('http://') || path.startsWith('https://')) return path
@@ -100,9 +100,13 @@ async function request<T = unknown, B = unknown>(
 
 export function useApi() {
   return {
-    get: <T = unknown>(path: string, init?: RequestInit) => request<T>('GET', path, undefined, init),
-    post: <T = unknown, B = unknown>(path: string, body?: B, init?: RequestInit) => request<T, B>('POST', path, body, init),
-    put: <T = unknown, B = unknown>(path: string, body?: B, init?: RequestInit) => request<T, B>('PUT', path, body, init),
-    delete: <T = unknown>(path: string, init?: RequestInit) => request<T>('DELETE', path, undefined, init),
+    get: <T = unknown>(path: string, init?: RequestInit) =>
+      request<T>('GET', path, undefined, init),
+    post: <T = unknown, B = unknown>(path: string, body?: B, init?: RequestInit) =>
+      request<T, B>('POST', path, body, init),
+    put: <T = unknown, B = unknown>(path: string, body?: B, init?: RequestInit) =>
+      request<T, B>('PUT', path, body, init),
+    delete: <T = unknown>(path: string, init?: RequestInit) =>
+      request<T>('DELETE', path, undefined, init),
   }
 }

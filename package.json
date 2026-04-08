@@ -4,6 +4,7 @@
   "private": true,
   "description": "Échangeons des cadeaux entre amis !",
   "scripts": {
+    "dev": "pnpm run -r --parallel dev",
     "dev:web": "pnpm --dir apps/web dev",
     "build:web": "pnpm --dir apps/web build",
     "preview:web": "pnpm --dir apps/web preview",
