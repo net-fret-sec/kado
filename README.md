@@ -1,12 +1,55 @@
 # Kado
 
-Application de gestion d'echanges de cadeaux entre amis.
+Kado est une application web libre pour organiser simplement des échanges de cadeaux (type "Secret Santa") entre amis, famille ou collègues.
 
-Le depot est organise en monorepo PNPM avec 3 briques principales:
+L'objectif est de retirer toute la friction liée à l'organisation: règles, contraintes, tirage et communication, tout en restant simple, fiable et sans inscription obligatoire.
 
-- une API HTTP Node.js/Express
-- une application Web Vue 3
-- un package partage de contrats (types et schemas)
+## Philosophie du projet
+
+Kado est conçu comme un outil:
+
+- simple à utiliser, sans friction inutile
+- respectueux de la vie privée (liens personnels, pas de compte requis)
+- transparent dans son fonctionnement (code source ouvert)
+- maintenu de manière indépendante
+
+Le projet est libre et peut être utilisé, modifié ou auto-hébergé.
+
+Le dépôt est un monorepo PNPM composé de 3 briques:
+
+- `apps/api`: API HTTP Node.js/Express (logique métier)
+- `apps/web`: application Vue 3 (interface admin + participant)
+- `packages/shared`: contrats partagés (DTO, types, schémas Zod)
+
+## Ce que l'application règle
+
+- Centraliser l'organisation d'un échange de cadeaux.
+- Éviter les erreurs de pige (auto-attribution, conflits de contraintes).
+- Gérer automatiquement des règles complexes (exclusions, anti-réciprocité).
+- Donner un accès simple aux participants via un lien personnel (`/p/:token`).
+- Fournir des explications claires lorsque le tirage est impossible.
+- Garder front et back synchronisés grâce à un package de types commun.
+
+## Nouveautés / bonifications récentes
+
+- Ajout du mode anti-réciprocité via `noMutualAssignments`.
+- Gestion des règles d'exclusion entre participants (API + UI admin).
+- Verrouillage de l'édition des exclusions quand l'échange est `drawn` ou `archived`.
+- Erreurs de pige enrichies quand aucune solution n'est possible:
+  - code `DRAW_IMPOSSIBLE`
+  - détails: `hasExclusionRules`, `noMutualAssignments`
+- Parcours public participant confirmé et stabilisé sur `GET/PUT /api/p/:token`.
+- Vue de détail d'échange bonifiée côté web (gestion des exclusions par participant).
+
+## Soutenir le projet
+
+Kado est un projet libre, maintenu bénévolement.
+
+Si l'application vous a été utile pour organiser un échange, vous pouvez contribuer à son maintien:
+
+-> [Soutenir le projet](#)
+
+(Aucune fonctionnalité n'est bloquée: la contribution est entièrement volontaire.)
 
 ## Architecture
 
@@ -16,91 +59,51 @@ kado/
 |  |- api/          # Backend Express + logique metier
 |  |- web/          # Frontend Vue 3 + Vite
 |- packages/
-|  |- shared/       # DTO, schemas Zod, types partages
+   |- shared/       # DTO, schémas Zod, types partagés
 ```
 
-### Vue d'ensemble technique
+## Fonctionnalités couvertes
 
-- `apps/api`
-  - entree: `src/server.ts`
-  - app Express: `src/app.ts`
-  - couches principales:
-    - `routes/` pour les endpoints HTTP
-    - `services/` pour la logique metier
-    - `repositories/` pour le stockage en memoire (in-memory)
-    - `middleware/` pour validation et gestion d'erreurs
-  - routes majeures:
-    - admin: `/api/exchanges/*`
-    - participant public (lien magique): `/api/p/:token`
-- `apps/web`
-  - Vue 3 + Vite + Vue Router + Pinia
-  - i18n (`vue-i18n`) avec locales `fr-CA` et `en-CA`
-  - UI basee sur Bootstrap 5
-  - parcours admin (`/exchanges/:id`) + parcours participant (`/p/:token`)
-- `packages/shared`
-  - schemas Zod et DTO communs, importes par l'API et le Web
-
-## Fonctionnalites actuellement couvertes
-
-- Gestion des echanges
-  - creation, lecture, edition, suppression
-  - statut d'echange (`draft`, `ready`, `drawn`, `archived`)
-  - options de creation: organisateur, budget, date, `noMutualAssignments`, mot de passe admin
-- Gestion des participants
-  - CRUD des participants cote admin
-  - regeneration de lien d'acces participant
+- Gestion des échanges
+  - CRUD des échanges
+  - statuts: `draft`, `ready`, `drawn`, `archived`
+  - options: organisateur, budget, date, mot de passe admin, `noMutualAssignments`
+- Gestion des participants (admin)
+  - CRUD participants
+  - régénération de lien d'accès
 - Gestion des exclusions
-  - ajout/suppression de regles d'exclusion entre participants
-  - verrouillage des exclusions une fois la pige effectuee ou archivee
-- Pige (draw)
-  - lancement et annulation de pige
-  - solveur deterministe avec contraintes d'exclusion
-  - option anti-reciprocite (`noMutualAssignments`)
-  - erreurs detaillees si la pige est impossible (`DRAW_IMPOSSIBLE` + details)
+  - ajout/suppression de règles entre participants
+- Pige
+  - lancement et annulation
+  - solveur déterministe avec contraintes
+  - détails explicites en cas d'échec de la pige
 - Espace participant public
-  - consultation/mise a jour de son profil via lien magique (`/p/:token`)
-  - affichage du destinataire une fois la pige effectuee
+  - consultation/mise à jour de son profil via lien magique
+  - affichage du destinataire après pige
 
-## Librairies et standards utilises
+## Stack technique
 
-- Runtime et langage
-  - Node.js (>= 20.19 recommande)
-  - TypeScript (strict)
-  - PNPM workspaces
-- API
-  - Express 5
-  - Zod (validation de schemas)
-  - Helmet, CORS, Morgan
-  - Jest + Supertest (tests API)
-- Web
-  - Vue 3
-  - Vite
-  - Pinia
-  - Vue Router
-  - Vue I18n
-  - Bootstrap + Bootstrap Icons
-  - vite-plugin-pwa (PWA)
-- Qualite et style
-  - ESLint
-  - Oxlint
-  - Prettier
+- Runtime/langage: Node.js, TypeScript, PNPM workspaces
+- API: Express 5, Zod, Helmet, CORS, Morgan, Jest, Supertest
+- Web: Vue 3, Vite, Pinia, Vue Router, Vue I18n, Bootstrap, vite-plugin-pwa
+- Qualité: ESLint, Oxlint, Prettier
 
-## Prerequis
+## Prérequis
 
 - Node.js: `^20.19.0 || >=22.12.0`
 - PNPM: `10.x`
 
 ## Installation
 
-Depuis la racine du depot:
+Depuis la racine:
 
 ```bash
 pnpm install
 ```
 
-## Lancer en developpement
+## Développement local
 
-Dans 2 terminaux distincts:
+Dans 2 terminaux:
 
 ```bash
 pnpm dev:api
@@ -110,40 +113,30 @@ pnpm dev:api
 pnpm dev:web
 ```
 
-Par defaut:
+Par défaut:
 
-- API: http://localhost:3000
-- Web: http://localhost:5173
+- API: `http://localhost:3000`
+- Web: `http://localhost:5173`
 
-## Previsualisation locale
+## Build et vérification
 
-Previsualiser la version build:
-
-```bash
-pnpm preview:web
-```
-
-Previsualiser l'API build (si script de preview implemente localement):
-
-```bash
-pnpm preview:api
-```
-
-## Build
-
-Build de l'application Web:
+Build web:
 
 ```bash
 pnpm build:web
 ```
 
-Build de l'API:
+Build API:
 
 ```bash
 pnpm build:api
 ```
 
-## Tests et verification
+Preview web (build):
+
+```bash
+pnpm preview:web
+```
 
 Tests API:
 
@@ -151,23 +144,19 @@ Tests API:
 pnpm --dir apps/api test
 ```
 
-Type-check + build Web:
-
-```bash
-pnpm --dir apps/web build
-```
-
-Lint Web:
+Lint web:
 
 ```bash
 pnpm --dir apps/web lint
 ```
 
-## Endpoints principaux API
+Note: `pnpm preview:api` existe à la racine, mais le script `preview` n'est pas défini dans `apps/api` pour le moment.
 
-- Sante
+## Endpoints API principaux
+
+- Santé
   - `GET /health`
-- Echanges (admin)
+- Échanges (admin)
   - `GET /api/exchanges`
   - `POST /api/exchanges`
   - `GET /api/exchanges/:exchangeId`
@@ -191,18 +180,33 @@ pnpm --dir apps/web lint
 
 ## Variables d'environnement utiles
 
-### API (`apps/api`)
+### API (`apps/api/.env`)
 
-- `SERVER_PORT`: port HTTP de l'API (defaut: `3000`)
-- `PUBLIC_BASE_URL`: base URL publique pour generer les liens participant (`/p/:token`)
-- `FRONTEND_BASE_URL`: fallback si `PUBLIC_BASE_URL` est absent
+- `SERVER_ADDRESS`: adresse d'écoute loggée (défaut: `http://0.0.0.0`)
+- `SERVER_PORT`: port HTTP (défaut: `3000`)
+- `FRONTEND_BASE_URL`: base URL du front pour construire les liens participant
+- `PUBLIC_BASE_URL`: prioritaire sur `FRONTEND_BASE_URL` si définie
 
-### Web (`apps/web`)
+Exemple: `apps/api/.env.example`
 
-- `VITE_API_BASE`: base URL de l'API (recommande de la definir explicitement, voir `apps/web/.env.example`)
+### Web (`apps/web/.env`)
 
-## Notes
+- `VITE_API_BASE`: base URL de l'API (ex: `http://localhost:3000`)
 
-- Le stockage actuel cote API est en memoire (repositories in-memory), adapte au dev/tests.
-- Le package `@kado/shared` centralise les contrats pour garder le front et le back synchronises.
-- Au demarrage de l'API, des donnees de test sont chargees automatiquement depuis `apps/api/src/test-data.json` via `load-test-data.ts`.
+Exemple: `apps/web/.env.example`
+
+## Limites actuelles
+
+- Le stockage API est en mémoire (pas de base de données persistante).
+- Les données de démo sont chargées au démarrage depuis `apps/api/src/test-data.json`.
+
+## Licence
+
+Projet publié sous licence AGPL v3.
+
+Cela signifie que:
+
+- vous pouvez utiliser, modifier et redistribuer le code librement
+- toute modification exposée via un service web doit rester accessible publiquement
+
+Le but est de garantir que Kado reste un bien commun, même lorsqu'il est hébergé en ligne.
