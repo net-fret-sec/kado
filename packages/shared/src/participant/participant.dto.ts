@@ -66,9 +66,14 @@ export interface ParticipantSelfViewDto {
     | "description"
     | "status"
     | "eventDate"
+    | "drawDeadlineAt"
     | "budget"
     | "budgetCurrency"
+    | "minWishlistSuggestions"
   >;
-  participant: Pick<ParticipantDto, "id" | "name" | "email" | "wishlist" | "note">;
+  participant: Pick<
+    ParticipantDto,
+    "id" | "name" | "email" | "wishlist" | "note"
+  >;
   assignment?: ParticipantAssignmentDto;
 }

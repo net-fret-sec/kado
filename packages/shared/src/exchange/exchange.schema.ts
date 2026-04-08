@@ -29,8 +29,18 @@ export const createExchangeInputSchema = z.object({
       .regex(/^\d{4}-\d{2}-\d{2}$/)
       .optional(),
   ),
+  drawDeadlineAt: emptyStringToUndefined(
+    z.string().datetime({ offset: true }).optional(),
+  ),
   budget: z.number().nonnegative().optional(),
   budgetCurrency: optionalText(3),
+  minWishlistSuggestions: z
+    .number()
+    .int()
+    .min(0)
+    .max(100)
+    .optional()
+    .default(0),
   noMutualAssignments: z.boolean().optional().default(false),
   adminPassword: z.string().min(10).max(256),
 });
@@ -46,8 +56,12 @@ export const updateExchangeInputSchema = z.object({
       .regex(/^\d{4}-\d{2}-\d{2}$/)
       .optional(),
   ),
+  drawDeadlineAt: emptyStringToUndefined(
+    z.string().datetime({ offset: true }).optional(),
+  ),
   budget: z.number().nonnegative().optional(),
   budgetCurrency: optionalText(3),
+  minWishlistSuggestions: z.number().int().min(0).max(100).optional(),
   noMutualAssignments: z.boolean().optional(),
 });
 

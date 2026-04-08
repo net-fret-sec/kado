@@ -32,10 +32,12 @@ const canEdit = computed(() => {
 })
 
 const hasRecipient = computed(() => !!view.value?.assignment)
+const requiredMinSuggestions = computed(() => view.value?.exchange.minWishlistSuggestions ?? 0)
 
 const canSubmit = computed(() => {
   if (!name.value.trim()) return false
   if (!isValidEmail(email.value)) return false
+  if (wishlist.value.length < requiredMinSuggestions.value) return false
   return wishlist.value.every(isValidSuggestion)
 })
 
@@ -161,6 +163,9 @@ onMounted(fetchSelf)
 
             <div class="mb-3">
               <label class="form-label mb-2">{{ t('participant.wishlist') }}</label>
+              <p v-if="requiredMinSuggestions > 0" class="small text-body-secondary">
+                {{ t('participant.minWishlistSuggestionsHint', { count: requiredMinSuggestions }) }}
+              </p>
               <WishlistSuggestionItem
                 v-for="(element, index) in wishlist"
                 :key="`${index}-${element.title}`"
@@ -185,6 +190,11 @@ onMounted(fetchSelf)
               </button>
               <p class="text-muted mb-0 mt-2" v-if="!wishlist.length">
                 {{ t('participant.noSuggestions') }}
+              </p>
+              <p class="text-danger small mt-2" v-if="wishlist.length < requiredMinSuggestions">
+                {{
+                  t('participant.minWishlistSuggestionsError', { count: requiredMinSuggestions })
+                }}
               </p>
             </div>
 

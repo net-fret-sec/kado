@@ -9,6 +9,11 @@ const props = defineProps<{
   name: string
   description?: string
   status?: ExchangeStatus
+  eventDate?: string
+  drawDeadlineAt?: string
+  budget?: number
+  budgetCurrency?: string
+  minWishlistSuggestions?: number
   noMutualAssignments?: boolean
 }>()
 
@@ -20,6 +25,11 @@ const emit = defineEmits<{
       name: string
       description: string
       status: ExchangeStatus
+      eventDate?: string
+      drawDeadlineAt?: string
+      budget?: number
+      budgetCurrency?: string
+      minWishlistSuggestions: number
       noMutualAssignments: boolean
     },
   ): void
@@ -30,6 +40,11 @@ const { t } = useI18n()
 const editName = ref('')
 const editDescription = ref('')
 const editStatus = ref<ExchangeStatus>('draft')
+const editEventDate = ref('')
+const editDrawDeadlineAtLocal = ref('')
+const editBudget = ref<number | null>(null)
+const editBudgetCurrency = ref('CAD')
+const editMinWishlistSuggestions = ref(0)
 const editNoMutualAssignments = ref(false)
 
 const isValid = computed(() => editName.value.trim().length > 0)
@@ -38,7 +53,29 @@ function syncFromProps() {
   editName.value = props.name || ''
   editDescription.value = props.description || ''
   editStatus.value = props.status || 'draft'
+  editEventDate.value = props.eventDate || ''
+  editDrawDeadlineAtLocal.value = props.drawDeadlineAt
+    ? toLocalDateTimeInput(props.drawDeadlineAt)
+    : ''
+  editBudget.value = props.budget ?? null
+  editBudgetCurrency.value = props.budgetCurrency || 'CAD'
+  editMinWishlistSuggestions.value = props.minWishlistSuggestions ?? 0
   editNoMutualAssignments.value = props.noMutualAssignments ?? false
+}
+
+function toLocalDateTimeInput(isoValue: string) {
+  const date = new Date(isoValue)
+  if (Number.isNaN(date.getTime())) return ''
+
+  const tzOffsetMs = date.getTimezoneOffset() * 60_000
+  return new Date(date.getTime() - tzOffsetMs).toISOString().slice(0, 16)
+}
+
+function localDateTimeToIso(value: string) {
+  if (!value) return undefined
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return undefined
+  return date.toISOString()
 }
 
 watch(
@@ -57,6 +94,11 @@ function handleSubmit() {
     name: editName.value,
     description: editDescription.value,
     status: editStatus.value,
+    eventDate: editEventDate.value || undefined,
+    drawDeadlineAt: localDateTimeToIso(editDrawDeadlineAtLocal.value),
+    budget: editBudget.value ?? undefined,
+    budgetCurrency: editBudgetCurrency.value || undefined,
+    minWishlistSuggestions: editMinWishlistSuggestions.value,
     noMutualAssignments: editNoMutualAssignments.value,
   })
 }
@@ -91,6 +133,71 @@ function handleSubmit() {
           <option value="drawn">{{ t('exchangeDetail.statusValues.drawn') }}</option>
           <option value="archived">{{ t('exchangeDetail.statusValues.archived') }}</option>
         </select>
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-md-6">
+          <label for="editExchangeEventDate" class="form-label">{{
+            t('exchangeDetail.eventDate')
+          }}</label>
+          <input
+            v-model="editEventDate"
+            type="date"
+            class="form-control"
+            id="editExchangeEventDate"
+          />
+        </div>
+        <div class="col-12 col-md-6">
+          <label for="editExchangeDrawDeadline" class="form-label">{{
+            t('exchangeDetail.drawDeadlineAt')
+          }}</label>
+          <input
+            v-model="editDrawDeadlineAtLocal"
+            type="datetime-local"
+            class="form-control"
+            id="editExchangeDrawDeadline"
+          />
+        </div>
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-md-4">
+          <label for="editExchangeBudget" class="form-label">{{
+            t('exchangeDetail.budget')
+          }}</label>
+          <input
+            v-model.number="editBudget"
+            type="number"
+            min="0"
+            step="0.01"
+            class="form-control"
+            id="editExchangeBudget"
+          />
+        </div>
+        <div class="col-12 col-md-4">
+          <label for="editExchangeBudgetCurrency" class="form-label">{{
+            t('exchangeDetail.budgetCurrency')
+          }}</label>
+          <input
+            v-model="editBudgetCurrency"
+            type="text"
+            maxlength="3"
+            class="form-control text-uppercase"
+            id="editExchangeBudgetCurrency"
+          />
+        </div>
+        <div class="col-12 col-md-4">
+          <label for="editExchangeMinSuggestions" class="form-label">{{
+            t('exchangeDetail.minWishlistSuggestions')
+          }}</label>
+          <input
+            v-model.number="editMinWishlistSuggestions"
+            type="number"
+            min="0"
+            max="100"
+            step="1"
+            class="form-control"
+            id="editExchangeMinSuggestions"
+          />
+        </div>
       </div>
       <div class="mb-3 form-check">
         <input

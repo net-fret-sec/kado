@@ -7,7 +7,7 @@ const { t } = useI18n()
 
 <template>
   <header class="bg-dark">
-    <div class="app-header container d-flex justify-content-between align-items-center">
+    <div class="app-header container-xl d-flex justify-content-between align-items-center">
       <nav class="navbar navbar-dark">
         <h1>
           <a class="navbar-brand h2" href="/">{{ t('app.title') }}</a>
@@ -18,7 +18,7 @@ const { t } = useI18n()
     </div>
   </header>
 
-  <main class="app-main container">
+  <main class="app-main container-xl">
     <router-view />
   </main>
 

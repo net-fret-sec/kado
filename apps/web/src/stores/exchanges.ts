@@ -35,64 +35,72 @@ export const useExchangesStore = defineStore('exchanges', () => {
     formErrors,
     fetchExchanges,
     async createExchange(newExchange: {
-      name: string;
-      description?: string;
-      organizerName: string;
-      organizerParticipates?: boolean;
-      noMutualAssignments?: boolean;
-      adminPassword: string;
-      eventDate?: string;
-      budget?: number;
-      budgetCurrency?: string;
+      name: string
+      description?: string
+      organizerName: string
+      organizerParticipates?: boolean
+      noMutualAssignments?: boolean
+      adminPassword: string
+      eventDate?: string
+      drawDeadlineAt?: string
+      budget?: number
+      budgetCurrency?: string
+      minWishlistSuggestions?: number
     }) {
-      isLoading.value = true;
-      error.value = null;
-      fieldErrors.value = null;
-      formErrors.value = null;
+      isLoading.value = true
+      error.value = null
+      fieldErrors.value = null
+      formErrors.value = null
       try {
-        const data = await api.post<{ exchange: ExchangeDto }, typeof newExchange>('/api/exchanges', newExchange)
+        const data = await api.post<{ exchange: ExchangeDto }, typeof newExchange>(
+          '/api/exchanges',
+          newExchange,
+        )
         exchanges.value.push(data.exchange)
         return data.exchange
       } catch (err) {
         if (!error.value) {
-          error.value = getApiErrorMessage(err);
+          error.value = getApiErrorMessage(err)
         }
         toasts.error(error.value)
-        throw err;
+        throw err
       } finally {
-        isLoading.value = false;
+        isLoading.value = false
       }
     },
 
     async updateExchange(id: string, updatedFields: Partial<ExchangeDto>) {
-      isLoading.value = true;
-      error.value = null;
+      isLoading.value = true
+      error.value = null
       try {
-        const updated = await api.put<ExchangeDto, Partial<ExchangeDto>>(`/api/exchanges/${id}`, updatedFields)
-        const idx = exchanges.value.findIndex(e => e.id === id);
-        if (idx !== -1) exchanges.value[idx] = updated;
-        return updated;
+        const updated = await api.put<ExchangeDto, Partial<ExchangeDto>>(
+          `/api/exchanges/${id}`,
+          updatedFields,
+        )
+        const idx = exchanges.value.findIndex((e) => e.id === id)
+        if (idx !== -1) exchanges.value[idx] = updated
+        return updated
       } catch (err) {
-        error.value = getApiErrorMessage(err);
+        error.value = getApiErrorMessage(err)
         toasts.error(error.value)
-        throw err;
+        throw err
       } finally {
-        isLoading.value = false;
+        isLoading.value = false
       }
     },
 
     async deleteExchange(id: string) {
-      isLoading.value = true;
-      error.value = null;
+      isLoading.value = true
+      error.value = null
       try {
         await api.delete(`/api/exchanges/${id}`)
-        exchanges.value = exchanges.value.filter(e => e.id !== id);
+        exchanges.value = exchanges.value.filter((e) => e.id !== id)
       } catch (err) {
-        error.value = getApiErrorMessage(err);
+        error.value = getApiErrorMessage(err)
         toasts.error(error.value)
-        throw err;
+        throw err
       } finally {
-        isLoading.value = false;
+        isLoading.value = false
       }
     },
   }

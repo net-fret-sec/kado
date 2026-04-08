@@ -14,8 +14,10 @@ export interface ExchangeDto {
   status: ExchangeStatus;
 
   eventDate?: string;
+  drawDeadlineAt?: string;
   budget?: number;
   budgetCurrency?: string;
+  minWishlistSuggestions?: number;
   noMutualAssignments?: boolean;
 
   drawAt?: string;
@@ -32,8 +34,10 @@ export interface CreateExchangeInputDto {
   organizerParticipates?: boolean;
 
   eventDate?: string;
+  drawDeadlineAt?: string;
   budget?: number;
   budgetCurrency?: string;
+  minWishlistSuggestions?: number;
   noMutualAssignments?: boolean;
 
   adminPassword: string;
@@ -51,8 +55,10 @@ export interface UpdateExchangeInputDto {
   status?: ExchangeStatus;
 
   eventDate?: string;
+  drawDeadlineAt?: string;
   budget?: number;
   budgetCurrency?: string;
+  minWishlistSuggestions?: number;
   noMutualAssignments?: boolean;
 }
 

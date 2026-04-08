@@ -1,23 +1,21 @@
-export type ExchangeStatus =
-  | 'draft'
-  | 'ready'
-  | 'drawn'
-  | 'archived'
+export type ExchangeStatus = "draft" | "ready" | "drawn" | "archived";
 
 export interface Exchange {
-  id: string
+  id: string;
 
-  name: string
-  description?: string
+  name: string;
+  description?: string;
 
-  status: ExchangeStatus
+  status: ExchangeStatus;
 
-  eventDate?: string
-  budget?: number
-  budgetCurrency?: string
-  organizerName?: string
+  eventDate?: string;
+  drawDeadlineAt?: string;
+  budget?: number;
+  budgetCurrency?: string;
+  minWishlistSuggestions?: number;
+  organizerName?: string;
 
-  drawAt?: string
-  createdAt: string
-  updatedAt: string
+  drawAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }

@@ -12,29 +12,61 @@
   },
   "home": {
     "hero": {
-      "intro": "Kado est un outil libre et gratuit pour organiser des échanges de cadeaux entre amis, en famille ou entre collègues.",
-      "principles": "Aucun compte requis. Aucune publicité. Aucun traçage. Juste l'essentiel."
+      "eyebrow": "Échanges de cadeaux sans friction",
+      "title": "Kado organise vos échanges de cadeaux, sans complications.",
+      "description": "Créez une pige en quelques minutes, partagez des liens uniques aux participants et laissez Kado gérer les contraintes du tirage. Sans compte obligatoire, sans publicité, sans traçage.",
+      "primaryAction": "Créer une pige",
+      "secondaryAction": "J'ai reçu un lien",
+      "micro": "Libre. Gratuit. Respectueux de la vie privée.",
+      "audience": "Pensé pour les échanges entre amis, en famille ou entre collègues."
     },
-    "features": {
-      "openSource": "Code source ouvert",
-      "openSourceDesc": "Kado est un logiciel libre. Inspectez-le, modifiez-le ou hébergez-le vous-même.",
-      "anonymous": "Anonymat par défaut",
-      "anonymousDesc": "Aucune information identifiante n'est requise. Participez sous le nom de votre choix.",
-      "noAds": "Sans pub ni traçage",
-      "noAdsDesc": "Aucun cookie de traçage, aucune régie publicitaire, aucune revente de données."
+    "trustStrip": {
+      "openSource": {
+        "title": "Code source ouvert",
+        "description": "Le code est public. Vous pouvez l'inspecter, l'utiliser, le modifier ou l'héberger vous-même."
+      },
+      "privacy": {
+        "title": "Vie privée respectée",
+        "description": "Aucun compte requis pour participer. Chaque personne reçoit simplement un lien personnel."
+      },
+      "noMonetization": {
+        "title": "Aucune monétisation intrusive",
+        "description": "Pas de publicité, pas de revente de données, pas de cookies de traçage."
+      }
     },
     "cta": {
-      "organizerTitle": "Je veux créer une pige",
-      "organizerDesc": "Créez un échange, ajoutez les participants et lancez le tirage au sort. Chaque participant recevra un lien unique à partager via le moyen de communication de votre choix.",
+      "primaryLabel": "Action principale",
+      "secondaryLabel": "Accès participant",
+      "organizerTitle": "Je veux organiser une pige",
+      "organizerDesc": "Créez un échange, ajoutez les participants, définissez les exclusions au besoin, puis lancez le tirage. Chaque personne reçoit un lien unique, à partager par le moyen de votre choix.",
       "organizerAction": "Créer une pige",
-      "participantTitle": "J'ai reçu un lien pour participer",
-      "participantDesc": "L'organisateur vous a transmis un lien unique — par courriel, texto ou autre. Utilisez ce lien directement : aucun compte, aucun mot de passe requis.",
+      "participantTitle": "J'ai reçu un lien",
+      "participantDesc": "Vous avez reçu un lien personnel de la part de l'organisateur. Ouvrez-le directement pour accéder à votre participation. Aucun compte ni mot de passe à créer.",
       "participantHint": "Vous n'avez pas reçu de lien ? Contactez la personne qui organise la pige."
     },
+    "why": {
+      "title": "Pourquoi faire confiance à Kado ?",
+      "description": "Un outil simple, transparent et indépendant pour organiser des échanges sans friction inutile.",
+      "simple": {
+        "title": "Simple par conception",
+        "description": "Kado fait une chose précise : organiser des échanges de cadeaux sans détour ni complexité inutile."
+      },
+      "transparent": {
+        "title": "Transparent",
+        "description": "Le projet est libre et son fonctionnement est public. Rien n'est enfermé dans une boîte noire."
+      },
+      "independent": {
+        "title": "Indépendant",
+        "description": "Kado est maintenu comme un outil utile avant d'être un produit à rentabiliser."
+      }
+    },
     "support": {
-      "text": "Kado est gratuit et le restera toujours.",
-      "subtext": "Si vous souhaitez encourager le projet et aider à couvrir les frais d'hébergement, un petit coup de pouce est toujours apprécié !",
+      "title": "Kado est gratuit et le restera.",
+      "subtext": "Si l'application vous est utile et que vous souhaitez aider à couvrir l'hébergement et le développement du projet, vous pouvez donner un petit coup de pouce.",
       "button": "Soutenir le projet"
+    },
+    "footer": {
+      "tagline": "Projet libre, transparent et auto-hébergeable."
     },
     "adminLink": "Accès administrateur (développement)"
   },
@@ -53,7 +85,9 @@
     "organizer": "Organisateur",
     "participantsCount": "Participants",
     "eventDate": "Date de l'événement",
+    "drawDeadlineAt": "Date limite de la pige",
     "budget": "Budget",
+    "minWishlistSuggestions": "Suggestions minimales",
     "updatedAt": "Mis à jour",
     "createModal": {
       "title": "Créer un échange",
@@ -61,6 +95,11 @@
       "description": "Description",
       "organizerName": "Nom de l'organisateur",
       "organizerParticipates": "L'organisateur participe à l'échange",
+      "eventDate": "Date de l'événement",
+      "drawDeadlineAt": "Date et heure limite de pige",
+      "budget": "Budget",
+      "budgetCurrency": "Devise",
+      "minWishlistSuggestions": "Suggestions minimales par participant",
       "noMutualAssignments": "Interdire les piges mutuelles",
       "adminPassword": "Mot de passe admin",
       "submit": "Créer l'échange"
@@ -85,7 +124,10 @@
     "inactive": "Inactif",
     "organizer": "Organisateur",
     "eventDate": "Date de l'événement",
+    "drawDeadlineAt": "Date limite de la pige",
     "budget": "Budget",
+    "budgetCurrency": "Devise",
+    "minWishlistSuggestions": "Suggestions minimales par participant",
     "noMutualAssignments": "Piges mutuelles interdites",
     "enabled": "Oui",
     "disabled": "Non",
@@ -156,6 +198,8 @@
     "wishlist": "Liste de souhaits",
     "addSuggestion": "Ajouter une suggestion",
     "noSuggestions": "Aucune suggestion pour le moment.",
+    "minWishlistSuggestionsHint": "Minimum requis: {count} suggestion | Minimum requis: {count} suggestions",
+    "minWishlistSuggestionsError": "Ajoutez au moins {count} suggestion pour continuer. | Ajoutez au moins {count} suggestions pour continuer.",
     "note": "Note",
     "editingOpen": "Vous pouvez modifier vos informations et votre liste avant la pige.",
     "editingClosed": "La pige a été effectuée. Les modifications ne sont plus disponibles.",
@@ -170,6 +214,8 @@
   "apiErrors": {
     "UNKNOWN": "Une erreur inattendue est survenue.",
     "DRAW_MIN_ACTIVE_PARTICIPANTS": "Au moins 3 participants actifs sont requis pour lancer la pige.",
+    "DRAW_DEADLINE_PASSED": "La date limite de la pige est dépassée.",
+    "DRAW_MIN_WISHLIST_SUGGESTIONS": "Tous les participants actifs doivent atteindre le minimum de suggestions avant de lancer la pige.",
     "DRAW_IMPOSSIBLE": "Aucune pige valide n'est possible avec les paramètres actuels.",
     "EXCHANGE_ARCHIVED_CANNOT_DRAW": "Une pige archivée ne peut pas être lancée.",
     "EXCHANGE_ARCHIVED_CANNOT_MODIFY": "Une pige archivée ne peut pas être modifiée.",

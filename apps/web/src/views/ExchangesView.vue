@@ -42,7 +42,7 @@ function formatDate(value?: string) {
 }
 
 function formatBudget(exchange: ExchangeDto) {
-  if (!exchange.budget) return '-'
+  if (exchange.budget == null) return '-'
   const currency = exchange.budgetCurrency || 'CAD'
   return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(exchange.budget)
 }
@@ -105,8 +105,18 @@ onMounted(() => {
                   </dt>
                   <dd class="col-7 mb-2">{{ formatDate(exchange.eventDate) }}</dd>
 
+                  <dt class="col-5 text-body-secondary fw-semibold">
+                    {{ t('exchanges.drawDeadlineAt') }}
+                  </dt>
+                  <dd class="col-7 mb-2">{{ formatDate(exchange.drawDeadlineAt) }}</dd>
+
                   <dt class="col-5 text-body-secondary fw-semibold">{{ t('exchanges.budget') }}</dt>
                   <dd class="col-7 mb-2">{{ formatBudget(exchange) }}</dd>
+
+                  <dt class="col-5 text-body-secondary fw-semibold">
+                    {{ t('exchanges.minWishlistSuggestions') }}
+                  </dt>
+                  <dd class="col-7 mb-2">{{ exchange.minWishlistSuggestions ?? 0 }}</dd>
 
                   <dt class="col-5 text-body-secondary fw-semibold">
                     {{ t('exchanges.updatedAt') }}

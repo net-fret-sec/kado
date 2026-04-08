@@ -23,6 +23,11 @@ const name = ref('')
 const description = ref('')
 const organizerName = ref('')
 const organizerParticipates = ref(true)
+const eventDate = ref('')
+const drawDeadlineAtLocal = ref('')
+const budget = ref<number | null>(null)
+const budgetCurrency = ref('CAD')
+const minWishlistSuggestions = ref(0)
 const noMutualAssignments = ref(false)
 const adminPassword = ref('')
 const pendingRedirectExchangeId = ref<string | null>(null)
@@ -35,10 +40,22 @@ function resetForm() {
   description.value = ''
   organizerName.value = ''
   organizerParticipates.value = true
+  eventDate.value = ''
+  drawDeadlineAtLocal.value = ''
+  budget.value = null
+  budgetCurrency.value = 'CAD'
+  minWishlistSuggestions.value = 0
   noMutualAssignments.value = false
   adminPassword.value = ''
   exchangesStore.fieldErrors = null
   exchangesStore.formErrors = null
+}
+
+function localDateTimeToIso(value: string) {
+  if (!value) return undefined
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return undefined
+  return date.toISOString()
 }
 
 watch(
@@ -65,6 +82,11 @@ async function handleCreate() {
       description: description.value,
       organizerName: organizerName.value,
       organizerParticipates: organizerParticipates.value,
+      eventDate: eventDate.value || undefined,
+      drawDeadlineAt: localDateTimeToIso(drawDeadlineAtLocal.value),
+      budget: budget.value ?? undefined,
+      budgetCurrency: budgetCurrency.value || undefined,
+      minWishlistSuggestions: minWishlistSuggestions.value,
       noMutualAssignments: noMutualAssignments.value,
       adminPassword: adminPassword.value,
     })
@@ -140,6 +162,81 @@ async function handleHidden() {
         <label class="form-check-label" for="organizerParticipates">
           {{ t('exchanges.createModal.organizerParticipates') }}
         </label>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-md-6">
+          <label for="exchangeEventDate" class="form-label">{{
+            t('exchanges.createModal.eventDate')
+          }}</label>
+          <input v-model="eventDate" type="date" class="form-control" id="exchangeEventDate" />
+          <div v-if="fieldErrors.eventDate" class="text-danger small">
+            {{ fieldErrors.eventDate[0] }}
+          </div>
+        </div>
+        <div class="col-12 col-md-6">
+          <label for="exchangeDrawDeadline" class="form-label">{{
+            t('exchanges.createModal.drawDeadlineAt')
+          }}</label>
+          <input
+            v-model="drawDeadlineAtLocal"
+            type="datetime-local"
+            class="form-control"
+            id="exchangeDrawDeadline"
+          />
+          <div v-if="fieldErrors.drawDeadlineAt" class="text-danger small">
+            {{ fieldErrors.drawDeadlineAt[0] }}
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-md-4">
+          <label for="exchangeBudget" class="form-label">{{
+            t('exchanges.createModal.budget')
+          }}</label>
+          <input
+            v-model.number="budget"
+            type="number"
+            min="0"
+            step="0.01"
+            class="form-control"
+            id="exchangeBudget"
+          />
+          <div v-if="fieldErrors.budget" class="text-danger small">{{ fieldErrors.budget[0] }}</div>
+        </div>
+        <div class="col-12 col-md-4">
+          <label for="exchangeBudgetCurrency" class="form-label">{{
+            t('exchanges.createModal.budgetCurrency')
+          }}</label>
+          <input
+            v-model="budgetCurrency"
+            type="text"
+            maxlength="3"
+            class="form-control text-uppercase"
+            id="exchangeBudgetCurrency"
+          />
+          <div v-if="fieldErrors.budgetCurrency" class="text-danger small">
+            {{ fieldErrors.budgetCurrency[0] }}
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
+          <label for="exchangeMinSuggestions" class="form-label">{{
+            t('exchanges.createModal.minWishlistSuggestions')
+          }}</label>
+          <input
+            v-model.number="minWishlistSuggestions"
+            type="number"
+            min="0"
+            max="100"
+            step="1"
+            class="form-control"
+            id="exchangeMinSuggestions"
+          />
+          <div v-if="fieldErrors.minWishlistSuggestions" class="text-danger small">
+            {{ fieldErrors.minWishlistSuggestions[0] }}
+          </div>
+        </div>
       </div>
 
       <div class="mb-3 form-check">

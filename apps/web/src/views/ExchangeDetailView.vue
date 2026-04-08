@@ -234,6 +234,11 @@ async function saveEdit(payload: {
   name: string
   description: string
   status: ExchangeDto['status']
+  eventDate?: string
+  drawDeadlineAt?: string
+  budget?: number
+  budgetCurrency?: string
+  minWishlistSuggestions: number
   noMutualAssignments: boolean
 }) {
   if (!exchange.value) return
@@ -242,6 +247,11 @@ async function saveEdit(payload: {
       name: payload.name,
       description: payload.description,
       status: payload.status,
+      eventDate: payload.eventDate,
+      drawDeadlineAt: payload.drawDeadlineAt,
+      budget: payload.budget,
+      budgetCurrency: payload.budgetCurrency,
+      minWishlistSuggestions: payload.minWishlistSuggestions,
       noMutualAssignments: payload.noMutualAssignments,
     })
     showEditExchangeModal.value = false
@@ -417,9 +427,17 @@ async function cancelDraw() {
             <li v-if="exchange.eventDate">
               <b>{{ t('exchangeDetail.eventDate') }} :</b> {{ exchange.eventDate }}
             </li>
-            <li v-if="exchange.budget">
+            <li v-if="exchange.drawDeadlineAt">
+              <b>{{ t('exchangeDetail.drawDeadlineAt') }} :</b>
+              {{ new Date(exchange.drawDeadlineAt).toLocaleString() }}
+            </li>
+            <li v-if="exchange.budget != null">
               <b>{{ t('exchangeDetail.budget') }} :</b> {{ exchange.budget }}
               {{ exchange.budgetCurrency }}
+            </li>
+            <li>
+              <b>{{ t('exchangeDetail.minWishlistSuggestions') }} :</b>
+              {{ exchange.minWishlistSuggestions ?? 0 }}
             </li>
             <li>
               <b>{{ t('exchangeDetail.noMutualAssignments') }} :</b>
@@ -595,6 +613,11 @@ async function cancelDraw() {
         :name="exchange.name"
         :description="exchange.description || ''"
         :status="exchange.status"
+        :event-date="exchange.eventDate"
+        :draw-deadline-at="exchange.drawDeadlineAt"
+        :budget="exchange.budget"
+        :budget-currency="exchange.budgetCurrency"
+        :min-wishlist-suggestions="exchange.minWishlistSuggestions"
         :no-mutual-assignments="exchange.noMutualAssignments"
         @update:model-value="(value) => (showEditExchangeModal = value)"
         @submit="saveEdit"
