@@ -39,6 +39,40 @@ describe("API Tests", () => {
       expect(response.body.description).toBe("Updated description");
     });
 
+    it("should reject create when suggestions deadline is after exchange moment", async () => {
+      const response = await request(app)
+        .post("/api/exchanges")
+        .send({
+          name: "Invalid suggestions deadline on create",
+          eventDate: "2026-12-01",
+          suggestionsDeadlineAt: "2026-12-02T10:00:00.000Z",
+          adminPassword: "testpassword123",
+        })
+        .expect(400);
+
+      const code = response.body?.error?.details?.code;
+      expect([
+        "SUGGESTIONS_DEADLINE_AFTER_EXCHANGE_MOMENT",
+        "INVALID_REQUEST_BODY",
+      ]).toContain(code);
+    });
+
+    it("should reject update when suggestions deadline is after exchange moment", async () => {
+      const response = await request(app)
+        .put(`/api/exchanges/${exchangeId}`)
+        .send({
+          eventDate: "2026-12-01",
+          suggestionsDeadlineAt: "2026-12-02T10:00:00.000Z",
+        })
+        .expect(400);
+
+      const code = response.body?.error?.details?.code;
+      expect([
+        "SUGGESTIONS_DEADLINE_AFTER_EXCHANGE_MOMENT",
+        "INVALID_REQUEST_BODY",
+      ]).toContain(code);
+    });
+
     it("should delete an exchange", async () => {
       await request(app).delete(`/api/exchanges/${exchangeId}`).expect(204);
 

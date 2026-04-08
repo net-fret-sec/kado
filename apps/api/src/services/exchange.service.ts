@@ -22,6 +22,46 @@ interface DrawAssignment {
   receiverParticipantId: string;
 }
 
+function isSuggestionsDeadlineAfterEventDate(
+  eventDate?: string,
+  suggestionsDeadlineAt?: string,
+) {
+  if (!eventDate || !suggestionsDeadlineAt) {
+    return false;
+  }
+
+  const suggestionsDeadline = new Date(suggestionsDeadlineAt);
+  const eventDateEnd = new Date(`${eventDate}T23:59:59.999Z`);
+
+  if (
+    Number.isNaN(suggestionsDeadline.getTime()) ||
+    Number.isNaN(eventDateEnd.getTime())
+  ) {
+    return false;
+  }
+
+  return suggestionsDeadline.getTime() > eventDateEnd.getTime();
+}
+
+function assertSuggestionsDeadlineConsistency(params: {
+  eventDate?: string;
+  suggestionsDeadlineAt?: string;
+}) {
+  if (
+    isSuggestionsDeadlineAfterEventDate(
+      params.eventDate,
+      params.suggestionsDeadlineAt,
+    )
+  ) {
+    throw new BadRequestError(
+      "Suggestions deadline cannot be after the gift exchange moment.",
+      {
+        code: "SUGGESTIONS_DEADLINE_AFTER_EXCHANGE_MOMENT",
+      },
+    );
+  }
+}
+
 function buildAssignmentsWithExclusions(
   participantIds: string[],
   exclusions: Array<{
@@ -117,6 +157,11 @@ function buildAssignmentsWithExclusions(
 export async function createExchange(
   input: CreateExchangeInputDto,
 ): Promise<CreateExchangeResultDto> {
+  assertSuggestionsDeadlineConsistency({
+    eventDate: input.eventDate,
+    suggestionsDeadlineAt: input.suggestionsDeadlineAt,
+  });
+
   const now = new Date().toISOString();
 
   const exchange: ExchangeDto = {
@@ -230,6 +275,27 @@ export async function updateExchange(
       code: "EXCHANGE_NOT_FOUND",
     });
   }
+
+  const hasEventDateUpdate = Object.prototype.hasOwnProperty.call(
+    input,
+    "eventDate",
+  );
+  const hasSuggestionsDeadlineUpdate = Object.prototype.hasOwnProperty.call(
+    input,
+    "suggestionsDeadlineAt",
+  );
+
+  const nextEventDate = hasEventDateUpdate
+    ? input.eventDate
+    : exchange.eventDate;
+  const nextSuggestionsDeadlineAt = hasSuggestionsDeadlineUpdate
+    ? input.suggestionsDeadlineAt
+    : exchange.suggestionsDeadlineAt;
+
+  assertSuggestionsDeadlineConsistency({
+    eventDate: nextEventDate,
+    suggestionsDeadlineAt: nextSuggestionsDeadlineAt,
+  });
 
   const updated = exchangeRepository.update(exchangeId, input);
 

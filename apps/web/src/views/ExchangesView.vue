@@ -101,7 +101,7 @@ onMounted(() => {
                   <dd class="col-7 mb-2">{{ participantsCount(exchange) }}</dd>
 
                   <dt class="col-5 text-body-secondary fw-semibold">
-                    {{ t('exchanges.eventDate') }}
+                    {{ t('exchanges.exchangeMoment') }}
                   </dt>
                   <dd class="col-7 mb-2">{{ formatDate(exchange.eventDate) }}</dd>
 

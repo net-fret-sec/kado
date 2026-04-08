@@ -429,7 +429,7 @@ async function cancelDraw() {
               <span class="badge ms-1" :class="statusBadgeClass">{{ statusLabel }}</span>
             </li>
             <li v-if="exchange.eventDate">
-              <b>{{ t('exchangeDetail.eventDate') }} :</b> {{ exchange.eventDate }}
+              <b>{{ t('exchangeDetail.exchangeMoment') }} :</b> {{ exchange.eventDate }}
             </li>
             <li v-if="exchange.drawDeadlineAt">
               <b>{{ t('exchangeDetail.drawDeadlineAt') }} :</b>

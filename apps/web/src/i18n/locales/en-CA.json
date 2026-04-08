@@ -71,7 +71,6 @@
     "adminLink": "Administrator access (development)"
   },
   "iconPicker": {
-    "search": "Search for an icon...",
     "unknownIcon": "Unknown icon, please check the name (e.g. gift, heart-fill)."
   },
   "exchanges": {
@@ -88,7 +87,7 @@
     "noDescription": "No description.",
     "organizer": "Organizer",
     "participantsCount": "Participants",
-    "eventDate": "Event date",
+    "exchangeMoment": "Gift exchange moment",
     "drawDeadlineAt": "Draw deadline",
     "suggestionsDeadlineAt": "Suggestions deadline",
     "budget": "Budget",
@@ -100,13 +99,15 @@
       "description": "Description",
       "organizerName": "Organizer Name",
       "organizerParticipates": "Organizer participates in the exchange",
-      "eventDate": "Event date",
+      "exchangeMoment": "Gift exchange moment",
       "drawDeadlineAt": "Draw date and time deadline",
       "suggestionsDeadlineAt": "Suggestions date and time deadline",
       "budget": "Budget",
       "budgetCurrency": "Currency",
       "minWishlistSuggestions": "Minimum suggestions per participant",
-      "lockSuggestionsAfterDraw": "Lock suggestions after draw",
+      "suggestionsLockModeLabel": "Suggestions update behavior after draw",
+      "suggestionsLockModeFreeze": "Freeze at draw",
+      "suggestionsLockModeNoFreeze": "No freeze (optional suggestions deadline)",
       "noMutualAssignments": "Disallow mutual assignments",
       "adminPassword": "Admin Password",
       "submit": "Create Exchange"
@@ -123,16 +124,17 @@
       "drawn": "Drawn",
       "archived": "Archived"
     },
-    "active": "Active",
-    "inactive": "Inactive",
     "organizer": "Organizer",
-    "eventDate": "Event Date",
+    "exchangeMoment": "Gift exchange moment",
     "drawDeadlineAt": "Draw deadline",
     "suggestionsDeadlineAt": "Suggestions deadline",
     "budget": "Budget",
     "budgetCurrency": "Currency",
     "minWishlistSuggestions": "Minimum suggestions per participant",
     "lockSuggestionsAfterDraw": "Lock suggestions after draw",
+    "suggestionsLockModeLabel": "Suggestions update behavior after draw",
+    "suggestionsLockModeFreeze": "Freeze at draw",
+    "suggestionsLockModeNoFreeze": "No freeze (optional suggestions deadline)",
     "noMutualAssignments": "Mutual assignments blocked",
     "enabled": "Yes",
     "disabled": "No",
@@ -221,13 +223,13 @@
     "DRAW_MIN_ACTIVE_PARTICIPANTS": "At least 3 active participants are required to run the draw.",
     "DRAW_DEADLINE_PASSED": "The draw deadline has passed.",
     "DRAW_MIN_WISHLIST_SUGGESTIONS": "All active participants must meet the minimum suggestions before running the draw.",
+    "SUGGESTIONS_DEADLINE_AFTER_EXCHANGE_MOMENT": "Suggestions deadline cannot be after the gift exchange moment.",
     "DRAW_IMPOSSIBLE": "No valid draw is possible with the current settings.",
     "EXCHANGE_ARCHIVED_CANNOT_DRAW": "Archived exchanges cannot be drawn.",
     "EXCHANGE_ARCHIVED_CANNOT_MODIFY": "Archived exchanges cannot be modified.",
     "EXCHANGE_NOT_FOUND": "The requested exchange was not found.",
     "PARTICIPANT_NOT_FOUND": "The requested participant was not found.",
     "PARTICIPANT_SUGGESTIONS_LOCKED": "Suggestions updates are closed for this exchange.",
-    "PARTICIPANT_UPDATES_CLOSED": "Participant updates are closed for this exchange.",
     "PARTICIPANT_LINK_INVALID_OR_EXPIRED": "This participant link is invalid or expired.",
     "EXCLUSION_RULES_LOCKED": "Exclusion rules cannot be modified for this exchange.",
     "PARTICIPANT_OUTSIDE_EXCHANGE": "The participant does not belong to this exchange.",
@@ -239,6 +241,5 @@
   },
   "common": {
     "close": "close"
-  },
-  "close": "close"
+  }
 }

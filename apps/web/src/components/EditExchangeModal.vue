@@ -53,6 +53,22 @@ const editMinWishlistSuggestions = ref(0)
 const editLockSuggestionsAfterDraw = ref(true)
 const editNoMutualAssignments = ref(false)
 
+const showSuggestionsDeadlineInput = computed(() => !editLockSuggestionsAfterDraw.value)
+
+const isSuggestionsDeadlineAfterExchangeMoment = computed(() => {
+  if (editLockSuggestionsAfterDraw.value) return false
+  if (!editEventDate.value || !editSuggestionsDeadlineAtLocal.value) return false
+
+  const suggestionsDeadline = new Date(editSuggestionsDeadlineAtLocal.value)
+  const exchangeMomentEnd = new Date(`${editEventDate.value}T23:59:59.999Z`)
+
+  if (Number.isNaN(suggestionsDeadline.getTime()) || Number.isNaN(exchangeMomentEnd.getTime())) {
+    return false
+  }
+
+  return suggestionsDeadline.getTime() > exchangeMomentEnd.getTime()
+})
+
 const isValid = computed(() => editName.value.trim().length > 0)
 
 function syncFromProps() {
@@ -97,8 +113,15 @@ watch(
   },
 )
 
+watch(editLockSuggestionsAfterDraw, (isLocked) => {
+  if (isLocked) {
+    editSuggestionsDeadlineAtLocal.value = ''
+  }
+})
+
 function handleSubmit() {
   if (!isValid.value) return
+  if (isSuggestionsDeadlineAfterExchangeMoment.value) return
 
   emit('submit', {
     name: editName.value,
@@ -106,7 +129,9 @@ function handleSubmit() {
     status: editStatus.value,
     eventDate: editEventDate.value || undefined,
     drawDeadlineAt: localDateTimeToIso(editDrawDeadlineAtLocal.value),
-    suggestionsDeadlineAt: localDateTimeToIso(editSuggestionsDeadlineAtLocal.value),
+    suggestionsDeadlineAt: editLockSuggestionsAfterDraw.value
+      ? undefined
+      : localDateTimeToIso(editSuggestionsDeadlineAtLocal.value),
     budget: editBudget.value ?? undefined,
     budgetCurrency: editBudgetCurrency.value || undefined,
     minWishlistSuggestions: editMinWishlistSuggestions.value,
@@ -149,7 +174,7 @@ function handleSubmit() {
       <div class="row g-3 mb-3">
         <div class="col-12 col-md-6">
           <label for="editExchangeEventDate" class="form-label">{{
-            t('exchangeDetail.eventDate')
+            t('exchangeDetail.exchangeMoment')
           }}</label>
           <input
             v-model="editEventDate"
@@ -169,7 +194,7 @@ function handleSubmit() {
             id="editExchangeDrawDeadline"
           />
         </div>
-        <div class="col-12 col-md-6">
+        <div v-if="showSuggestionsDeadlineInput" class="col-12 col-md-6">
           <label for="editExchangeSuggestionsDeadline" class="form-label">{{
             t('exchangeDetail.suggestionsDeadlineAt')
           }}</label>
@@ -179,6 +204,9 @@ function handleSubmit() {
             class="form-control"
             id="editExchangeSuggestionsDeadline"
           />
+          <div v-if="isSuggestionsDeadlineAfterExchangeMoment" class="text-danger small mt-1">
+            {{ t('apiErrors.SUGGESTIONS_DEADLINE_AFTER_EXCHANGE_MOMENT') }}
+          </div>
         </div>
       </div>
       <div class="row g-3 mb-3">
@@ -222,16 +250,36 @@ function handleSubmit() {
           />
         </div>
       </div>
-      <div class="mb-3 form-check">
-        <input
-          id="editLockSuggestionsAfterDraw"
-          v-model="editLockSuggestionsAfterDraw"
-          type="checkbox"
-          class="form-check-input"
-        />
-        <label class="form-check-label" for="editLockSuggestionsAfterDraw">
-          {{ t('exchangeDetail.lockSuggestionsAfterDraw') }}
-        </label>
+      <div class="mb-3">
+        <label class="form-label d-block">{{ t('exchangeDetail.suggestionsLockModeLabel') }}</label>
+
+        <div class="form-check">
+          <input
+            id="editLockSuggestionsModeFreeze"
+            v-model="editLockSuggestionsAfterDraw"
+            :value="true"
+            class="form-check-input"
+            type="radio"
+            name="editLockSuggestionsMode"
+          />
+          <label class="form-check-label" for="editLockSuggestionsModeFreeze">
+            {{ t('exchangeDetail.suggestionsLockModeFreeze') }}
+          </label>
+        </div>
+
+        <div class="form-check">
+          <input
+            id="editLockSuggestionsModeNoFreeze"
+            v-model="editLockSuggestionsAfterDraw"
+            :value="false"
+            class="form-check-input"
+            type="radio"
+            name="editLockSuggestionsMode"
+          />
+          <label class="form-check-label" for="editLockSuggestionsModeNoFreeze">
+            {{ t('exchangeDetail.suggestionsLockModeNoFreeze') }}
+          </label>
+        </div>
       </div>
       <div class="mb-3 form-check">
         <input

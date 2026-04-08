@@ -36,6 +36,21 @@ const pendingRedirectExchangeId = ref<string | null>(null)
 
 const fieldErrors = computed(() => exchangesStore.fieldErrors || {})
 const formErrors = computed(() => exchangesStore.formErrors || [])
+const showSuggestionsDeadlineInput = computed(() => !lockSuggestionsAfterDraw.value)
+
+const isSuggestionsDeadlineAfterExchangeMoment = computed(() => {
+  if (lockSuggestionsAfterDraw.value) return false
+  if (!eventDate.value || !suggestionsDeadlineAtLocal.value) return false
+
+  const suggestionsDeadline = new Date(suggestionsDeadlineAtLocal.value)
+  const exchangeMomentEnd = new Date(`${eventDate.value}T23:59:59.999Z`)
+
+  if (Number.isNaN(suggestionsDeadline.getTime()) || Number.isNaN(exchangeMomentEnd.getTime())) {
+    return false
+  }
+
+  return suggestionsDeadline.getTime() > exchangeMomentEnd.getTime()
+})
 
 function resetForm() {
   name.value = ''
@@ -72,11 +87,21 @@ watch(
   },
 )
 
+watch(lockSuggestionsAfterDraw, (isLocked) => {
+  if (isLocked) {
+    suggestionsDeadlineAtLocal.value = ''
+  }
+})
+
 async function handleCreate() {
   exchangesStore.fieldErrors = null
   exchangesStore.formErrors = null
 
   if (!name.value.trim()) {
+    return
+  }
+
+  if (isSuggestionsDeadlineAfterExchangeMoment.value) {
     return
   }
 
@@ -88,7 +113,9 @@ async function handleCreate() {
       organizerParticipates: organizerParticipates.value,
       eventDate: eventDate.value || undefined,
       drawDeadlineAt: localDateTimeToIso(drawDeadlineAtLocal.value),
-      suggestionsDeadlineAt: localDateTimeToIso(suggestionsDeadlineAtLocal.value),
+      suggestionsDeadlineAt: lockSuggestionsAfterDraw.value
+        ? undefined
+        : localDateTimeToIso(suggestionsDeadlineAtLocal.value),
       budget: budget.value ?? undefined,
       budgetCurrency: budgetCurrency.value || undefined,
       minWishlistSuggestions: minWishlistSuggestions.value,
@@ -173,7 +200,7 @@ async function handleHidden() {
       <div class="row g-3 mb-3">
         <div class="col-12 col-md-6">
           <label for="exchangeEventDate" class="form-label">{{
-            t('exchanges.createModal.eventDate')
+            t('exchanges.createModal.exchangeMoment')
           }}</label>
           <input v-model="eventDate" type="date" class="form-control" id="exchangeEventDate" />
           <div v-if="fieldErrors.eventDate" class="text-danger small">
@@ -194,7 +221,7 @@ async function handleHidden() {
             {{ fieldErrors.drawDeadlineAt[0] }}
           </div>
         </div>
-        <div class="col-12 col-md-6">
+        <div v-if="showSuggestionsDeadlineInput" class="col-12 col-md-6">
           <label for="exchangeSuggestionsDeadline" class="form-label">{{
             t('exchanges.createModal.suggestionsDeadlineAt')
           }}</label>
@@ -206,6 +233,9 @@ async function handleHidden() {
           />
           <div v-if="fieldErrors.suggestionsDeadlineAt" class="text-danger small">
             {{ fieldErrors.suggestionsDeadlineAt[0] }}
+          </div>
+          <div v-else-if="isSuggestionsDeadlineAfterExchangeMoment" class="text-danger small">
+            {{ t('apiErrors.SUGGESTIONS_DEADLINE_AFTER_EXCHANGE_MOMENT') }}
           </div>
         </div>
       </div>
@@ -259,16 +289,38 @@ async function handleHidden() {
         </div>
       </div>
 
-      <div class="mb-3 form-check">
-        <input
-          v-model="lockSuggestionsAfterDraw"
-          type="checkbox"
-          class="form-check-input"
-          id="lockSuggestionsAfterDraw"
-        />
-        <label class="form-check-label" for="lockSuggestionsAfterDraw">
-          {{ t('exchanges.createModal.lockSuggestionsAfterDraw') }}
-        </label>
+      <div class="mb-3">
+        <label class="form-label d-block">{{
+          t('exchanges.createModal.suggestionsLockModeLabel')
+        }}</label>
+
+        <div class="form-check">
+          <input
+            id="lockSuggestionsModeFreeze"
+            v-model="lockSuggestionsAfterDraw"
+            :value="true"
+            class="form-check-input"
+            type="radio"
+            name="lockSuggestionsMode"
+          />
+          <label class="form-check-label" for="lockSuggestionsModeFreeze">
+            {{ t('exchanges.createModal.suggestionsLockModeFreeze') }}
+          </label>
+        </div>
+
+        <div class="form-check">
+          <input
+            id="lockSuggestionsModeNoFreeze"
+            v-model="lockSuggestionsAfterDraw"
+            :value="false"
+            class="form-check-input"
+            type="radio"
+            name="lockSuggestionsMode"
+          />
+          <label class="form-check-label" for="lockSuggestionsModeNoFreeze">
+            {{ t('exchanges.createModal.suggestionsLockModeNoFreeze') }}
+          </label>
+        </div>
       </div>
 
       <div class="mb-3 form-check">

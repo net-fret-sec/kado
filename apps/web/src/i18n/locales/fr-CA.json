@@ -84,7 +84,7 @@
     "noDescription": "Aucune description.",
     "organizer": "Organisateur",
     "participantsCount": "Participants",
-    "eventDate": "Date de l'événement",
+    "exchangeMoment": "Moment de l'échange des cadeaux",
     "drawDeadlineAt": "Date limite de la pige",
     "suggestionsDeadlineAt": "Date limite des suggestions",
     "budget": "Budget",
@@ -96,20 +96,21 @@
       "description": "Description",
       "organizerName": "Nom de l'organisateur",
       "organizerParticipates": "L'organisateur participe à l'échange",
-      "eventDate": "Date de l'événement",
+      "exchangeMoment": "Moment de l'échange des cadeaux",
       "drawDeadlineAt": "Date et heure limite de pige",
       "suggestionsDeadlineAt": "Date et heure limite des suggestions",
       "budget": "Budget",
       "budgetCurrency": "Devise",
       "minWishlistSuggestions": "Suggestions minimales par participant",
-      "lockSuggestionsAfterDraw": "Verrouiller les suggestions après la pige",
+      "suggestionsLockModeLabel": "Gestion des modifications de suggestions après la pige",
+      "suggestionsLockModeFreeze": "Freeze à la pige",
+      "suggestionsLockModeNoFreeze": "Pas de freeze (date limite des suggestions optionnelle)",
       "noMutualAssignments": "Interdire les piges mutuelles",
       "adminPassword": "Mot de passe admin",
       "submit": "Créer l'échange"
     }
   },
   "iconPicker": {
-    "search": "Rechercher une icône...",
     "unknownIcon": "Icône inconnue, vérifiez le nom (ex: gift, heart-fill)."
   },
   "exchangeDetail": {
@@ -123,16 +124,17 @@
       "drawn": "Pigée",
       "archived": "Archivée"
     },
-    "active": "Actif",
-    "inactive": "Inactif",
     "organizer": "Organisateur",
-    "eventDate": "Date de l'événement",
+    "exchangeMoment": "Moment de l'échange des cadeaux",
     "drawDeadlineAt": "Date limite de la pige",
     "suggestionsDeadlineAt": "Date limite des suggestions",
     "budget": "Budget",
     "budgetCurrency": "Devise",
     "minWishlistSuggestions": "Suggestions minimales par participant",
     "lockSuggestionsAfterDraw": "Verrouiller les suggestions après la pige",
+    "suggestionsLockModeLabel": "Gestion des modifications de suggestions après la pige",
+    "suggestionsLockModeFreeze": "Freeze à la pige",
+    "suggestionsLockModeNoFreeze": "Pas de freeze (date limite des suggestions optionnelle)",
     "noMutualAssignments": "Piges mutuelles interdites",
     "enabled": "Oui",
     "disabled": "Non",
@@ -221,13 +223,13 @@
     "DRAW_MIN_ACTIVE_PARTICIPANTS": "Au moins 3 participants actifs sont requis pour lancer la pige.",
     "DRAW_DEADLINE_PASSED": "La date limite de la pige est dépassée.",
     "DRAW_MIN_WISHLIST_SUGGESTIONS": "Tous les participants actifs doivent atteindre le minimum de suggestions avant de lancer la pige.",
+    "SUGGESTIONS_DEADLINE_AFTER_EXCHANGE_MOMENT": "La date limite des suggestions ne peut pas être après le moment de l'échange des cadeaux.",
     "DRAW_IMPOSSIBLE": "Aucune pige valide n'est possible avec les paramètres actuels.",
     "EXCHANGE_ARCHIVED_CANNOT_DRAW": "Une pige archivée ne peut pas être lancée.",
     "EXCHANGE_ARCHIVED_CANNOT_MODIFY": "Une pige archivée ne peut pas être modifiée.",
     "EXCHANGE_NOT_FOUND": "La pige demandée est introuvable.",
     "PARTICIPANT_NOT_FOUND": "Le participant demandé est introuvable.",
     "PARTICIPANT_SUGGESTIONS_LOCKED": "Les modifications des suggestions sont fermées pour cette pige.",
-    "PARTICIPANT_UPDATES_CLOSED": "Les modifications du participant sont fermées pour cette pige.",
     "PARTICIPANT_LINK_INVALID_OR_EXPIRED": "Ce lien participant est invalide ou expiré.",
     "EXCLUSION_RULES_LOCKED": "Les exceptions de pige ne peuvent pas être modifiées pour cette pige.",
     "PARTICIPANT_OUTSIDE_EXCHANGE": "Le participant n'appartient pas à cette pige.",
@@ -237,7 +239,6 @@
     "INVALID_REQUEST_BODY": "Le corps de la requête est invalide.",
     "INVALID_ROUTE_PARAMETERS": "Les paramètres de route sont invalides."
   },
-  "close": "Fermer",
   "common": {
     "close": "fermer"
   }
