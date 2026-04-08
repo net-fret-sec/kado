@@ -32,6 +32,9 @@ export const createExchangeInputSchema = z.object({
   drawDeadlineAt: emptyStringToUndefined(
     z.string().datetime({ offset: true }).optional(),
   ),
+  suggestionsDeadlineAt: emptyStringToUndefined(
+    z.string().datetime({ offset: true }).optional(),
+  ),
   budget: z.number().nonnegative().optional(),
   budgetCurrency: optionalText(3),
   minWishlistSuggestions: z
@@ -41,6 +44,7 @@ export const createExchangeInputSchema = z.object({
     .max(100)
     .optional()
     .default(0),
+  lockSuggestionsAfterDraw: z.boolean().optional().default(true),
   noMutualAssignments: z.boolean().optional().default(false),
   adminPassword: z.string().min(10).max(256),
 });
@@ -59,9 +63,13 @@ export const updateExchangeInputSchema = z.object({
   drawDeadlineAt: emptyStringToUndefined(
     z.string().datetime({ offset: true }).optional(),
   ),
+  suggestionsDeadlineAt: emptyStringToUndefined(
+    z.string().datetime({ offset: true }).optional(),
+  ),
   budget: z.number().nonnegative().optional(),
   budgetCurrency: optionalText(3),
   minWishlistSuggestions: z.number().int().min(0).max(100).optional(),
+  lockSuggestionsAfterDraw: z.boolean().optional(),
   noMutualAssignments: z.boolean().optional(),
 });
 

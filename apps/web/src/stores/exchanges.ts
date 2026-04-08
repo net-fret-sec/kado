@@ -43,9 +43,11 @@ export const useExchangesStore = defineStore('exchanges', () => {
       adminPassword: string
       eventDate?: string
       drawDeadlineAt?: string
+      suggestionsDeadlineAt?: string
       budget?: number
       budgetCurrency?: string
       minWishlistSuggestions?: number
+      lockSuggestionsAfterDraw?: boolean
     }) {
       isLoading.value = true
       error.value = null

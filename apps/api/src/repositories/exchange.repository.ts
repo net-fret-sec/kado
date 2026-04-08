@@ -6,9 +6,11 @@ interface ExchangeRecord {
   status: "draft" | "ready" | "drawn" | "archived";
   eventDate?: string;
   drawDeadlineAt?: string;
+  suggestionsDeadlineAt?: string;
   budget?: number;
   budgetCurrency?: string;
   minWishlistSuggestions?: number;
+  lockSuggestionsAfterDraw?: boolean;
   noMutualAssignments?: boolean;
   drawAt?: string;
   createdAt: string;

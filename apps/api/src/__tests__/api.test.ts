@@ -147,17 +147,63 @@ describe("API Tests", () => {
       expect(response.body.participant.wishlist).toHaveLength(2);
     });
 
-    it("should reject participant update after draw", async () => {
-      exchangeRepository.update(participantExchangeId, { status: "drawn" });
+    it("should reject participant update after draw when lock after draw is enabled", async () => {
+      exchangeRepository.update(participantExchangeId, {
+        status: "drawn",
+        lockSuggestionsAfterDraw: true,
+      });
 
       const response = await request(app)
         .put(`/api/p/${participantAccessToken}`)
         .send({ name: "Blocked update" })
         .expect(400);
 
-      expect(response.body.error.message).toMatch(/updates are closed/i);
+      expect(response.body.error.message).toMatch(
+        /suggestions updates are closed/i,
+      );
       expect(response.body.error.details).toMatchObject({
-        code: "PARTICIPANT_UPDATES_CLOSED",
+        code: "PARTICIPANT_SUGGESTIONS_LOCKED",
+      });
+    });
+
+    it("should allow participant update after draw when lock after draw is disabled", async () => {
+      exchangeRepository.update(participantExchangeId, {
+        status: "drawn",
+        lockSuggestionsAfterDraw: false,
+        suggestionsDeadlineAt: undefined,
+      });
+
+      const response = await request(app)
+        .put(`/api/p/${participantAccessToken}`)
+        .send({
+          name: "Allowed after draw",
+          wishlist: [{ title: "Nouvelle suggestion" }],
+        })
+        .expect(200);
+
+      expect(response.body.participant.name).toBe("Allowed after draw");
+      expect(response.body.participant.wishlist).toEqual([
+        { title: "Nouvelle suggestion" },
+      ]);
+    });
+
+    it("should reject participant update when suggestions deadline is passed", async () => {
+      exchangeRepository.update(participantExchangeId, {
+        status: "drawn",
+        lockSuggestionsAfterDraw: false,
+        suggestionsDeadlineAt: "2000-01-01T00:00:00.000Z",
+      });
+
+      const response = await request(app)
+        .put(`/api/p/${participantAccessToken}`)
+        .send({ name: "Blocked update" })
+        .expect(400);
+
+      expect(response.body.error.message).toMatch(
+        /suggestions updates are closed/i,
+      );
+      expect(response.body.error.details).toMatchObject({
+        code: "PARTICIPANT_SUGGESTIONS_LOCKED",
       });
     });
   });

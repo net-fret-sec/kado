@@ -236,9 +236,11 @@ async function saveEdit(payload: {
   status: ExchangeDto['status']
   eventDate?: string
   drawDeadlineAt?: string
+  suggestionsDeadlineAt?: string
   budget?: number
   budgetCurrency?: string
   minWishlistSuggestions: number
+  lockSuggestionsAfterDraw: boolean
   noMutualAssignments: boolean
 }) {
   if (!exchange.value) return
@@ -249,9 +251,11 @@ async function saveEdit(payload: {
       status: payload.status,
       eventDate: payload.eventDate,
       drawDeadlineAt: payload.drawDeadlineAt,
+      suggestionsDeadlineAt: payload.suggestionsDeadlineAt,
       budget: payload.budget,
       budgetCurrency: payload.budgetCurrency,
       minWishlistSuggestions: payload.minWishlistSuggestions,
+      lockSuggestionsAfterDraw: payload.lockSuggestionsAfterDraw,
       noMutualAssignments: payload.noMutualAssignments,
     })
     showEditExchangeModal.value = false
@@ -431,6 +435,10 @@ async function cancelDraw() {
               <b>{{ t('exchangeDetail.drawDeadlineAt') }} :</b>
               {{ new Date(exchange.drawDeadlineAt).toLocaleString() }}
             </li>
+            <li v-if="exchange.suggestionsDeadlineAt">
+              <b>{{ t('exchangeDetail.suggestionsDeadlineAt') }} :</b>
+              {{ new Date(exchange.suggestionsDeadlineAt).toLocaleString() }}
+            </li>
             <li v-if="exchange.budget != null">
               <b>{{ t('exchangeDetail.budget') }} :</b> {{ exchange.budget }}
               {{ exchange.budgetCurrency }}
@@ -438,6 +446,14 @@ async function cancelDraw() {
             <li>
               <b>{{ t('exchangeDetail.minWishlistSuggestions') }} :</b>
               {{ exchange.minWishlistSuggestions ?? 0 }}
+            </li>
+            <li>
+              <b>{{ t('exchangeDetail.lockSuggestionsAfterDraw') }} :</b>
+              {{
+                (exchange.lockSuggestionsAfterDraw ?? true)
+                  ? t('exchangeDetail.enabled')
+                  : t('exchangeDetail.disabled')
+              }}
             </li>
             <li>
               <b>{{ t('exchangeDetail.noMutualAssignments') }} :</b>
@@ -615,9 +631,11 @@ async function cancelDraw() {
         :status="exchange.status"
         :event-date="exchange.eventDate"
         :draw-deadline-at="exchange.drawDeadlineAt"
+        :suggestions-deadline-at="exchange.suggestionsDeadlineAt"
         :budget="exchange.budget"
         :budget-currency="exchange.budgetCurrency"
         :min-wishlist-suggestions="exchange.minWishlistSuggestions"
+        :lock-suggestions-after-draw="exchange.lockSuggestionsAfterDraw"
         :no-mutual-assignments="exchange.noMutualAssignments"
         @update:model-value="(value) => (showEditExchangeModal = value)"
         @submit="saveEdit"

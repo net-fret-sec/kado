@@ -25,9 +25,11 @@ const organizerName = ref('')
 const organizerParticipates = ref(true)
 const eventDate = ref('')
 const drawDeadlineAtLocal = ref('')
+const suggestionsDeadlineAtLocal = ref('')
 const budget = ref<number | null>(null)
 const budgetCurrency = ref('CAD')
 const minWishlistSuggestions = ref(0)
+const lockSuggestionsAfterDraw = ref(true)
 const noMutualAssignments = ref(false)
 const adminPassword = ref('')
 const pendingRedirectExchangeId = ref<string | null>(null)
@@ -42,9 +44,11 @@ function resetForm() {
   organizerParticipates.value = true
   eventDate.value = ''
   drawDeadlineAtLocal.value = ''
+  suggestionsDeadlineAtLocal.value = ''
   budget.value = null
   budgetCurrency.value = 'CAD'
   minWishlistSuggestions.value = 0
+  lockSuggestionsAfterDraw.value = true
   noMutualAssignments.value = false
   adminPassword.value = ''
   exchangesStore.fieldErrors = null
@@ -84,9 +88,11 @@ async function handleCreate() {
       organizerParticipates: organizerParticipates.value,
       eventDate: eventDate.value || undefined,
       drawDeadlineAt: localDateTimeToIso(drawDeadlineAtLocal.value),
+      suggestionsDeadlineAt: localDateTimeToIso(suggestionsDeadlineAtLocal.value),
       budget: budget.value ?? undefined,
       budgetCurrency: budgetCurrency.value || undefined,
       minWishlistSuggestions: minWishlistSuggestions.value,
+      lockSuggestionsAfterDraw: lockSuggestionsAfterDraw.value,
       noMutualAssignments: noMutualAssignments.value,
       adminPassword: adminPassword.value,
     })
@@ -188,6 +194,20 @@ async function handleHidden() {
             {{ fieldErrors.drawDeadlineAt[0] }}
           </div>
         </div>
+        <div class="col-12 col-md-6">
+          <label for="exchangeSuggestionsDeadline" class="form-label">{{
+            t('exchanges.createModal.suggestionsDeadlineAt')
+          }}</label>
+          <input
+            v-model="suggestionsDeadlineAtLocal"
+            type="datetime-local"
+            class="form-control"
+            id="exchangeSuggestionsDeadline"
+          />
+          <div v-if="fieldErrors.suggestionsDeadlineAt" class="text-danger small">
+            {{ fieldErrors.suggestionsDeadlineAt[0] }}
+          </div>
+        </div>
       </div>
 
       <div class="row g-3 mb-3">
@@ -237,6 +257,18 @@ async function handleHidden() {
             {{ fieldErrors.minWishlistSuggestions[0] }}
           </div>
         </div>
+      </div>
+
+      <div class="mb-3 form-check">
+        <input
+          v-model="lockSuggestionsAfterDraw"
+          type="checkbox"
+          class="form-check-input"
+          id="lockSuggestionsAfterDraw"
+        />
+        <label class="form-check-label" for="lockSuggestionsAfterDraw">
+          {{ t('exchanges.createModal.lockSuggestionsAfterDraw') }}
+        </label>
       </div>
 
       <div class="mb-3 form-check">

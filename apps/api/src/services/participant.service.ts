@@ -11,6 +11,33 @@ import { exchangeRepository } from "../repositories/exchange.repository";
 import { participantRepository } from "../repositories/participant.repository";
 import { assignmentRepository } from "../repositories/assignment.repository";
 
+function areParticipantSuggestionsUpdatesClosed(exchange: {
+  status: string;
+  lockSuggestionsAfterDraw?: boolean;
+  suggestionsDeadlineAt?: string;
+}) {
+  if (exchange.status === "archived") {
+    return true;
+  }
+
+  if (exchange.suggestionsDeadlineAt) {
+    const suggestionsDeadline = new Date(exchange.suggestionsDeadlineAt);
+    if (
+      !Number.isNaN(suggestionsDeadline.getTime()) &&
+      suggestionsDeadline.getTime() < Date.now()
+    ) {
+      return true;
+    }
+  }
+
+  const lockAfterDraw = exchange.lockSuggestionsAfterDraw ?? true;
+  if (exchange.status === "drawn" && lockAfterDraw) {
+    return true;
+  }
+
+  return false;
+}
+
 function getPublicBaseUrl(): string {
   const base =
     process.env.PUBLIC_BASE_URL ||
@@ -176,9 +203,11 @@ export async function getParticipantSelfViewByToken(
       status: exchange.status,
       eventDate: exchange.eventDate,
       drawDeadlineAt: exchange.drawDeadlineAt,
+      suggestionsDeadlineAt: exchange.suggestionsDeadlineAt,
       budget: exchange.budget,
       budgetCurrency: exchange.budgetCurrency,
       minWishlistSuggestions: exchange.minWishlistSuggestions,
+      lockSuggestionsAfterDraw: exchange.lockSuggestionsAfterDraw,
     },
     participant: {
       id: participant.id,
@@ -203,11 +232,11 @@ export async function updateParticipantSelfByToken(
 ): Promise<ParticipantSelfViewDto> {
   const { access, participant, exchange } = resolveParticipantAccess(rawToken);
 
-  if (exchange.status === "drawn" || exchange.status === "archived") {
+  if (areParticipantSuggestionsUpdatesClosed(exchange)) {
     throw new BadRequestError(
-      "Participant updates are closed for this exchange.",
+      "Participant suggestions updates are closed for this exchange.",
       {
-        code: "PARTICIPANT_UPDATES_CLOSED",
+        code: "PARTICIPANT_SUGGESTIONS_LOCKED",
       },
     );
   }
@@ -229,9 +258,11 @@ export async function updateParticipantSelfByToken(
       status: exchange.status,
       eventDate: exchange.eventDate,
       drawDeadlineAt: exchange.drawDeadlineAt,
+      suggestionsDeadlineAt: exchange.suggestionsDeadlineAt,
       budget: exchange.budget,
       budgetCurrency: exchange.budgetCurrency,
       minWishlistSuggestions: exchange.minWishlistSuggestions,
+      lockSuggestionsAfterDraw: exchange.lockSuggestionsAfterDraw,
     },
     participant: {
       id: updated.id,

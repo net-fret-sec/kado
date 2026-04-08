@@ -11,9 +11,11 @@ const props = defineProps<{
   status?: ExchangeStatus
   eventDate?: string
   drawDeadlineAt?: string
+  suggestionsDeadlineAt?: string
   budget?: number
   budgetCurrency?: string
   minWishlistSuggestions?: number
+  lockSuggestionsAfterDraw?: boolean
   noMutualAssignments?: boolean
 }>()
 
@@ -27,9 +29,11 @@ const emit = defineEmits<{
       status: ExchangeStatus
       eventDate?: string
       drawDeadlineAt?: string
+      suggestionsDeadlineAt?: string
       budget?: number
       budgetCurrency?: string
       minWishlistSuggestions: number
+      lockSuggestionsAfterDraw: boolean
       noMutualAssignments: boolean
     },
   ): void
@@ -42,9 +46,11 @@ const editDescription = ref('')
 const editStatus = ref<ExchangeStatus>('draft')
 const editEventDate = ref('')
 const editDrawDeadlineAtLocal = ref('')
+const editSuggestionsDeadlineAtLocal = ref('')
 const editBudget = ref<number | null>(null)
 const editBudgetCurrency = ref('CAD')
 const editMinWishlistSuggestions = ref(0)
+const editLockSuggestionsAfterDraw = ref(true)
 const editNoMutualAssignments = ref(false)
 
 const isValid = computed(() => editName.value.trim().length > 0)
@@ -57,9 +63,13 @@ function syncFromProps() {
   editDrawDeadlineAtLocal.value = props.drawDeadlineAt
     ? toLocalDateTimeInput(props.drawDeadlineAt)
     : ''
+  editSuggestionsDeadlineAtLocal.value = props.suggestionsDeadlineAt
+    ? toLocalDateTimeInput(props.suggestionsDeadlineAt)
+    : ''
   editBudget.value = props.budget ?? null
   editBudgetCurrency.value = props.budgetCurrency || 'CAD'
   editMinWishlistSuggestions.value = props.minWishlistSuggestions ?? 0
+  editLockSuggestionsAfterDraw.value = props.lockSuggestionsAfterDraw ?? true
   editNoMutualAssignments.value = props.noMutualAssignments ?? false
 }
 
@@ -96,9 +106,11 @@ function handleSubmit() {
     status: editStatus.value,
     eventDate: editEventDate.value || undefined,
     drawDeadlineAt: localDateTimeToIso(editDrawDeadlineAtLocal.value),
+    suggestionsDeadlineAt: localDateTimeToIso(editSuggestionsDeadlineAtLocal.value),
     budget: editBudget.value ?? undefined,
     budgetCurrency: editBudgetCurrency.value || undefined,
     minWishlistSuggestions: editMinWishlistSuggestions.value,
+    lockSuggestionsAfterDraw: editLockSuggestionsAfterDraw.value,
     noMutualAssignments: editNoMutualAssignments.value,
   })
 }
@@ -157,6 +169,17 @@ function handleSubmit() {
             id="editExchangeDrawDeadline"
           />
         </div>
+        <div class="col-12 col-md-6">
+          <label for="editExchangeSuggestionsDeadline" class="form-label">{{
+            t('exchangeDetail.suggestionsDeadlineAt')
+          }}</label>
+          <input
+            v-model="editSuggestionsDeadlineAtLocal"
+            type="datetime-local"
+            class="form-control"
+            id="editExchangeSuggestionsDeadline"
+          />
+        </div>
       </div>
       <div class="row g-3 mb-3">
         <div class="col-12 col-md-4">
@@ -198,6 +221,17 @@ function handleSubmit() {
             id="editExchangeMinSuggestions"
           />
         </div>
+      </div>
+      <div class="mb-3 form-check">
+        <input
+          id="editLockSuggestionsAfterDraw"
+          v-model="editLockSuggestionsAfterDraw"
+          type="checkbox"
+          class="form-check-input"
+        />
+        <label class="form-check-label" for="editLockSuggestionsAfterDraw">
+          {{ t('exchangeDetail.lockSuggestionsAfterDraw') }}
+        </label>
       </div>
       <div class="mb-3 form-check">
         <input

@@ -14,9 +14,11 @@ interface TestData {
     status: "draft" | "ready" | "drawn" | "archived";
     eventDate?: string;
     drawDeadlineAt?: string;
+    suggestionsDeadlineAt?: string;
     budget?: number;
     budgetCurrency?: string;
     minWishlistSuggestions?: number;
+    lockSuggestionsAfterDraw?: boolean;
     noMutualAssignments?: boolean;
     createdAt: string;
     updatedAt: string;

@@ -67,9 +67,11 @@ export interface ParticipantSelfViewDto {
     | "status"
     | "eventDate"
     | "drawDeadlineAt"
+    | "suggestionsDeadlineAt"
     | "budget"
     | "budgetCurrency"
     | "minWishlistSuggestions"
+    | "lockSuggestionsAfterDraw"
   >;
   participant: Pick<
     ParticipantDto,

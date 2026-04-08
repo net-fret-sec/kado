@@ -26,9 +26,30 @@ const email = ref('')
 const note = ref('')
 const wishlist = ref<GiftSuggestionDto[]>([])
 
+function areSuggestionsUpdatesClosed() {
+  const exchange = view.value?.exchange
+  if (!exchange) return true
+
+  if (exchange.status === 'archived') {
+    return true
+  }
+
+  if (exchange.suggestionsDeadlineAt) {
+    const suggestionsDeadline = new Date(exchange.suggestionsDeadlineAt)
+    if (
+      !Number.isNaN(suggestionsDeadline.getTime()) &&
+      suggestionsDeadline.getTime() < Date.now()
+    ) {
+      return true
+    }
+  }
+
+  const lockAfterDraw = exchange.lockSuggestionsAfterDraw ?? true
+  return exchange.status === 'drawn' && lockAfterDraw
+}
+
 const canEdit = computed(() => {
-  const status = view.value?.exchange.status
-  return status === 'draft' || status === 'ready'
+  return !areSuggestionsUpdatesClosed()
 })
 
 const hasRecipient = computed(() => !!view.value?.assignment)
