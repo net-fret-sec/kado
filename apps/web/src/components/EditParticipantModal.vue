@@ -102,6 +102,7 @@ function handleSubmit() {
   <BaseModal
     :model-value="modelValue"
     :title="t('exchangeDetail.editModal.title')"
+    size="lg"
     @update:model-value="(value) => emit('update:modelValue', value)"
   >
     <form id="editParticipantForm" @submit.prevent="handleSubmit">

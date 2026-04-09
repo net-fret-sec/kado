@@ -185,13 +185,14 @@ Note: `pnpm preview:api` existe à la racine, mais le script `preview` n'est pas
 - `SERVER_ADDRESS`: adresse d'écoute loggée (défaut: `http://0.0.0.0`)
 - `SERVER_PORT`: port HTTP (défaut: `3000`)
 - `FRONTEND_BASE_URL`: base URL du front pour construire les liens participant
+- `FRONTEND_ALLOWED_ORIGINS`: liste CSV d'origines autorisées pour CORS (optionnel)
 - `PUBLIC_BASE_URL`: prioritaire sur `FRONTEND_BASE_URL` si définie
 
 Exemple: `apps/api/.env.example`
 
 ### Web (`apps/web/.env`)
 
-- `VITE_API_BASE`: base URL de l'API (ex: `http://localhost:3000`)
+- `VITE_API_BASE`: base URL de l'API. Laisser vide pour utiliser le meme host/port que le frontend (proxy Vite en dev). Exemple explicite possible: `http://localhost:3000`
 
 Exemple: `apps/web/.env.example`
 

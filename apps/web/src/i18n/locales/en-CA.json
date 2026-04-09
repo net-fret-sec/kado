@@ -8,7 +8,9 @@
   },
   "languages": {
     "fr": "Français",
-    "en": "English"
+    "en": "English",
+    "pl": "Polski",
+    "es": "Español"
   },
   "home": {
     "hero": {
@@ -95,6 +97,8 @@
     "updatedAt": "Updated",
     "createModal": {
       "title": "Create Exchange",
+      "requiredLegend": "Indicates a required field",
+      "requiredFieldA11y": "required",
       "name": "Exchange Name",
       "description": "Description",
       "organizerName": "Organizer Name",
@@ -199,6 +203,7 @@
   },
   "participant": {
     "loading": "Loading...",
+    "profileSectionTitle": "My profile",
     "yourInfo": "Your information",
     "name": "Name",
     "email": "Email",
@@ -213,10 +218,27 @@
     "save": "Save my information",
     "saving": "Saving...",
     "saveSuccess": "Your information was updated.",
+    "recipientSectionTitle": "Drawn recipient",
     "yourRecipient": "Your recipient",
     "recipientName": "Name",
     "recipientWishlist": "Their wishlist",
-    "recipientNote": "Their note"
+    "recipientNote": "Their note",
+    "suggestionsSectionTitle": "My gift suggestions",
+    "wishlistItem": {
+      "reorder": "Reorder",
+      "titleLabel": "Title",
+      "titleHelp": "Descriptive title of the suggestion.",
+      "iconLabel": "Icon",
+      "iconPlaceholder": "e.g. gift, heart",
+      "iconOrImageHint": "Tip: use an icon or an image.",
+      "imageUrlLabel": "Image URL",
+      "imageUrlPlaceholder": "https://example.com/image.png",
+      "linkLabel": "Link",
+      "linkPlaceholder": "https://example.com/product",
+      "titleRequired": "Title is required.",
+      "imageUrlInvalid": "Invalid image URL (http/https required).",
+      "linkUrlInvalid": "Invalid link URL (http/https required)."
+    }
   },
   "apiErrors": {
     "UNKNOWN": "An unexpected error occurred.",

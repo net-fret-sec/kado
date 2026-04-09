@@ -1,0 +1,267 @@
+{
+  "app": {
+    "title": "Kado"
+  },
+  "actions": {
+    "changeLanguage": "Zmień język",
+    "cancel": "Anuluj"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "pl": "Polski",
+    "es": "Español"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Wymiany prezentów bez tarć",
+      "title": "Kado organizuje Twoje wymiany prezentów bez komplikacji.",
+      "description": "Stwórz losowanie w kilka minut, udostępnij unikalne linki uczestnikom i pozwól Kado obsłużyć ograniczenia przypisań. Bez konta, bez reklam, bez śledzenia.",
+      "primaryAction": "Utwórz losowanie",
+      "secondaryAction": "Otrzymałem link",
+      "micro": "Otwarte. Darmowe. Szanujące prywatność.",
+      "audience": "Stworzone do wymian prezentów wśród znajomych, rodziny lub współpracowników."
+    },
+    "trustStrip": {
+      "openSource": {
+        "title": "Open source",
+        "description": "Kod jest publiczny. Możesz go sprawdzić, używać, modyfikować lub hostować samodzielnie."
+      },
+      "privacy": {
+        "title": "Poszanowanie prywatności",
+        "description": "Do udziału nie jest wymagane konto. Każda osoba otrzymuje po prostu osobisty link."
+      },
+      "noMonetization": {
+        "title": "Bez natarczywej monetyzacji",
+        "description": "Bez reklam, bez odsprzedaży danych i bez plików cookie śledzących."
+      }
+    },
+    "cta": {
+      "primaryLabel": "Akcja główna",
+      "secondaryLabel": "Dostęp uczestnika",
+      "organizerTitle": "Chcę zorganizować losowanie",
+      "organizerDesc": "Utwórz wymianę, dodaj uczestników, ustaw wykluczenia w razie potrzeby, a następnie uruchom losowanie. Każda osoba otrzyma unikalny link do udostępnienia dowolnym kanałem.",
+      "organizerAction": "Utwórz losowanie",
+      "participantTitle": "Otrzymałem link",
+      "participantDesc": "Otrzymałeś osobisty link od organizatora. Otwórz go bezpośrednio, aby uzyskać dostęp do swojego udziału. Bez konta i bez hasła.",
+      "participantHint": "Nie otrzymałeś linku? Skontaktuj się z osobą organizującą losowanie."
+    },
+    "why": {
+      "title": "Dlaczego warto zaufać Kado?",
+      "description": "Proste, przejrzyste i niezależne narzędzie do organizowania wymian bez zbędnych utrudnień.",
+      "simple": {
+        "title": "Prostota w założeniu",
+        "description": "Kado robi jedną rzecz dobrze: organizuje wymiany prezentów bez zbędnych obejść i komplikacji."
+      },
+      "transparent": {
+        "title": "Przejrzystość",
+        "description": "Projekt jest otwarty, a jego działanie publiczne. Nic nie jest ukryte w czarnej skrzynce."
+      },
+      "independent": {
+        "title": "Niezależność",
+        "description": "Kado jest utrzymywane przede wszystkim jako użyteczne narzędzie, a nie produkt nastawiony na uwagę użytkownika."
+      }
+    },
+    "support": {
+      "title": "Kado jest darmowe i takie pozostanie.",
+      "subtext": "Jeśli aplikacja jest dla Ciebie przydatna i chcesz pomóc pokryć koszty hostingu oraz rozwoju, możesz wesprzeć projekt.",
+      "button": "Wesprzyj projekt"
+    },
+    "footer": {
+      "tagline": "Otwarte, przejrzyste i możliwe do samodzielnego hostowania."
+    },
+    "adminLink": "Dostęp administratora (deweloperski)"
+  },
+  "iconPicker": {
+    "unknownIcon": "Nieznana ikona, sprawdź nazwę (np. gift, heart-fill)."
+  },
+  "exchanges": {
+    "title": "Wymiany",
+    "createExchange": "Utwórz wymianę",
+    "loading": "Ładowanie...",
+    "statusValues": {
+      "draft": "Szkic",
+      "ready": "Gotowa",
+      "drawn": "Wylosowana",
+      "archived": "Zarchiwizowana"
+    },
+    "empty": "Brak wymian.",
+    "noDescription": "Brak opisu.",
+    "organizer": "Organizator",
+    "participantsCount": "Uczestnicy",
+    "exchangeMoment": "Moment wymiany prezentów",
+    "drawDeadlineAt": "Termin losowania",
+    "suggestionsDeadlineAt": "Termin sugestii",
+    "budget": "Budżet",
+    "minWishlistSuggestions": "Minimalna liczba sugestii",
+    "updatedAt": "Zaktualizowano",
+    "createModal": {
+      "title": "Utwórz wymianę",
+      "requiredLegend": "Oznacza pole wymagane",
+      "requiredFieldA11y": "wymagane",
+      "name": "Nazwa wymiany",
+      "description": "Opis",
+      "organizerName": "Imię organizatora",
+      "organizerParticipates": "Organizator bierze udział w wymianie",
+      "exchangeMoment": "Moment wymiany prezentów",
+      "drawDeadlineAt": "Termin daty i godziny losowania",
+      "suggestionsDeadlineAt": "Termin daty i godziny sugestii",
+      "budget": "Budżet",
+      "budgetCurrency": "Waluta",
+      "minWishlistSuggestions": "Minimalna liczba sugestii na uczestnika",
+      "suggestionsLockModeLabel": "Zasady aktualizacji sugestii po losowaniu",
+      "suggestionsLockModeFreeze": "Zablokuj przy losowaniu",
+      "suggestionsLockModeNoFreeze": "Bez blokady (opcjonalny termin sugestii)",
+      "noMutualAssignments": "Zablokuj wzajemne przypisania",
+      "adminPassword": "Hasło administratora",
+      "submit": "Utwórz wymianę"
+    }
+  },
+  "exchangeDetail": {
+    "loading": "Ładowanie...",
+    "name": "Nazwa",
+    "description": "Opis",
+    "status": "Status",
+    "statusValues": {
+      "draft": "Szkic",
+      "ready": "Gotowa",
+      "drawn": "Wylosowana",
+      "archived": "Zarchiwizowana"
+    },
+    "organizer": "Organizator",
+    "exchangeMoment": "Moment wymiany prezentów",
+    "drawDeadlineAt": "Termin losowania",
+    "suggestionsDeadlineAt": "Termin sugestii",
+    "budget": "Budżet",
+    "budgetCurrency": "Waluta",
+    "minWishlistSuggestions": "Minimalna liczba sugestii na uczestnika",
+    "lockSuggestionsAfterDraw": "Zablokuj sugestie po losowaniu",
+    "suggestionsLockModeLabel": "Zasady aktualizacji sugestii po losowaniu",
+    "suggestionsLockModeFreeze": "Zablokuj przy losowaniu",
+    "suggestionsLockModeNoFreeze": "Bez blokady (opcjonalny termin sugestii)",
+    "noMutualAssignments": "Wzajemne przypisania zablokowane",
+    "enabled": "Tak",
+    "disabled": "Nie",
+    "createdAt": "Utworzono",
+    "edit": "Edytuj",
+    "delete": "Usuń",
+    "participants": "Uczestnicy",
+    "addParticipant": "Dodaj uczestnika",
+    "noParticipants": "Brak uczestników dla tej wymiany.",
+    "wishlist": "Lista życzeń",
+    "wishlistSuggestions": "{count} sugestia | {count} sugestii",
+    "note": "Notatka",
+    "generateLink": "Magiczny link",
+    "triggerDraw": "Uruchom losowanie",
+    "cancelDraw": "Anuluj losowanie",
+    "drawSuccess": "Losowanie zostało uruchomione.",
+    "drawFailed": "Nie udało się uruchomić losowania.",
+    "cancelDrawSuccess": "Losowanie zostało anulowane.",
+    "cancelDrawFailed": "Nie udało się anulować losowania.",
+    "linkCopied": "Link skopiowany do schowka",
+    "copyFailed": "Nie udało się skopiować linku",
+    "generateFailed": "Nie udało się wygenerować linku",
+    "linkModal": {
+      "title": "Link uczestnika",
+      "description": "Udostępnij ten link uczestnikowi. Jest automatycznie zaznaczony.",
+      "copy": "Kopiuj",
+      "close": "Zamknij"
+    },
+    "addModal": {
+      "title": "Dodaj uczestnika",
+      "name": "Imię",
+      "email": "E-mail",
+      "wishlist": "Lista życzeń",
+      "note": "Notatka",
+      "submit": "Dodaj"
+    },
+    "editModal": {
+      "title": "Edytuj uczestnika",
+      "submit": "Zapisz"
+    },
+    "editExchangeModal": {
+      "title": "Edytuj wymianę",
+      "submit": "Zapisz"
+    },
+    "exceptions": {
+      "title": "Wyjątki losowania",
+      "cannotDraw": "Nie może losować",
+      "none": "Brak wyjątków.",
+      "selectReceiver": "Wybierz uczestnika",
+      "add": "Dodaj",
+      "remove": "Usuń",
+      "added": "Dodano wyjątek.",
+      "removed": "Usunięto wyjątek.",
+      "addFailed": "Nie udało się dodać wyjątku.",
+      "removeFailed": "Nie udało się usunąć wyjątku.",
+      "locked": "Po losowaniu wyjątków nie można już edytować."
+    },
+    "confirmDeleteExchange": "Usunąć tę wymianę?",
+    "confirmDeleteParticipant": "Usunąć tego uczestnika?",
+    "confirmTriggerDraw": "Uruchomić losowanie dla tej wymiany?",
+    "confirmCancelDraw": "Anulować losowanie dla tej wymiany?"
+  },
+  "participant": {
+    "loading": "Ładowanie...",
+    "profileSectionTitle": "Mój profil",
+    "yourInfo": "Twoje informacje",
+    "name": "Imię",
+    "email": "E-mail",
+    "wishlist": "Lista życzeń",
+    "addSuggestion": "Dodaj sugestię",
+    "noSuggestions": "Brak sugestii.",
+    "minWishlistSuggestionsHint": "Wymagane minimum: {count} sugestia | Wymagane minimum: {count} sugestii",
+    "minWishlistSuggestionsError": "Dodaj co najmniej {count} sugestię, aby kontynuować. | Dodaj co najmniej {count} sugestii, aby kontynuować.",
+    "note": "Notatka",
+    "editingOpen": "Możesz edytować swoje informacje i sugestie dla tej wymiany.",
+    "editingClosed": "Aktualizacja sugestii jest zamknięta dla tej wymiany.",
+    "save": "Zapisz moje informacje",
+    "saving": "Zapisywanie...",
+    "saveSuccess": "Twoje informacje zostały zaktualizowane.",
+    "recipientSectionTitle": "Wylosowana osoba",
+    "yourRecipient": "Twój odbiorca",
+    "recipientName": "Imię",
+    "recipientWishlist": "Jego/jej lista życzeń",
+    "recipientNote": "Jego/jej notatka",
+    "suggestionsSectionTitle": "Moje sugestie prezentów",
+    "wishlistItem": {
+      "reorder": "Zmień kolejność",
+      "titleLabel": "Tytuł",
+      "titleHelp": "Opisowy tytuł sugestii.",
+      "iconLabel": "Ikona",
+      "iconPlaceholder": "np. gift, heart",
+      "iconOrImageHint": "Wskazówka: użyj ikony albo obrazu.",
+      "imageUrlLabel": "Adres URL obrazu",
+      "imageUrlPlaceholder": "https://example.com/image.png",
+      "linkLabel": "Link",
+      "linkPlaceholder": "https://example.com/produkt",
+      "titleRequired": "Tytuł jest wymagany.",
+      "imageUrlInvalid": "Nieprawidłowy URL obrazu (wymagane http/https).",
+      "linkUrlInvalid": "Nieprawidłowy URL linku (wymagane http/https)."
+    }
+  },
+  "apiErrors": {
+    "UNKNOWN": "Wystąpił nieoczekiwany błąd.",
+    "DRAW_MIN_ACTIVE_PARTICIPANTS": "Do uruchomienia losowania wymaganych jest co najmniej 3 aktywnych uczestników.",
+    "DRAW_DEADLINE_PASSED": "Termin losowania minął.",
+    "DRAW_MIN_WISHLIST_SUGGESTIONS": "Wszyscy aktywni uczestnicy muszą spełnić minimalną liczbę sugestii przed losowaniem.",
+    "SUGGESTIONS_DEADLINE_AFTER_EXCHANGE_MOMENT": "Termin sugestii nie może przypadać po momencie wymiany prezentów.",
+    "DRAW_IMPOSSIBLE": "Przy obecnych ustawieniach nie da się przeprowadzić poprawnego losowania.",
+    "EXCHANGE_ARCHIVED_CANNOT_DRAW": "Nie można losować w zarchiwizowanej wymianie.",
+    "EXCHANGE_ARCHIVED_CANNOT_MODIFY": "Nie można modyfikować zarchiwizowanej wymiany.",
+    "EXCHANGE_NOT_FOUND": "Nie znaleziono żądanej wymiany.",
+    "PARTICIPANT_NOT_FOUND": "Nie znaleziono żądanego uczestnika.",
+    "PARTICIPANT_SUGGESTIONS_LOCKED": "Aktualizacja sugestii jest zamknięta dla tej wymiany.",
+    "PARTICIPANT_LINK_INVALID_OR_EXPIRED": "Ten link uczestnika jest nieprawidłowy lub wygasł.",
+    "EXCLUSION_RULES_LOCKED": "Nie można modyfikować reguł wykluczeń dla tej wymiany.",
+    "PARTICIPANT_OUTSIDE_EXCHANGE": "Uczestnik nie należy do tej wymiany.",
+    "EXCLUSION_SELF_NOT_ALLOWED": "Uczestnik nie może wykluczyć samego siebie.",
+    "EXCLUSION_RULE_ALREADY_EXISTS": "Ta reguła wykluczenia już istnieje.",
+    "EXCLUSION_RULE_NOT_FOUND": "Nie znaleziono żądanej reguły wykluczenia.",
+    "INVALID_REQUEST_BODY": "Treść żądania jest nieprawidłowa.",
+    "INVALID_ROUTE_PARAMETERS": "Parametry ścieżki są nieprawidłowe."
+  },
+  "common": {
+    "close": "zamknij"
+  }
+}

@@ -1,0 +1,267 @@
+{
+  "app": {
+    "title": "Kado"
+  },
+  "actions": {
+    "changeLanguage": "Cambiar idioma",
+    "cancel": "Cancelar"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "pl": "Polski",
+    "es": "Español"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Intercambios de regalos sin fricción",
+      "title": "Kado organiza tus intercambios de regalos sin complicaciones.",
+      "description": "Crea un sorteo en minutos, comparte enlaces únicos con los participantes y deja que Kado gestione las restricciones de asignación. Sin cuenta obligatoria, sin anuncios y sin rastreo.",
+      "primaryAction": "Crear un sorteo",
+      "secondaryAction": "Recibí un enlace",
+      "micro": "Abierto. Gratis. Respetuoso con la privacidad.",
+      "audience": "Diseñado para intercambios entre amigos, familia o compañeros de trabajo."
+    },
+    "trustStrip": {
+      "openSource": {
+        "title": "Código abierto",
+        "description": "El código es público. Puedes inspeccionarlo, usarlo, modificarlo o alojarlo tú mismo."
+      },
+      "privacy": {
+        "title": "Privacidad respetada",
+        "description": "No se requiere cuenta para participar. Cada persona recibe simplemente un enlace personal."
+      },
+      "noMonetization": {
+        "title": "Sin monetización invasiva",
+        "description": "Sin anuncios, sin reventa de datos y sin cookies de seguimiento."
+      }
+    },
+    "cta": {
+      "primaryLabel": "Acción principal",
+      "secondaryLabel": "Acceso de participante",
+      "organizerTitle": "Quiero organizar un sorteo",
+      "organizerDesc": "Crea un intercambio, agrega participantes, define exclusiones si es necesario y luego ejecuta el sorteo. Cada persona recibe un enlace único para compartir por el canal que prefieras.",
+      "organizerAction": "Crear un sorteo",
+      "participantTitle": "Recibí un enlace",
+      "participantDesc": "Has recibido un enlace personal del organizador. Ábrelo directamente para acceder a tu participación. No hace falta cuenta ni contraseña.",
+      "participantHint": "¿No recibiste un enlace? Contacta con la persona que organiza el sorteo."
+    },
+    "why": {
+      "title": "¿Por qué confiar en Kado?",
+      "description": "Una herramienta simple, transparente e independiente para organizar intercambios sin fricciones innecesarias.",
+      "simple": {
+        "title": "Simple por diseño",
+        "description": "Kado hace una cosa bien: organizar intercambios de regalos sin rodeos ni complejidad innecesaria."
+      },
+      "transparent": {
+        "title": "Transparente",
+        "description": "El proyecto es abierto y su comportamiento es público. Nada está oculto en una caja negra."
+      },
+      "independent": {
+        "title": "Independiente",
+        "description": "Kado se mantiene primero como una herramienta útil, no como un producto diseñado para captar atención."
+      }
+    },
+    "support": {
+      "title": "Kado es gratis y seguirá siéndolo.",
+      "subtext": "Si la aplicación te resulta útil y quieres ayudar a cubrir los costos de alojamiento y desarrollo, puedes dar un pequeño apoyo al proyecto.",
+      "button": "Apoyar el proyecto"
+    },
+    "footer": {
+      "tagline": "Abierto, transparente y autoalojable."
+    },
+    "adminLink": "Acceso de administrador (desarrollo)"
+  },
+  "iconPicker": {
+    "unknownIcon": "Icono desconocido, comprueba el nombre (p. ej. gift, heart-fill)."
+  },
+  "exchanges": {
+    "title": "Intercambios",
+    "createExchange": "Crear intercambio",
+    "loading": "Cargando...",
+    "statusValues": {
+      "draft": "Borrador",
+      "ready": "Listo",
+      "drawn": "Sorteado",
+      "archived": "Archivado"
+    },
+    "empty": "Aún no hay intercambios.",
+    "noDescription": "Sin descripción.",
+    "organizer": "Organizador",
+    "participantsCount": "Participantes",
+    "exchangeMoment": "Momento del intercambio de regalos",
+    "drawDeadlineAt": "Fecha límite del sorteo",
+    "suggestionsDeadlineAt": "Fecha límite de sugerencias",
+    "budget": "Presupuesto",
+    "minWishlistSuggestions": "Sugerencias mínimas",
+    "updatedAt": "Actualizado",
+    "createModal": {
+      "title": "Crear intercambio",
+      "requiredLegend": "Indica un campo obligatorio",
+      "requiredFieldA11y": "obligatorio",
+      "name": "Nombre del intercambio",
+      "description": "Descripción",
+      "organizerName": "Nombre del organizador",
+      "organizerParticipates": "El organizador participa en el intercambio",
+      "exchangeMoment": "Momento del intercambio de regalos",
+      "drawDeadlineAt": "Fecha y hora límite del sorteo",
+      "suggestionsDeadlineAt": "Fecha y hora límite de sugerencias",
+      "budget": "Presupuesto",
+      "budgetCurrency": "Moneda",
+      "minWishlistSuggestions": "Sugerencias mínimas por participante",
+      "suggestionsLockModeLabel": "Comportamiento de actualización de sugerencias tras el sorteo",
+      "suggestionsLockModeFreeze": "Bloquear en el sorteo",
+      "suggestionsLockModeNoFreeze": "Sin bloqueo (fecha límite de sugerencias opcional)",
+      "noMutualAssignments": "No permitir asignaciones mutuas",
+      "adminPassword": "Contraseña de administrador",
+      "submit": "Crear intercambio"
+    }
+  },
+  "exchangeDetail": {
+    "loading": "Cargando...",
+    "name": "Nombre",
+    "description": "Descripción",
+    "status": "Estado",
+    "statusValues": {
+      "draft": "Borrador",
+      "ready": "Listo",
+      "drawn": "Sorteado",
+      "archived": "Archivado"
+    },
+    "organizer": "Organizador",
+    "exchangeMoment": "Momento del intercambio de regalos",
+    "drawDeadlineAt": "Fecha límite del sorteo",
+    "suggestionsDeadlineAt": "Fecha límite de sugerencias",
+    "budget": "Presupuesto",
+    "budgetCurrency": "Moneda",
+    "minWishlistSuggestions": "Sugerencias mínimas por participante",
+    "lockSuggestionsAfterDraw": "Bloquear sugerencias tras el sorteo",
+    "suggestionsLockModeLabel": "Comportamiento de actualización de sugerencias tras el sorteo",
+    "suggestionsLockModeFreeze": "Bloquear en el sorteo",
+    "suggestionsLockModeNoFreeze": "Sin bloqueo (fecha límite de sugerencias opcional)",
+    "noMutualAssignments": "Asignaciones mutuas bloqueadas",
+    "enabled": "Sí",
+    "disabled": "No",
+    "createdAt": "Creado el",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "participants": "Participantes",
+    "addParticipant": "Agregar participante",
+    "noParticipants": "No hay participantes para este intercambio.",
+    "wishlist": "Lista de deseos",
+    "wishlistSuggestions": "{count} sugerencia | {count} sugerencias",
+    "note": "Nota",
+    "generateLink": "Enlace mágico",
+    "triggerDraw": "Realizar sorteo",
+    "cancelDraw": "Cancelar sorteo",
+    "drawSuccess": "El sorteo se ha realizado.",
+    "drawFailed": "No se pudo realizar el sorteo.",
+    "cancelDrawSuccess": "El sorteo se canceló.",
+    "cancelDrawFailed": "No se pudo cancelar el sorteo.",
+    "linkCopied": "Enlace copiado al portapapeles",
+    "copyFailed": "No se pudo copiar el enlace",
+    "generateFailed": "No se pudo generar el enlace",
+    "linkModal": {
+      "title": "Enlace del participante",
+      "description": "Comparte este enlace con el participante. Se selecciona automáticamente.",
+      "copy": "Copiar",
+      "close": "Cerrar"
+    },
+    "addModal": {
+      "title": "Agregar participante",
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "wishlist": "Lista de deseos",
+      "note": "Nota",
+      "submit": "Agregar"
+    },
+    "editModal": {
+      "title": "Editar participante",
+      "submit": "Guardar"
+    },
+    "editExchangeModal": {
+      "title": "Editar intercambio",
+      "submit": "Guardar"
+    },
+    "exceptions": {
+      "title": "Excepciones del sorteo",
+      "cannotDraw": "No puede sortear",
+      "none": "Sin excepciones.",
+      "selectReceiver": "Selecciona un participante",
+      "add": "Agregar",
+      "remove": "Eliminar",
+      "added": "Excepción agregada.",
+      "removed": "Excepción eliminada.",
+      "addFailed": "No se pudo agregar la excepción.",
+      "removeFailed": "No se pudo eliminar la excepción.",
+      "locked": "Las excepciones ya no pueden editarse después del sorteo."
+    },
+    "confirmDeleteExchange": "¿Eliminar este intercambio?",
+    "confirmDeleteParticipant": "¿Eliminar este participante?",
+    "confirmTriggerDraw": "¿Realizar el sorteo de este intercambio?",
+    "confirmCancelDraw": "¿Cancelar el sorteo de este intercambio?"
+  },
+  "participant": {
+    "loading": "Cargando...",
+    "profileSectionTitle": "Mi perfil",
+    "yourInfo": "Tu información",
+    "name": "Nombre",
+    "email": "Correo electrónico",
+    "wishlist": "Lista de deseos",
+    "addSuggestion": "Agregar sugerencia",
+    "noSuggestions": "Aún no hay sugerencias.",
+    "minWishlistSuggestionsHint": "Mínimo requerido: {count} sugerencia | Mínimo requerido: {count} sugerencias",
+    "minWishlistSuggestionsError": "Agrega al menos {count} sugerencia para continuar. | Agrega al menos {count} sugerencias para continuar.",
+    "note": "Nota",
+    "editingOpen": "Puedes editar tu información y tus sugerencias para este intercambio.",
+    "editingClosed": "La actualización de sugerencias está cerrada para este intercambio.",
+    "save": "Guardar mi información",
+    "saving": "Guardando...",
+    "saveSuccess": "Tu información se actualizó.",
+    "recipientSectionTitle": "Persona sorteada",
+    "yourRecipient": "Tu destinatario",
+    "recipientName": "Nombre",
+    "recipientWishlist": "Su lista de deseos",
+    "recipientNote": "Su nota",
+    "suggestionsSectionTitle": "Mis sugerencias de regalo",
+    "wishlistItem": {
+      "reorder": "Reordenar",
+      "titleLabel": "Título",
+      "titleHelp": "Título descriptivo de la sugerencia.",
+      "iconLabel": "Icono",
+      "iconPlaceholder": "ej.: gift, heart",
+      "iconOrImageHint": "Consejo: usa un icono o una imagen.",
+      "imageUrlLabel": "URL de imagen",
+      "imageUrlPlaceholder": "https://example.com/image.png",
+      "linkLabel": "Enlace",
+      "linkPlaceholder": "https://example.com/producto",
+      "titleRequired": "El título es obligatorio.",
+      "imageUrlInvalid": "URL de imagen no válida (se requiere http/https).",
+      "linkUrlInvalid": "URL de enlace no válida (se requiere http/https)."
+    }
+  },
+  "apiErrors": {
+    "UNKNOWN": "Ocurrió un error inesperado.",
+    "DRAW_MIN_ACTIVE_PARTICIPANTS": "Se requieren al menos 3 participantes activos para realizar el sorteo.",
+    "DRAW_DEADLINE_PASSED": "La fecha límite del sorteo ya pasó.",
+    "DRAW_MIN_WISHLIST_SUGGESTIONS": "Todos los participantes activos deben cumplir el mínimo de sugerencias antes de realizar el sorteo.",
+    "SUGGESTIONS_DEADLINE_AFTER_EXCHANGE_MOMENT": "La fecha límite de sugerencias no puede ser posterior al momento del intercambio de regalos.",
+    "DRAW_IMPOSSIBLE": "No es posible realizar un sorteo válido con la configuración actual.",
+    "EXCHANGE_ARCHIVED_CANNOT_DRAW": "No se puede realizar el sorteo en intercambios archivados.",
+    "EXCHANGE_ARCHIVED_CANNOT_MODIFY": "No se pueden modificar intercambios archivados.",
+    "EXCHANGE_NOT_FOUND": "No se encontró el intercambio solicitado.",
+    "PARTICIPANT_NOT_FOUND": "No se encontró el participante solicitado.",
+    "PARTICIPANT_SUGGESTIONS_LOCKED": "La actualización de sugerencias está cerrada para este intercambio.",
+    "PARTICIPANT_LINK_INVALID_OR_EXPIRED": "Este enlace de participante no es válido o ha caducado.",
+    "EXCLUSION_RULES_LOCKED": "No se pueden modificar las reglas de exclusión para este intercambio.",
+    "PARTICIPANT_OUTSIDE_EXCHANGE": "El participante no pertenece a este intercambio.",
+    "EXCLUSION_SELF_NOT_ALLOWED": "Un participante no puede excluirse a sí mismo.",
+    "EXCLUSION_RULE_ALREADY_EXISTS": "Esta regla de exclusión ya existe.",
+    "EXCLUSION_RULE_NOT_FOUND": "No se encontró la regla de exclusión solicitada.",
+    "INVALID_REQUEST_BODY": "El cuerpo de la solicitud no es válido.",
+    "INVALID_ROUTE_PARAMETERS": "Los parámetros de la ruta no son válidos."
+  },
+  "common": {
+    "close": "cerrar"
+  }
+}

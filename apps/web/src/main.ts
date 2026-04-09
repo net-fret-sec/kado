@@ -14,6 +14,11 @@ import 'bootstrap'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
 async function bootstrap() {
+  if (import.meta.env.DEV && 'serviceWorker' in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations()
+    await Promise.all(registrations.map((registration) => registration.unregister()))
+  }
+
   const app = createApp(App)
 
   app.use(createPinia())
@@ -24,7 +29,9 @@ async function bootstrap() {
 
   app.mount('#app')
 
-  registerSW({ immediate: true })
+  if (import.meta.env.PROD) {
+    registerSW({ immediate: true })
+  }
 }
 
 bootstrap()

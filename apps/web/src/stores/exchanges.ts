@@ -5,6 +5,50 @@ import { useApi } from '@/composables/useApi'
 import { useToastsStore } from '@/stores/toasts'
 import { getApiErrorMessage } from '@/composables/useApiErrorMessage'
 
+type ValidationErrorDetails = {
+  fieldErrors?: Record<string, string[]>
+  formErrors?: string[]
+}
+
+function extractValidationErrorDetails(error: unknown): ValidationErrorDetails | null {
+  if (!error || typeof error !== 'object') return null
+
+  const payload = (error as { data?: unknown }).data
+  if (!payload || typeof payload !== 'object') return null
+
+  const details = (payload as { error?: { details?: unknown } }).error?.details
+  if (!details || typeof details !== 'object') return null
+
+  const fieldErrorsRaw = (details as { fieldErrors?: unknown }).fieldErrors
+  const formErrorsRaw = (details as { formErrors?: unknown }).formErrors
+
+  const fieldErrors: Record<string, string[]> = {}
+
+  if (fieldErrorsRaw && typeof fieldErrorsRaw === 'object') {
+    for (const [key, value] of Object.entries(fieldErrorsRaw)) {
+      if (Array.isArray(value)) {
+        const messages = value.filter((entry): entry is string => typeof entry === 'string')
+        if (messages.length > 0) {
+          fieldErrors[key] = messages
+        }
+      }
+    }
+  }
+
+  const formErrors = Array.isArray(formErrorsRaw)
+    ? formErrorsRaw.filter((entry): entry is string => typeof entry === 'string')
+    : []
+
+  if (Object.keys(fieldErrors).length === 0 && formErrors.length === 0) {
+    return null
+  }
+
+  return {
+    fieldErrors,
+    formErrors,
+  }
+}
+
 export const useExchangesStore = defineStore('exchanges', () => {
   const exchanges = ref<ExchangeDto[]>([])
   const isLoading = ref(false)
@@ -61,6 +105,11 @@ export const useExchangesStore = defineStore('exchanges', () => {
         exchanges.value.push(data.exchange)
         return data.exchange
       } catch (err) {
+        const validationDetails = extractValidationErrorDetails(err)
+        if (validationDetails) {
+          fieldErrors.value = validationDetails.fieldErrors ?? null
+          formErrors.value = validationDetails.formErrors ?? null
+        }
         if (!error.value) {
           error.value = getApiErrorMessage(err)
         }

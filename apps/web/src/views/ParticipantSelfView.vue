@@ -24,7 +24,37 @@ const view = ref<ParticipantSelfViewDto | null>(null)
 const name = ref('')
 const email = ref('')
 const note = ref('')
-const wishlist = ref<GiftSuggestionDto[]>([])
+type EditableSuggestion = GiftSuggestionDto & { _clientId: string }
+
+let clientIdCounter = 0
+
+function generateClientId(): string {
+  const c = globalThis.crypto
+  if (c?.randomUUID) {
+    return c.randomUUID()
+  }
+
+  if (c?.getRandomValues) {
+    const bytes = new Uint8Array(16)
+    c.getRandomValues(bytes)
+    bytes[6] = (bytes[6]! & 0x0f) | 0x40
+    bytes[8] = (bytes[8]! & 0x3f) | 0x80
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+  }
+
+  clientIdCounter += 1
+  return `cid-${Date.now().toString(36)}-${clientIdCounter.toString(36)}`
+}
+
+function withClientId(suggestion: GiftSuggestionDto): EditableSuggestion {
+  return {
+    ...suggestion,
+    _clientId: generateClientId(),
+  }
+}
+
+const wishlist = ref<EditableSuggestion[]>([])
 
 function areSuggestionsUpdatesClosed() {
   const exchange = view.value?.exchange
@@ -53,6 +83,10 @@ const canEdit = computed(() => {
 })
 
 const hasRecipient = computed(() => !!view.value?.assignment)
+const showRecipient = computed(() => {
+  const status = view.value?.exchange.status
+  return hasRecipient.value && (status === 'drawn' || status === 'archived')
+})
 const requiredMinSuggestions = computed(() => view.value?.exchange.minWishlistSuggestions ?? 0)
 
 const canSubmit = computed(() => {
@@ -89,7 +123,7 @@ function hydrateForm() {
   name.value = view.value?.participant.name ?? ''
   email.value = view.value?.participant.email ?? ''
   note.value = view.value?.participant.note ?? ''
-  wishlist.value = [...(view.value?.participant.wishlist ?? [])]
+  wishlist.value = (view.value?.participant.wishlist ?? []).map(withClientId)
 }
 
 async function fetchSelf() {
@@ -117,7 +151,9 @@ async function saveSelf() {
       name: name.value.trim(),
       email: email.value.trim() || undefined,
       note: note.value.trim() || undefined,
-      wishlist: wishlist.value.length ? wishlist.value : undefined,
+      wishlist: wishlist.value.length
+        ? wishlist.value.map(({ _clientId: _discardedClientId, ...suggestion }) => suggestion)
+        : undefined,
     }
 
     view.value = await api.put<ParticipantSelfViewDto, UpdateParticipantInputDto>(
@@ -136,7 +172,7 @@ async function saveSelf() {
 }
 
 function addSuggestion() {
-  wishlist.value.push({ title: '' })
+  wishlist.value.push(withClientId({ title: '' }))
 }
 
 onMounted(fetchSelf)
@@ -153,10 +189,10 @@ onMounted(fetchSelf)
         {{ canEdit ? t('participant.editingOpen') : t('participant.editingClosed') }}
       </div>
 
-      <section class="card mb-3">
-        <div class="card-body">
-          <h5 class="card-title">{{ t('participant.yourInfo') }}</h5>
-          <form @submit.prevent="saveSelf">
+      <form @submit.prevent="saveSelf">
+        <section class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">{{ t('participant.profileSectionTitle') }}</h5>
             <div class="mb-3">
               <label for="participant-name" class="form-label">{{ t('participant.name') }}</label>
               <input
@@ -182,44 +218,7 @@ onMounted(fetchSelf)
               />
             </div> -->
 
-            <div class="mb-3">
-              <label class="form-label mb-2">{{ t('participant.wishlist') }}</label>
-              <p v-if="requiredMinSuggestions > 0" class="small text-body-secondary">
-                {{ t('participant.minWishlistSuggestionsHint', { count: requiredMinSuggestions }) }}
-              </p>
-              <WishlistSuggestionItem
-                v-for="(element, index) in wishlist"
-                :key="`${index}-${element.title}`"
-                :modelValue="element"
-                mode="edit"
-                :removable="canEdit && !isSaving"
-                :showHandle="false"
-                :asListItem="true"
-                @update:modelValue="(v) => wishlist.splice(index, 1, v)"
-                @remove="wishlist.splice(index, 1)"
-              />
-
-              <button
-                v-if="canEdit"
-                type="button"
-                class="btn btn-sm btn-outline-primary mt-2"
-                :disabled="isSaving"
-                @click="addSuggestion"
-              >
-                <i class="bi bi-plus-lg"></i>
-                {{ t('participant.addSuggestion') }}
-              </button>
-              <p class="text-muted mb-0 mt-2" v-if="!wishlist.length">
-                {{ t('participant.noSuggestions') }}
-              </p>
-              <p class="text-danger small mt-2" v-if="wishlist.length < requiredMinSuggestions">
-                {{
-                  t('participant.minWishlistSuggestionsError', { count: requiredMinSuggestions })
-                }}
-              </p>
-            </div>
-
-            <div class="mb-3">
+            <div class="mb-0">
               <label for="participant-note" class="form-label">{{ t('participant.note') }}</label>
               <textarea
                 id="participant-note"
@@ -229,44 +228,83 @@ onMounted(fetchSelf)
                 :disabled="!canEdit || isSaving"
               ></textarea>
             </div>
+          </div>
+        </section>
+
+        <section class="card mb-3" v-if="showRecipient">
+          <div class="card-body">
+            <h5 class="card-title">{{ t('participant.recipientSectionTitle') }}</h5>
+            <p class="mb-1">
+              <strong>{{ t('participant.recipientName') }}:</strong>
+              {{ view.assignment?.receiverName }}
+            </p>
+            <div class="mb-1" v-if="view.assignment?.receiverWishlist?.length">
+              <strong class="d-block mb-1">{{ t('participant.recipientWishlist') }}:</strong>
+              <ol class="list-group list-group-numbered">
+                <li
+                  class="list-group-item"
+                  v-for="(s, idx) in view.assignment?.receiverWishlist"
+                  :key="idx"
+                >
+                  <WishlistSuggestionItem :modelValue="s" mode="detail" />
+                </li>
+              </ol>
+            </div>
+            <div class="mb-1" v-if="view.assignment?.receiverNote">
+              <strong>{{ t('participant.recipientNote') }}:</strong>
+              {{ view.assignment?.receiverNote }}
+            </div>
+          </div>
+        </section>
+
+        <section class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">{{ t('participant.suggestionsSectionTitle') }}</h5>
+            <p v-if="requiredMinSuggestions > 0" class="small text-body-secondary">
+              {{ t('participant.minWishlistSuggestionsHint', { count: requiredMinSuggestions }) }}
+            </p>
+            <WishlistSuggestionItem
+              v-for="(element, index) in wishlist"
+              :key="element._clientId"
+              :modelValue="element"
+              mode="edit"
+              :removable="canEdit && !isSaving"
+              :showHandle="false"
+              :asListItem="true"
+              @update:modelValue="
+                (v) => wishlist.splice(index, 1, { ...v, _clientId: element._clientId })
+              "
+              @remove="wishlist.splice(index, 1)"
+            />
+
+            <button
+              v-if="canEdit"
+              type="button"
+              class="btn btn-sm btn-outline-primary mt-2"
+              :disabled="isSaving"
+              @click="addSuggestion"
+            >
+              <i class="bi bi-plus-lg"></i>
+              {{ t('participant.addSuggestion') }}
+            </button>
+            <p class="text-muted mb-0 mt-2" v-if="!wishlist.length">
+              {{ t('participant.noSuggestions') }}
+            </p>
+            <p class="text-danger small mt-2" v-if="wishlist.length < requiredMinSuggestions">
+              {{ t('participant.minWishlistSuggestionsError', { count: requiredMinSuggestions }) }}
+            </p>
 
             <button
               v-if="canEdit"
               type="submit"
-              class="btn btn-primary"
+              class="btn btn-primary mt-3"
               :disabled="!canSubmit || isSaving"
             >
               {{ isSaving ? t('participant.saving') : t('participant.save') }}
             </button>
-          </form>
-        </div>
-      </section>
-
-      <section class="card" v-if="hasRecipient">
-        <div class="card-body">
-          <h5 class="card-title">{{ t('participant.yourRecipient') }}</h5>
-          <p class="mb-1">
-            <strong>{{ t('participant.recipientName') }}:</strong>
-            {{ view.assignment?.receiverName }}
-          </p>
-          <div class="mb-1" v-if="view.assignment?.receiverWishlist?.length">
-            <strong class="d-block mb-1">{{ t('participant.recipientWishlist') }}:</strong>
-            <ol class="list-group list-group-numbered">
-              <li
-                class="list-group-item"
-                v-for="(s, idx) in view.assignment?.receiverWishlist"
-                :key="idx"
-              >
-                <WishlistSuggestionItem :modelValue="s" mode="detail" />
-              </li>
-            </ol>
           </div>
-          <p class="mb-0" v-if="view.assignment?.receiverNote">
-            <strong>{{ t('participant.recipientNote') }}:</strong>
-            {{ view.assignment?.receiverNote }}
-          </p>
-        </div>
-      </section>
+        </section>
+      </form>
     </div>
   </section>
 </template>

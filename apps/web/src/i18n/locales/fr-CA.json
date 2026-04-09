@@ -8,7 +8,9 @@
   },
   "languages": {
     "fr": "Français",
-    "en": "English"
+    "en": "English",
+    "pl": "Polski",
+    "es": "Español"
   },
   "home": {
     "hero": {
@@ -92,6 +94,8 @@
     "updatedAt": "Mis à jour",
     "createModal": {
       "title": "Créer un échange",
+      "requiredLegend": "Indique un champ obligatoire",
+      "requiredFieldA11y": "obligatoire",
       "name": "Nom de l'échange",
       "description": "Description",
       "organizerName": "Nom de l'organisateur",
@@ -199,6 +203,7 @@
   },
   "participant": {
     "loading": "Chargement...",
+    "profileSectionTitle": "Mon profil",
     "yourInfo": "Vos informations",
     "name": "Nom",
     "email": "Courriel",
@@ -213,10 +218,27 @@
     "save": "Enregistrer mes informations",
     "saving": "Enregistrement...",
     "saveSuccess": "Vos informations ont été mises à jour.",
+    "recipientSectionTitle": "Personne pigée",
     "yourRecipient": "Votre personne assignée",
     "recipientName": "Nom",
     "recipientWishlist": "Sa liste de souhaits",
-    "recipientNote": "Sa note"
+    "recipientNote": "Sa note",
+    "suggestionsSectionTitle": "Mes suggestions de cadeaux",
+    "wishlistItem": {
+      "reorder": "Réordonner",
+      "titleLabel": "Titre",
+      "titleHelp": "Titre descriptif de la suggestion.",
+      "iconLabel": "Icône",
+      "iconPlaceholder": "ex: gift, heart",
+      "iconOrImageHint": "Astuce: utilisez une icône ou une image.",
+      "imageUrlLabel": "URL de l'image",
+      "imageUrlPlaceholder": "https://exemple.com/image.png",
+      "linkLabel": "Lien",
+      "linkPlaceholder": "https://exemple.com/produit",
+      "titleRequired": "Le titre est requis.",
+      "imageUrlInvalid": "URL d'image invalide (http/https requis).",
+      "linkUrlInvalid": "URL de lien invalide (http/https requis)."
+    }
   },
   "apiErrors": {
     "UNKNOWN": "Une erreur inattendue est survenue.",

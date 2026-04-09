@@ -153,8 +153,17 @@ async function handleHidden() {
     @hidden="handleHidden"
   >
     <form id="createExchangeForm" @submit.prevent="handleCreate">
+      <p class="small text-body-secondary mb-3">
+        <span class="text-danger fw-semibold" aria-hidden="true">*</span>
+        {{ t('exchanges.createModal.requiredLegend') }}
+      </p>
+
       <div class="mb-3">
-        <label for="exchangeName" class="form-label">{{ t('exchanges.createModal.name') }}</label>
+        <label for="exchangeName" class="form-label">
+          {{ t('exchanges.createModal.name') }}
+          <span class="text-danger ms-1" aria-hidden="true">*</span>
+          <span class="visually-hidden">{{ t('exchanges.createModal.requiredFieldA11y') }}</span>
+        </label>
         <input v-model="name" type="text" class="form-control" id="exchangeName" required />
         <div v-if="fieldErrors.name" class="text-danger small">{{ fieldErrors.name[0] }}</div>
       </div>
@@ -170,9 +179,11 @@ async function handleHidden() {
       </div>
 
       <div class="mb-3">
-        <label for="organizerName" class="form-label">{{
-          t('exchanges.createModal.organizerName')
-        }}</label>
+        <label for="organizerName" class="form-label">
+          {{ t('exchanges.createModal.organizerName') }}
+          <span class="text-danger ms-1" aria-hidden="true">*</span>
+          <span class="visually-hidden">{{ t('exchanges.createModal.requiredFieldA11y') }}</span>
+        </label>
         <input
           v-model="organizerName"
           type="text"
@@ -336,9 +347,11 @@ async function handleHidden() {
       </div>
 
       <div class="mb-3">
-        <label for="adminPassword" class="form-label">{{
-          t('exchanges.createModal.adminPassword')
-        }}</label>
+        <label for="adminPassword" class="form-label">
+          {{ t('exchanges.createModal.adminPassword') }}
+          <span class="text-danger ms-1" aria-hidden="true">*</span>
+          <span class="visually-hidden">{{ t('exchanges.createModal.requiredFieldA11y') }}</span>
+        </label>
         <input
           v-model="adminPassword"
           type="password"

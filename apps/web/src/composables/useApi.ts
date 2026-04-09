@@ -1,9 +1,17 @@
 // TypeScript composable to centralize API calls
-const BASE = (import.meta.env.VITE_API_BASE ?? '/api') as string
+const BASE = ((import.meta.env.VITE_API_BASE as string | undefined) ?? '').trim()
 
 function buildUrl(path: string) {
   if (path.startsWith('http://') || path.startsWith('https://')) return path
   const cleaned = path.startsWith('/') ? path : `/${path}`
+
+  if (!BASE) return cleaned
+
+  // Avoid duplicating '/api' when both BASE and path include it.
+  if (BASE.endsWith('/api') && cleaned.startsWith('/api/')) {
+    return `${BASE}${cleaned.slice(4)}`
+  }
+
   return `${BASE}${cleaned}`
 }
 
