@@ -8,12 +8,20 @@ type ErrorPayload = {
 
 type ErrorWithData = {
   code?: unknown
+  status?: unknown
   data?: unknown
 }
 
 interface ApiErrorMessageOptions {
   fallbackKey?: string
   fallbackMessage?: string
+}
+
+function extractStatus(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object') return undefined
+
+  const withData = error as ErrorWithData
+  return typeof withData.status === 'number' ? withData.status : undefined
 }
 
 function extractCodeFromPayload(payload: unknown): string | undefined {
@@ -49,6 +57,14 @@ export function getApiErrorMessage(error: unknown, options: ApiErrorMessageOptio
     if (i18n.global.te(key)) {
       return i18n.global.t(key)
     }
+  }
+
+  const status = extractStatus(error)
+  if (
+    (status === 0 || (typeof status === 'number' && status >= 500)) &&
+    i18n.global.te('apiErrors.API_UNAVAILABLE')
+  ) {
+    return i18n.global.t('apiErrors.API_UNAVAILABLE')
   }
 
   if (error instanceof Error && error.message) {

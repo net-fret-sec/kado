@@ -88,6 +88,9 @@ export const createExchangeInputSchema = z
 
 export const updateExchangeInputSchema = z
   .object({
+    expectedUpdatedAt: emptyStringToUndefined(
+      z.string().datetime({ offset: true }).optional(),
+    ),
     name: optionalText(150),
     description: optionalText(2000),
     organizerId: z.string().optional(),

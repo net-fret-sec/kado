@@ -258,6 +258,8 @@
     "EXCLUSION_SELF_NOT_ALLOWED": "Un participant ne peut pas s'exclure lui-même.",
     "EXCLUSION_RULE_ALREADY_EXISTS": "Cette exception de pige existe déjà.",
     "EXCLUSION_RULE_NOT_FOUND": "L'exception de pige demandée est introuvable.",
+    "RESOURCE_MODIFIED_CONCURRENTLY": "Cette ressource a été modifiée ailleurs. Rafraîchissez la page et réessayez.",
+    "API_UNAVAILABLE": "Le serveur est temporairement indisponible. Vérifiez que l'API et PostgreSQL sont démarrés.",
     "INVALID_REQUEST_BODY": "Le corps de la requête est invalide.",
     "INVALID_ROUTE_PARAMETERS": "Les paramètres de route sont invalides."
   },

@@ -4,7 +4,11 @@ import type {
   ExchangeDto,
   UpdateExchangeInputDto,
 } from "@kado/shared";
-import { BadRequestError, NotFoundError } from "../lib/http-errors";
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+} from "../lib/http-errors";
 import { exchangeRepository } from "../repositories/exchange.repository";
 import { participantRepository } from "../repositories/participant.repository";
 import {
@@ -16,6 +20,7 @@ import {
 import { createParticipant } from "./participant.service";
 import { assignmentRepository } from "../repositories/assignment.repository";
 import { exclusionRuleRepository } from "../repositories/exclusion-rule.repository";
+import { withTransaction } from "../db";
 
 interface DrawAssignment {
   giverParticipantId: string;
@@ -182,7 +187,7 @@ export async function createExchange(
     updatedAt: now,
   };
 
-  exchangeRepository.create(exchange);
+  await exchangeRepository.create(exchange);
 
   // Create organizer participant if name provided
   let organizerId = "";
@@ -196,7 +201,7 @@ export async function createExchange(
     organizerId = organizerParticipant.participant.id;
 
     // Update exchange with organizerId
-    exchangeRepository.update(exchange.id, { organizerId });
+    await exchangeRepository.update(exchange.id, { organizerId });
 
     // If not participates, remove from participants list (but keep as organizer)
     if (!(input.organizerParticipates ?? true)) {
@@ -205,7 +210,7 @@ export async function createExchange(
     }
   }
 
-  exchangeRepository.createAdminAccess({
+  await exchangeRepository.createAdminAccess({
     exchangeId: exchange.id,
     passwordHash: hashPassword(input.adminPassword),
     createdAt: now,
@@ -213,7 +218,7 @@ export async function createExchange(
   });
 
   const adminSessionToken = generateOpaqueToken("adm");
-  exchangeRepository.createAdminSession({
+  await exchangeRepository.createAdminSession({
     id: generateId("sess"),
     exchangeId: exchange.id,
     tokenHash: sha256(adminSessionToken),
@@ -230,7 +235,7 @@ export async function createExchange(
 export async function getExchangeById(
   exchangeId: string,
 ): Promise<ExchangeDto> {
-  const exchange = exchangeRepository.findById(exchangeId);
+  const exchange = await exchangeRepository.findById(exchangeId);
 
   if (!exchange) {
     throw new NotFoundError("Exchange not found.", {
@@ -238,7 +243,7 @@ export async function getExchangeById(
     });
   }
 
-  const participants = participantRepository.findByExchangeId(exchangeId);
+  const participants = await participantRepository.findByExchangeId(exchangeId);
 
   // Get organizer name from participant
   const organizer = participants.find((p) => p.id === exchange.organizerId);
@@ -252,23 +257,27 @@ export async function getExchangeById(
 }
 
 export async function listExchanges(): Promise<ExchangeDto[]> {
-  const exchanges = exchangeRepository.findAll();
-  return exchanges.map((exchange) => {
-    const participants = participantRepository.findByExchangeId(exchange.id);
-    const organizer = participants.find((p) => p.id === exchange.organizerId);
-    return {
-      ...exchange,
-      organizerName: organizer ? organizer.name : "Unknown",
-      participants,
-    };
-  });
+  const exchanges = await exchangeRepository.findAll();
+  return Promise.all(
+    exchanges.map(async (exchange) => {
+      const participants = await participantRepository.findByExchangeId(
+        exchange.id,
+      );
+      const organizer = participants.find((p) => p.id === exchange.organizerId);
+      return {
+        ...exchange,
+        organizerName: organizer ? organizer.name : "Unknown",
+        participants,
+      };
+    }),
+  );
 }
 
 export async function updateExchange(
   exchangeId: string,
   input: UpdateExchangeInputDto,
 ): Promise<ExchangeDto> {
-  const exchange = exchangeRepository.findById(exchangeId);
+  const exchange = await exchangeRepository.findById(exchangeId);
 
   if (!exchange) {
     throw new NotFoundError("Exchange not found.", {
@@ -297,9 +306,26 @@ export async function updateExchange(
     suggestionsDeadlineAt: nextSuggestionsDeadlineAt,
   });
 
-  const updated = exchangeRepository.update(exchangeId, input);
+  const { expectedUpdatedAt, ...updates } = input;
+
+  const updated = expectedUpdatedAt
+    ? await exchangeRepository.updateIfUnchanged(
+        exchangeId,
+        updates,
+        expectedUpdatedAt,
+      )
+    : await exchangeRepository.update(exchangeId, updates);
 
   if (!updated) {
+    if (expectedUpdatedAt) {
+      throw new ConflictError(
+        "Exchange was modified by another user. Refresh and try again.",
+        {
+          code: "RESOURCE_MODIFIED_CONCURRENTLY",
+        },
+      );
+    }
+
     throw new NotFoundError("Exchange not found.", {
       code: "EXCHANGE_NOT_FOUND",
     });
@@ -309,173 +335,190 @@ export async function updateExchange(
 }
 
 export async function deleteExchange(exchangeId: string): Promise<void> {
-  const exchange = exchangeRepository.findById(exchangeId);
+  await withTransaction(async (db) => {
+    const exchange = await exchangeRepository.findById(exchangeId, db);
 
-  if (!exchange) {
-    throw new NotFoundError("Exchange not found.", {
-      code: "EXCHANGE_NOT_FOUND",
-    });
-  }
+    if (!exchange) {
+      throw new NotFoundError("Exchange not found.", {
+        code: "EXCHANGE_NOT_FOUND",
+      });
+    }
 
-  exclusionRuleRepository.deleteByExchangeId(exchangeId);
-  exchangeRepository.delete(exchangeId);
+    await exclusionRuleRepository.deleteByExchangeId(exchangeId, db);
+    await exchangeRepository.delete(exchangeId, db);
+  });
 }
 
 export async function drawExchange(exchangeId: string): Promise<ExchangeDto> {
-  const exchange = exchangeRepository.findById(exchangeId);
+  return await withTransaction(async (db) => {
+    const exchange = await exchangeRepository.findById(exchangeId, db);
 
-  if (!exchange) {
-    throw new NotFoundError("Exchange not found.", {
-      code: "EXCHANGE_NOT_FOUND",
-    });
-  }
-
-  if (exchange.status === "archived") {
-    throw new BadRequestError("Archived exchanges cannot be drawn.", {
-      code: "EXCHANGE_ARCHIVED_CANNOT_DRAW",
-    });
-  }
-
-  if (exchange.status === "drawn") {
-    return exchange;
-  }
-
-  const participants = participantRepository
-    .findByExchangeId(exchangeId)
-    .filter((p) => p.status === "active");
-
-  if (exchange.drawDeadlineAt) {
-    const drawDeadline = new Date(exchange.drawDeadlineAt);
-    if (
-      !Number.isNaN(drawDeadline.getTime()) &&
-      drawDeadline.getTime() < Date.now()
-    ) {
-      throw new BadRequestError("The draw deadline has already passed.", {
-        code: "DRAW_DEADLINE_PASSED",
-        drawDeadlineAt: exchange.drawDeadlineAt,
+    if (!exchange) {
+      throw new NotFoundError("Exchange not found.", {
+        code: "EXCHANGE_NOT_FOUND",
       });
     }
-  }
 
-  const minWishlistSuggestions = exchange.minWishlistSuggestions ?? 0;
-  if (minWishlistSuggestions > 0) {
-    const participantsMissingSuggestions = participants
-      .filter(
-        (participant) =>
-          (participant.wishlist?.length ?? 0) < minWishlistSuggestions,
-      )
-      .map((participant) => participant.id);
+    if (exchange.status === "archived") {
+      throw new BadRequestError("Archived exchanges cannot be drawn.", {
+        code: "EXCHANGE_ARCHIVED_CANNOT_DRAW",
+      });
+    }
 
-    if (participantsMissingSuggestions.length > 0) {
+    if (exchange.status === "drawn") {
+      return exchange;
+    }
+
+    const participants = (
+      await participantRepository.findByExchangeId(exchangeId, db)
+    ).filter((p) => p.status === "active");
+
+    if (exchange.drawDeadlineAt) {
+      const drawDeadline = new Date(exchange.drawDeadlineAt);
+      if (
+        !Number.isNaN(drawDeadline.getTime()) &&
+        drawDeadline.getTime() < Date.now()
+      ) {
+        throw new BadRequestError("The draw deadline has already passed.", {
+          code: "DRAW_DEADLINE_PASSED",
+          drawDeadlineAt: exchange.drawDeadlineAt,
+        });
+      }
+    }
+
+    const minWishlistSuggestions = exchange.minWishlistSuggestions ?? 0;
+    if (minWishlistSuggestions > 0) {
+      const participantsMissingSuggestions = participants
+        .filter(
+          (participant) =>
+            (participant.wishlist?.length ?? 0) < minWishlistSuggestions,
+        )
+        .map((participant) => participant.id);
+
+      if (participantsMissingSuggestions.length > 0) {
+        throw new BadRequestError(
+          "Some participants are missing required wishlist suggestions.",
+          {
+            code: "DRAW_MIN_WISHLIST_SUGGESTIONS",
+            minWishlistSuggestions,
+            participantsMissingSuggestions,
+          },
+        );
+      }
+    }
+
+    if (participants.length < 3) {
       throw new BadRequestError(
-        "Some participants are missing required wishlist suggestions.",
+        "At least 3 active participants are required to draw.",
         {
-          code: "DRAW_MIN_WISHLIST_SUGGESTIONS",
-          minWishlistSuggestions,
-          participantsMissingSuggestions,
+          code: "DRAW_MIN_ACTIVE_PARTICIPANTS",
         },
       );
     }
-  }
 
-  if (participants.length < 3) {
-    throw new BadRequestError(
-      "At least 3 active participants are required to draw.",
-      {
-        code: "DRAW_MIN_ACTIVE_PARTICIPANTS",
-      },
+    const ordered = [...participants].sort((a, b) => a.id.localeCompare(b.id));
+    const participantIds = ordered.map((participant) => participant.id);
+    const exclusions = await exclusionRuleRepository.findByExchangeId(
+      exchangeId,
+      db,
     );
-  }
 
-  const ordered = [...participants].sort((a, b) => a.id.localeCompare(b.id));
-  const participantIds = ordered.map((participant) => participant.id);
-  const exclusions = exclusionRuleRepository.findByExchangeId(exchangeId);
+    const drawAssignments = buildAssignmentsWithExclusions(
+      participantIds,
+      exclusions,
+      exchange.noMutualAssignments ?? false,
+    );
 
-  const drawAssignments = buildAssignmentsWithExclusions(
-    participantIds,
-    exclusions,
-    exchange.noMutualAssignments ?? false,
-  );
+    if (!drawAssignments) {
+      const noMutualAssignments = exchange.noMutualAssignments ?? false;
+      const hasExclusionRules = exclusions.length > 0;
 
-  if (!drawAssignments) {
-    const noMutualAssignments = exchange.noMutualAssignments ?? false;
-    const hasExclusionRules = exclusions.length > 0;
+      let message = "No valid draw is possible with the current settings.";
+      if (hasExclusionRules && noMutualAssignments) {
+        message =
+          "No valid draw is possible with the current exclusion rules and no-mutual-assignment setting.";
+      } else if (hasExclusionRules) {
+        message = "No valid draw is possible with the current exclusion rules.";
+      } else if (noMutualAssignments) {
+        message =
+          "No valid draw is possible with the no-mutual-assignment setting.";
+      }
 
-    let message = "No valid draw is possible with the current settings.";
-    if (hasExclusionRules && noMutualAssignments) {
-      message =
-        "No valid draw is possible with the current exclusion rules and no-mutual-assignment setting.";
-    } else if (hasExclusionRules) {
-      message = "No valid draw is possible with the current exclusion rules.";
-    } else if (noMutualAssignments) {
-      message =
-        "No valid draw is possible with the no-mutual-assignment setting.";
+      throw new BadRequestError(message, {
+        code: "DRAW_IMPOSSIBLE",
+        hasExclusionRules,
+        noMutualAssignments,
+      });
     }
 
-    throw new BadRequestError(message, {
-      code: "DRAW_IMPOSSIBLE",
-      hasExclusionRules,
-      noMutualAssignments,
+    const now = new Date().toISOString();
+    const assignments = drawAssignments.map((assignment) => {
+      return {
+        id: generateId("asg"),
+        exchangeId,
+        giverParticipantId: assignment.giverParticipantId,
+        receiverParticipantId: assignment.receiverParticipantId,
+        createdAt: now,
+      };
     });
-  }
 
-  const now = new Date().toISOString();
-  const assignments = drawAssignments.map((assignment) => {
-    return {
-      id: generateId("asg"),
+    await assignmentRepository.deleteByExchangeId(exchangeId, db);
+    await assignmentRepository.createMany(assignments, db);
+
+    const updated = await exchangeRepository.update(
       exchangeId,
-      giverParticipantId: assignment.giverParticipantId,
-      receiverParticipantId: assignment.receiverParticipantId,
-      createdAt: now,
-    };
+      {
+        status: "drawn",
+        drawAt: now,
+      },
+      db,
+    );
+
+    if (!updated) {
+      throw new NotFoundError("Exchange not found.", {
+        code: "EXCHANGE_NOT_FOUND",
+      });
+    }
+
+    return updated;
   });
-
-  assignmentRepository.deleteByExchangeId(exchangeId);
-  assignmentRepository.createMany(assignments);
-
-  const updated = exchangeRepository.update(exchangeId, {
-    status: "drawn",
-    drawAt: now,
-  });
-
-  if (!updated) {
-    throw new NotFoundError("Exchange not found.", {
-      code: "EXCHANGE_NOT_FOUND",
-    });
-  }
-
-  return updated;
 }
 
 export async function cancelExchangeDraw(
   exchangeId: string,
 ): Promise<ExchangeDto> {
-  const exchange = exchangeRepository.findById(exchangeId);
+  return await withTransaction(async (db) => {
+    const exchange = await exchangeRepository.findById(exchangeId, db);
 
-  if (!exchange) {
-    throw new NotFoundError("Exchange not found.", {
-      code: "EXCHANGE_NOT_FOUND",
-    });
-  }
+    if (!exchange) {
+      throw new NotFoundError("Exchange not found.", {
+        code: "EXCHANGE_NOT_FOUND",
+      });
+    }
 
-  if (exchange.status === "archived") {
-    throw new BadRequestError("Archived exchanges cannot be modified.", {
-      code: "EXCHANGE_ARCHIVED_CANNOT_MODIFY",
-    });
-  }
+    if (exchange.status === "archived") {
+      throw new BadRequestError("Archived exchanges cannot be modified.", {
+        code: "EXCHANGE_ARCHIVED_CANNOT_MODIFY",
+      });
+    }
 
-  assignmentRepository.deleteByExchangeId(exchangeId);
+    await assignmentRepository.deleteByExchangeId(exchangeId, db);
 
-  const updated = exchangeRepository.update(exchangeId, {
-    status: "ready",
-    drawAt: undefined,
+    const updated = await exchangeRepository.update(
+      exchangeId,
+      {
+        status: "ready",
+        drawAt: undefined,
+      },
+      db,
+    );
+
+    if (!updated) {
+      throw new NotFoundError("Exchange not found.", {
+        code: "EXCHANGE_NOT_FOUND",
+      });
+    }
+
+    return updated;
   });
-
-  if (!updated) {
-    throw new NotFoundError("Exchange not found.", {
-      code: "EXCHANGE_NOT_FOUND",
-    });
-  }
-
-  return updated;
 }

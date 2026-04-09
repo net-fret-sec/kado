@@ -151,6 +151,7 @@ async function saveSelf() {
       name: name.value.trim(),
       email: email.value.trim() || undefined,
       note: note.value.trim() || undefined,
+      expectedUpdatedAt: view.value?.participant.updatedAt,
       wishlist: wishlist.value.length
         ? wishlist.value.map(({ _clientId: _discardedClientId, ...suggestion }) => suggestion)
         : undefined,

@@ -10,7 +10,9 @@
     "preview:web": "pnpm --dir apps/web preview",
     "dev:api": "pnpm --dir apps/api run dev",
     "build:api": "pnpm --dir apps/api run build",
-    "preview:api": "pnpm --dir apps/api run preview"
+    "preview:api": "pnpm --dir apps/api run preview",
+    "db:ping:api": "pnpm --dir apps/api run db:ping",
+    "db:migrate:api": "pnpm --dir apps/api run db:migrate"
   },
   "keywords": [],
   "author": "Dave Létourneau <daveletourneau@gmail.com>",

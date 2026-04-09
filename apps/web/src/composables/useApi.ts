@@ -102,7 +102,14 @@ async function request<T = unknown, B = unknown>(
     opts.body = body
   }
 
-  const response = await fetch(url, opts)
+  let response: Response
+
+  try {
+    response = await fetch(url, opts)
+  } catch {
+    throw new HttpError('API unavailable.', 0, null, 'API_UNAVAILABLE')
+  }
+
   return await parseResponse<T>(response)
 }
 

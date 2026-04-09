@@ -5,7 +5,11 @@ import type {
   ParticipantSelfViewDto,
   UpdateParticipantInputDto,
 } from "@kado/shared";
-import { BadRequestError, NotFoundError } from "../lib/http-errors";
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+} from "../lib/http-errors";
 import { generateId, generateOpaqueToken, sha256 } from "../lib/crypto";
 import { exchangeRepository } from "../repositories/exchange.repository";
 import { participantRepository } from "../repositories/participant.repository";
@@ -51,7 +55,7 @@ export async function createParticipant(
   exchangeId: string,
   input: CreateParticipantInputDto,
 ): Promise<CreateParticipantResultDto> {
-  const exchange = exchangeRepository.findById(exchangeId);
+  const exchange = await exchangeRepository.findById(exchangeId);
 
   if (!exchange) {
     throw new NotFoundError("Exchange not found.", {
@@ -73,10 +77,10 @@ export async function createParticipant(
     updatedAt: now,
   };
 
-  participantRepository.create(participant);
+  await participantRepository.create(participant);
 
   const rawToken = generateOpaqueToken("p");
-  participantRepository.createAccess({
+  await participantRepository.createAccess({
     id: generateId("pacc"),
     exchangeId,
     participantId: participant.id,
@@ -93,13 +97,13 @@ export async function createParticipant(
 }
 
 export async function getParticipantsByExchangeId(exchangeId: string) {
-  return participantRepository.findByExchangeId(exchangeId);
+  return await participantRepository.findByExchangeId(exchangeId);
 }
 
 export async function getParticipantById(
   participantId: string,
 ): Promise<ParticipantDto> {
-  const participant = participantRepository.findById(participantId);
+  const participant = await participantRepository.findById(participantId);
 
   if (!participant) {
     throw new NotFoundError("Participant not found.", {
@@ -114,7 +118,7 @@ export async function updateParticipant(
   participantId: string,
   input: UpdateParticipantInputDto,
 ): Promise<ParticipantDto> {
-  const participant = participantRepository.findById(participantId);
+  const participant = await participantRepository.findById(participantId);
 
   if (!participant) {
     throw new NotFoundError("Participant not found.", {
@@ -122,9 +126,26 @@ export async function updateParticipant(
     });
   }
 
-  const updated = participantRepository.update(participantId, input);
+  const { expectedUpdatedAt, ...updates } = input;
+
+  const updated = expectedUpdatedAt
+    ? await participantRepository.updateIfUnchanged(
+        participantId,
+        updates,
+        expectedUpdatedAt,
+      )
+    : await participantRepository.update(participantId, updates);
 
   if (!updated) {
+    if (expectedUpdatedAt) {
+      throw new ConflictError(
+        "Participant was modified by another user. Refresh and try again.",
+        {
+          code: "RESOURCE_MODIFIED_CONCURRENTLY",
+        },
+      );
+    }
+
     throw new NotFoundError("Participant not found.", {
       code: "PARTICIPANT_NOT_FOUND",
     });
@@ -134,7 +155,7 @@ export async function updateParticipant(
 }
 
 export async function deleteParticipant(participantId: string): Promise<void> {
-  const participant = participantRepository.findById(participantId);
+  const participant = await participantRepository.findById(participantId);
 
   if (!participant) {
     throw new NotFoundError("Participant not found.", {
@@ -142,14 +163,14 @@ export async function deleteParticipant(participantId: string): Promise<void> {
     });
   }
 
-  participantRepository.delete(participantId);
+  await participantRepository.delete(participantId);
 }
 
 export async function regenerateParticipantAccess(
   participantId: string,
   revokeExisting: boolean = true,
 ): Promise<{ participantId: string; accessLink: string }> {
-  const participant = participantRepository.findById(participantId);
+  const participant = await participantRepository.findById(participantId);
   if (!participant) {
     throw new NotFoundError("Participant not found.", {
       code: "PARTICIPANT_NOT_FOUND",
@@ -160,10 +181,10 @@ export async function regenerateParticipantAccess(
   const rawToken = generateOpaqueToken("p");
 
   if (revokeExisting) {
-    participantRepository.revokeActiveAccessForParticipant(participantId);
+    await participantRepository.revokeActiveAccessForParticipant(participantId);
   }
 
-  participantRepository.createAccess({
+  await participantRepository.createAccess({
     id: generateId("pacc"),
     exchangeId: participant.exchangeId,
     participantId: participant.id,
@@ -182,17 +203,21 @@ export async function regenerateParticipantAccess(
 export async function getParticipantSelfViewByToken(
   rawToken: string,
 ): Promise<ParticipantSelfViewDto> {
-  const { access, participant, exchange } = resolveParticipantAccess(rawToken);
+  const { access, participant, exchange } =
+    await resolveParticipantAccess(rawToken);
 
-  participantRepository.touchAccess(access.id);
+  await participantRepository.touchAccess(access.id);
 
   const assignment =
     exchange.status === "drawn"
-      ? assignmentRepository.findByExchangeAndGiver(exchange.id, participant.id)
+      ? await assignmentRepository.findByExchangeAndGiver(
+          exchange.id,
+          participant.id,
+        )
       : undefined;
 
   const receiver = assignment
-    ? participantRepository.findById(assignment.receiverParticipantId)
+    ? await participantRepository.findById(assignment.receiverParticipantId)
     : undefined;
 
   return {
@@ -215,6 +240,7 @@ export async function getParticipantSelfViewByToken(
       email: participant.email,
       wishlist: participant.wishlist,
       note: participant.note,
+      updatedAt: participant.updatedAt,
     },
     assignment: receiver
       ? {
@@ -230,7 +256,8 @@ export async function updateParticipantSelfByToken(
   rawToken: string,
   input: UpdateParticipantInputDto,
 ): Promise<ParticipantSelfViewDto> {
-  const { access, participant, exchange } = resolveParticipantAccess(rawToken);
+  const { access, participant, exchange } =
+    await resolveParticipantAccess(rawToken);
 
   if (areParticipantSuggestionsUpdatesClosed(exchange)) {
     throw new BadRequestError(
@@ -241,14 +268,32 @@ export async function updateParticipantSelfByToken(
     );
   }
 
-  const updated = participantRepository.update(participant.id, input);
+  const { expectedUpdatedAt, ...updates } = input;
+
+  const updated = expectedUpdatedAt
+    ? await participantRepository.updateIfUnchanged(
+        participant.id,
+        updates,
+        expectedUpdatedAt,
+      )
+    : await participantRepository.update(participant.id, updates);
+
   if (!updated) {
+    if (expectedUpdatedAt) {
+      throw new ConflictError(
+        "Participant was modified by another user. Refresh and try again.",
+        {
+          code: "RESOURCE_MODIFIED_CONCURRENTLY",
+        },
+      );
+    }
+
     throw new NotFoundError("Participant not found.", {
       code: "PARTICIPANT_NOT_FOUND",
     });
   }
 
-  participantRepository.touchAccess(access.id);
+  await participantRepository.touchAccess(access.id);
 
   return {
     exchange: {
@@ -270,28 +315,32 @@ export async function updateParticipantSelfByToken(
       email: updated.email,
       wishlist: updated.wishlist,
       note: updated.note,
+      updatedAt: updated.updatedAt,
     },
     assignment: undefined,
   };
 }
 
-function resolveParticipantAccess(rawToken: string) {
+async function resolveParticipantAccess(rawToken: string) {
   const tokenHash = sha256(rawToken);
-  const access = participantRepository.findActiveAccessByTokenHash(tokenHash);
+  const access =
+    await participantRepository.findActiveAccessByTokenHash(tokenHash);
   if (!access) {
     throw new NotFoundError("Invalid or expired link.", {
       code: "PARTICIPANT_LINK_INVALID_OR_EXPIRED",
     });
   }
 
-  const participant = participantRepository.findById(access.participantId);
+  const participant = await participantRepository.findById(
+    access.participantId,
+  );
   if (!participant) {
     throw new NotFoundError("Participant not found.", {
       code: "PARTICIPANT_NOT_FOUND",
     });
   }
 
-  const exchange = exchangeRepository.findById(access.exchangeId);
+  const exchange = await exchangeRepository.findById(access.exchangeId);
   if (!exchange) {
     throw new NotFoundError("Exchange not found.", {
       code: "EXCHANGE_NOT_FOUND",

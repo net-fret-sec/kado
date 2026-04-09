@@ -31,6 +31,7 @@ export interface CreateParticipantInputDto {
 }
 
 export interface UpdateParticipantInputDto {
+  expectedUpdatedAt?: string;
   name?: string;
   email?: string;
   wishlist?: GiftSuggestionDto[];
@@ -75,7 +76,7 @@ export interface ParticipantSelfViewDto {
   >;
   participant: Pick<
     ParticipantDto,
-    "id" | "name" | "email" | "wishlist" | "note"
+    "id" | "name" | "email" | "wishlist" | "note" | "updatedAt"
   >;
   assignment?: ParticipantAssignmentDto;
 }

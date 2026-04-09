@@ -1,9 +1,15 @@
-import { Router } from 'express'
+import { Router } from "express";
+import { checkDatabaseHealth } from "../db";
 
-const router = Router()
+const router = Router();
 
-router.get('/', (_req, res) => {
-  res.json({ ok: true })
-})
+router.get("/", async (_req, res) => {
+  const db = await checkDatabaseHealth();
 
-export default router
+  res.json({
+    ok: true,
+    db,
+  });
+});
+
+export default router;

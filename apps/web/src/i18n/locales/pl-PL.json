@@ -258,6 +258,8 @@
     "EXCLUSION_SELF_NOT_ALLOWED": "Uczestnik nie może wykluczyć samego siebie.",
     "EXCLUSION_RULE_ALREADY_EXISTS": "Ta reguła wykluczenia już istnieje.",
     "EXCLUSION_RULE_NOT_FOUND": "Nie znaleziono żądanej reguły wykluczenia.",
+    "RESOURCE_MODIFIED_CONCURRENTLY": "Ten zasób został zmodyfikowany gdzie indziej. Odśwież stronę i spróbuj ponownie.",
+    "API_UNAVAILABLE": "Serwer jest tymczasowo niedostępny. Sprawdź, czy API i PostgreSQL są uruchomione.",
     "INVALID_REQUEST_BODY": "Treść żądania jest nieprawidłowa.",
     "INVALID_ROUTE_PARAMETERS": "Parametry ścieżki są nieprawidłowe."
   },

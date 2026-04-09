@@ -258,6 +258,8 @@
     "EXCLUSION_SELF_NOT_ALLOWED": "A participant cannot be excluded from drawing themselves.",
     "EXCLUSION_RULE_ALREADY_EXISTS": "This exclusion rule already exists.",
     "EXCLUSION_RULE_NOT_FOUND": "The requested exclusion rule was not found.",
+    "RESOURCE_MODIFIED_CONCURRENTLY": "This resource was modified elsewhere. Refresh and try again.",
+    "API_UNAVAILABLE": "The server is temporarily unavailable. Verify that the API and PostgreSQL are running.",
     "INVALID_REQUEST_BODY": "The request body is invalid.",
     "INVALID_ROUTE_PARAMETERS": "The route parameters are invalid."
   },

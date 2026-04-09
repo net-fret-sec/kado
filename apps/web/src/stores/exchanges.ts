@@ -120,14 +120,17 @@ export const useExchangesStore = defineStore('exchanges', () => {
       }
     },
 
-    async updateExchange(id: string, updatedFields: Partial<ExchangeDto>) {
+    async updateExchange(
+      id: string,
+      updatedFields: Partial<ExchangeDto> & { expectedUpdatedAt?: string },
+    ) {
       isLoading.value = true
       error.value = null
       try {
-        const updated = await api.put<ExchangeDto, Partial<ExchangeDto>>(
-          `/api/exchanges/${id}`,
-          updatedFields,
-        )
+        const updated = await api.put<
+          ExchangeDto,
+          Partial<ExchangeDto> & { expectedUpdatedAt?: string }
+        >(`/api/exchanges/${id}`, updatedFields)
         const idx = exchanges.value.findIndex((e) => e.id === id)
         if (idx !== -1) exchanges.value[idx] = updated
         return updated

@@ -118,6 +118,51 @@ Par défaut:
 - API: `http://localhost:3000`
 - Web: `http://localhost:5173`
 
+## PostgreSQL (démarrage de la persistance)
+
+Un premier incrément PostgreSQL est en place côté API:
+
+- couche de connexion DB (`apps/api/src/db.ts`)
+- endpoint santé enrichi (`GET /health` inclut l'état DB)
+- migrations SQL versionnées (`apps/api/migrations`)
+
+### Démarrage rapide en local
+
+1. Démarrer PostgreSQL (exemple Docker):
+
+```bash
+docker run --name kado-postgres \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=kado \
+  -p 5432:5432 \
+  -d postgres:16
+```
+
+2. Copier l'exemple d'environnement API et définir `DATABASE_URL`:
+
+```bash
+cp apps/api/.env.example apps/api/.env
+```
+
+Valeur typique:
+
+```bash
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/kado
+```
+
+3. Vérifier la connexion DB:
+
+```bash
+pnpm db:ping:api
+```
+
+4. Appliquer les migrations:
+
+```bash
+pnpm db:migrate:api
+```
+
 ## Build et vérification
 
 Build web:
@@ -198,8 +243,9 @@ Exemple: `apps/web/.env.example`
 
 ## Limites actuelles
 
-- Le stockage API est en mémoire (pas de base de données persistante).
-- Les données de démo sont chargées au démarrage depuis `apps/api/src/test-data.json`.
+- PostgreSQL doit être disponible pour démarrer l'API (base vide par défaut).
+- La stratégie de synchronisation client temps réel (polling/delta/SSE) n'est pas encore implémentée.
+- Les données de démo ne sont plus chargées automatiquement au démarrage.
 
 ## Licence
 

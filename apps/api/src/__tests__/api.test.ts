@@ -1,6 +1,7 @@
 import request from "supertest";
 import { createApp } from "../app";
 import { exchangeRepository } from "../repositories/exchange.repository";
+import { closePool } from "../db";
 
 const app = createApp();
 
@@ -8,8 +9,14 @@ let exchangeId: string;
 let participantId: string;
 let participantExchangeId: string;
 let participantAccessToken: string;
+let participantUpdatedAt: string;
+let participantSelfUpdatedAt: string;
 
 describe("API Tests", () => {
+  afterAll(async () => {
+    await closePool();
+  });
+
   describe("Exchanges", () => {
     it("should create an exchange", async () => {
       const response = await request(app)
@@ -37,6 +44,33 @@ describe("API Tests", () => {
 
       expect(response.body.name).toBe("Updated Exchange");
       expect(response.body.description).toBe("Updated description");
+    });
+
+    it("should return 409 when exchange expectedUpdatedAt is stale", async () => {
+      const currentExchange = await request(app)
+        .get(`/api/exchanges/${exchangeId}`)
+        .expect(200);
+
+      const staleUpdatedAt = currentExchange.body.updatedAt as string;
+
+      await request(app)
+        .put(`/api/exchanges/${exchangeId}`)
+        .send({
+          description: "Concurrent update",
+        })
+        .expect(200);
+
+      const staleResponse = await request(app)
+        .put(`/api/exchanges/${exchangeId}`)
+        .send({
+          name: "Should conflict",
+          expectedUpdatedAt: staleUpdatedAt,
+        })
+        .expect(409);
+
+      expect(staleResponse.body.error.details).toMatchObject({
+        code: "RESOURCE_MODIFIED_CONCURRENTLY",
+      });
     });
 
     it("should reject create when suggestions deadline is after exchange moment", async () => {
@@ -121,6 +155,32 @@ describe("API Tests", () => {
 
       expect(response.body.name).toBe("Updated Participant");
       expect(response.body.wishlist).toEqual([{ title: "Updated wishlist" }]);
+      participantUpdatedAt = response.body.updatedAt;
+    });
+
+    it("should return 409 when participant expectedUpdatedAt is stale", async () => {
+      await request(app)
+        .put(
+          `/api/exchanges/${participantExchangeId}/participants/${participantId}`,
+        )
+        .send({
+          note: "Concurrent participant update",
+        })
+        .expect(200);
+
+      const staleResponse = await request(app)
+        .put(
+          `/api/exchanges/${participantExchangeId}/participants/${participantId}`,
+        )
+        .send({
+          name: "Should conflict",
+          expectedUpdatedAt: participantUpdatedAt,
+        })
+        .expect(409);
+
+      expect(staleResponse.body.error.details).toMatchObject({
+        code: "RESOURCE_MODIFIED_CONCURRENTLY",
+      });
     });
 
     it("should delete a participant", async () => {
@@ -160,6 +220,7 @@ describe("API Tests", () => {
 
       expect(response.body.exchange.id).toBe(participantExchangeId);
       expect(response.body.participant.name).toBe("Public Participant");
+      participantSelfUpdatedAt = response.body.participant.updatedAt;
     });
 
     it("should update participant info by token before draw", async () => {
@@ -179,10 +240,33 @@ describe("API Tests", () => {
       expect(response.body.participant.name).toBe("Participant Public Edit");
       expect(response.body.participant.email).toBe("participant@example.com");
       expect(response.body.participant.wishlist).toHaveLength(2);
+
+      participantSelfUpdatedAt = response.body.participant.updatedAt;
+    });
+
+    it("should return 409 when participant self expectedUpdatedAt is stale", async () => {
+      await request(app)
+        .put(`/api/p/${participantAccessToken}`)
+        .send({
+          note: "Concurrent self update",
+        })
+        .expect(200);
+
+      const staleResponse = await request(app)
+        .put(`/api/p/${participantAccessToken}`)
+        .send({
+          name: "Self conflict",
+          expectedUpdatedAt: participantSelfUpdatedAt,
+        })
+        .expect(409);
+
+      expect(staleResponse.body.error.details).toMatchObject({
+        code: "RESOURCE_MODIFIED_CONCURRENTLY",
+      });
     });
 
     it("should reject participant update after draw when lock after draw is enabled", async () => {
-      exchangeRepository.update(participantExchangeId, {
+      await exchangeRepository.update(participantExchangeId, {
         status: "drawn",
         lockSuggestionsAfterDraw: true,
       });
@@ -201,7 +285,7 @@ describe("API Tests", () => {
     });
 
     it("should allow participant update after draw when lock after draw is disabled", async () => {
-      exchangeRepository.update(participantExchangeId, {
+      await exchangeRepository.update(participantExchangeId, {
         status: "drawn",
         lockSuggestionsAfterDraw: false,
         suggestionsDeadlineAt: undefined,
@@ -222,7 +306,7 @@ describe("API Tests", () => {
     });
 
     it("should reject participant update when suggestions deadline is passed", async () => {
-      exchangeRepository.update(participantExchangeId, {
+      await exchangeRepository.update(participantExchangeId, {
         status: "drawn",
         lockSuggestionsAfterDraw: false,
         suggestionsDeadlineAt: "2000-01-01T00:00:00.000Z",
@@ -733,7 +817,7 @@ describe("API Tests", () => {
     });
 
     it("should reject exclusion changes after draw", async () => {
-      exchangeRepository.update(exclusionExchangeId, { status: "drawn" });
+      await exchangeRepository.update(exclusionExchangeId, { status: "drawn" });
 
       const createResponse = await request(app)
         .post(`/api/exchanges/${exclusionExchangeId}/exclusions`)

@@ -1,49 +1,132 @@
+import { query, type DbExecutor } from "../db";
+
 interface AssignmentRecord {
-  id: string
-  exchangeId: string
-  giverParticipantId: string
-  receiverParticipantId: string
-  createdAt: string
+  id: string;
+  exchangeId: string;
+  giverParticipantId: string;
+  receiverParticipantId: string;
+  createdAt: string;
 }
 
-const assignments = new Map<string, AssignmentRecord>()
+interface AssignmentRow {
+  id: string;
+  exchange_id: string;
+  giver_participant_id: string;
+  receiver_participant_id: string;
+  created_at: string;
+}
+
+function mapAssignmentRow(row: AssignmentRow): AssignmentRecord {
+  return {
+    id: row.id,
+    exchangeId: row.exchange_id,
+    giverParticipantId: row.giver_participant_id,
+    receiverParticipantId: row.receiver_participant_id,
+    createdAt: row.created_at,
+  };
+}
 
 export const assignmentRepository = {
-  createMany(records: AssignmentRecord[]) {
-    for (const record of records) {
-      assignments.set(record.id, record)
+  async createMany(records: AssignmentRecord[], db?: DbExecutor) {
+    if (records.length === 0) {
+      return records;
     }
-    return records
+
+    const values: unknown[] = [];
+    const placeholders = records
+      .map((record, index) => {
+        const base = index * 5;
+        values.push(
+          record.id,
+          record.exchangeId,
+          record.giverParticipantId,
+          record.receiverParticipantId,
+          record.createdAt,
+        );
+
+        return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`;
+      })
+      .join(", ");
+
+    await query(
+      `
+        INSERT INTO assignments (
+          id, exchange_id, giver_participant_id, receiver_participant_id, created_at
+        )
+        VALUES ${placeholders}
+      `,
+      values,
+      db,
+    );
+
+    return records;
   },
 
-  findByExchangeId(exchangeId: string) {
-    return Array.from(assignments.values()).filter(a => a.exchangeId === exchangeId)
+  async findByExchangeId(exchangeId: string, db?: DbExecutor) {
+    const result = await query<AssignmentRow>(
+      `
+        SELECT *
+        FROM assignments
+        WHERE exchange_id = $1
+        ORDER BY created_at ASC
+      `,
+      [exchangeId],
+      db,
+    );
+
+    return result.rows.map(mapAssignmentRow);
   },
 
-  findByExchangeAndGiver(exchangeId: string, giverParticipantId: string) {
-    return Array.from(assignments.values()).find(
-      a => a.exchangeId === exchangeId && a.giverParticipantId === giverParticipantId,
-    )
+  async findByExchangeAndGiver(
+    exchangeId: string,
+    giverParticipantId: string,
+    db?: DbExecutor,
+  ) {
+    const result = await query<AssignmentRow>(
+      `
+        SELECT *
+        FROM assignments
+        WHERE exchange_id = $1 AND giver_participant_id = $2
+        LIMIT 1
+      `,
+      [exchangeId, giverParticipantId],
+      db,
+    );
+
+    const row = result.rows[0];
+    return row ? mapAssignmentRow(row) : undefined;
   },
 
-  deleteByExchangeId(exchangeId: string) {
-    let deleted = 0
-    for (const [id, assignment] of assignments.entries()) {
-      if (assignment.exchangeId === exchangeId) {
-        assignments.delete(id)
-        deleted += 1
-      }
-    }
-    return deleted
+  async deleteByExchangeId(exchangeId: string, db?: DbExecutor) {
+    const result = await query(
+      `
+        DELETE FROM assignments
+        WHERE exchange_id = $1
+      `,
+      [exchangeId],
+      db,
+    );
+
+    return result.rowCount ?? 0;
   },
 
-  existsForExchange(exchangeId: string) {
-    return Array.from(assignments.values()).some(a => a.exchangeId === exchangeId)
+  async existsForExchange(exchangeId: string, db?: DbExecutor) {
+    const result = await query<{ exists: boolean }>(
+      `
+        SELECT EXISTS (
+          SELECT 1
+          FROM assignments
+          WHERE exchange_id = $1
+        ) AS exists
+      `,
+      [exchangeId],
+      db,
+    );
+
+    return result.rows[0]?.exists ?? false;
   },
 
-  loadTestData(data: { assignments: AssignmentRecord[] }) {
-    for (const assignment of data.assignments) {
-      assignments.set(assignment.id, assignment)
-    }
+  async loadTestData(_data: { assignments: AssignmentRecord[] }) {
+    // Intentionally no-op: this migration starts from an empty database.
   },
-}
+};

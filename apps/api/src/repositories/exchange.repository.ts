@@ -1,3 +1,5 @@
+import { query, type DbExecutor } from "../db";
+
 interface ExchangeRecord {
   id: string;
   name: string;
@@ -32,73 +34,321 @@ interface AdminSessionRecord {
   expiresAt: string;
 }
 
-const exchanges = new Map<string, ExchangeRecord>();
-const adminAccessByExchangeId = new Map<string, AdminAccessRecord>();
-const adminSessions = new Map<string, AdminSessionRecord>();
+interface ExchangeRow {
+  id: string;
+  name: string;
+  description: string | null;
+  organizer_id: string;
+  status: "draft" | "ready" | "drawn" | "archived";
+  event_date: string | null;
+  draw_deadline_at: string | null;
+  suggestions_deadline_at: string | null;
+  budget: string | null;
+  budget_currency: string | null;
+  min_wishlist_suggestions: number;
+  lock_suggestions_after_draw: boolean;
+  no_mutual_assignments: boolean;
+  draw_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface AdminAccessRow {
+  exchange_id: string;
+  password_hash: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface AdminSessionRow {
+  id: string;
+  exchange_id: string;
+  token_hash: string;
+  created_at: string;
+  expires_at: string;
+}
+
+function mapExchangeRow(row: ExchangeRow): ExchangeRecord {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description ?? undefined,
+    organizerId: row.organizer_id,
+    status: row.status,
+    eventDate: row.event_date ?? undefined,
+    drawDeadlineAt: row.draw_deadline_at ?? undefined,
+    suggestionsDeadlineAt: row.suggestions_deadline_at ?? undefined,
+    budget: row.budget === null ? undefined : Number(row.budget),
+    budgetCurrency: row.budget_currency ?? undefined,
+    minWishlistSuggestions: row.min_wishlist_suggestions,
+    lockSuggestionsAfterDraw: row.lock_suggestions_after_draw,
+    noMutualAssignments: row.no_mutual_assignments,
+    drawAt: row.draw_at ?? undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function mapAdminAccessRow(row: AdminAccessRow): AdminAccessRecord {
+  return {
+    exchangeId: row.exchange_id,
+    passwordHash: row.password_hash,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function mapAdminSessionRow(row: AdminSessionRow): AdminSessionRecord {
+  return {
+    id: row.id,
+    exchangeId: row.exchange_id,
+    tokenHash: row.token_hash,
+    createdAt: row.created_at,
+    expiresAt: row.expires_at,
+  };
+}
+
+const UPDATE_COLUMN_BY_FIELD: Record<string, string> = {
+  name: "name",
+  description: "description",
+  organizerId: "organizer_id",
+  status: "status",
+  eventDate: "event_date",
+  drawDeadlineAt: "draw_deadline_at",
+  suggestionsDeadlineAt: "suggestions_deadline_at",
+  budget: "budget",
+  budgetCurrency: "budget_currency",
+  minWishlistSuggestions: "min_wishlist_suggestions",
+  lockSuggestionsAfterDraw: "lock_suggestions_after_draw",
+  noMutualAssignments: "no_mutual_assignments",
+  drawAt: "draw_at",
+};
 
 export const exchangeRepository = {
-  create(exchange: ExchangeRecord) {
-    exchanges.set(exchange.id, exchange);
+  async create(exchange: ExchangeRecord, db?: DbExecutor) {
+    await query(
+      `
+        INSERT INTO exchanges (
+          id, name, description, organizer_id, status,
+          event_date, draw_deadline_at, suggestions_deadline_at,
+          budget, budget_currency, min_wishlist_suggestions,
+          lock_suggestions_after_draw, no_mutual_assignments,
+          draw_at, created_at, updated_at
+        )
+        VALUES (
+          $1, $2, $3, $4, $5,
+          $6, $7, $8,
+          $9, $10, $11,
+          $12, $13,
+          $14, $15, $16
+        )
+      `,
+      [
+        exchange.id,
+        exchange.name,
+        exchange.description ?? null,
+        exchange.organizerId,
+        exchange.status,
+        exchange.eventDate ?? null,
+        exchange.drawDeadlineAt ?? null,
+        exchange.suggestionsDeadlineAt ?? null,
+        exchange.budget ?? null,
+        exchange.budgetCurrency ?? null,
+        exchange.minWishlistSuggestions ?? 0,
+        exchange.lockSuggestionsAfterDraw ?? true,
+        exchange.noMutualAssignments ?? false,
+        exchange.drawAt ?? null,
+        exchange.createdAt,
+        exchange.updatedAt,
+      ],
+      db,
+    );
+
     return exchange;
   },
 
-  findById(exchangeId: string) {
-    return exchanges.get(exchangeId);
-  },
-
-  findAll() {
-    return Array.from(exchanges.values());
-  },
-
-  update(exchangeId: string, updates: Partial<ExchangeRecord>) {
-    const exchange = exchanges.get(exchangeId);
-    if (!exchange) return null;
-    const updated = {
-      ...exchange,
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    };
-    exchanges.set(exchangeId, updated);
-    return updated;
-  },
-
-  delete(exchangeId: string) {
-    return exchanges.delete(exchangeId);
-  },
-
-  createAdminAccess(record: AdminAccessRecord) {
-    adminAccessByExchangeId.set(record.exchangeId, record);
-    return record;
-  },
-
-  findAdminAccess(exchangeId: string) {
-    return adminAccessByExchangeId.get(exchangeId);
-  },
-
-  createAdminSession(record: AdminSessionRecord) {
-    adminSessions.set(record.id, record);
-    return record;
-  },
-
-  findAdminSessionByTokenHash(tokenHash: string) {
-    return Array.from(adminSessions.values()).find(
-      (session) => session.tokenHash === tokenHash,
+  async findById(exchangeId: string, db?: DbExecutor) {
+    const result = await query<ExchangeRow>(
+      `
+        SELECT *
+        FROM exchanges
+        WHERE id = $1
+      `,
+      [exchangeId],
+      db,
     );
+
+    const row = result.rows[0];
+    return row ? mapExchangeRow(row) : undefined;
   },
 
-  loadTestData(data: {
+  async findAll(db?: DbExecutor) {
+    const result = await query<ExchangeRow>(
+      `
+        SELECT *
+        FROM exchanges
+        ORDER BY created_at ASC
+      `,
+      undefined,
+      db,
+    );
+
+    return result.rows.map(mapExchangeRow);
+  },
+
+  async update(
+    exchangeId: string,
+    updates: Partial<ExchangeRecord>,
+    db?: DbExecutor,
+  ) {
+    const entries = Object.entries(updates).filter(([key]) =>
+      Object.prototype.hasOwnProperty.call(UPDATE_COLUMN_BY_FIELD, key),
+    );
+
+    const setClauses = entries.map(
+      ([field], index) => `${UPDATE_COLUMN_BY_FIELD[field]} = $${index + 2}`,
+    );
+    const values = entries.map(([, value]) =>
+      value === undefined ? null : value,
+    );
+
+    const result = await query<ExchangeRow>(
+      `
+        UPDATE exchanges
+        SET
+          ${setClauses.length > 0 ? `${setClauses.join(", ")},` : ""}
+          updated_at = NOW()
+        WHERE id = $1
+        RETURNING *
+      `,
+      [exchangeId, ...values],
+      db,
+    );
+
+    const row = result.rows[0];
+    return row ? mapExchangeRow(row) : null;
+  },
+
+  async updateIfUnchanged(
+    exchangeId: string,
+    updates: Partial<ExchangeRecord>,
+    expectedUpdatedAt: string,
+    db?: DbExecutor,
+  ) {
+    const entries = Object.entries(updates).filter(([key]) =>
+      Object.prototype.hasOwnProperty.call(UPDATE_COLUMN_BY_FIELD, key),
+    );
+
+    const setClauses = entries.map(
+      ([field], index) => `${UPDATE_COLUMN_BY_FIELD[field]} = $${index + 2}`,
+    );
+    const values = entries.map(([, value]) =>
+      value === undefined ? null : value,
+    );
+
+    const result = await query<ExchangeRow>(
+      `
+        UPDATE exchanges
+        SET
+          ${setClauses.length > 0 ? `${setClauses.join(", ")},` : ""}
+          updated_at = NOW()
+        WHERE id = $1
+          AND updated_at = $${values.length + 2}::timestamptz
+        RETURNING *
+      `,
+      [exchangeId, ...values, expectedUpdatedAt],
+      db,
+    );
+
+    const row = result.rows[0];
+    return row ? mapExchangeRow(row) : null;
+  },
+
+  async delete(exchangeId: string, db?: DbExecutor) {
+    const result = await query(
+      `
+        DELETE FROM exchanges
+        WHERE id = $1
+      `,
+      [exchangeId],
+      db,
+    );
+
+    return (result.rowCount ?? 0) > 0;
+  },
+
+  async createAdminAccess(record: AdminAccessRecord, db?: DbExecutor) {
+    await query(
+      `
+        INSERT INTO admin_access (exchange_id, password_hash, created_at, updated_at)
+        VALUES ($1, $2, $3, $4)
+      `,
+      [
+        record.exchangeId,
+        record.passwordHash,
+        record.createdAt,
+        record.updatedAt,
+      ],
+      db,
+    );
+
+    return record;
+  },
+
+  async findAdminAccess(exchangeId: string, db?: DbExecutor) {
+    const result = await query<AdminAccessRow>(
+      `
+        SELECT *
+        FROM admin_access
+        WHERE exchange_id = $1
+      `,
+      [exchangeId],
+      db,
+    );
+
+    const row = result.rows[0];
+    return row ? mapAdminAccessRow(row) : undefined;
+  },
+
+  async createAdminSession(record: AdminSessionRecord, db?: DbExecutor) {
+    await query(
+      `
+        INSERT INTO admin_sessions (id, exchange_id, token_hash, created_at, expires_at)
+        VALUES ($1, $2, $3, $4, $5)
+      `,
+      [
+        record.id,
+        record.exchangeId,
+        record.tokenHash,
+        record.createdAt,
+        record.expiresAt,
+      ],
+      db,
+    );
+
+    return record;
+  },
+
+  async findAdminSessionByTokenHash(tokenHash: string, db?: DbExecutor) {
+    const result = await query<AdminSessionRow>(
+      `
+        SELECT *
+        FROM admin_sessions
+        WHERE token_hash = $1
+      `,
+      [tokenHash],
+      db,
+    );
+
+    const row = result.rows[0];
+    return row ? mapAdminSessionRow(row) : undefined;
+  },
+
+  async loadTestData(_data: {
     exchanges: ExchangeRecord[];
     adminAccess: AdminAccessRecord[];
     adminSessions: AdminSessionRecord[];
   }) {
-    for (const exchange of data.exchanges) {
-      exchanges.set(exchange.id, exchange);
-    }
-    for (const access of data.adminAccess) {
-      adminAccessByExchangeId.set(access.exchangeId, access);
-    }
-    for (const session of data.adminSessions) {
-      adminSessions.set(session.id, session);
-    }
+    // Intentionally no-op: this migration starts from an empty database.
   },
 };

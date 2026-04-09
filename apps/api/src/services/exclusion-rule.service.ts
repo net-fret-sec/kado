@@ -1,98 +1,122 @@
-import type { CreateExclusionRuleInputDto, ExclusionRule } from '@kado/shared'
-import { generateId } from '../lib/crypto'
-import { BadRequestError, NotFoundError } from '../lib/http-errors'
-import { exchangeRepository } from '../repositories/exchange.repository'
-import { exclusionRuleRepository } from '../repositories/exclusion-rule.repository'
-import { participantRepository } from '../repositories/participant.repository'
+import type { CreateExclusionRuleInputDto, ExclusionRule } from "@kado/shared";
+import { generateId } from "../lib/crypto";
+import { BadRequestError, NotFoundError } from "../lib/http-errors";
+import { exchangeRepository } from "../repositories/exchange.repository";
+import { exclusionRuleRepository } from "../repositories/exclusion-rule.repository";
+import { participantRepository } from "../repositories/participant.repository";
 
-function assertExchangeExists(exchangeId: string) {
-  const exchange = exchangeRepository.findById(exchangeId)
+async function assertExchangeExists(exchangeId: string) {
+  const exchange = await exchangeRepository.findById(exchangeId);
   if (!exchange) {
-    throw new NotFoundError('Exchange not found.', {
-      code: 'EXCHANGE_NOT_FOUND',
-    })
+    throw new NotFoundError("Exchange not found.", {
+      code: "EXCHANGE_NOT_FOUND",
+    });
   }
-  return exchange
+  return exchange;
 }
 
-function assertExchangeEditable(exchangeId: string) {
-  const exchange = assertExchangeExists(exchangeId)
+async function assertExchangeEditable(exchangeId: string) {
+  const exchange = await assertExchangeExists(exchangeId);
 
-  if (exchange.status === 'drawn' || exchange.status === 'archived') {
-    throw new BadRequestError('Exclusion rules cannot be modified for this exchange.', {
-      code: 'EXCLUSION_RULES_LOCKED',
-    })
+  if (exchange.status === "drawn" || exchange.status === "archived") {
+    throw new BadRequestError(
+      "Exclusion rules cannot be modified for this exchange.",
+      {
+        code: "EXCLUSION_RULES_LOCKED",
+      },
+    );
   }
 
-  return exchange
+  return exchange;
 }
 
-function assertParticipantBelongsToExchange(exchangeId: string, participantId: string) {
-  const participant = participantRepository.findById(participantId)
+async function assertParticipantBelongsToExchange(
+  exchangeId: string,
+  participantId: string,
+) {
+  const participant = await participantRepository.findById(participantId);
 
-  if (!participant || participant.exchangeId !== exchangeId || participant.status !== 'active') {
-    throw new BadRequestError('Participant does not belong to this exchange.', {
-      code: 'PARTICIPANT_OUTSIDE_EXCHANGE',
-    })
+  if (
+    !participant ||
+    participant.exchangeId !== exchangeId ||
+    participant.status !== "active"
+  ) {
+    throw new BadRequestError("Participant does not belong to this exchange.", {
+      code: "PARTICIPANT_OUTSIDE_EXCHANGE",
+    });
   }
 
-  return participant
+  return participant;
 }
 
-export async function listExclusionRules(exchangeId: string): Promise<ExclusionRule[]> {
-  assertExchangeExists(exchangeId)
-  return exclusionRuleRepository.findByExchangeId(exchangeId)
+export async function listExclusionRules(
+  exchangeId: string,
+): Promise<ExclusionRule[]> {
+  await assertExchangeExists(exchangeId);
+  return exclusionRuleRepository.findByExchangeId(exchangeId);
 }
 
 export async function createExclusionRule(
   exchangeId: string,
   input: CreateExclusionRuleInputDto,
 ): Promise<ExclusionRule> {
-  assertExchangeEditable(exchangeId)
+  await assertExchangeEditable(exchangeId);
 
   if (input.giverParticipantId === input.receiverParticipantId) {
-    throw new BadRequestError('A participant cannot be excluded from drawing themselves.', {
-      code: 'EXCLUSION_SELF_NOT_ALLOWED',
-    })
+    throw new BadRequestError(
+      "A participant cannot be excluded from drawing themselves.",
+      {
+        code: "EXCLUSION_SELF_NOT_ALLOWED",
+      },
+    );
   }
 
-  assertParticipantBelongsToExchange(exchangeId, input.giverParticipantId)
-  assertParticipantBelongsToExchange(exchangeId, input.receiverParticipantId)
+  await assertParticipantBelongsToExchange(
+    exchangeId,
+    input.giverParticipantId,
+  );
+  await assertParticipantBelongsToExchange(
+    exchangeId,
+    input.receiverParticipantId,
+  );
 
   if (
-    exclusionRuleRepository.existsByExchangeAndPair(
+    await exclusionRuleRepository.existsByExchangeAndPair(
       exchangeId,
       input.giverParticipantId,
       input.receiverParticipantId,
     )
   ) {
-    throw new BadRequestError('This exclusion rule already exists.', {
-      code: 'EXCLUSION_RULE_ALREADY_EXISTS',
-    })
+    throw new BadRequestError("This exclusion rule already exists.", {
+      code: "EXCLUSION_RULE_ALREADY_EXISTS",
+    });
   }
 
   const rule: ExclusionRule = {
-    id: generateId('exr'),
+    id: generateId("exr"),
     exchangeId,
     giverParticipantId: input.giverParticipantId,
     receiverParticipantId: input.receiverParticipantId,
-    type: 'manual',
+    type: "manual",
     createdAt: new Date().toISOString(),
-  }
+  };
 
-  return exclusionRuleRepository.create(rule)
+  return await exclusionRuleRepository.create(rule);
 }
 
-export async function deleteExclusionRule(exchangeId: string, ruleId: string): Promise<void> {
-  assertExchangeEditable(exchangeId)
+export async function deleteExclusionRule(
+  exchangeId: string,
+  ruleId: string,
+): Promise<void> {
+  await assertExchangeEditable(exchangeId);
 
-  const rule = exclusionRuleRepository.findById(ruleId)
+  const rule = await exclusionRuleRepository.findById(ruleId);
 
   if (!rule || rule.exchangeId !== exchangeId) {
-    throw new NotFoundError('Exclusion rule not found.', {
-      code: 'EXCLUSION_RULE_NOT_FOUND',
-    })
+    throw new NotFoundError("Exclusion rule not found.", {
+      code: "EXCLUSION_RULE_NOT_FOUND",
+    });
   }
 
-  exclusionRuleRepository.deleteById(ruleId)
+  await exclusionRuleRepository.deleteById(ruleId);
 }

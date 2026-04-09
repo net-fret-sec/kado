@@ -258,6 +258,8 @@
     "EXCLUSION_SELF_NOT_ALLOWED": "Un participante no puede excluirse a sí mismo.",
     "EXCLUSION_RULE_ALREADY_EXISTS": "Esta regla de exclusión ya existe.",
     "EXCLUSION_RULE_NOT_FOUND": "No se encontró la regla de exclusión solicitada.",
+    "RESOURCE_MODIFIED_CONCURRENTLY": "Este recurso fue modificado en otro lugar. Actualiza la página e inténtalo de nuevo.",
+    "API_UNAVAILABLE": "El servidor está temporalmente no disponible. Verifica que la API y PostgreSQL estén en ejecución.",
     "INVALID_REQUEST_BODY": "El cuerpo de la solicitud no es válido.",
     "INVALID_ROUTE_PARAMETERS": "Los parámetros de la ruta no son válidos."
   },

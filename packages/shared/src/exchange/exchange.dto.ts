@@ -53,6 +53,7 @@ export interface CreateExchangeResultDto {
 }
 
 export interface UpdateExchangeInputDto {
+  expectedUpdatedAt?: string;
   name?: string;
   description?: string;
   organizerId?: string;

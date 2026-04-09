@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useExchangesStore } from '@/stores/exchanges'
 import type { ExchangeDto, ExclusionRule } from '@kado/shared'
@@ -27,6 +27,9 @@ const isLoading = ref(true)
 const error = ref<string | null>(null)
 const showEditExchangeModal = ref(false)
 const isDrawActionLoading = ref(false)
+const POLL_INTERVAL_MS = 5000
+let pollTimer: ReturnType<typeof setInterval> | null = null
+const isPolling = ref(false)
 
 // Pour les participants
 const showAddParticipantModal = ref(false)
@@ -145,17 +148,21 @@ async function copyAccessLinkFromModal() {
   await copyToClipboard(latestAccessLink.value)
 }
 
+async function fetchExchangeData() {
+  const id = route.params.id as string
+  const [exchangeResponse, participantsResponse, exclusionsResponse] = await Promise.all([
+    api.get<ExchangeDto>(`/api/exchanges/${id}`),
+    api.get<ParticipantDto[]>(`/api/exchanges/${id}/participants`),
+    api.get<ExclusionRule[]>(`/api/exchanges/${id}/exclusions`),
+  ])
+  return { exchangeResponse, participantsResponse, exclusionsResponse }
+}
+
 async function fetchExchange() {
   isLoading.value = true
   error.value = null
   try {
-    const id = route.params.id as string
-    const [exchangeResponse, participantsResponse, exclusionsResponse] = await Promise.all([
-      api.get<ExchangeDto>(`/api/exchanges/${id}`),
-      api.get<ParticipantDto[]>(`/api/exchanges/${id}/participants`),
-      api.get<ExclusionRule[]>(`/api/exchanges/${id}/exclusions`),
-    ])
-
+    const { exchangeResponse, participantsResponse, exclusionsResponse } = await fetchExchangeData()
     exchange.value = exchangeResponse
     participants.value = participantsResponse
     exclusionRules.value = exclusionsResponse
@@ -166,6 +173,54 @@ async function fetchExchange() {
   } finally {
     isLoading.value = false
   }
+}
+
+async function pollExchangeIfIdle() {
+  if (document.hidden || isLoading.value || isPolling.value || !exchange.value) return
+
+  isPolling.value = true
+  try {
+    const { exchangeResponse, participantsResponse, exclusionsResponse } = await fetchExchangeData()
+    // N'actualiser les refs que si les données ont réellement changé pour éviter les re-renders inutiles
+    if (JSON.stringify(exchangeResponse) !== JSON.stringify(exchange.value)) {
+      exchange.value = exchangeResponse
+    }
+    if (JSON.stringify(participantsResponse) !== JSON.stringify(participants.value)) {
+      participants.value = participantsResponse
+    }
+    if (JSON.stringify(exclusionsResponse) !== JSON.stringify(exclusionRules.value)) {
+      exclusionRules.value = exclusionsResponse
+    }
+  } catch {
+    // Erreurs de polling ignorées silencieusement
+  } finally {
+    isPolling.value = false
+  }
+}
+
+function stopPolling() {
+  if (!pollTimer) return
+  clearInterval(pollTimer)
+  pollTimer = null
+}
+
+function startPolling() {
+  stopPolling()
+  if (document.hidden) return
+
+  pollTimer = setInterval(() => {
+    void pollExchangeIfIdle()
+  }, POLL_INTERVAL_MS)
+}
+
+function handleVisibilityChange() {
+  if (document.hidden) {
+    stopPolling()
+    return
+  }
+
+  void pollExchangeIfIdle()
+  startPolling()
 }
 
 function getParticipantExclusions(participantId: string) {
@@ -223,6 +278,13 @@ onMounted(() => {
   showEditParticipantModal.value = false
   editingParticipant.value = null
   fetchExchange()
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  startPolling()
+})
+
+onUnmounted(() => {
+  stopPolling()
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 
 function startEdit() {
@@ -244,6 +306,7 @@ async function saveEdit(payload: {
   noMutualAssignments: boolean
 }) {
   if (!exchange.value) return
+  const currentUpdatedAt = exchange.value.updatedAt
   try {
     await exchangesStore.updateExchange(exchange.value.id, {
       name: payload.name,
@@ -257,6 +320,7 @@ async function saveEdit(payload: {
       minWishlistSuggestions: payload.minWishlistSuggestions,
       lockSuggestionsAfterDraw: payload.lockSuggestionsAfterDraw,
       noMutualAssignments: payload.noMutualAssignments,
+      expectedUpdatedAt: currentUpdatedAt,
     })
     showEditExchangeModal.value = false
     await fetchExchange()
@@ -330,16 +394,16 @@ async function updateParticipant(payload: {
   note: string
 }) {
   if (!editingParticipant.value || !exchange.value) return
+  const participantId = editingParticipant.value.id
+  const participantUpdatedAt = editingParticipant.value.updatedAt
   try {
-    await api.put(
-      `/api/exchanges/${exchange.value.id}/participants/${editingParticipant.value.id}`,
-      {
-        name: payload.name,
-        email: payload.email,
-        wishlist: payload.wishlist,
-        note: payload.note,
-      },
-    )
+    await api.put(`/api/exchanges/${exchange.value.id}/participants/${participantId}`, {
+      name: payload.name,
+      email: payload.email,
+      wishlist: payload.wishlist,
+      note: payload.note,
+      expectedUpdatedAt: participantUpdatedAt,
+    })
     setEditParticipantModalVisibility(false)
     await fetchExchange()
   } catch (err) {
@@ -525,70 +589,80 @@ async function cancelDraw() {
                   {{ t('exchangeDetail.note') }}: {{ participant.note }}
                 </div>
 
-                <div class="small mt-2 d-none">
-                  <div class="fw-semibold mb-1">{{ t('exchangeDetail.exceptions.title') }}</div>
-                  <ul v-if="getParticipantExclusions(participant.id).length" class="mb-2 ps-3">
-                    <li
-                      v-for="rule in getParticipantExclusions(participant.id)"
-                      :key="rule.id"
-                      class="d-flex align-items-center gap-2 mb-1"
+                <details class="small mt-2">
+                  <summary class="fw-semibold">
+                    {{ t('exchangeDetail.exceptions.title') }}
+                    <span class="text-muted">
+                      ({{ getParticipantExclusions(participant.id).length }})
+                    </span>
+                  </summary>
+
+                  <div class="mt-2">
+                    <ul v-if="getParticipantExclusions(participant.id).length" class="mb-2 ps-3">
+                      <li
+                        v-for="rule in getParticipantExclusions(participant.id)"
+                        :key="rule.id"
+                        class="d-flex align-items-center gap-2 mb-1"
+                      >
+                        <span>
+                          {{ t('exchangeDetail.exceptions.cannotDraw') }}
+                          {{
+                            participantNameById[rule.receiverParticipantId] ||
+                            rule.receiverParticipantId
+                          }}
+                        </span>
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-outline-danger"
+                          :disabled="isExclusionEditingLocked"
+                          @click="removeParticipantExclusion(rule.id)"
+                        >
+                          {{ t('exchangeDetail.exceptions.remove') }}
+                        </button>
+                      </li>
+                    </ul>
+
+                    <p v-else class="mb-2 text-muted">{{ t('exchangeDetail.exceptions.none') }}</p>
+                    <div
+                      class="d-flex gap-2 align-items-center"
+                      v-if="participant.status === 'active'"
                     >
-                      <span>
-                        {{ t('exchangeDetail.exceptions.cannotDraw') }}
-                        {{
-                          participantNameById[rule.receiverParticipantId] ||
-                          rule.receiverParticipantId
-                        }}
-                      </span>
+                      <select
+                        class="form-select form-select-sm"
+                        :disabled="
+                          isExclusionEditingLocked || !getReceiverCandidates(participant.id).length
+                        "
+                        v-model="selectedExceptionReceiverByParticipant[participant.id]"
+                      >
+                        <option value="">
+                          {{ t('exchangeDetail.exceptions.selectReceiver') }}
+                        </option>
+                        <option
+                          v-for="candidate in getReceiverCandidates(participant.id)"
+                          :key="candidate.id"
+                          :value="candidate.id"
+                        >
+                          {{ candidate.name }}
+                        </option>
+                      </select>
                       <button
                         type="button"
-                        class="btn btn-sm btn-outline-danger"
-                        :disabled="isExclusionEditingLocked"
-                        @click="removeParticipantExclusion(rule.id)"
+                        class="btn btn-sm btn-outline-primary"
+                        :disabled="
+                          isExclusionEditingLocked ||
+                          !selectedExceptionReceiverByParticipant[participant.id]
+                        "
+                        @click="addParticipantExclusion(participant.id)"
                       >
-                        {{ t('exchangeDetail.exceptions.remove') }}
+                        {{ t('exchangeDetail.exceptions.add') }}
                       </button>
-                    </li>
-                  </ul>
+                    </div>
 
-                  <p v-else class="mb-2 text-muted">{{ t('exchangeDetail.exceptions.none') }}</p>
-                  <div
-                    class="d-flex gap-2 align-items-center"
-                    v-if="participant.status === 'active'"
-                  >
-                    <select
-                      class="form-select form-select-sm"
-                      :disabled="
-                        isExclusionEditingLocked || !getReceiverCandidates(participant.id).length
-                      "
-                      v-model="selectedExceptionReceiverByParticipant[participant.id]"
-                    >
-                      <option value="">{{ t('exchangeDetail.exceptions.selectReceiver') }}</option>
-                      <option
-                        v-for="candidate in getReceiverCandidates(participant.id)"
-                        :key="candidate.id"
-                        :value="candidate.id"
-                      >
-                        {{ candidate.name }}
-                      </option>
-                    </select>
-                    <button
-                      type="button"
-                      class="btn btn-sm btn-outline-primary"
-                      :disabled="
-                        isExclusionEditingLocked ||
-                        !selectedExceptionReceiverByParticipant[participant.id]
-                      "
-                      @click="addParticipantExclusion(participant.id)"
-                    >
-                      {{ t('exchangeDetail.exceptions.add') }}
-                    </button>
+                    <p v-if="isExclusionEditingLocked" class="mb-0 text-muted">
+                      {{ t('exchangeDetail.exceptions.locked') }}
+                    </p>
                   </div>
-
-                  <p v-if="isExclusionEditingLocked" class="mb-0 text-muted">
-                    {{ t('exchangeDetail.exceptions.locked') }}
-                  </p>
-                </div>
+                </details>
               </div>
               <div class="btn-group">
                 <button
