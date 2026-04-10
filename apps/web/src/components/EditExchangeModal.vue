@@ -6,6 +6,7 @@ import BaseModal from '@/components/BaseModal.vue'
 
 const props = defineProps<{
   modelValue: boolean
+  isSubmitting?: boolean
   name: string
   description?: string
   status?: ExchangeStatus
@@ -75,7 +76,7 @@ function syncFromProps() {
   editName.value = props.name || ''
   editDescription.value = props.description || ''
   editStatus.value = props.status || 'draft'
-  editEventDate.value = props.eventDate || ''
+  editEventDate.value = toDateInput(props.eventDate)
   editDrawDeadlineAtLocal.value = props.drawDeadlineAt
     ? toLocalDateTimeInput(props.drawDeadlineAt)
     : ''
@@ -104,6 +105,18 @@ function localDateTimeToIso(value: string) {
   return date.toISOString()
 }
 
+function toDateInput(value?: string) {
+  if (!value) return ''
+
+  // Keep already valid date-only values untouched.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value
+
+  // Accept ISO-like values by extracting the date portion.
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return ''
+  return parsed.toISOString().slice(0, 10)
+}
+
 watch(
   () => props.modelValue,
   (isOpen) => {
@@ -120,6 +133,7 @@ watch(editLockSuggestionsAfterDraw, (isLocked) => {
 })
 
 function handleSubmit() {
+  if (props.isSubmitting) return
   if (!isValid.value) return
   if (isSuggestionsDeadlineAfterExchangeMoment.value) return
 
@@ -127,7 +141,7 @@ function handleSubmit() {
     name: editName.value,
     description: editDescription.value,
     status: editStatus.value,
-    eventDate: editEventDate.value || undefined,
+    eventDate: toDateInput(editEventDate.value) || undefined,
     drawDeadlineAt: localDateTimeToIso(editDrawDeadlineAtLocal.value),
     suggestionsDeadlineAt: editLockSuggestionsAfterDraw.value
       ? undefined
@@ -299,7 +313,12 @@ function handleSubmit() {
       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
         {{ t('actions.cancel') }}
       </button>
-      <button type="submit" class="btn btn-primary" form="editExchangeForm" :disabled="!isValid">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        form="editExchangeForm"
+        :disabled="!isValid || !!props.isSubmitting || isSuggestionsDeadlineAfterExchangeMoment"
+      >
         {{ t('exchangeDetail.editExchangeModal.submit') }}
       </button>
     </template>

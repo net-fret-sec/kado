@@ -251,6 +251,7 @@
     "EXCHANGE_ARCHIVED_CANNOT_MODIFY": "Nie można modyfikować zarchiwizowanej wymiany.",
     "EXCHANGE_NOT_FOUND": "Nie znaleziono żądanej wymiany.",
     "PARTICIPANT_NOT_FOUND": "Nie znaleziono żądanego uczestnika.",
+    "PARTICIPANT_CREATION_LOCKED": "Nie można dodać nowych uczestników do tej wymiany.",
     "PARTICIPANT_SUGGESTIONS_LOCKED": "Aktualizacja sugestii jest zamknięta dla tej wymiany.",
     "PARTICIPANT_LINK_INVALID_OR_EXPIRED": "Ten link uczestnika jest nieprawidłowy lub wygasł.",
     "EXCLUSION_RULES_LOCKED": "Nie można modyfikować reguł wykluczeń dla tej wymiany.",

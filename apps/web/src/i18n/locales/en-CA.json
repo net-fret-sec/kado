@@ -256,6 +256,7 @@
     "EXCHANGE_ARCHIVED_CANNOT_MODIFY": "Archived exchanges cannot be modified.",
     "EXCHANGE_NOT_FOUND": "The requested exchange was not found.",
     "PARTICIPANT_NOT_FOUND": "The requested participant was not found.",
+    "PARTICIPANT_CREATION_LOCKED": "No new participant can be added for this exchange.",
     "PARTICIPANT_SUGGESTIONS_LOCKED": "Suggestions updates are closed for this exchange.",
     "PARTICIPANT_LINK_INVALID_OR_EXPIRED": "This participant link is invalid or expired.",
     "EXCLUSION_RULES_LOCKED": "Exclusion rules cannot be modified for this exchange.",

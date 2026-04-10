@@ -256,6 +256,7 @@
     "EXCHANGE_ARCHIVED_CANNOT_MODIFY": "Une pige archivée ne peut pas être modifiée.",
     "EXCHANGE_NOT_FOUND": "La pige demandée est introuvable.",
     "PARTICIPANT_NOT_FOUND": "Le participant demandé est introuvable.",
+    "PARTICIPANT_CREATION_LOCKED": "Aucun nouveau participant ne peut être ajouté pour cette pige.",
     "PARTICIPANT_SUGGESTIONS_LOCKED": "Les modifications des suggestions sont fermées pour cette pige.",
     "PARTICIPANT_LINK_INVALID_OR_EXPIRED": "Ce lien participant est invalide ou expiré.",
     "EXCLUSION_RULES_LOCKED": "Les exceptions de pige ne peuvent pas être modifiées pour cette pige.",

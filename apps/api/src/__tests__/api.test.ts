@@ -46,6 +46,22 @@ describe("API Tests", () => {
       expect(response.body.description).toBe("Updated description");
     });
 
+    it("should update an exchange with a fresh expectedUpdatedAt", async () => {
+      const currentExchange = await request(app)
+        .get(`/api/exchanges/${exchangeId}`)
+        .expect(200);
+
+      const response = await request(app)
+        .put(`/api/exchanges/${exchangeId}`)
+        .send({
+          budget: 123,
+          expectedUpdatedAt: currentExchange.body.updatedAt,
+        })
+        .expect(200);
+
+      expect(response.body.budget).toBe(123);
+    });
+
     it("should return 409 when exchange expectedUpdatedAt is stale", async () => {
       const currentExchange = await request(app)
         .get(`/api/exchanges/${exchangeId}`)
@@ -140,6 +156,30 @@ describe("API Tests", () => {
       expect(response.body.participant).toHaveProperty("id");
       expect(response.body.participant.name).toBe("Test Participant");
       participantId = response.body.participant.id;
+    });
+
+    it("should reject participant creation after draw", async () => {
+      const exchangeResponse = await request(app)
+        .post("/api/exchanges")
+        .send({
+          name: "Locked participants exchange",
+          adminPassword: "testpassword123",
+        })
+        .expect(201);
+
+      const lockedExchangeId = exchangeResponse.body.exchange.id;
+
+      await exchangeRepository.update(lockedExchangeId, { status: "drawn" });
+
+      const response = await request(app)
+        .post(`/api/exchanges/${lockedExchangeId}/participants`)
+        .send({ name: "Blocked participant" })
+        .expect(400);
+
+      expect(response.body.error.message).toMatch(/cannot be added/i);
+      expect(response.body.error.details).toMatchObject({
+        code: "PARTICIPANT_CREATION_LOCKED",
+      });
     });
 
     it("should update a participant", async () => {

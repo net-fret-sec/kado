@@ -253,7 +253,7 @@ export const exchangeRepository = {
           ${setClauses.length > 0 ? `${setClauses.join(", ")},` : ""}
           updated_at = NOW()
         WHERE id = $1
-          AND updated_at = $${values.length + 2}::timestamptz
+          AND date_trunc('milliseconds', updated_at) = date_trunc('milliseconds', $${values.length + 2}::timestamptz)
         RETURNING *
       `,
       [exchangeId, ...values, expectedUpdatedAt],

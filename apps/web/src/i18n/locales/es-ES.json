@@ -251,6 +251,7 @@
     "EXCHANGE_ARCHIVED_CANNOT_MODIFY": "No se pueden modificar intercambios archivados.",
     "EXCHANGE_NOT_FOUND": "No se encontró el intercambio solicitado.",
     "PARTICIPANT_NOT_FOUND": "No se encontró el participante solicitado.",
+    "PARTICIPANT_CREATION_LOCKED": "No se puede agregar ningún participante nuevo a este intercambio.",
     "PARTICIPANT_SUGGESTIONS_LOCKED": "La actualización de sugerencias está cerrada para este intercambio.",
     "PARTICIPANT_LINK_INVALID_OR_EXPIRED": "Este enlace de participante no es válido o ha caducado.",
     "EXCLUSION_RULES_LOCKED": "No se pueden modificar las reglas de exclusión para este intercambio.",

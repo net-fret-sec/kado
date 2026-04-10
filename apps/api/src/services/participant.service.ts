@@ -63,6 +63,15 @@ export async function createParticipant(
     });
   }
 
+  if (exchange.status === "drawn" || exchange.status === "archived") {
+    throw new BadRequestError(
+      "Participants cannot be added for this exchange.",
+      {
+        code: "PARTICIPANT_CREATION_LOCKED",
+      },
+    );
+  }
+
   const now = new Date().toISOString();
 
   const participant: ParticipantDto = {

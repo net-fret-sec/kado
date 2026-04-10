@@ -203,12 +203,24 @@ export const participantRepository = {
       Object.prototype.hasOwnProperty.call(UPDATE_COLUMN_BY_FIELD, key),
     );
 
-    const setClauses = entries.map(
-      ([field], index) => `${UPDATE_COLUMN_BY_FIELD[field]} = $${index + 2}`,
-    );
-    const values = entries.map(([, value]) =>
-      value === undefined ? null : value,
-    );
+    const values = entries.map(([field, value]) => {
+      if (field === "wishlist") {
+        return serializeWishlist(
+          (value as GiftSuggestionDto[] | undefined) ?? null,
+        );
+      }
+
+      return value === undefined ? null : value;
+    });
+
+    const setClauses = entries.map(([field], index) => {
+      const valuePlaceholder = `$${index + 2}`;
+      if (field === "wishlist") {
+        return `${UPDATE_COLUMN_BY_FIELD[field]} = ${valuePlaceholder}::jsonb`;
+      }
+
+      return `${UPDATE_COLUMN_BY_FIELD[field]} = ${valuePlaceholder}`;
+    });
 
     const result = await query<ParticipantRow>(
       `
@@ -217,7 +229,7 @@ export const participantRepository = {
           ${setClauses.length > 0 ? `${setClauses.join(", ")},` : ""}
           updated_at = NOW()
         WHERE id = $1
-          AND updated_at = $${values.length + 2}::timestamptz
+          AND date_trunc('milliseconds', updated_at) = date_trunc('milliseconds', $${values.length + 2}::timestamptz)
         RETURNING *
       `,
       [participantId, ...values, expectedUpdatedAt],

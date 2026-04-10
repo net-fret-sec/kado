@@ -26,6 +26,7 @@ const selectedExceptionReceiverByParticipant = ref<Record<string, string>>({})
 const isLoading = ref(true)
 const error = ref<string | null>(null)
 const showEditExchangeModal = ref(false)
+const isSavingExchange = ref(false)
 const isDrawActionLoading = ref(false)
 const POLL_INTERVAL_MS = 5000
 let pollTimer: ReturnType<typeof setInterval> | null = null
@@ -72,6 +73,11 @@ const canTriggerDraw = computed(() => {
 const canCancelDraw = computed(() => {
   if (!exchange.value) return false
   return exchange.value.status === 'drawn'
+})
+
+const isParticipantCreationLocked = computed(() => {
+  if (!exchange.value) return true
+  return exchange.value.status === 'drawn' || exchange.value.status === 'archived'
 })
 
 const participantCountLabel = computed(() => String(participants.value.length))
@@ -188,7 +194,18 @@ async function fetchExchange() {
 }
 
 async function pollExchangeIfIdle() {
-  if (document.hidden || isLoading.value || isPolling.value || !exchange.value) return
+  if (
+    document.hidden ||
+    isLoading.value ||
+    isPolling.value ||
+    !exchange.value ||
+    showEditExchangeModal.value ||
+    showAddParticipantModal.value ||
+    showEditParticipantModal.value ||
+    showAccessLinkModal.value
+  ) {
+    return
+  }
 
   isPolling.value = true
   try {
@@ -317,7 +334,8 @@ async function saveEdit(payload: {
   lockSuggestionsAfterDraw: boolean
   noMutualAssignments: boolean
 }) {
-  if (!exchange.value) return
+  if (!exchange.value || isSavingExchange.value) return
+  isSavingExchange.value = true
   const currentUpdatedAt = exchange.value.updatedAt
   try {
     await exchangesStore.updateExchange(exchange.value.id, {
@@ -338,7 +356,8 @@ async function saveEdit(payload: {
     await fetchExchange()
   } catch (err) {
     console.error(err)
-    toasts.error(getApiErrorMessage(err, { fallbackMessage: "Erreur lors de l'ajout" }))
+  } finally {
+    isSavingExchange.value = false
   }
 }
 
@@ -356,6 +375,7 @@ async function handleDelete() {
 
 // Fonctions pour les participants
 function openAddParticipantModal() {
+  if (isParticipantCreationLocked.value) return
   showAddParticipantModal.value = true
 }
 
@@ -379,7 +399,7 @@ function setAccessLinkModalVisibility(value: boolean) {
 }
 
 async function addParticipant(payload: { name: string; email: string }) {
-  if (!exchange.value) return
+  if (!exchange.value || isParticipantCreationLocked.value) return
   try {
     const result = await api.post<{ participant: ParticipantDto; accessLink: string }>(
       `/api/exchanges/${exchange.value.id}/participants`,
@@ -604,7 +624,11 @@ async function cancelDraw() {
         <div v-if="participants.length">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h3>{{ t('exchangeDetail.participants') }}</h3>
-            <button class="btn btn-sm btn-primary" @click="openAddParticipantModal">
+            <button
+              class="btn btn-sm btn-primary"
+              :disabled="isParticipantCreationLocked"
+              @click="openAddParticipantModal"
+            >
               {{ t('exchangeDetail.addParticipant') }}
             </button>
           </div>
@@ -734,7 +758,11 @@ async function cancelDraw() {
           <p>
             <em>{{ t('exchangeDetail.noParticipants') }}</em>
           </p>
-          <button class="btn btn-primary" @click="openAddParticipantModal">
+          <button
+            class="btn btn-primary"
+            :disabled="isParticipantCreationLocked"
+            @click="openAddParticipantModal"
+          >
             {{ t('exchangeDetail.addParticipant') }}
           </button>
         </div>
@@ -742,6 +770,7 @@ async function cancelDraw() {
 
       <EditExchangeModal
         :model-value="showEditExchangeModal"
+        :is-submitting="isSavingExchange"
         :name="exchange.name"
         :description="exchange.description || ''"
         :status="exchange.status"

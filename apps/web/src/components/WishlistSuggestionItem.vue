@@ -137,7 +137,7 @@ const { t } = useI18n()
 const wrapperClass = computed(() => (props.asListItem ? 'list-group-item' : ''))
 
 function onChange<K extends keyof Suggestion>(key: K, value: Suggestion[K] | undefined) {
-  const v = (typeof value === 'string' ? value.trim() : value) as Suggestion[K] | undefined
+  const v = value as Suggestion[K] | undefined
   const next: Suggestion = {
     ...props.modelValue,
     [key]: (v === '' ? undefined : v) as unknown,

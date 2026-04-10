@@ -29,20 +29,37 @@ const { t } = useI18n()
 const name = ref('')
 const email = ref('')
 const note = ref('')
-const wishlist = ref<GiftSuggestionDto[]>([])
+type EditableSuggestion = GiftSuggestionDto & { _clientId: string }
 
-const wishlistSuggestionKeys = new WeakMap<GiftSuggestionDto, string>()
-let wishlistSuggestionKeySequence = 0
+let clientIdCounter = 0
 
-function getWishlistSuggestionKey(suggestion: GiftSuggestionDto) {
-  let key = wishlistSuggestionKeys.get(suggestion)
-  if (!key) {
-    wishlistSuggestionKeySequence += 1
-    key = `suggestion-${wishlistSuggestionKeySequence}`
-    wishlistSuggestionKeys.set(suggestion, key)
+function generateClientId(): string {
+  const c = globalThis.crypto
+  if (c?.randomUUID) {
+    return c.randomUUID()
   }
-  return key
+
+  if (c?.getRandomValues) {
+    const bytes = new Uint8Array(16)
+    c.getRandomValues(bytes)
+    bytes[6] = (bytes[6]! & 0x0f) | 0x40
+    bytes[8] = (bytes[8]! & 0x3f) | 0x80
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+  }
+
+  clientIdCounter += 1
+  return `cid-${Date.now().toString(36)}-${clientIdCounter.toString(36)}`
 }
+
+function withClientId(suggestion: GiftSuggestionDto): EditableSuggestion {
+  return {
+    ...suggestion,
+    _clientId: generateClientId(),
+  }
+}
+
+const wishlist = ref<EditableSuggestion[]>([])
 
 function isValidUrl(value?: string | null) {
   if (!value) return true
@@ -75,7 +92,7 @@ function syncFromParticipant() {
   name.value = props.participant?.name || ''
   email.value = props.participant?.email || ''
   note.value = props.participant?.note || ''
-  wishlist.value = [...(props.participant?.wishlist || [])]
+  wishlist.value = (props.participant?.wishlist || []).map(withClientId)
 }
 
 watch(
@@ -92,7 +109,7 @@ function handleSubmit() {
   emit('submit', {
     name: name.value,
     email: email.value,
-    wishlist: wishlist.value,
+    wishlist: wishlist.value.map(({ _clientId: _discardedClientId, ...suggestion }) => suggestion),
     note: note.value,
   })
 }
@@ -121,16 +138,13 @@ function handleSubmit() {
       <div class="mb-3">
         <label class="form-label mb-0">{{ t('exchangeDetail.addModal.wishlist') }}</label>
         <div class="mt-2">
-          <Draggable
-            v-model="wishlist"
-            handle=".drag-handle"
-            :animation="200"
-            :item-key="getWishlistSuggestionKey"
-          >
+          <Draggable v-model="wishlist" handle=".drag-handle" :animation="200" item-key="_clientId">
             <template #item="{ element: suggestion, index: idx }">
               <WishlistSuggestionItem
                 :modelValue="suggestion"
-                @update:modelValue="(value) => wishlist.splice(idx, 1, value)"
+                @update:modelValue="
+                  (value) => wishlist.splice(idx, 1, { ...value, _clientId: suggestion._clientId })
+                "
                 mode="edit"
                 :removable="true"
                 :showHandle="true"
@@ -142,7 +156,7 @@ function handleSubmit() {
           <button
             type="button"
             class="btn btn-sm btn-outline-primary"
-            @click="wishlist.push({ title: '' })"
+            @click="wishlist.push(withClientId({ title: '' }))"
           >
             <i class="bi bi-plus-lg"></i> Ajouter une suggestion
           </button>
