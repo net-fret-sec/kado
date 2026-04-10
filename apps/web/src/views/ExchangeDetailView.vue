@@ -54,6 +54,16 @@ const participantNameById = computed(() => {
   }, {})
 })
 
+const detailMode = ref<'summary' | 'detail'>('summary')
+
+const isSummaryMode = computed(() => detailMode.value === 'summary')
+const isDetailMode = computed({
+  get: () => detailMode.value === 'detail',
+  set: (value: boolean) => {
+    detailMode.value = value ? 'detail' : 'summary'
+  },
+})
+
 const canTriggerDraw = computed(() => {
   if (!exchange.value) return false
   return exchange.value.status === 'draft' || exchange.value.status === 'ready'
@@ -63,6 +73,8 @@ const canCancelDraw = computed(() => {
   if (!exchange.value) return false
   return exchange.value.status === 'drawn'
 })
+
+const participantCountLabel = computed(() => String(participants.value.length))
 
 const statusBadgeClass = computed(() => {
   switch (exchange.value?.status) {
@@ -482,8 +494,25 @@ async function cancelDraw() {
       <!-- Détails de l'échange -->
       <section id="detail">
         <div>
-          <h2>{{ exchange.name }}</h2>
-          <p>{{ exchange.description }}</p>
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+            <h2 class="mb-0">{{ exchange.name }}</h2>
+            <div class="d-flex align-items-center gap-2">
+              <span class="small text-muted">{{ t('exchangeDetail.viewMode.summary') }}</span>
+              <div class="form-check form-switch mb-0">
+                <input
+                  id="exchange-view-mode-switch"
+                  v-model="isDetailMode"
+                  class="form-check-input"
+                  type="checkbox"
+                  role="switch"
+                  :aria-label="t('exchangeDetail.viewMode.label')"
+                />
+              </div>
+              <span class="small text-muted">{{ t('exchangeDetail.viewMode.detail') }}</span>
+            </div>
+          </div>
+
+          <p v-if="exchange.description">{{ exchange.description }}</p>
           <ul>
             <li>
               <b>{{ t('exchangeDetail.organizer') }} :</b> {{ exchange.organizerName }}
@@ -492,65 +521,77 @@ async function cancelDraw() {
               <b>{{ t('exchangeDetail.status') }} :</b>
               <span class="badge ms-1" :class="statusBadgeClass">{{ statusLabel }}</span>
             </li>
-            <li v-if="exchange.eventDate">
-              <b>{{ t('exchangeDetail.exchangeMoment') }} :</b> {{ exchange.eventDate }}
+            <li>
+              <b>{{ t('exchangeDetail.participants') }} :</b>
+              {{ participantCountLabel }}
             </li>
             <li v-if="exchange.drawDeadlineAt">
               <b>{{ t('exchangeDetail.drawDeadlineAt') }} :</b>
               {{ new Date(exchange.drawDeadlineAt).toLocaleString() }}
             </li>
-            <li v-if="exchange.suggestionsDeadlineAt">
-              <b>{{ t('exchangeDetail.suggestionsDeadlineAt') }} :</b>
-              {{ new Date(exchange.suggestionsDeadlineAt).toLocaleString() }}
-            </li>
-            <li v-if="exchange.budget != null">
-              <b>{{ t('exchangeDetail.budget') }} :</b> {{ exchange.budget }}
-              {{ exchange.budgetCurrency }}
-            </li>
             <li>
               <b>{{ t('exchangeDetail.minWishlistSuggestions') }} :</b>
               {{ exchange.minWishlistSuggestions ?? 0 }}
             </li>
-            <li>
-              <b>{{ t('exchangeDetail.lockSuggestionsAfterDraw') }} :</b>
-              {{
-                (exchange.lockSuggestionsAfterDraw ?? true)
-                  ? t('exchangeDetail.enabled')
-                  : t('exchangeDetail.disabled')
-              }}
-            </li>
-            <li>
-              <b>{{ t('exchangeDetail.noMutualAssignments') }} :</b>
-              {{
-                exchange.noMutualAssignments
-                  ? t('exchangeDetail.enabled')
-                  : t('exchangeDetail.disabled')
-              }}
-            </li>
-            <li>
-              <b>{{ t('exchangeDetail.createdAt') }} :</b>
-              {{ new Date(exchange.createdAt).toLocaleString() }}
-            </li>
+
+            <template v-if="!isSummaryMode">
+              <li v-if="exchange.eventDate">
+                <b>{{ t('exchangeDetail.exchangeMoment') }} :</b> {{ exchange.eventDate }}
+              </li>
+              <li v-if="exchange.suggestionsDeadlineAt">
+                <b>{{ t('exchangeDetail.suggestionsDeadlineAt') }} :</b>
+                {{ new Date(exchange.suggestionsDeadlineAt).toLocaleString() }}
+              </li>
+              <li v-if="exchange.budget != null">
+                <b>{{ t('exchangeDetail.budget') }} :</b> {{ exchange.budget }}
+                {{ exchange.budgetCurrency }}
+              </li>
+              <li>
+                <b>{{ t('exchangeDetail.lockSuggestionsAfterDraw') }} :</b>
+                {{
+                  (exchange.lockSuggestionsAfterDraw ?? true)
+                    ? t('exchangeDetail.enabled')
+                    : t('exchangeDetail.disabled')
+                }}
+              </li>
+              <li>
+                <b>{{ t('exchangeDetail.noMutualAssignments') }} :</b>
+                {{
+                  exchange.noMutualAssignments
+                    ? t('exchangeDetail.enabled')
+                    : t('exchangeDetail.disabled')
+                }}
+              </li>
+              <li>
+                <b>{{ t('exchangeDetail.createdAt') }} :</b>
+                {{ new Date(exchange.createdAt).toLocaleString() }}
+              </li>
+            </template>
           </ul>
 
-          <div class="btn-group">
+          <div class="d-flex flex-wrap gap-2 mb-2">
             <button class="btn btn-warning" @click="startEdit">
               {{ t('exchangeDetail.edit') }}
             </button>
             <button
+              v-if="canTriggerDraw"
               class="btn btn-success"
-              :disabled="!canTriggerDraw || isDrawActionLoading"
+              :disabled="isDrawActionLoading"
               @click="triggerDraw"
             >
               {{ t('exchangeDetail.triggerDraw') }}
             </button>
             <button
+              v-else-if="canCancelDraw"
               class="btn btn-outline-warning"
-              :disabled="!canCancelDraw || isDrawActionLoading"
+              :disabled="isDrawActionLoading"
               @click="cancelDraw"
             >
               {{ t('exchangeDetail.cancelDraw') }}
             </button>
+          </div>
+
+          <div v-if="!isSummaryMode">
             <button class="btn btn-danger" @click="handleDelete">
               {{ t('exchangeDetail.delete') }}
             </button>
@@ -585,11 +626,11 @@ async function cancelDraw() {
                   }}</span>
                 </div>
 
-                <div v-if="participant.note" class="small">
+                <div v-if="!isSummaryMode && participant.note" class="small">
                   {{ t('exchangeDetail.note') }}: {{ participant.note }}
                 </div>
 
-                <details class="small mt-2">
+                <details v-if="!isSummaryMode" class="small mt-2">
                   <summary class="fw-semibold">
                     {{ t('exchangeDetail.exceptions.title') }}
                     <span class="text-muted">
@@ -664,7 +705,7 @@ async function cancelDraw() {
                   </div>
                 </details>
               </div>
-              <div class="btn-group">
+              <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
                 <button
                   class="btn btn-sm btn-outline-primary"
                   @click="openEditParticipantModal(participant)"
@@ -679,6 +720,7 @@ async function cancelDraw() {
                 </button>
                 <button
                   class="btn btn-sm btn-outline-danger"
+                  v-if="!isSummaryMode"
                   @click="deleteParticipant(participant.id)"
                 >
                   {{ t('exchangeDetail.delete') }}

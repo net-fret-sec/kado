@@ -199,7 +199,12 @@
     "confirmDeleteExchange": "Delete this exchange?",
     "confirmDeleteParticipant": "Delete this participant?",
     "confirmTriggerDraw": "Run the draw for this exchange?",
-    "confirmCancelDraw": "Cancel the draw for this exchange?"
+    "confirmCancelDraw": "Cancel the draw for this exchange?",
+    "viewMode": {
+      "label": "View mode",
+      "summary": "Summary",
+      "detail": "Detail"
+    }
   },
   "participant": {
     "loading": "Loading...",

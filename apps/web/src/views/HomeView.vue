@@ -194,11 +194,6 @@ const showAdminLink = import.meta.env.DEV
   gap: clamp(2rem, 4vw, 4rem);
 }
 
-.py-lg-6 {
-  padding-top: 5rem;
-  padding-bottom: 5rem;
-}
-
 .home-hero {
   background:
     radial-gradient(circle at top right, rgba(251, 191, 36, 0.18), transparent 24rem),
@@ -245,10 +240,6 @@ const showAdminLink = import.meta.env.DEV
   font-size: 1.25rem;
 }
 
-.home-action-card {
-  overflow: hidden;
-}
-
 .home-action-card--primary {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(239, 246, 255, 0.96));
 }
@@ -261,30 +252,7 @@ const showAdminLink = import.meta.env.DEV
   border: 1px solid rgba(15, 23, 42, 0.06);
 }
 
-.home-why__item {
-  padding: 0.5rem 0.25rem;
-}
-
 .home-support__copy {
   max-width: 42rem;
-}
-
-.home-footer {
-  padding-bottom: 1rem;
-}
-
-.home-footer__admin-link {
-  opacity: 0.7;
-}
-
-.home-footer__admin-link:hover,
-.home-footer__admin-link:focus-visible {
-  opacity: 1;
-}
-
-@media (max-width: 991.98px) {
-  .home-hero {
-    text-align: center;
-  }
 }
 </style>

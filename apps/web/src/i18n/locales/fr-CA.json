@@ -199,7 +199,12 @@
     "confirmDeleteExchange": "Supprimer cet échange ?",
     "confirmDeleteParticipant": "Supprimer ce participant ?",
     "confirmTriggerDraw": "Lancer la pige pour cet échange ?",
-    "confirmCancelDraw": "Annuler la pige pour cet échange ?"
+    "confirmCancelDraw": "Annuler la pige pour cet échange ?",
+    "viewMode": {
+      "label": "Mode d'affichage",
+      "summary": "Résumé",
+      "detail": "Détail"
+    }
   },
   "participant": {
     "loading": "Chargement...",
