@@ -50,20 +50,6 @@ const showAdminLink = import.meta.env.DEV
           <div class="card h-100 shadow-sm border-0">
             <div class="card-body p-4">
               <div class="home-icon-badge mb-3">
-                <i class="bi bi-code-slash" aria-hidden="true"></i>
-              </div>
-              <h3 class="h5">{{ t('home.trustStrip.openSource.title') }}</h3>
-              <p class="text-body-secondary mb-0">
-                {{ t('home.trustStrip.openSource.description') }}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-4">
-          <div class="card h-100 shadow-sm border-0">
-            <div class="card-body p-4">
-              <div class="home-icon-badge mb-3">
                 <i class="bi bi-shield-lock" aria-hidden="true"></i>
               </div>
               <h3 class="h5">{{ t('home.trustStrip.privacy.title') }}</h3>
@@ -81,6 +67,20 @@ const showAdminLink = import.meta.env.DEV
               <h3 class="h5">{{ t('home.trustStrip.noMonetization.title') }}</h3>
               <p class="text-body-secondary mb-0">
                 {{ t('home.trustStrip.noMonetization.description') }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card h-100 shadow-sm border-0">
+            <div class="card-body p-4">
+              <div class="home-icon-badge mb-3">
+                <i class="bi bi-code-slash" aria-hidden="true"></i>
+              </div>
+              <h3 class="h5">{{ t('home.trustStrip.openSource.title') }}</h3>
+              <p class="text-body-secondary mb-0">
+                {{ t('home.trustStrip.openSource.description') }}
               </p>
             </div>
           </div>
