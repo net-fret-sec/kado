@@ -130,7 +130,7 @@ const showAdminLink = import.meta.env.DEV
       </div>
     </section>
 
-    <section class="home-why bg-body-tertiary rounded-4 px-4 px-lg-5 py-5">
+    <section class="d-none home-why bg-body-tertiary rounded-4 px-4 px-lg-5 py-5">
       <div class="row justify-content-center text-center mb-4">
         <div class="col-lg-8">
           <h2 class="mb-3">{{ t('home.why.title') }}</h2>
