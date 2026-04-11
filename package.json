@@ -12,7 +12,9 @@
     "build:api": "pnpm --dir apps/api run build",
     "preview:api": "pnpm --dir apps/api run preview",
     "db:ping:api": "pnpm --dir apps/api run db:ping",
-    "db:migrate:api": "pnpm --dir apps/api run db:migrate"
+    "db:migrate:api": "pnpm --dir apps/api run db:migrate",
+    "db:reset-example-passwords:api": "pnpm --dir apps/api run db:reset-example-passwords",
+    "db:reset-exchanges:api": "pnpm --dir apps/api run db:reset-exchanges"
   },
   "keywords": [],
   "author": "Dave Létourneau <daveletourneau@gmail.com>",

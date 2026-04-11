@@ -179,6 +179,41 @@ pnpm db:ping:api
 pnpm db:migrate:api
 ```
 
+### Scripts de maintenance (environnement de test)
+
+Ces scripts sont utiles en local pour repartir rapidement d'un etat propre.
+
+1. Reinitialiser les mots de passe admin des piges d'exemple:
+
+```bash
+pnpm db:reset-example-passwords:api
+```
+
+Comportement par defaut:
+
+- cible les echanges listes dans `apps/api/src/test-data.json`
+- applique le mot de passe commun `Qwerty12345!`
+- revoque les sessions admin existantes
+
+Options:
+
+```bash
+EXAMPLE_ADMIN_PASSWORD='MonMotDePasse123!' pnpm db:reset-example-passwords:api
+EXAMPLE_PASSWORD_TARGET=all pnpm db:reset-example-passwords:api
+```
+
+2. Supprimer tous les echanges (reset complet des donnees metier):
+
+```bash
+RESET_EXCHANGES_CONFIRM=RESET_EXCHANGES pnpm db:reset-exchanges:api
+```
+
+Notes:
+
+- suppression de tous les echanges de la base
+- suppression en cascade des donnees liees (`participants`, `assignments`, `exclusion_rules`, `admin_access`, `admin_sessions`, `participant_access`)
+- confirmation explicite obligatoire pour eviter les erreurs humaines
+
 ## Build et vérification
 
 Build web:

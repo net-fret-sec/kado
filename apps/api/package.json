@@ -7,7 +7,9 @@
     "lint": "echo \"No lint configured for api yet\"",
     "test": "jest",
     "db:migrate": "tsx scripts/migrate.ts",
-    "db:ping": "tsx scripts/ping-db.ts"
+    "db:ping": "tsx scripts/ping-db.ts",
+    "db:reset-example-passwords": "tsx scripts/reset-example-passwords.ts",
+    "db:reset-exchanges": "tsx scripts/reset-exchanges.ts"
   },
   "jest": {
     "preset": "ts-jest",
