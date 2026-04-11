@@ -18,8 +18,6 @@ const { t, currentLocale } = useLocale()
     >
       <option value="fr-CA">{{ t('languages.fr') }}</option>
       <option value="en-CA">{{ t('languages.en') }}</option>
-      <option value="pl-PL">{{ t('languages.pl') }}</option>
-      <option value="es-ES">{{ t('languages.es') }}</option>
     </select>
   </div>
 </template>

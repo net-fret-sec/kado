@@ -1,6 +1,6 @@
 import { createI18n } from 'vue-i18n'
 
-export const SUPPORT_LOCALES = ['fr-CA', 'en-CA', 'pl-PL', 'es-ES'] as const
+export const SUPPORT_LOCALES = ['fr-CA', 'en-CA'] as const
 export type AppLocale = (typeof SUPPORT_LOCALES)[number]
 
 type MessageSchema = Record<string, unknown>
@@ -29,8 +29,6 @@ export function getBrowserLocale(): AppLocale {
 
   if (locale.startsWith('fr')) return 'fr-CA'
   if (locale.startsWith('en')) return 'en-CA'
-  if (locale.startsWith('pl')) return 'pl-PL'
-  if (locale.startsWith('es')) return 'es-ES'
 
   return defaultLocale
 }

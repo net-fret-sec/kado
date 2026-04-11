@@ -22,6 +22,12 @@ const router = createRouter({
       props: true,
     },
     {
+      path: '/x/:id',
+      name: 'exchange-public',
+      component: () => import('../views/ExchangePublicView.vue'),
+      props: true,
+    },
+    {
       path: '/p/:token',
       name: 'participant-self',
       component: () => import('../views/ParticipantSelfView.vue'),

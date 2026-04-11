@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useExchangesStore } from '@/stores/exchanges'
 import type { ExchangeDto, ExclusionRule } from '@kado/shared'
 import type { ParticipantDto } from '@kado/shared'
@@ -12,12 +12,16 @@ import EditParticipantModal from '@/components/EditParticipantModal.vue'
 import ParticipantAccessLinkModal from '@/components/ParticipantAccessLinkModal.vue'
 import { useToastsStore } from '@/stores/toasts'
 import { getApiErrorMessage } from '@/composables/useApiErrorMessage'
+import { HttpError } from '@/composables/useApi'
+import { useAdminAuthStore } from '@/stores/useAdminAuthStore'
 
 const api = useApi()
 const toasts = useToastsStore()
+const adminAuthStore = useAdminAuthStore()
 
 const { t } = useI18n()
 const route = useRoute()
+const router = useRouter()
 const exchangesStore = useExchangesStore()
 const exchange = ref<ExchangeDto | null>(null)
 const participants = ref<ParticipantDto[]>([])
@@ -25,9 +29,17 @@ const exclusionRules = ref<ExclusionRule[]>([])
 const selectedExceptionReceiverByParticipant = ref<Record<string, string>>({})
 const isLoading = ref(true)
 const error = ref<string | null>(null)
+const requiresAdminAuth = ref(false)
+const adminPassword = ref('')
+const isAuthenticatingAdmin = ref(false)
 const showEditExchangeModal = ref(false)
 const isSavingExchange = ref(false)
 const isDrawActionLoading = ref(false)
+const isLoggingOutAdmin = ref(false)
+const isChangingAdminPassword = ref(false)
+const currentAdminPassword = ref('')
+const newAdminPassword = ref('')
+const confirmAdminPassword = ref('')
 const POLL_INTERVAL_MS = 5000
 let pollTimer: ReturnType<typeof setInterval> | null = null
 const isPolling = ref(false)
@@ -81,6 +93,14 @@ const isParticipantCreationLocked = computed(() => {
 })
 
 const participantCountLabel = computed(() => String(participants.value.length))
+
+const publicExchangeLink = computed(() => {
+  if (!exchange.value) return ''
+  return router.resolve({
+    name: 'exchange-public',
+    params: { id: exchange.value.id },
+  }).href
+})
 
 const statusBadgeClass = computed(() => {
   switch (exchange.value?.status) {
@@ -168,12 +188,36 @@ async function copyAccessLinkFromModal() {
 
 async function fetchExchangeData() {
   const id = route.params.id as string
+  const token = adminAuthStore.getSessionToken(id)
+  const init: RequestInit | undefined = token
+    ? {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    : undefined
+
   const [exchangeResponse, participantsResponse, exclusionsResponse] = await Promise.all([
-    api.get<ExchangeDto>(`/api/exchanges/${id}`),
-    api.get<ParticipantDto[]>(`/api/exchanges/${id}/participants`),
-    api.get<ExclusionRule[]>(`/api/exchanges/${id}/exclusions`),
+    api.get<ExchangeDto>(`/api/exchanges/${id}`, init),
+    api.get<ParticipantDto[]>(`/api/exchanges/${id}/participants`, init),
+    api.get<ExclusionRule[]>(`/api/exchanges/${id}/exclusions`, init),
   ])
   return { exchangeResponse, participantsResponse, exclusionsResponse }
+}
+
+function isAdminAuthError(error: unknown): boolean {
+  return (
+    error instanceof HttpError &&
+    error.status === 401 &&
+    error.code === 'ADMIN_SESSION_INVALID_OR_EXPIRED'
+  )
+}
+
+function setAdminAuthRequired() {
+  const exchangeId = route.params.id as string
+  adminAuthStore.clearSession(exchangeId)
+  requiresAdminAuth.value = true
+  error.value = t('exchangeDetail.adminAuth.required')
 }
 
 async function fetchExchange() {
@@ -181,10 +225,16 @@ async function fetchExchange() {
   error.value = null
   try {
     const { exchangeResponse, participantsResponse, exclusionsResponse } = await fetchExchangeData()
+    requiresAdminAuth.value = false
     exchange.value = exchangeResponse
     participants.value = participantsResponse
     exclusionRules.value = exclusionsResponse
   } catch (err) {
+    if (isAdminAuthError(err)) {
+      setAdminAuthRequired()
+      return
+    }
+
     const message = getApiErrorMessage(err)
     error.value = message
     toasts.error(message)
@@ -198,6 +248,7 @@ async function pollExchangeIfIdle() {
     document.hidden ||
     isLoading.value ||
     isPolling.value ||
+    requiresAdminAuth.value ||
     !exchange.value ||
     showEditExchangeModal.value ||
     showAddParticipantModal.value ||
@@ -210,6 +261,7 @@ async function pollExchangeIfIdle() {
   isPolling.value = true
   try {
     const { exchangeResponse, participantsResponse, exclusionsResponse } = await fetchExchangeData()
+    requiresAdminAuth.value = false
     // N'actualiser les refs que si les données ont réellement changé pour éviter les re-renders inutiles
     if (JSON.stringify(exchangeResponse) !== JSON.stringify(exchange.value)) {
       exchange.value = exchangeResponse
@@ -273,18 +325,33 @@ async function addParticipantExclusion(giverParticipantId: string) {
   if (!receiverParticipantId) return
 
   try {
+    const exchangeId = exchange.value.id
+    const token = adminAuthStore.getSessionToken(exchangeId)
+    const init = token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined
+
     const createdRule = await api.post<ExclusionRule>(
       `/api/exchanges/${exchange.value.id}/exclusions`,
       {
         giverParticipantId,
         receiverParticipantId,
       },
+      init,
     )
 
     exclusionRules.value.push(createdRule)
     selectedExceptionReceiverByParticipant.value[giverParticipantId] = ''
     toasts.success(t('exchangeDetail.exceptions.added'))
   } catch (err) {
+    if (isAdminAuthError(err)) {
+      setAdminAuthRequired()
+      return
+    }
     toasts.error(getApiErrorMessage(err, { fallbackKey: 'exchangeDetail.exceptions.addFailed' }))
   }
 }
@@ -293,11 +360,131 @@ async function removeParticipantExclusion(ruleId: string) {
   if (!exchange.value || isExclusionEditingLocked.value) return
 
   try {
-    await api.delete(`/api/exchanges/${exchange.value.id}/exclusions/${ruleId}`)
+    const exchangeId = exchange.value.id
+    const token = adminAuthStore.getSessionToken(exchangeId)
+    const init = token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined
+
+    await api.delete(`/api/exchanges/${exchange.value.id}/exclusions/${ruleId}`, init)
     exclusionRules.value = exclusionRules.value.filter((rule) => rule.id !== ruleId)
     toasts.success(t('exchangeDetail.exceptions.removed'))
   } catch (err) {
+    if (isAdminAuthError(err)) {
+      setAdminAuthRequired()
+      return
+    }
     toasts.error(getApiErrorMessage(err, { fallbackKey: 'exchangeDetail.exceptions.removeFailed' }))
+  }
+}
+
+async function authenticateAdmin() {
+  const exchangeId = route.params.id as string
+  if (!adminPassword.value.trim() || isAuthenticatingAdmin.value) return
+
+  isAuthenticatingAdmin.value = true
+  error.value = null
+
+  try {
+    const result = await api.post<{ adminSessionToken: string }, { adminPassword: string }>(
+      `/api/exchanges/${exchangeId}/admin/sessions`,
+      { adminPassword: adminPassword.value },
+    )
+
+    adminAuthStore.setSession(exchangeId, result.adminSessionToken)
+    adminPassword.value = ''
+    requiresAdminAuth.value = false
+    await fetchExchange()
+  } catch (err) {
+    const message = getApiErrorMessage(err, {
+      fallbackKey: 'exchangeDetail.adminAuth.loginFailed',
+    })
+    error.value = message
+    toasts.error(message)
+  } finally {
+    isAuthenticatingAdmin.value = false
+  }
+}
+
+async function changeAdminPassword() {
+  if (!exchange.value || isChangingAdminPassword.value) return
+  if (!currentAdminPassword.value || !newAdminPassword.value) return
+
+  if (newAdminPassword.value !== confirmAdminPassword.value) {
+    toasts.error(t('exchangeDetail.adminAuth.passwordMismatch'))
+    return
+  }
+
+  isChangingAdminPassword.value = true
+
+  try {
+    const exchangeId = exchange.value.id
+    const token = adminAuthStore.getSessionToken(exchangeId)
+    const init = token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined
+
+    await api.put(
+      `/api/exchanges/${exchangeId}/admin/password`,
+      {
+        currentPassword: currentAdminPassword.value,
+        newPassword: newAdminPassword.value,
+      },
+      init,
+    )
+
+    currentAdminPassword.value = ''
+    newAdminPassword.value = ''
+    confirmAdminPassword.value = ''
+    toasts.success(t('exchangeDetail.adminAuth.passwordUpdated'))
+  } catch (err) {
+    if (isAdminAuthError(err)) {
+      setAdminAuthRequired()
+      return
+    }
+
+    toasts.error(getApiErrorMessage(err, { fallbackKey: 'exchangeDetail.adminAuth.passwordChangeFailed' }))
+  } finally {
+    isChangingAdminPassword.value = false
+  }
+}
+
+async function logoutAdmin() {
+  if (!exchange.value || isLoggingOutAdmin.value) return
+
+  isLoggingOutAdmin.value = true
+
+  try {
+    const exchangeId = exchange.value.id
+    const token = adminAuthStore.getSessionToken(exchangeId)
+    const init = token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined
+
+    if (token) {
+      await api.delete(`/api/exchanges/${exchangeId}/admin/sessions/current`, init)
+    }
+  } catch {
+    // Even if server-side revocation fails, clear local session and force re-auth.
+  } finally {
+    const exchangeId = route.params.id as string
+    adminAuthStore.clearSession(exchangeId)
+    requiresAdminAuth.value = true
+    error.value = t('exchangeDetail.adminAuth.required')
+    toasts.success(t('exchangeDetail.adminAuth.loggedOut'))
+    isLoggingOutAdmin.value = false
   }
 }
 
@@ -355,6 +542,11 @@ async function saveEdit(payload: {
     showEditExchangeModal.value = false
     await fetchExchange()
   } catch (err) {
+    if (isAdminAuthError(err)) {
+      setAdminAuthRequired()
+      return
+    }
+
     console.error(err)
   } finally {
     isSavingExchange.value = false
@@ -368,6 +560,11 @@ async function handleDelete() {
     await exchangesStore.deleteExchange(exchange.value.id)
     window.location.href = '/exchanges'
   } catch (err) {
+    if (isAdminAuthError(err)) {
+      setAdminAuthRequired()
+      return
+    }
+
     console.error(err)
     toasts.error(getApiErrorMessage(err, { fallbackMessage: 'Erreur lors de la modification' }))
   }
@@ -401,12 +598,23 @@ function setAccessLinkModalVisibility(value: boolean) {
 async function addParticipant(payload: { name: string; email: string }) {
   if (!exchange.value || isParticipantCreationLocked.value) return
   try {
+    const exchangeId = exchange.value.id
+    const token = adminAuthStore.getSessionToken(exchangeId)
+    const init = token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined
+
     const result = await api.post<{ participant: ParticipantDto; accessLink: string }>(
       `/api/exchanges/${exchange.value.id}/participants`,
       {
         name: payload.name,
         email: payload.email,
       },
+      init,
     )
     showAddParticipantModal.value = false
     if (result?.accessLink) {
@@ -415,6 +623,11 @@ async function addParticipant(payload: { name: string; email: string }) {
     }
     await fetchExchange()
   } catch (err) {
+    if (isAdminAuthError(err)) {
+      setAdminAuthRequired()
+      return
+    }
+
     console.error(err)
   }
 }
@@ -429,16 +642,35 @@ async function updateParticipant(payload: {
   const participantId = editingParticipant.value.id
   const participantUpdatedAt = editingParticipant.value.updatedAt
   try {
-    await api.put(`/api/exchanges/${exchange.value.id}/participants/${participantId}`, {
+    const exchangeId = exchange.value.id
+    const token = adminAuthStore.getSessionToken(exchangeId)
+    const init = token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined
+
+    await api.put(
+      `/api/exchanges/${exchange.value.id}/participants/${participantId}`,
+      {
       name: payload.name,
       email: payload.email,
       wishlist: payload.wishlist,
       note: payload.note,
       expectedUpdatedAt: participantUpdatedAt,
-    })
+      },
+      init,
+    )
     setEditParticipantModalVisibility(false)
     await fetchExchange()
   } catch (err) {
+    if (isAdminAuthError(err)) {
+      setAdminAuthRequired()
+      return
+    }
+
     console.error(err)
   }
 }
@@ -447,9 +679,24 @@ async function deleteParticipant(participantId: string) {
   if (!exchange.value) return
   if (!confirm(t('exchangeDetail.confirmDeleteParticipant'))) return
   try {
-    await api.delete(`/api/exchanges/${exchange.value.id}/participants/${participantId}`)
+    const exchangeId = exchange.value.id
+    const token = adminAuthStore.getSessionToken(exchangeId)
+    const init = token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined
+
+    await api.delete(`/api/exchanges/${exchange.value.id}/participants/${participantId}`, init)
     await fetchExchange()
   } catch (err) {
+    if (isAdminAuthError(err)) {
+      setAdminAuthRequired()
+      return
+    }
+
     console.error(err)
     toasts.error(getApiErrorMessage(err, { fallbackMessage: 'Erreur lors de la suppression' }))
   }
@@ -458,16 +705,32 @@ async function deleteParticipant(participantId: string) {
 async function regenerateParticipantLink(participantId: string) {
   if (!exchange.value) return
   try {
+    const exchangeId = exchange.value.id
+    const token = adminAuthStore.getSessionToken(exchangeId)
+    const init = token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined
+
     const payload = { revokeExisting: true }
     const result = await api.post<{ participantId: string; accessLink: string }, typeof payload>(
       `/api/exchanges/${exchange.value.id}/participants/${participantId}/access/regenerate`,
       payload,
+      init,
     )
     if (result?.accessLink) {
       await copyToClipboard(result.accessLink)
       openAccessLinkModal(result.accessLink)
     }
   } catch (err) {
+    if (isAdminAuthError(err)) {
+      setAdminAuthRequired()
+      return
+    }
+
     console.error(err)
     toasts.error(getApiErrorMessage(err, { fallbackKey: 'exchangeDetail.generateFailed' }))
   }
@@ -479,10 +742,25 @@ async function triggerDraw() {
 
   isDrawActionLoading.value = true
   try {
-    await api.post(`/api/exchanges/${exchange.value.id}/draw`)
+    const exchangeId = exchange.value.id
+    const token = adminAuthStore.getSessionToken(exchangeId)
+    const init = token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined
+
+    await api.post(`/api/exchanges/${exchange.value.id}/draw`, undefined, init)
     toasts.success(t('exchangeDetail.drawSuccess'))
     await fetchExchange()
   } catch (err) {
+    if (isAdminAuthError(err)) {
+      setAdminAuthRequired()
+      return
+    }
+
     toasts.error(getApiErrorMessage(err, { fallbackKey: 'exchangeDetail.drawFailed' }))
   } finally {
     isDrawActionLoading.value = false
@@ -495,10 +773,25 @@ async function cancelDraw() {
 
   isDrawActionLoading.value = true
   try {
-    await api.post(`/api/exchanges/${exchange.value.id}/draw/cancel`)
+    const exchangeId = exchange.value.id
+    const token = adminAuthStore.getSessionToken(exchangeId)
+    const init = token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined
+
+    await api.post(`/api/exchanges/${exchange.value.id}/draw/cancel`, undefined, init)
     toasts.success(t('exchangeDetail.cancelDrawSuccess'))
     await fetchExchange()
   } catch (err) {
+    if (isAdminAuthError(err)) {
+      setAdminAuthRequired()
+      return
+    }
+
     toasts.error(getApiErrorMessage(err, { fallbackKey: 'exchangeDetail.cancelDrawFailed' }))
   } finally {
     isDrawActionLoading.value = false
@@ -508,6 +801,37 @@ async function cancelDraw() {
 
 <template>
   <section id="exchange-detail-view">
+    <div v-if="requiresAdminAuth" class="card border shadow-sm mb-3">
+      <div class="card-body">
+        <h3 class="h5 mb-2">{{ t('exchangeDetail.adminAuth.title') }}</h3>
+        <p class="text-muted mb-3">{{ t('exchangeDetail.adminAuth.description') }}</p>
+        <form class="row g-2 align-items-end" @submit.prevent="authenticateAdmin">
+          <div class="col-12 col-md-8">
+            <label for="exchange-admin-password" class="form-label mb-1">{{
+              t('exchangeDetail.adminAuth.passwordLabel')
+            }}</label>
+            <input
+              id="exchange-admin-password"
+              v-model="adminPassword"
+              class="form-control"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+          <div class="col-12 col-md-4 d-grid">
+            <button class="btn btn-primary" type="submit" :disabled="isAuthenticatingAdmin">
+              {{
+                isAuthenticatingAdmin
+                  ? t('exchangeDetail.adminAuth.loggingIn')
+                  : t('exchangeDetail.adminAuth.login')
+              }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <div v-if="isLoading">{{ t('exchangeDetail.loading') }}</div>
     <div v-else-if="error">{{ error }}</div>
     <div v-else-if="exchange" class="d-md-flex gap-4">
@@ -593,6 +917,12 @@ async function cancelDraw() {
             <button class="btn btn-warning" @click="startEdit">
               {{ t('exchangeDetail.edit') }}
             </button>
+            <router-link
+              class="btn btn-outline-primary"
+              :to="{ name: 'exchange-public', params: { id: exchange.id } }"
+            >
+              {{ t('exchangeDetail.openPublicView') }}
+            </router-link>
             <button
               v-if="canTriggerDraw"
               class="btn btn-success"
@@ -609,12 +939,88 @@ async function cancelDraw() {
             >
               {{ t('exchangeDetail.cancelDraw') }}
             </button>
+            <button
+              class="btn btn-outline-secondary"
+              :disabled="isLoggingOutAdmin"
+              @click="logoutAdmin"
+            >
+              {{
+                isLoggingOutAdmin
+                  ? t('exchangeDetail.adminAuth.loggingOut')
+                  : t('exchangeDetail.adminAuth.logout')
+              }}
+            </button>
           </div>
 
           <div v-if="!isSummaryMode">
             <button class="btn btn-danger" @click="handleDelete">
               {{ t('exchangeDetail.delete') }}
             </button>
+          </div>
+
+          <div class="card border mt-3">
+            <div class="card-body">
+              <h3 class="h6 mb-2">{{ t('exchangeDetail.adminAuth.changePasswordTitle') }}</h3>
+              <p class="small text-muted mb-3">
+                {{ t('exchangeDetail.adminAuth.changePasswordDescription') }}
+              </p>
+
+              <div class="small mb-2" v-if="publicExchangeLink">
+                <b>{{ t('exchangeDetail.adminAuth.publicLinkLabel') }}:</b>
+                <a :href="publicExchangeLink">{{ publicExchangeLink }}</a>
+              </div>
+
+              <form class="row g-2" @submit.prevent="changeAdminPassword">
+                <div class="col-12">
+                  <label for="current-admin-password" class="form-label">
+                    {{ t('exchangeDetail.adminAuth.currentPasswordLabel') }}
+                  </label>
+                  <input
+                    id="current-admin-password"
+                    v-model="currentAdminPassword"
+                    type="password"
+                    class="form-control"
+                    minlength="10"
+                    required
+                  />
+                </div>
+                <div class="col-12 col-md-6">
+                  <label for="new-admin-password" class="form-label">
+                    {{ t('exchangeDetail.adminAuth.newPasswordLabel') }}
+                  </label>
+                  <input
+                    id="new-admin-password"
+                    v-model="newAdminPassword"
+                    type="password"
+                    class="form-control"
+                    minlength="10"
+                    required
+                  />
+                </div>
+                <div class="col-12 col-md-6">
+                  <label for="confirm-admin-password" class="form-label">
+                    {{ t('exchangeDetail.adminAuth.confirmPasswordLabel') }}
+                  </label>
+                  <input
+                    id="confirm-admin-password"
+                    v-model="confirmAdminPassword"
+                    type="password"
+                    class="form-control"
+                    minlength="10"
+                    required
+                  />
+                </div>
+                <div class="col-12 d-grid d-md-flex justify-content-md-end">
+                  <button class="btn btn-outline-secondary" type="submit" :disabled="isChangingAdminPassword">
+                    {{
+                      isChangingAdminPassword
+                        ? t('exchangeDetail.adminAuth.changingPassword')
+                        : t('exchangeDetail.adminAuth.changePassword')
+                    }}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </section>

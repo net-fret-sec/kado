@@ -4,6 +4,7 @@ import type { ExchangeDto } from '@kado/shared'
 import { useApi } from '@/composables/useApi'
 import { useToastsStore } from '@/stores/toasts'
 import { getApiErrorMessage } from '@/composables/useApiErrorMessage'
+import { useAdminAuthStore } from '@/stores/useAdminAuthStore'
 
 type ValidationErrorDetails = {
   fieldErrors?: Record<string, string[]>
@@ -57,6 +58,18 @@ export const useExchangesStore = defineStore('exchanges', () => {
   const formErrors = ref<string[] | null>(null)
   const api = useApi()
   const toasts = useToastsStore()
+  const adminAuthStore = useAdminAuthStore()
+
+  function getAdminRequestInit(exchangeId: string): RequestInit | undefined {
+    const token = adminAuthStore.getSessionToken(exchangeId)
+    if (!token) return undefined
+
+    return {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  }
 
   async function fetchExchanges() {
     isLoading.value = true
@@ -98,10 +111,18 @@ export const useExchangesStore = defineStore('exchanges', () => {
       fieldErrors.value = null
       formErrors.value = null
       try {
-        const data = await api.post<{ exchange: ExchangeDto }, typeof newExchange>(
+        const data = await api.post<
+          { exchange: ExchangeDto; adminSessionToken?: string },
+          typeof newExchange
+        >(
           '/api/exchanges',
           newExchange,
         )
+
+        if (data.adminSessionToken) {
+          adminAuthStore.setSession(data.exchange.id, data.adminSessionToken)
+        }
+
         exchanges.value.push(data.exchange)
         return data.exchange
       } catch (err) {
@@ -130,7 +151,7 @@ export const useExchangesStore = defineStore('exchanges', () => {
         const updated = await api.put<
           ExchangeDto,
           Partial<ExchangeDto> & { expectedUpdatedAt?: string }
-        >(`/api/exchanges/${id}`, updatedFields)
+        >(`/api/exchanges/${id}`, updatedFields, getAdminRequestInit(id))
         const idx = exchanges.value.findIndex((e) => e.id === id)
         if (idx !== -1) exchanges.value[idx] = updated
         return updated
@@ -147,7 +168,7 @@ export const useExchangesStore = defineStore('exchanges', () => {
       isLoading.value = true
       error.value = null
       try {
-        await api.delete(`/api/exchanges/${id}`)
+        await api.delete(`/api/exchanges/${id}`, getAdminRequestInit(id))
         exchanges.value = exchanges.value.filter((e) => e.id !== id)
       } catch (err) {
         error.value = getApiErrorMessage(err)

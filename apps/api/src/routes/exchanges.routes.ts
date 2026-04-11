@@ -13,6 +13,7 @@ import {
   deleteExclusionRule,
   listExclusionRules,
 } from '../services/exclusion-rule.service'
+import { requireAdminSession } from '../middleware/require-admin-session'
 
 const router = Router();
 
@@ -21,7 +22,6 @@ router.post(
   validateBody(createExchangeInputSchema),
   async (req, res, next) => {
     try {
-      console.log("[POST /api/exchanges] Body reçu:", req.body);
       const result = await createExchange(req.body);
       res.status(201).json(result);
     } catch (error) {
@@ -42,6 +42,7 @@ router.get("/", async (_req, res, next) => {
 router.get(
   "/:exchangeId",
   validateParams(exchangeIdParamSchema),
+  requireAdminSession,
   async (req, res, next) => {
     try {
       const exchangeId = Array.isArray(req.params.exchangeId)
@@ -60,6 +61,7 @@ router.put(
   "/:exchangeId",
   validateParams(exchangeIdParamSchema),
   validateBody(updateExchangeInputSchema),
+  requireAdminSession,
   async (req, res, next) => {
     try {
       const exchangeId = Array.isArray(req.params.exchangeId)
@@ -77,6 +79,7 @@ router.put(
 router.delete(
   "/:exchangeId",
   validateParams(exchangeIdParamSchema),
+  requireAdminSession,
   async (req, res, next) => {
     try {
       const exchangeId = Array.isArray(req.params.exchangeId)
@@ -94,6 +97,7 @@ router.delete(
 router.post(
   "/:exchangeId/draw",
   validateParams(exchangeIdParamSchema),
+  requireAdminSession,
   async (req, res, next) => {
     try {
       const exchangeId = Array.isArray(req.params.exchangeId)
@@ -111,6 +115,7 @@ router.post(
 router.post(
   "/:exchangeId/draw/cancel",
   validateParams(exchangeIdParamSchema),
+  requireAdminSession,
   async (req, res, next) => {
     try {
       const exchangeId = Array.isArray(req.params.exchangeId)
@@ -128,6 +133,7 @@ router.post(
 router.get(
   '/:exchangeId/exclusions',
   validateParams(exchangeIdParamSchema),
+  requireAdminSession,
   async (req, res, next) => {
     try {
       const exchangeId = Array.isArray(req.params.exchangeId)
@@ -146,6 +152,7 @@ router.post(
   '/:exchangeId/exclusions',
   validateParams(exchangeIdParamSchema),
   validateBody(createExclusionRuleInputSchema),
+  requireAdminSession,
   async (req, res, next) => {
     try {
       const exchangeId = Array.isArray(req.params.exchangeId)
@@ -163,6 +170,7 @@ router.post(
 router.delete(
   '/:exchangeId/exclusions/:ruleId',
   validateParams(exchangeAndExclusionRuleIdParamSchema),
+  requireAdminSession,
   async (req, res, next) => {
     try {
       const exchangeId = Array.isArray(req.params.exchangeId)

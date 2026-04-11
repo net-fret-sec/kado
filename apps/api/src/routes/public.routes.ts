@@ -6,11 +6,26 @@ import {
   getParticipantSelfViewByToken,
   updateParticipantSelfByToken,
 } from '../services/participant.service'
+import { getExchangePublicById } from '../services/exchange.service'
 import { validateBody } from '../middleware/validate'
 
 const router = Router()
 
 const tokenParamSchema = z.object({ token: z.string().min(1) })
+const exchangeIdParamSchema = z.object({ exchangeId: z.string().min(1) })
+
+router.get(
+  '/public/exchanges/:exchangeId',
+  async (req: Request<{ exchangeId: string }>, res, next) => {
+    try {
+      const parsed = exchangeIdParamSchema.parse(req.params)
+      const view = await getExchangePublicById(parsed.exchangeId)
+      res.status(200).json(view)
+    } catch (error) {
+      next(error)
+    }
+  },
+)
 
 router.get('/p/:token', async (req: Request<{ token: string }>, res, next) => {
   try {

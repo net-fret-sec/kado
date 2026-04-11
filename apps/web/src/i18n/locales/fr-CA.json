@@ -8,9 +8,7 @@
   },
   "languages": {
     "fr": "Français",
-    "en": "English",
-    "pl": "Polski",
-    "es": "Español"
+    "en": "English"
   },
   "home": {
     "hero": {
@@ -152,6 +150,7 @@
     "wishlistSuggestions": "{count} suggestion | {count} suggestions",
     "note": "Note",
     "generateLink": "Lien magique",
+    "openPublicView": "Voir la vue publique",
     "triggerDraw": "Lancer la pige",
     "cancelDraw": "Annuler la pige",
     "drawSuccess": "La pige a été lancée.",
@@ -200,11 +199,39 @@
     "confirmDeleteParticipant": "Supprimer ce participant ?",
     "confirmTriggerDraw": "Lancer la pige pour cet échange ?",
     "confirmCancelDraw": "Annuler la pige pour cet échange ?",
+    "adminAuth": {
+      "title": "Accès administrateur requis",
+      "description": "Entrez le mot de passe administrateur de cet échange pour continuer.",
+      "passwordLabel": "Mot de passe administrateur",
+      "login": "Se connecter",
+      "loggingIn": "Connexion...",
+      "logout": "Se déconnecter",
+      "loggingOut": "Déconnexion...",
+      "loggedOut": "Session administrateur fermée.",
+      "required": "Session administrateur requise.",
+      "loginFailed": "Impossible de se connecter comme administrateur.",
+      "changePasswordTitle": "Changer le mot de passe administrateur",
+      "changePasswordDescription": "Utilisez ce formulaire pour modifier le mot de passe administrateur de cette pige.",
+      "currentPasswordLabel": "Mot de passe actuel",
+      "newPasswordLabel": "Nouveau mot de passe",
+      "confirmPasswordLabel": "Confirmer le nouveau mot de passe",
+      "changePassword": "Changer le mot de passe",
+      "changingPassword": "Changement...",
+      "passwordUpdated": "Le mot de passe administrateur a été mis à jour.",
+      "passwordMismatch": "Le nouveau mot de passe et sa confirmation ne correspondent pas.",
+      "passwordChangeFailed": "Impossible de changer le mot de passe administrateur.",
+      "publicLinkLabel": "Lien public"
+    },
     "viewMode": {
       "label": "Mode d'affichage",
       "summary": "Résumé",
       "detail": "Détail"
     }
+  },
+  "exchangePublic": {
+    "loading": "Chargement de la vue publique...",
+    "openAdmin": "Accès admin",
+    "updatedAt": "Mis à jour"
   },
   "participant": {
     "loading": "Chargement...",
@@ -265,6 +292,8 @@
     "EXCLUSION_RULE_ALREADY_EXISTS": "Cette exception de pige existe déjà.",
     "EXCLUSION_RULE_NOT_FOUND": "L'exception de pige demandée est introuvable.",
     "RESOURCE_MODIFIED_CONCURRENTLY": "Cette ressource a été modifiée ailleurs. Rafraîchissez la page et réessayez.",
+    "ADMIN_CREDENTIALS_INVALID": "Mot de passe administrateur invalide.",
+    "ADMIN_SESSION_INVALID_OR_EXPIRED": "Votre session administrateur est invalide ou expirée.",
     "API_UNAVAILABLE": "Le serveur est temporairement indisponible. Vérifiez que l'API et PostgreSQL sont démarrés.",
     "INVALID_REQUEST_BODY": "Le corps de la requête est invalide.",
     "INVALID_ROUTE_PARAMETERS": "Les paramètres de route sont invalides."

@@ -8,9 +8,7 @@
   },
   "languages": {
     "fr": "Français",
-    "en": "English",
-    "pl": "Polski",
-    "es": "Español"
+    "en": "English"
   },
   "home": {
     "hero": {
@@ -152,6 +150,7 @@
       "wishlistSuggestions": "{count} suggestion | {count} suggestions",
     "note": "Note",
     "generateLink": "Magic link",
+    "openPublicView": "Open public view",
     "triggerDraw": "Run draw",
     "cancelDraw": "Cancel draw",
     "drawSuccess": "The draw has been run.",
@@ -200,11 +199,39 @@
     "confirmDeleteParticipant": "Delete this participant?",
     "confirmTriggerDraw": "Run the draw for this exchange?",
     "confirmCancelDraw": "Cancel the draw for this exchange?",
+    "adminAuth": {
+      "title": "Administrator access required",
+      "description": "Enter the administrator password for this exchange to continue.",
+      "passwordLabel": "Administrator password",
+      "login": "Sign in",
+      "loggingIn": "Signing in...",
+      "logout": "Sign out",
+      "loggingOut": "Signing out...",
+      "loggedOut": "Administrator session closed.",
+      "required": "Administrator session required.",
+      "loginFailed": "Unable to sign in as administrator.",
+      "changePasswordTitle": "Change administrator password",
+      "changePasswordDescription": "Use this form to update the administrator password for this exchange.",
+      "currentPasswordLabel": "Current password",
+      "newPasswordLabel": "New password",
+      "confirmPasswordLabel": "Confirm new password",
+      "changePassword": "Change password",
+      "changingPassword": "Changing...",
+      "passwordUpdated": "Administrator password has been updated.",
+      "passwordMismatch": "New password and confirmation do not match.",
+      "passwordChangeFailed": "Unable to change the administrator password.",
+      "publicLinkLabel": "Public link"
+    },
     "viewMode": {
       "label": "View mode",
       "summary": "Summary",
       "detail": "Detail"
     }
+  },
+  "exchangePublic": {
+    "loading": "Loading public view...",
+    "openAdmin": "Admin access",
+    "updatedAt": "Updated"
   },
   "participant": {
     "loading": "Loading...",
@@ -265,6 +292,8 @@
     "EXCLUSION_RULE_ALREADY_EXISTS": "This exclusion rule already exists.",
     "EXCLUSION_RULE_NOT_FOUND": "The requested exclusion rule was not found.",
     "RESOURCE_MODIFIED_CONCURRENTLY": "This resource was modified elsewhere. Refresh and try again.",
+    "ADMIN_CREDENTIALS_INVALID": "Invalid administrator password.",
+    "ADMIN_SESSION_INVALID_OR_EXPIRED": "Your administrator session is invalid or expired.",
     "API_UNAVAILABLE": "The server is temporarily unavailable. Verify that the API and PostgreSQL are running.",
     "INVALID_REQUEST_BODY": "The request body is invalid.",
     "INVALID_ROUTE_PARAMETERS": "The route parameters are invalid."

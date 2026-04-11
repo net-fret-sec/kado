@@ -16,12 +16,14 @@ import {
   deleteParticipant,
   regenerateParticipantAccess,
 } from '../services/participant.service'
+import { requireAdminSession } from '../middleware/require-admin-session'
 
 const router = Router()
 
 router.get(
   '/:exchangeId/participants',
   validateParams(exchangeIdParamSchema),
+  requireAdminSession,
   async (req: Request<{ exchangeId: string }>, res, next) => {
     try {
       const participants = await getParticipantsByExchangeId(req.params.exchangeId)
@@ -36,6 +38,7 @@ router.post(
   '/:exchangeId/participants',
   validateParams(exchangeIdParamSchema),
   validateBody(createParticipantInputSchema),
+  requireAdminSession,
   async (
     req: Request<{ exchangeId: string }>,
     res,
@@ -53,6 +56,7 @@ router.post(
 router.get(
   '/:exchangeId/participants/:participantId',
   validateParams(exchangeAndParticipantIdParamSchema),
+  requireAdminSession,
   async (req: Request<{ exchangeId: string; participantId: string }>, res, next) => {
     try {
       const participant = await getParticipantById(req.params.participantId)
@@ -67,6 +71,7 @@ router.put(
   '/:exchangeId/participants/:participantId',
   validateParams(exchangeAndParticipantIdParamSchema),
   validateBody(updateParticipantInputSchema),
+  requireAdminSession,
   async (req: Request<{ exchangeId: string; participantId: string }>, res, next) => {
     try {
       const participant = await updateParticipant(req.params.participantId, req.body)
@@ -80,6 +85,7 @@ router.put(
 router.delete(
   '/:exchangeId/participants/:participantId',
   validateParams(exchangeAndParticipantIdParamSchema),
+  requireAdminSession,
   async (req: Request<{ exchangeId: string; participantId: string }>, res, next) => {
     try {
       await deleteParticipant(req.params.participantId)
@@ -94,6 +100,7 @@ router.post(
   '/:exchangeId/participants/:participantId/access/regenerate',
   validateParams(exchangeAndParticipantIdParamSchema),
   validateBody(regenerateParticipantAccessInputSchema),
+  requireAdminSession,
   async (
     req: Request<{ exchangeId: string; participantId: string }, any, { revokeExisting?: boolean }>,
     res,

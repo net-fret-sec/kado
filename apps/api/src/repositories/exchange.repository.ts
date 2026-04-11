@@ -310,6 +310,26 @@ export const exchangeRepository = {
     return row ? mapAdminAccessRow(row) : undefined;
   },
 
+  async updateAdminAccessPassword(
+    exchangeId: string,
+    passwordHash: string,
+    db?: DbExecutor,
+  ) {
+    const result = await query<AdminAccessRow>(
+      `
+        UPDATE admin_access
+        SET password_hash = $2, updated_at = NOW()
+        WHERE exchange_id = $1
+        RETURNING *
+      `,
+      [exchangeId, passwordHash],
+      db,
+    );
+
+    const row = result.rows[0];
+    return row ? mapAdminAccessRow(row) : undefined;
+  },
+
   async createAdminSession(record: AdminSessionRecord, db?: DbExecutor) {
     await query(
       `
@@ -342,6 +362,19 @@ export const exchangeRepository = {
 
     const row = result.rows[0];
     return row ? mapAdminSessionRow(row) : undefined;
+  },
+
+  async deleteAdminSessionByTokenHash(tokenHash: string, db?: DbExecutor) {
+    const result = await query(
+      `
+        DELETE FROM admin_sessions
+        WHERE token_hash = $1
+      `,
+      [tokenHash],
+      db,
+    );
+
+    return (result.rowCount ?? 0) > 0;
   },
 
   async loadTestData(_data: {

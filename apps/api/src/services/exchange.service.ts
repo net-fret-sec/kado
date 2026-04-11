@@ -16,6 +16,7 @@ import {
   generateOpaqueToken,
   hashPassword,
   sha256,
+  verifyPassword,
 } from "../lib/crypto";
 import { createParticipant } from "./participant.service";
 import { assignmentRepository } from "../repositories/assignment.repository";
@@ -159,6 +160,25 @@ function buildAssignmentsWithExclusions(
   }));
 }
 
+function buildSessionExpiryIso(): string {
+  return new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString();
+}
+
+async function createAdminSession(exchangeId: string): Promise<string> {
+  const now = new Date().toISOString();
+  const adminSessionToken = generateOpaqueToken("adm");
+
+  await exchangeRepository.createAdminSession({
+    id: generateId("sess"),
+    exchangeId,
+    tokenHash: sha256(adminSessionToken),
+    createdAt: now,
+    expiresAt: buildSessionExpiryIso(),
+  });
+
+  return adminSessionToken;
+}
+
 export async function createExchange(
   input: CreateExchangeInputDto,
 ): Promise<CreateExchangeResultDto> {
@@ -217,14 +237,7 @@ export async function createExchange(
     updatedAt: now,
   });
 
-  const adminSessionToken = generateOpaqueToken("adm");
-  await exchangeRepository.createAdminSession({
-    id: generateId("sess"),
-    exchangeId: exchange.id,
-    tokenHash: sha256(adminSessionToken),
-    createdAt: now,
-    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(),
-  });
+  const adminSessionToken = await createAdminSession(exchange.id);
 
   return {
     exchange: { ...exchange, organizerId },
@@ -254,6 +267,120 @@ export async function getExchangeById(
     organizerName, // Add for display
     participants,
   };
+}
+
+export async function getExchangePublicById(exchangeId: string): Promise<{
+  id: string;
+  name: string;
+  description?: string;
+  organizerName?: string;
+  status: ExchangeDto["status"];
+  eventDate?: string;
+  drawDeadlineAt?: string;
+  suggestionsDeadlineAt?: string;
+  budget?: number;
+  budgetCurrency?: string;
+  minWishlistSuggestions?: number;
+  lockSuggestionsAfterDraw?: boolean;
+  noMutualAssignments?: boolean;
+  drawAt?: string;
+  participantsCount: number;
+  updatedAt: string;
+}> {
+  const exchange = await exchangeRepository.findById(exchangeId);
+
+  if (!exchange) {
+    throw new NotFoundError("Exchange not found.", {
+      code: "EXCHANGE_NOT_FOUND",
+    });
+  }
+
+  const participants = await participantRepository.findByExchangeId(exchangeId);
+  const organizer = participants.find((p) => p.id === exchange.organizerId);
+
+  return {
+    id: exchange.id,
+    name: exchange.name,
+    description: exchange.description,
+    organizerName: organizer ? organizer.name : "Unknown",
+    status: exchange.status,
+    eventDate: exchange.eventDate,
+    drawDeadlineAt: exchange.drawDeadlineAt,
+    suggestionsDeadlineAt: exchange.suggestionsDeadlineAt,
+    budget: exchange.budget,
+    budgetCurrency: exchange.budgetCurrency,
+    minWishlistSuggestions: exchange.minWishlistSuggestions,
+    lockSuggestionsAfterDraw: exchange.lockSuggestionsAfterDraw,
+    noMutualAssignments: exchange.noMutualAssignments,
+    drawAt: exchange.drawAt,
+    participantsCount: participants.length,
+    updatedAt: exchange.updatedAt,
+  };
+}
+
+export async function authenticateAdminSession(
+  exchangeId: string,
+  adminPassword: string,
+): Promise<{ adminSessionToken: string }> {
+  const exchange = await exchangeRepository.findById(exchangeId);
+  if (!exchange) {
+    throw new NotFoundError("Exchange not found.", {
+      code: "EXCHANGE_NOT_FOUND",
+    });
+  }
+
+  const adminAccess = await exchangeRepository.findAdminAccess(exchangeId);
+  if (!adminAccess || !verifyPassword(adminPassword, adminAccess.passwordHash)) {
+    throw new BadRequestError("Invalid admin credentials.", {
+      code: "ADMIN_CREDENTIALS_INVALID",
+    });
+  }
+
+  const adminSessionToken = await createAdminSession(exchangeId);
+  return { adminSessionToken };
+}
+
+export async function revokeAdminSession(
+  exchangeId: string,
+  rawToken: string,
+): Promise<void> {
+  const exchange = await exchangeRepository.findById(exchangeId);
+  if (!exchange) {
+    throw new NotFoundError("Exchange not found.", {
+      code: "EXCHANGE_NOT_FOUND",
+    });
+  }
+
+  if (!rawToken) {
+    return;
+  }
+
+  await exchangeRepository.deleteAdminSessionByTokenHash(sha256(rawToken));
+}
+
+export async function changeAdminPassword(
+  exchangeId: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const exchange = await exchangeRepository.findById(exchangeId);
+  if (!exchange) {
+    throw new NotFoundError("Exchange not found.", {
+      code: "EXCHANGE_NOT_FOUND",
+    });
+  }
+
+  const adminAccess = await exchangeRepository.findAdminAccess(exchangeId);
+  if (!adminAccess || !verifyPassword(currentPassword, adminAccess.passwordHash)) {
+    throw new BadRequestError("Invalid admin credentials.", {
+      code: "ADMIN_CREDENTIALS_INVALID",
+    });
+  }
+
+  await exchangeRepository.updateAdminAccessPassword(
+    exchangeId,
+    hashPassword(newPassword),
+  );
 }
 
 export async function listExchanges(): Promise<ExchangeDto[]> {

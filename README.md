@@ -2,7 +2,17 @@
 
 Kado est une application web libre pour organiser simplement des échanges de cadeaux (type "Secret Santa") entre amis, famille ou collègues.
 
-L'objectif est de retirer toute la friction liée à l'organisation: règles, contraintes, tirage et communication, tout en restant simple, fiable et sans inscription obligatoire.
+L'objectif est de retirer toute la friction liée à l'organisation: règles, contraintes, pige et communication, tout en restant simple, fiable et sans inscription obligatoire.
+
+## Terminologie
+
+Pour garder le vocabulaire cohérent dans le projet:
+
+- **Échange**: l'entité principale (config, participants, exclusions, statut).
+- **Pige**: l'opération d'assignation (lancer/annuler) dans un échange.
+- **Vue admin**: interface de gestion d'un échange (protégée par session admin).
+- **Vue publique**: page d'information d'un échange sans privilèges admin.
+- **Espace participant**: accès individuel via lien magique (`/p/:token`).
 
 ## Philosophie du projet
 
@@ -18,7 +28,7 @@ Le projet est libre et peut être utilisé, modifié ou auto-hébergé.
 Le dépôt est un monorepo PNPM composé de 3 briques:
 
 - `apps/api`: API HTTP Node.js/Express (logique métier)
-- `apps/web`: application Vue 3 (interface admin + participant)
+- `apps/web`: application Vue 3 (vue admin + vue publique + espace participant)
 - `packages/shared`: contrats partagés (DTO, types, schémas Zod)
 
 ## Ce que l'application règle
@@ -27,7 +37,7 @@ Le dépôt est un monorepo PNPM composé de 3 briques:
 - Éviter les erreurs de pige (auto-attribution, conflits de contraintes).
 - Gérer automatiquement des règles complexes (exclusions, anti-réciprocité).
 - Donner un accès simple aux participants via un lien personnel (`/p/:token`).
-- Fournir des explications claires lorsque le tirage est impossible.
+- Fournir des explications claires lorsque la pige est impossible.
 - Garder front et back synchronisés grâce à un package de types commun.
 
 ## Nouveautés / bonifications récentes
@@ -39,7 +49,8 @@ Le dépôt est un monorepo PNPM composé de 3 briques:
   - code `DRAW_IMPOSSIBLE`
   - détails: `hasExclusionRules`, `noMutualAssignments`
 - Parcours public participant confirmé et stabilisé sur `GET/PUT /api/p/:token`.
-- Vue de détail d'échange bonifiée côté web (gestion des exclusions par participant).
+- Séparation explicite côté web entre vue admin (`/exchanges/:id`) et vue publique (`/x/:id`).
+- Vue de détail admin bonifiée côté web (gestion des exclusions par participant, session admin, changement de mot de passe).
 
 ## Soutenir le projet
 
@@ -80,6 +91,11 @@ kado/
 - Espace participant public
   - consultation/mise à jour de son profil via lien magique
   - affichage du destinataire après pige
+- Vue publique d'échange
+  - consultation en lecture seule des informations publiques d'un échange
+- Auth admin d'échange
+  - session admin (connexion/déconnexion)
+  - changement du mot de passe administrateur
 
 ## Stack technique
 
@@ -219,6 +235,12 @@ Note: `pnpm preview:api` existe à la racine, mais le script `preview` n'est pas
   - `GET /api/exchanges/:exchangeId/exclusions`
   - `POST /api/exchanges/:exchangeId/exclusions`
   - `DELETE /api/exchanges/:exchangeId/exclusions/:ruleId`
+- Auth admin d'échange
+  - `POST /api/exchanges/:exchangeId/admin/sessions`
+  - `DELETE /api/exchanges/:exchangeId/admin/sessions/current`
+  - `PUT /api/exchanges/:exchangeId/admin/password`
+- Vue publique d'échange
+  - `GET /api/public/exchanges/:exchangeId`
 - Espace participant public
   - `GET /api/p/:token`
   - `PUT /api/p/:token`

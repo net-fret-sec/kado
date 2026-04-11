@@ -7,6 +7,7 @@ import healthRoutes from "./routes/health.routes";
 import exchangesRoutes from "./routes/exchanges.routes";
 import participantsRoutes from "./routes/participants.routes";
 import publicRoutes from "./routes/public.routes";
+import adminAuthRoutes from "./routes/admin-auth.routes";
 import { errorHandler } from "./middleware/error-handler";
 
 function normalizeOrigin(value: string): string | null {
@@ -64,19 +65,7 @@ export function createApp() {
   app.use("/api", publicRoutes);
   app.use("/api/exchanges", exchangesRoutes);
   app.use("/api/exchanges", participantsRoutes);
-
-  app.get("/__routes", (_req, res) => {
-    const routes = app._router?.stack
-      ?.filter((layer: any) => layer.route)
-      ?.map((layer: any) => {
-        const methods = Object.keys(layer.route.methods)
-          .join(",")
-          .toUpperCase();
-        return `${methods} ${layer.route.path}`;
-      });
-
-    res.json({ routes: routes ?? [] });
-  });
+  app.use("/api/exchanges", adminAuthRoutes);
 
   app.use(errorHandler);
 
