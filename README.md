@@ -298,6 +298,30 @@ Exemple: `apps/api/.env.example`
 
 Exemple: `apps/web/.env.example`
 
+## Deploiement production (VPS)
+
+Une base de deploiement production est incluse pour un VPS avec entree unique HTTPS:
+
+- orchestration: Docker Compose
+- reverse proxy TLS: Caddy + Let's Encrypt
+- API: service interne sur le reseau Docker
+- Web: assets statiques servis par Caddy
+- DB: PostgreSQL persistante
+
+Documentation complete:
+
+- `deploy/README.md`
+
+Fichiers principaux:
+
+- `deploy/docker-compose.prod.yml`
+- `deploy/Caddyfile`
+- `deploy/docker/api.Dockerfile`
+- `deploy/docker/caddy.Dockerfile`
+- `deploy/scripts/release.sh`
+- `deploy/scripts/backup-db.sh`
+- `deploy/scripts/restore-db.sh`
+
 ## Limites actuelles
 
 - PostgreSQL doit être disponible pour démarrer l'API (base vide par défaut).

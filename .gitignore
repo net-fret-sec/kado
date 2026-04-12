@@ -43,6 +43,9 @@ __screenshots__/
 .env.*
 !.env.example
 
+# Deployment artifacts
+deploy/backups/
+
 # Vite cache (optionnel mais propre)
 .vite/
 
