@@ -23,7 +23,10 @@ function loadSessionsFromStorage(): AdminSessions {
         token.length > 0,
     )
 
-    return Object.fromEntries(entries)
+    return entries.reduce<AdminSessions>((acc, [exchangeId, token]) => {
+      acc[exchangeId] = token as string
+      return acc
+    }, {})
   } catch {
     return {}
   }
