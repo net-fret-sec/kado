@@ -451,7 +451,9 @@ async function changeAdminPassword() {
       return
     }
 
-    toasts.error(getApiErrorMessage(err, { fallbackKey: 'exchangeDetail.adminAuth.passwordChangeFailed' }))
+    toasts.error(
+      getApiErrorMessage(err, { fallbackKey: 'exchangeDetail.adminAuth.passwordChangeFailed' }),
+    )
   } finally {
     isChangingAdminPassword.value = false
   }
@@ -655,11 +657,11 @@ async function updateParticipant(payload: {
     await api.put(
       `/api/exchanges/${exchange.value.id}/participants/${participantId}`,
       {
-      name: payload.name,
-      email: payload.email,
-      wishlist: payload.wishlist,
-      note: payload.note,
-      expectedUpdatedAt: participantUpdatedAt,
+        name: payload.name,
+        email: payload.email,
+        wishlist: payload.wishlist,
+        note: payload.note,
+        expectedUpdatedAt: participantUpdatedAt,
       },
       init,
     )
@@ -960,66 +962,75 @@ async function cancelDraw() {
 
           <div class="card border mt-3">
             <div class="card-body">
-              <h3 class="h6 mb-2">{{ t('exchangeDetail.adminAuth.changePasswordTitle') }}</h3>
-              <p class="small text-muted mb-3">
-                {{ t('exchangeDetail.adminAuth.changePasswordDescription') }}
-              </p>
+              <details>
+                <summary>
+                  <span class="h5">{{ t('exchangeDetail.adminAuth.changePasswordTitle') }}</span>
+                </summary>
 
-              <div class="small mb-2" v-if="publicExchangeLink">
-                <b>{{ t('exchangeDetail.adminAuth.publicLinkLabel') }}:</b>
-                <a :href="publicExchangeLink">{{ publicExchangeLink }}</a>
-              </div>
+                <p class="small text-muted mb-3">
+                  {{ t('exchangeDetail.adminAuth.changePasswordDescription') }}
+                </p>
 
-              <form class="row g-2" @submit.prevent="changeAdminPassword">
-                <div class="col-12">
-                  <label for="current-admin-password" class="form-label">
-                    {{ t('exchangeDetail.adminAuth.currentPasswordLabel') }}
-                  </label>
-                  <input
-                    id="current-admin-password"
-                    v-model="currentAdminPassword"
-                    type="password"
-                    class="form-control"
-                    minlength="10"
-                    required
-                  />
+                <div class="small mb-2" v-if="publicExchangeLink">
+                  <b>{{ t('exchangeDetail.adminAuth.publicLinkLabel') }}:</b>
+                  <a :href="publicExchangeLink">{{ publicExchangeLink }}</a>
                 </div>
-                <div class="col-12 col-md-6">
-                  <label for="new-admin-password" class="form-label">
-                    {{ t('exchangeDetail.adminAuth.newPasswordLabel') }}
-                  </label>
-                  <input
-                    id="new-admin-password"
-                    v-model="newAdminPassword"
-                    type="password"
-                    class="form-control"
-                    minlength="10"
-                    required
-                  />
-                </div>
-                <div class="col-12 col-md-6">
-                  <label for="confirm-admin-password" class="form-label">
-                    {{ t('exchangeDetail.adminAuth.confirmPasswordLabel') }}
-                  </label>
-                  <input
-                    id="confirm-admin-password"
-                    v-model="confirmAdminPassword"
-                    type="password"
-                    class="form-control"
-                    minlength="10"
-                    required
-                  />
-                </div>
-                <div class="col-12 d-grid d-md-flex justify-content-md-end">
-                  <button class="btn btn-outline-secondary" type="submit" :disabled="isChangingAdminPassword">
-                    {{
-                      isChangingAdminPassword
-                        ? t('exchangeDetail.adminAuth.changingPassword')
-                        : t('exchangeDetail.adminAuth.changePassword')
-                    }}
-                  </button>
-                </div>
-              </form>
+
+                <form class="row g-2" @submit.prevent="changeAdminPassword">
+                  <div class="col-12">
+                    <label for="current-admin-password" class="form-label">
+                      {{ t('exchangeDetail.adminAuth.currentPasswordLabel') }}
+                    </label>
+                    <input
+                      id="current-admin-password"
+                      v-model="currentAdminPassword"
+                      type="password"
+                      class="form-control"
+                      minlength="10"
+                      required
+                    />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label for="new-admin-password" class="form-label">
+                      {{ t('exchangeDetail.adminAuth.newPasswordLabel') }}
+                    </label>
+                    <input
+                      id="new-admin-password"
+                      v-model="newAdminPassword"
+                      type="password"
+                      class="form-control"
+                      minlength="10"
+                      required
+                    />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label for="confirm-admin-password" class="form-label">
+                      {{ t('exchangeDetail.adminAuth.confirmPasswordLabel') }}
+                    </label>
+                    <input
+                      id="confirm-admin-password"
+                      v-model="confirmAdminPassword"
+                      type="password"
+                      class="form-control"
+                      minlength="10"
+                      required
+                    />
+                  </div>
+                  <div class="col-12 d-grid d-md-flex justify-content-md-end">
+                    <button
+                      class="btn btn-outline-secondary"
+                      type="submit"
+                      :disabled="isChangingAdminPassword"
+                    >
+                      {{
+                        isChangingAdminPassword
+                          ? t('exchangeDetail.adminAuth.changingPassword')
+                          : t('exchangeDetail.adminAuth.changePassword')
+                      }}
+                    </button>
+                  </div>
+                </form>
+              </details>
             </div>
           </div>
         </div>

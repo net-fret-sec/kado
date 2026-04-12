@@ -191,46 +191,81 @@ onMounted(fetchSelf)
       </div>
 
       <form @submit.prevent="saveSelf">
-        <section class="card mb-3">
-          <div class="card-body">
-            <h5 class="card-title">{{ t('participant.profileSectionTitle') }}</h5>
-            <div class="mb-3">
-              <label for="participant-name" class="form-label">{{ t('participant.name') }}</label>
-              <input
-                id="participant-name"
-                v-model="name"
-                class="form-control"
-                type="text"
-                :disabled="!canEdit || isSaving"
-                required
-              />
+        <div class="d-flex">
+          <section class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">{{ t('participant.profileSectionTitle') }}</h5>
+              <div class="mb-3">
+                <label for="participant-name" class="form-label">{{ t('participant.name') }}</label>
+                <input
+                  id="participant-name"
+                  v-model="name"
+                  class="form-control"
+                  type="text"
+                  :disabled="!canEdit || isSaving"
+                  required
+                />
+              </div>
+              <div class="mb-0">
+                <label for="participant-note" class="form-label">{{ t('participant.note') }}</label>
+                <textarea
+                  id="participant-note"
+                  v-model="note"
+                  class="form-control"
+                  rows="3"
+                  :disabled="!canEdit || isSaving"
+                ></textarea>
+              </div>
             </div>
-
-            <!-- <div class="mb-3">
-              <label for="participant-email" class="form-label">{{ t('participant.email') }}</label>
-              <input
-                id="participant-email"
-                v-model="email"
-                class="form-control"
-                type="email"
-                :class="{ 'is-invalid': email.trim().length > 0 && !isValidEmail(email) }"
-                :disabled="!canEdit || isSaving"
-                placeholder="alex@example.com"
+          </section>
+          <section class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">{{ t('participant.suggestionsSectionTitle') }}</h5>
+              <p v-if="requiredMinSuggestions > 0" class="small text-body-secondary">
+                {{ t('participant.minWishlistSuggestionsHint', { count: requiredMinSuggestions }) }}
+              </p>
+              <WishlistSuggestionItem
+                v-for="(element, index) in wishlist"
+                :key="element._clientId"
+                :modelValue="element"
+                mode="edit"
+                :removable="canEdit && !isSaving"
+                :showHandle="false"
+                :asListItem="true"
+                @update:modelValue="
+                  (v) => wishlist.splice(index, 1, { ...v, _clientId: element._clientId })
+                "
+                @remove="wishlist.splice(index, 1)"
               />
-            </div> -->
-
-            <div class="mb-0">
-              <label for="participant-note" class="form-label">{{ t('participant.note') }}</label>
-              <textarea
-                id="participant-note"
-                v-model="note"
-                class="form-control"
-                rows="3"
-                :disabled="!canEdit || isSaving"
-              ></textarea>
+              <button
+                v-if="canEdit"
+                type="button"
+                class="btn btn-sm btn-outline-primary mt-2"
+                :disabled="isSaving"
+                @click="addSuggestion"
+              >
+                <i class="bi bi-plus-lg"></i>
+                {{ t('participant.addSuggestion') }}
+              </button>
+              <p class="text-muted mb-0 mt-2" v-if="!wishlist.length">
+                {{ t('participant.noSuggestions') }}
+              </p>
+              <p class="text-danger small mt-2" v-if="wishlist.length < requiredMinSuggestions">
+                {{
+                  t('participant.minWishlistSuggestionsError', { count: requiredMinSuggestions })
+                }}
+              </p>
+              <button
+                v-if="canEdit"
+                type="submit"
+                class="btn btn-primary mt-3"
+                :disabled="!canSubmit || isSaving"
+              >
+                {{ isSaving ? t('participant.saving') : t('participant.save') }}
+              </button>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
 
         <section class="card mb-3" v-if="showRecipient">
           <div class="card-body">
@@ -255,54 +290,6 @@ onMounted(fetchSelf)
               <strong>{{ t('participant.recipientNote') }}:</strong>
               {{ view.assignment?.receiverNote }}
             </div>
-          </div>
-        </section>
-
-        <section class="card mb-3">
-          <div class="card-body">
-            <h5 class="card-title">{{ t('participant.suggestionsSectionTitle') }}</h5>
-            <p v-if="requiredMinSuggestions > 0" class="small text-body-secondary">
-              {{ t('participant.minWishlistSuggestionsHint', { count: requiredMinSuggestions }) }}
-            </p>
-            <WishlistSuggestionItem
-              v-for="(element, index) in wishlist"
-              :key="element._clientId"
-              :modelValue="element"
-              mode="edit"
-              :removable="canEdit && !isSaving"
-              :showHandle="false"
-              :asListItem="true"
-              @update:modelValue="
-                (v) => wishlist.splice(index, 1, { ...v, _clientId: element._clientId })
-              "
-              @remove="wishlist.splice(index, 1)"
-            />
-
-            <button
-              v-if="canEdit"
-              type="button"
-              class="btn btn-sm btn-outline-primary mt-2"
-              :disabled="isSaving"
-              @click="addSuggestion"
-            >
-              <i class="bi bi-plus-lg"></i>
-              {{ t('participant.addSuggestion') }}
-            </button>
-            <p class="text-muted mb-0 mt-2" v-if="!wishlist.length">
-              {{ t('participant.noSuggestions') }}
-            </p>
-            <p class="text-danger small mt-2" v-if="wishlist.length < requiredMinSuggestions">
-              {{ t('participant.minWishlistSuggestionsError', { count: requiredMinSuggestions }) }}
-            </p>
-
-            <button
-              v-if="canEdit"
-              type="submit"
-              class="btn btn-primary mt-3"
-              :disabled="!canSubmit || isSaving"
-            >
-              {{ isSaving ? t('participant.saving') : t('participant.save') }}
-            </button>
           </div>
         </section>
       </form>
