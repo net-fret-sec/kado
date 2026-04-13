@@ -16,6 +16,8 @@ RUN pnpm install --frozen-lockfile
 COPY apps/api apps/api
 COPY packages/shared packages/shared
 
+ENV NODE_ENV=production
+
 EXPOSE 3000
 
-CMD ["pnpm", "exec", "tsx", "apps/api/src/server.ts"]
+CMD ["pnpm", "--dir", "apps/api", "exec", "tsx", "src/server.ts"]
