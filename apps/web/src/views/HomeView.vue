@@ -195,37 +195,40 @@ const showAdminLink = import.meta.env.DEV
 }
 
 .home-hero {
-  background:
-    radial-gradient(circle at top right, rgba(251, 191, 36, 0.18), transparent 24rem),
-    radial-gradient(circle at left center, rgba(34, 197, 94, 0.12), transparent 22rem),
-    linear-gradient(135deg, #102033 0%, #17314a 52%, #0f1c2c 100%);
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: linear-gradient(135deg, #0b1220 0%, #1e293b 100%);
+  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.32);
 }
 
 .home-hero__glow {
   position: absolute;
   border-radius: 999px;
-  filter: blur(12px);
-  opacity: 0.8;
+  filter: blur(24px);
+  opacity: 0.28;
 }
 
 .home-hero__glow--warm {
-  inset: auto 8% 10% auto;
-  width: 9rem;
-  height: 9rem;
-  background: rgba(245, 158, 11, 0.18);
+  inset: auto 10% 12% auto;
+  width: 7rem;
+  height: 7rem;
+  background: rgba(99, 102, 241, 0.18);
 }
 
 .home-hero__glow--cool {
-  inset: 12% auto auto 6%;
-  width: 7rem;
-  height: 7rem;
-  background: rgba(45, 212, 191, 0.12);
+  inset: 14% auto auto 8%;
+  width: 5.5rem;
+  height: 5.5rem;
+  background: rgba(148, 163, 184, 0.12);
 }
 
 .home-eyebrow {
   letter-spacing: 0.12em;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(249, 250, 251, 0.72);
+}
+
+.home-trust-strip .card {
+  border: 1px solid rgba(148, 163, 184, 0.14) !important;
+  background: rgba(17, 24, 39, 0.94);
 }
 
 .home-icon-badge {
@@ -235,24 +238,42 @@ const showAdminLink = import.meta.env.DEV
   width: 3rem;
   height: 3rem;
   border-radius: 0.9rem;
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.14), rgba(6, 182, 212, 0.18));
-  color: #1e293b;
+  border: 1px solid rgba(99, 102, 241, 0.24);
+  background: rgba(99, 102, 241, 0.12);
+  color: #c7d2fe;
   font-size: 1.25rem;
 }
 
 .home-action-card--primary {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(239, 246, 255, 0.96));
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.98), rgba(15, 23, 42, 0.96));
+  border-color: rgba(99, 102, 241, 0.24) !important;
 }
 
 .home-action-card--secondary {
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(17, 24, 39, 0.94);
+  border-color: rgba(148, 163, 184, 0.16) !important;
 }
 
 .home-why {
-  border: 1px solid rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(17, 24, 39, 0.88);
+}
+
+.home-support {
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 1rem;
+  background: rgba(17, 24, 39, 0.72);
 }
 
 .home-support__copy {
   max-width: 42rem;
+}
+
+.home-footer__admin-link {
+  text-decoration: none;
+}
+
+.home-footer__admin-link:hover {
+  color: #e5e7eb !important;
 }
 </style>

@@ -23,7 +23,6 @@
 );
 @use "./_custom-overrides";
 
-/* Typography and spacing scale tuned for readability across viewports */
 :root {
   --font-body: "Source Sans 3", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --step--1: clamp(0.88rem, 0.84rem + 0.12vw, 0.95rem);
@@ -40,19 +39,34 @@
   --space-xl: 2.5rem;
   --space-2xl: 3.5rem;
   --content-max: 72ch;
-  --bs-body-bg: #F8FAFC;
-  --bs-body-color: #0F172A;
+  --bg: #0B1220;
+  --surface: #111827;
+  --surface-soft: #1F2937;
+  --border-subtle: rgba(148, 163, 184, 0.16);
+  --text-primary: #F9FAFB;
+  --text-secondary: #9CA3AF;
+  --primary: #6366F1;
+  --primary-hover: #4F46E5;
+  --success: #10B981;
+  --danger: #EF4444;
+  --warning: #F59E0B;
+  --bs-body-bg: var(--bg);
+  --bs-body-color: var(--text-primary);
 }
 
 html {
   font-size: 100%;
   -webkit-text-size-adjust: 100%;
+  color-scheme: dark;
+  background: var(--bg);
 }
 
 body {
   font-family: var(--font-body);
   font-size: var(--step-0);
   line-height: 1.65;
+  background: linear-gradient(180deg, #0B1220 0%, #111827 100%);
+  color: var(--text-primary);
 }
 
 h1,
@@ -67,6 +81,7 @@ h4,
   line-height: 1.15;
   letter-spacing: 0.01em;
   text-wrap: balance;
+  color: var(--text-primary);
 }
 
 h1,
@@ -108,18 +123,43 @@ main > * + * {
   padding-block: var(--space-lg) var(--space-2xl);
 }
 
+header.bg-dark {
+  background: rgba(11, 18, 32, 0.92) !important;
+  border-bottom: 1px solid var(--border-subtle);
+  box-shadow: 0 8px 30px rgba(2, 6, 23, .25);
+  backdrop-filter: blur(10px);
+}
+
 .app-header {
   padding: var(--space-md);
-  margin-block-end: var(--space-lg);
+  margin-block-end: 0;
 }
 
 .app-main {
-  padding-block: var(--space-sm) var(--space-xl);
+  padding-block: var(--space-lg) var(--space-xl);
+}
+
+.navbar-brand {
+  color: var(--text-primary) !important;
+}
+
+.text-muted,
+.text-body-secondary {
+  color: var(--text-secondary) !important;
+}
+
+a {
+  color: #C7D2FE;
+}
+
+a:hover {
+  color: #E0E7FF;
 }
 
 .card,
 .list-group-item,
-.modal-content {
+.modal-content,
+.alert {
   border-radius: 0.75rem;
 }
 
@@ -128,12 +168,18 @@ main > * + * {
   font-weight: 600;
 }
 
-/* Optional: expose a simple dark theme class using CSS variables */
-.theme-dark {
-  --bs-body-bg: #0B1220;
-  --bs-body-color: #E6EEF8;
-  background: var(--bs-body-bg);
-  color: var(--bs-body-color);
-  .card { background-color: #0F1724; box-shadow: 0 6px 18px rgba(2,6,23,0.45); }
-  .btn.btn-primary { box-shadow: 0 6px 18px rgba(79,70,229,0.14); }
+.badge {
+  padding: 0.45em 0.7em;
+  font-weight: 600;
+}
+
+.alert-light {
+  background: rgba(17, 24, 39, .92);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }

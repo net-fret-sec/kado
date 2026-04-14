@@ -1,14 +1,14 @@
 @use "sass:color";
 
 // _bootstrap-variables.scss
-// Tokens — palette & typographie
-$primary: #4F46E5;
-$primary-dark: #3730A3;
-$accent: #06B6D4;
-$accent-dark: #0288A2;
-$secondary: #64748B;
+// Direction A — sérieux, calme, confiance
+$primary: #6366F1;
+$primary-dark: #4F46E5;
+$accent: #C7D2FE;
+$accent-dark: #A5B4FC;
+$secondary: #9CA3AF;
 $success: #10B981;
-$info: #0891B2;
+$info: #60A5FA;
 $warning: #F59E0B;
 $danger: #EF4444;
 
@@ -19,12 +19,12 @@ $theme-colors: (
   "info": $info,
   "warning": $warning,
   "danger": $danger,
-  "light": #F8FAFC,
-  "dark": #0F1724
+  "light": #1F2937,
+  "dark": #0B1220
 );
 
-$body-bg: #F8FAFC;
-$body-color: #0F172A;
+$body-bg: #0B1220;
+$body-color: #F9FAFB;
 
 $font-family-sans-serif: "Source Sans 3", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 $font-family-base: $font-family-sans-serif;
@@ -34,9 +34,8 @@ $font-size-base: 1.05rem;
 $line-height-base: 1.62;
 $headings-margin-bottom: .5rem;
 
-// Radius policy: one consistent, moderate radius across interactive surfaces.
-$radius-base: .5rem;
-$border-radius: .5rem;
+$radius-base: .75rem;
+$border-radius: .75rem;
 $border-radius-lg: $radius-base;
 $btn-border-radius: $radius-base;
 $enable-gradients: false;
@@ -44,11 +43,11 @@ $enable-shadows: true;
 
 $spacer: 1rem;
 
-$input-padding-y: .5rem;
-$input-padding-x: .75rem;
+$input-padding-y: .58rem;
+$input-padding-x: .8rem;
 $input-border-radius: $radius-base;
-$input-border-color: rgba(15,23,42,.16);
+$input-border-color: rgba(156, 163, 175, .22);
 
-$form-focus-box-shadow: 0 0 0 .15rem color.change($primary, $alpha: .18);
+$form-focus-box-shadow: 0 0 0 .16rem color.change($primary, $alpha: .26);
 
 $enable-reduced-motion: true;
