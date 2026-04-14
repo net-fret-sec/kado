@@ -21,8 +21,8 @@ const showAdminLink = import.meta.env.DEV
       >
         <div class="col-lg-8 col-xl-7">
           <p class="home-eyebrow text-uppercase fw-semibold mb-3">{{ t('home.hero.eyebrow') }}</p>
-          <h2 class="display-4 fw-semibold mb-3 text-light">{{ t('home.hero.title') }}</h2>
-          <p class="lead text-white-50 mb-4">{{ t('home.hero.description') }}</p>
+          <h2 class="display-4 fw-semibold mb-3">{{ t('home.hero.title') }}</h2>
+          <p class="lead text-body-secondary mb-4">{{ t('home.hero.description') }}</p>
 
           <div class="d-grid d-sm-flex justify-content-center justify-content-lg-start gap-3 mb-3">
             <button
@@ -33,13 +33,13 @@ const showAdminLink = import.meta.env.DEV
               {{ t('home.hero.primaryAction') }}
             </button>
 
-            <a href="#received-link" class="btn btn-outline-light btn-lg px-4">
+            <a href="#received-link" class="btn btn-outline-secondary btn-lg px-4">
               {{ t('home.hero.secondaryAction') }}
             </a>
           </div>
 
-          <p class="small fw-semibold text-white mb-2">{{ t('home.hero.micro') }}</p>
-          <p class="small text-white-50 mb-0">{{ t('home.hero.audience') }}</p>
+          <p class="small fw-semibold text-dark mb-2">{{ t('home.hero.micro') }}</p>
+          <p class="small text-body-secondary mb-0">{{ t('home.hero.audience') }}</p>
         </div>
       </div>
     </section>
@@ -195,37 +195,34 @@ const showAdminLink = import.meta.env.DEV
 }
 
 .home-hero {
-  background:
-    radial-gradient(circle at top right, rgba(251, 191, 36, 0.18), transparent 24rem),
-    radial-gradient(circle at left center, rgba(34, 197, 94, 0.12), transparent 22rem),
-    linear-gradient(135deg, #102033 0%, #17314a 52%, #0f1c2c 100%);
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+  background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.05);
 }
 
 .home-hero__glow {
   position: absolute;
   border-radius: 999px;
-  filter: blur(12px);
-  opacity: 0.8;
+  filter: blur(26px);
+  opacity: 0.45;
 }
 
 .home-hero__glow--warm {
   inset: auto 8% 10% auto;
-  width: 9rem;
-  height: 9rem;
-  background: rgba(245, 158, 11, 0.18);
+  width: 8rem;
+  height: 8rem;
+  background: rgba(217, 70, 239, 0.12);
 }
 
 .home-hero__glow--cool {
-  inset: 12% auto auto 6%;
-  width: 7rem;
-  height: 7rem;
-  background: rgba(45, 212, 191, 0.12);
+  inset: 10% auto auto 6%;
+  width: 6rem;
+  height: 6rem;
+  background: rgba(245, 158, 11, 0.12);
 }
 
 .home-eyebrow {
   letter-spacing: 0.12em;
-  color: rgba(255, 255, 255, 0.72);
+  color: #6b7280;
 }
 
 .home-icon-badge {
@@ -234,22 +231,27 @@ const showAdminLink = import.meta.env.DEV
   justify-content: center;
   width: 3rem;
   height: 3rem;
-  border-radius: 0.9rem;
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.14), rgba(6, 182, 212, 0.18));
-  color: #1e293b;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, rgba(217, 70, 239, 0.1), rgba(245, 158, 11, 0.12));
+  color: #b832d9;
   font-size: 1.25rem;
 }
 
 .home-action-card--primary {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(239, 246, 255, 0.96));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(253, 244, 255, 0.95));
 }
 
 .home-action-card--secondary {
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.96);
 }
 
 .home-why {
-  border: 1px solid rgba(15, 23, 42, 0.06);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.home-support {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 1rem;
 }
 
 .home-support__copy {

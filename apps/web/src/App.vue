@@ -6,9 +6,9 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <header class="bg-dark">
+  <header class="bg-white">
     <div class="app-header container-xl d-flex justify-content-between align-items-center">
-      <nav class="navbar navbar-dark">
+      <nav class="navbar">
         <h1>
           <a class="navbar-brand h2" href="/">{{ t('app.title') }}</a>
         </h1>

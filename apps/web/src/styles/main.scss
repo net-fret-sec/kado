@@ -23,7 +23,6 @@
 );
 @use "./_custom-overrides";
 
-/* Typography and spacing scale tuned for readability across viewports */
 :root {
   --font-body: "Source Sans 3", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --step--1: clamp(0.88rem, 0.84rem + 0.12vw, 0.95rem);
@@ -40,19 +39,30 @@
   --space-xl: 2.5rem;
   --space-2xl: 3.5rem;
   --content-max: 72ch;
-  --bs-body-bg: #F8FAFC;
-  --bs-body-color: #0F172A;
+  --bg: #F9FAFB;
+  --surface: #FFFFFF;
+  --surface-soft: #F3F4F6;
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --primary: #D946EF;
+  --secondary: #F59E0B;
+  --success: #16A34A;
+  --bs-body-bg: var(--bg);
+  --bs-body-color: var(--text-primary);
 }
 
 html {
   font-size: 100%;
   -webkit-text-size-adjust: 100%;
+  background: var(--bg);
 }
 
 body {
   font-family: var(--font-body);
   font-size: var(--step-0);
   line-height: 1.65;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F9FAFB 100%);
+  color: var(--text-primary);
 }
 
 h1,
@@ -104,36 +114,63 @@ main > * + * {
   margin-block-start: var(--space-xl);
 }
 
+header {
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(17, 24, 39, 0.06);
+  backdrop-filter: blur(8px);
+}
+
 .app-shell {
   padding-block: var(--space-lg) var(--space-2xl);
 }
 
 .app-header {
   padding: var(--space-md);
-  margin-block-end: var(--space-lg);
+  margin-block-end: 0;
 }
 
 .app-main {
-  padding-block: var(--space-sm) var(--space-xl);
+  padding-block: var(--space-lg) var(--space-xl);
+}
+
+.navbar-brand {
+  color: var(--text-primary) !important;
+}
+
+.text-muted,
+.text-body-secondary {
+  color: var(--text-secondary) !important;
+}
+
+a {
+  color: var(--primary);
+}
+
+a:hover {
+  color: #C026D3;
 }
 
 .card,
 .list-group-item,
 .modal-content {
-  border-radius: 0.75rem;
+  border-radius: 1rem;
 }
 
 .btn {
-  padding: 0.56rem 1rem;
+  padding: 0.6rem 1.1rem;
   font-weight: 600;
 }
 
-/* Optional: expose a simple dark theme class using CSS variables */
-.theme-dark {
-  --bs-body-bg: #0B1220;
-  --bs-body-color: #E6EEF8;
-  background: var(--bs-body-bg);
-  color: var(--bs-body-color);
-  .card { background-color: #0F1724; box-shadow: 0 6px 18px rgba(2,6,23,0.45); }
-  .btn.btn-primary { box-shadow: 0 6px 18px rgba(79,70,229,0.14); }
+.badge {
+  border-radius: 999px;
+}
+
+.alert-light {
+  background: #fff;
+  border-color: rgba(17, 24, 39, 0.06);
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }

@@ -106,13 +106,13 @@ onBeforeUnmount(() => {
   <section ref="modalRef" class="modal fade" tabindex="-1" aria-hidden="true">
     <div :class="dialogClass" class="modal-fullscreen-md-down">
       <div class="modal-content">
-        <div class="modal-header bg-dark text-white">
+        <div class="modal-header bg-body-tertiary">
           <slot name="header">
             <h5 class="modal-title">{{ title }}</h5>
             <button
               v-if="props.closeButton"
               type="button"
-              class="btn-close bg-white"
+              class="btn-close"
               data-bs-dismiss="modal"
               :aria-label="t('common.close')"
             ></button>
