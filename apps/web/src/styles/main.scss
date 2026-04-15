@@ -36,7 +36,9 @@
 @use "./_custom-overrides";
 
 :root {
-  --font-body: "Source Sans 3", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "Cal Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading-h3-h4: var(--font-body);
   --step--1: clamp(0.88rem, 0.84rem + 0.12vw, 0.95rem);
   --step-0: clamp(1.02rem, 0.98rem + 0.2vw, 1.14rem);
   --step-1: clamp(1.22rem, 1.1rem + 0.42vw, 1.42rem);
@@ -63,8 +65,48 @@
   --info: #5b8db8;
   --warning: #e0a93b;
   --danger: #c65a52;
+  --focus-ring-inner: rgba(255, 255, 255, .92);
+  --focus-ring-outer: rgba(165, 103, 31, .7);
+  --focus-ring-shadow: 0 0 0 2px var(--focus-ring-inner), 0 0 0 4px var(--focus-ring-outer);
+  --bs-focus-ring-width: 0.25rem;
+  --bs-focus-ring-opacity: 0.45;
+  --bs-focus-ring-color: rgba(165, 103, 31, var(--bs-focus-ring-opacity));
   --bs-body-bg: var(--bg);
   --bs-body-color: var(--text-primary);
+}
+
+html[data-font-test="b"] {
+  --font-heading-h3-h4: var(--font-heading);
+}
+
+html[data-font-test="c"] {
+  --font-body: "Inter", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "Space Grotesk", "Inter", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading-h3-h4: var(--font-heading);
+}
+
+html[data-font-test="d"] {
+  --font-body: "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-heading-h3-h4: var(--font-heading);
+}
+
+html[data-font-test="e"] {
+  --font-body: "Noto Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "Sora", "Noto Sans", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading-h3-h4: var(--font-heading);
+}
+
+html[data-font-test="f"] {
+  --font-body: "Work Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "Archivo", "Work Sans", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading-h3-h4: var(--font-heading);
+}
+
+html[data-font-test="g"] {
+  --font-body: "DM Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --font-heading-h3-h4: var(--font-heading);
 }
 
 html {
@@ -85,13 +127,20 @@ body {
 
 h1,
 h2,
+.h1,
+.h2 {
+  font-family: var(--font-heading);
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+  color: #211d1a;
+}
+
 h3,
 h4,
-.h1,
-.h2,
 .h3,
 .h4 {
-  font-family: var(--font-body);
+  font-family: var(--font-heading-h3-h4);
   line-height: 1.15;
   letter-spacing: 0.01em;
   text-wrap: balance;
@@ -171,7 +220,46 @@ header.bg-dark {
   color: #211d1a;
 }
 
-:focus-visible {
-  outline: 2px solid rgba(165, 103, 31, .55);
+:where(
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  summary,
+  [role="button"],
+  [tabindex]:not([tabindex="-1"]),
+  .btn,
+  .btn-close,
+  .dropdown-item,
+  .nav-link,
+  .form-check-input,
+  .form-range,
+  .page-link
+):focus {
+  outline: 2px solid transparent;
   outline-offset: 2px;
+  box-shadow: var(--focus-ring-shadow);
+}
+
+:where(
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  summary,
+  [role="button"],
+  [tabindex]:not([tabindex="-1"]),
+  .btn,
+  .btn-close,
+  .dropdown-item,
+  .nav-link,
+  .form-check-input,
+  .form-range,
+  .page-link
+):focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring-shadow);
 }

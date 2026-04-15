@@ -13,7 +13,7 @@
   "home": {
     "hero": {
       "eyebrow": "Échanges de cadeaux sans friction",
-      "title": "Kado organise vos échanges de cadeaux, sans complications.",
+      "title": "Organisez vos échanges de cadeaux, sans complications.",
       "description": "Créez une pige en quelques minutes, partagez des liens uniques aux participants et laissez Kado gérer les contraintes du tirage. Sans compte obligatoire, sans publicité, sans traçage.",
       "primaryAction": "Créer une pige",
       "secondaryAction": "J'ai reçu un lien",
@@ -35,7 +35,7 @@
       }
     },
     "cta": {
-      "primaryLabel": "Action principale",
+      "primaryLabel": "Lancez-vous!",
       "secondaryLabel": "Accès participant",
       "organizerTitle": "Je veux organiser une pige",
       "organizerDesc": "Créez un échange, ajoutez les participants, définissez les exclusions au besoin, puis lancez le tirage. Chaque personne reçoit un lien unique, à partager par le moyen de votre choix.",

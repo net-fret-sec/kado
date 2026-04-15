@@ -173,7 +173,7 @@ const showAdminLink = import.meta.env.DEV
     </section>
 
     <footer class="home-footer text-center text-body-secondary small">
-      <p class="mb-2">{{ t('home.footer.tagline') }}</p>
+      <p class="mb-2 d-none">{{ t('home.footer.tagline') }}</p>
 
       <router-link
         v-if="showAdminLink"

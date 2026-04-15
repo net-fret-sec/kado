@@ -1,4 +1,4 @@
-# Deploiement production sur VPS Scaleway
+# Deploiement production sur VPS
 
 Ce dossier contient une base de deploiement simple et robuste pour exposer Kado sur un seul point d'entree HTTPS avec Caddy et Let's Encrypt.
 

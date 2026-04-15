@@ -13,7 +13,7 @@
   "home": {
     "hero": {
       "eyebrow": "Gift exchanges without friction",
-      "title": "Kado organizes your gift exchanges without the hassle.",
+      "title": "Organize your gift exchanges without the hassle.",
       "description": "Create a draw in minutes, share unique participant links, and let Kado handle the assignment constraints. No required account, no ads, no tracking.",
       "primaryAction": "Create a draw",
       "secondaryAction": "I received a link",
@@ -147,7 +147,7 @@
     "addParticipant": "Add Participant",
     "noParticipants": "No participants for this exchange.",
     "wishlist": "Wishlist",
-      "wishlistSuggestions": "{count} suggestion | {count} suggestions",
+    "wishlistSuggestions": "{count} suggestion | {count} suggestions",
     "note": "Note",
     "generateLink": "Magic link",
     "openPublicView": "Open public view",
