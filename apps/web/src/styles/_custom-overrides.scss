@@ -18,10 +18,24 @@
     letter-spacing: -0.02em;
     text-transform: none;
   }
+
+  .nav-link {
+    @extend .kado-ui-label;
+    color: rgba(255, 255, 255, .88);
+
+    &:hover,
+    &:focus {
+      color: #fff;
+    }
+  }
 }
 
 .btn {
+  font-size: 0.8125rem;
   font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   border-width: 1px;
   box-shadow: none;
   transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease;
@@ -51,6 +65,11 @@
 
   &.btn-outline-primary:hover,
   &.btn-outline-secondary:hover {
+    color: #fff;
+  }
+
+  &.btn-success,
+  &.btn-warning {
     color: #fff;
   }
 }
@@ -171,6 +190,22 @@
     color: vars.$gray-900;
     background-color: #f7f3ea;
   }
+
+  &.alert-primary,
+  &.alert-secondary,
+  &.alert-success,
+  &.alert-info,
+  &.alert-danger,
+  &.alert-warning,
+  &.alert-dark {
+    color: #fff;
+
+    a,
+    .alert-link {
+      color: #fff;
+      text-decoration: underline;
+    }
+  }
 }
 
 .badge {
@@ -184,18 +219,41 @@
   background-color: #f0eadf !important;
 }
 
+.breadcrumb {
+  @extend .kado-ui-label;
+  border: 1px solid vars.$gray-300;
+  background: #f3eee5;
+}
+
+.pagination {
+  @extend .kado-ui-label;
+
+  a:hover {
+    text-decoration: none;
+  }
+}
+
 .dropdown-menu {
   border-radius: .85rem;
   box-shadow: 0 .5rem 1.25rem rgba(33, 29, 26, .08);
   border: 1px solid vars.$gray-300;
 
   .dropdown-item {
+    @extend .kado-ui-label;
     font-size: .95rem;
 
     &:hover,
     &:focus {
       background-color: #f3efe7;
     }
+  }
+}
+
+.modal,
+.toast,
+.offcanvas {
+  .btn-close {
+    filter: sepia(.3) saturate(.6) brightness(.92);
   }
 }
 
