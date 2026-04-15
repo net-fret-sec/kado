@@ -90,9 +90,7 @@ const showAdminLink = import.meta.env.DEV
 
     <section class="row g-4 home-actions align-items-stretch">
       <div class="col-lg-7">
-        <div
-          class="card h-100 border border-primary-subtle home-action-card home-action-card--primary"
-        >
+        <div class="card h-100 border border-primary home-action-card home-action-card--primary">
           <div class="card-body p-4 p-lg-5 d-flex flex-column">
             <p class="text-uppercase small fw-semibold text-primary mb-2">
               {{ t('home.cta.primaryLabel') }}
