@@ -10,6 +10,10 @@ import publicRoutes from "./routes/public.routes";
 import adminAuthRoutes from "./routes/admin-auth.routes";
 import { errorHandler } from "./middleware/error-handler";
 
+function sanitizePathForLogs(path: string): string {
+  return path.replace(/\/api\/p\/[^/?\s]+/gi, "/api/p/[redacted]");
+}
+
 function normalizeOrigin(value: string): string | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
@@ -58,7 +62,17 @@ export function createApp() {
 
   app.use(helmet());
   app.use(cors(corsOptions));
-  app.use(morgan("dev"));
+  app.use(
+    morgan((tokens, req, res) => {
+      const method = tokens.method(req, res) ?? "";
+      const rawUrl = tokens.url(req, res) ?? "";
+      const sanitizedUrl = sanitizePathForLogs(rawUrl);
+      const status = tokens.status(req, res) ?? "";
+      const responseTime = tokens["response-time"](req, res) ?? "";
+      const length = tokens.res(req, res, "content-length") ?? "-";
+      return `${method} ${sanitizedUrl} ${status} ${responseTime} ms - ${length}`;
+    }),
+  );
   app.use(express.json());
 
   app.use("/health", healthRoutes);

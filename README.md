@@ -12,7 +12,7 @@ Pour garder le vocabulaire cohérent dans le projet:
 - **Pige**: l'opération d'assignation (lancer/annuler) dans un échange.
 - **Vue admin**: interface de gestion d'un échange (protégée par session admin).
 - **Vue publique**: page d'information d'un échange sans privilèges admin.
-- **Espace participant**: accès individuel via lien magique (`/p/:token`).
+- **Espace participant**: accès individuel via lien magique (`/p/:token`, code lisible `XXXX-XXXX-XXXX`).
 
 ## Philosophie du projet
 
@@ -36,7 +36,7 @@ Le dépôt est un monorepo PNPM composé de 3 briques:
 - Centraliser l'organisation d'un échange de cadeaux.
 - Éviter les erreurs de pige (auto-attribution, conflits de contraintes).
 - Gérer automatiquement des règles complexes (exclusions, anti-réciprocité).
-- Donner un accès simple aux participants via un lien personnel (`/p/:token`).
+- Donner un accès simple aux participants via un lien personnel (`/p/:token`, format lisible `XXXX-XXXX-XXXX`).
 - Fournir des explications claires lorsque la pige est impossible.
 - Garder front et back synchronisés grâce à un package de types commun.
 
@@ -48,7 +48,13 @@ Le dépôt est un monorepo PNPM composé de 3 briques:
 - Erreurs de pige enrichies quand aucune solution n'est possible:
   - code `DRAW_IMPOSSIBLE`
   - détails: `hasExclusionRules`, `noMutualAssignments`
-- Parcours public participant confirmé et stabilisé sur `GET/PUT /api/p/:token`.
+- Liens participants migrés vers un format lisible (`XXXX-XXXX-XXXX`) tout en restant robustes:
+  - normalisation backend (majuscules, tirets/espaces tolérés)
+  - même réponse `404` pour format invalide et lien inconnu (`PARTICIPANT_LINK_INVALID_OR_EXPIRED`)
+  - hash basé sur le code normalisé (sans exposer le code brut en base)
+- Protection anti-enumération sur `GET/PUT /api/p/:token`:
+  - temporisation progressive par IP (fenêtre glissante configurable)
+  - journalisation des tentatives sans exposer le code participant dans les logs HTTP
 - Séparation explicite côté web entre vue admin (`/exchanges/:id`) et vue publique (`/x/:id`).
 - Vue de détail admin bonifiée côté web (gestion des exclusions par participant, session admin, changement de mot de passe).
 
@@ -289,6 +295,10 @@ Note: `pnpm preview:api` existe à la racine, mais le script `preview` n'est pas
 - `FRONTEND_BASE_URL`: base URL du front pour construire les liens participant
 - `FRONTEND_ALLOWED_ORIGINS`: liste CSV d'origines autorisées pour CORS (optionnel)
 - `PUBLIC_BASE_URL`: prioritaire sur `FRONTEND_BASE_URL` si définie
+- `PARTICIPANT_ACCESS_RATE_WINDOW_MS`: fenêtre glissante de protection anti-abus (défaut: `10000`)
+- `PARTICIPANT_ACCESS_RATE_SOFT_LIMIT`: nombre de tentatives dans la fenêtre avant augmentation de délai (défaut: `10`)
+- `PARTICIPANT_ACCESS_BASE_DELAY_MS`: délai minimal ajouté sur les endpoints participants publics (défaut: `200`)
+- `PARTICIPANT_ACCESS_MAX_DELAY_MS`: plafond du délai progressif (défaut: `1500`)
 
 Exemple: `apps/api/.env.example`
 

@@ -6,7 +6,7 @@ Cette application couvre trois surfaces:
 
 - Vue admin d'un echange (`/exchanges/:id`)
 - Vue publique d'un echange (`/x/:id`)
-- Espace participant via lien magique (`/p/:token`)
+- Espace participant via lien magique (`/p/:token`, code lisible `XXXX-XXXX-XXXX`)
 
 ## Stack
 
@@ -29,6 +29,9 @@ Cette application couvre trois surfaces:
 - `/exchanges/:id` detail admin
 - `/x/:id` vue publique
 - `/p/:token` espace participant
+
+Note participant:
+- Le backend accepte les variantes de saisie du code (`abcd-efgh-jk23`, `abcd efgh jk23`, sans séparateurs), avec normalisation automatique.
 
 ## Authentification frontend
 

@@ -10,7 +10,13 @@ import {
   ConflictError,
   NotFoundError,
 } from "../lib/http-errors";
-import { generateId, generateOpaqueToken, sha256 } from "../lib/crypto";
+import {
+  formatParticipantAccessCode,
+  generateId,
+  generateParticipantAccessCode,
+  normalizeParticipantAccessCode,
+  sha256,
+} from "../lib/crypto";
 import { exchangeRepository } from "../repositories/exchange.repository";
 import { participantRepository } from "../repositories/participant.repository";
 import { assignmentRepository } from "../repositories/assignment.repository";
@@ -88,20 +94,23 @@ export async function createParticipant(
 
   await participantRepository.create(participant);
 
-  const rawToken = generateOpaqueToken("p");
+  const accessCode = generateParticipantAccessCode();
+  const normalizedAccessCode = normalizeParticipantAccessCode(accessCode);
+  const groupedAccessCode = formatParticipantAccessCode(normalizedAccessCode);
+
   await participantRepository.createAccess({
     id: generateId("pacc"),
     exchangeId,
     participantId: participant.id,
-    tokenHash: sha256(rawToken),
-    tokenPreview: `${rawToken.slice(0, 6)}…${rawToken.slice(-4)}`,
+    tokenHash: sha256(normalizedAccessCode),
+    tokenPreview: `XXXX-XXXX-${normalizedAccessCode.slice(-4)}`,
     status: "active",
     createdAt: now,
   });
 
   return {
     participant,
-    accessLink: `${getPublicBaseUrl()}/p/${rawToken}`,
+    accessLink: `${getPublicBaseUrl()}/p/${groupedAccessCode}`,
   };
 }
 
@@ -187,7 +196,9 @@ export async function regenerateParticipantAccess(
   }
 
   const now = new Date().toISOString();
-  const rawToken = generateOpaqueToken("p");
+  const accessCode = generateParticipantAccessCode();
+  const normalizedAccessCode = normalizeParticipantAccessCode(accessCode);
+  const groupedAccessCode = formatParticipantAccessCode(normalizedAccessCode);
 
   if (revokeExisting) {
     await participantRepository.revokeActiveAccessForParticipant(participantId);
@@ -197,15 +208,15 @@ export async function regenerateParticipantAccess(
     id: generateId("pacc"),
     exchangeId: participant.exchangeId,
     participantId: participant.id,
-    tokenHash: sha256(rawToken),
-    tokenPreview: `${rawToken.slice(0, 6)}…${rawToken.slice(-4)}`,
+    tokenHash: sha256(normalizedAccessCode),
+    tokenPreview: `XXXX-XXXX-${normalizedAccessCode.slice(-4)}`,
     status: "active",
     createdAt: now,
   });
 
   return {
     participantId: participant.id,
-    accessLink: `${getPublicBaseUrl()}/p/${rawToken}`,
+    accessLink: `${getPublicBaseUrl()}/p/${groupedAccessCode}`,
   };
 }
 
@@ -331,7 +342,16 @@ export async function updateParticipantSelfByToken(
 }
 
 async function resolveParticipantAccess(rawToken: string) {
-  const tokenHash = sha256(rawToken);
+  let normalizedToken: string;
+  try {
+    normalizedToken = normalizeParticipantAccessCode(rawToken);
+  } catch {
+    throw new NotFoundError("Invalid or expired link.", {
+      code: "PARTICIPANT_LINK_INVALID_OR_EXPIRED",
+    });
+  }
+
+  const tokenHash = sha256(normalizedToken);
   const access =
     await participantRepository.findActiveAccessByTokenHash(tokenHash);
   if (!access) {

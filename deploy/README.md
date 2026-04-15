@@ -53,11 +53,21 @@ cp deploy/env/api.env.example deploy/env/api.env
 - FRONTEND_BASE_URL
 - FRONTEND_ALLOWED_ORIGINS
 - PUBLIC_BASE_URL
+- PARTICIPANT_ACCESS_RATE_WINDOW_MS
+- PARTICIPANT_ACCESS_RATE_SOFT_LIMIT
+- PARTICIPANT_ACCESS_BASE_DELAY_MS
+- PARTICIPANT_ACCESS_MAX_DELAY_MS
 
 Exemple typique:
 - FRONTEND_BASE_URL=https://kado.netfretsec.com
 - FRONTEND_ALLOWED_ORIGINS=https://kado.netfretsec.com
 - PUBLIC_BASE_URL=https://kado.netfretsec.com
+- PARTICIPANT_ACCESS_RATE_WINDOW_MS=10000
+- PARTICIPANT_ACCESS_RATE_SOFT_LIMIT=10
+- PARTICIPANT_ACCESS_BASE_DELAY_MS=200
+- PARTICIPANT_ACCESS_MAX_DELAY_MS=1500
+
+Ces variables regissent la temporisation progressive appliquee aux endpoints publics participants (`/api/p/:token`) pour limiter l'enumeration de liens.
 
 ## 4) Premier deploiement
 

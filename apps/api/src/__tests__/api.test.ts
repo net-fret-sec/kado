@@ -9,6 +9,7 @@ let exchangeId: string;
 let participantId: string;
 let participantExchangeId: string;
 let participantAccessToken: string;
+let participantAccessTokenNormalized: string;
 let participantUpdatedAt: string;
 let participantSelfUpdatedAt: string;
 
@@ -155,6 +156,9 @@ describe("API Tests", () => {
 
       expect(response.body.participant).toHaveProperty("id");
       expect(response.body.participant.name).toBe("Test Participant");
+      expect(response.body.accessLink).toMatch(
+        /\/p\/[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/,
+      );
       participantId = response.body.participant.id;
     });
 
@@ -251,6 +255,14 @@ describe("API Tests", () => {
       participantAccessToken = new URL(accessLink).pathname
         .split("/")
         .pop() as string;
+      participantAccessTokenNormalized = participantAccessToken
+        .toUpperCase()
+        .replace(/[\s-]/g, "");
+
+      expect(participantAccessToken).toMatch(
+        /^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/,
+      );
+      expect(participantAccessTokenNormalized).toMatch(/^[A-Z2-9]{12}$/);
     });
 
     it("should fetch self view by token", async () => {
@@ -261,6 +273,35 @@ describe("API Tests", () => {
       expect(response.body.exchange.id).toBe(participantExchangeId);
       expect(response.body.participant.name).toBe("Public Participant");
       participantSelfUpdatedAt = response.body.participant.updatedAt;
+    });
+
+    it("should accept lowercase and separators variations for token", async () => {
+      const compactLowercase = participantAccessTokenNormalized.toLowerCase();
+      const spaced = `${compactLowercase.slice(0, 4)} ${compactLowercase.slice(4, 8)} ${compactLowercase.slice(8, 12)}`;
+
+      const response = await request(app)
+        .get(`/api/p/${encodeURIComponent(spaced)}`)
+        .expect(200);
+
+      expect(response.body.exchange.id).toBe(participantExchangeId);
+      expect(response.body.participant.name).toBe("Public Participant");
+    });
+
+    it("should return the same error for invalid format and unknown token", async () => {
+      const invalidFormatResponse = await request(app)
+        .get("/api/p/not-a-valid-token")
+        .expect(404);
+
+      const unknownTokenResponse = await request(app)
+        .get("/api/p/ABCD-EFGH-JKLM")
+        .expect(404);
+
+      expect(invalidFormatResponse.body.error).toEqual(
+        unknownTokenResponse.body.error,
+      );
+      expect(invalidFormatResponse.body.error.details).toMatchObject({
+        code: "PARTICIPANT_LINK_INVALID_OR_EXPIRED",
+      });
     });
 
     it("should update participant info by token before draw", async () => {
