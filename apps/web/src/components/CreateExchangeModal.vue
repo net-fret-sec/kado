@@ -20,61 +20,21 @@ const router = useRouter()
 const exchangesStore = useExchangesStore()
 
 const name = ref('')
-const description = ref('')
 const organizerName = ref('')
 const organizerParticipates = ref(true)
-const eventDate = ref('')
-const drawDeadlineAtLocal = ref('')
-const suggestionsDeadlineAtLocal = ref('')
-const budget = ref<number | null>(null)
-const budgetCurrency = ref('CAD')
-const minWishlistSuggestions = ref(0)
-const lockSuggestionsAfterDraw = ref(true)
-const noMutualAssignments = ref(false)
 const adminPassword = ref('')
 const pendingRedirectExchangeId = ref<string | null>(null)
 
 const fieldErrors = computed(() => exchangesStore.fieldErrors || {})
 const formErrors = computed(() => exchangesStore.formErrors || [])
-const showSuggestionsDeadlineInput = computed(() => !lockSuggestionsAfterDraw.value)
-
-const isSuggestionsDeadlineAfterExchangeMoment = computed(() => {
-  if (lockSuggestionsAfterDraw.value) return false
-  if (!eventDate.value || !suggestionsDeadlineAtLocal.value) return false
-
-  const suggestionsDeadline = new Date(suggestionsDeadlineAtLocal.value)
-  const exchangeMomentEnd = new Date(`${eventDate.value}T23:59:59.999Z`)
-
-  if (Number.isNaN(suggestionsDeadline.getTime()) || Number.isNaN(exchangeMomentEnd.getTime())) {
-    return false
-  }
-
-  return suggestionsDeadline.getTime() > exchangeMomentEnd.getTime()
-})
 
 function resetForm() {
   name.value = ''
-  description.value = ''
   organizerName.value = ''
   organizerParticipates.value = true
-  eventDate.value = ''
-  drawDeadlineAtLocal.value = ''
-  suggestionsDeadlineAtLocal.value = ''
-  budget.value = null
-  budgetCurrency.value = 'CAD'
-  minWishlistSuggestions.value = 0
-  lockSuggestionsAfterDraw.value = true
-  noMutualAssignments.value = false
   adminPassword.value = ''
   exchangesStore.fieldErrors = null
   exchangesStore.formErrors = null
-}
-
-function localDateTimeToIso(value: string) {
-  if (!value) return undefined
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return undefined
-  return date.toISOString()
 }
 
 watch(
@@ -87,40 +47,19 @@ watch(
   },
 )
 
-watch(lockSuggestionsAfterDraw, (isLocked) => {
-  if (isLocked) {
-    suggestionsDeadlineAtLocal.value = ''
-  }
-})
-
 async function handleCreate() {
   exchangesStore.fieldErrors = null
   exchangesStore.formErrors = null
 
-  if (!name.value.trim()) {
-    return
-  }
-
-  if (isSuggestionsDeadlineAfterExchangeMoment.value) {
+  if (!name.value.trim() || !organizerName.value.trim() || !adminPassword.value) {
     return
   }
 
   try {
     const exchange = await exchangesStore.createExchange({
-      name: name.value,
-      description: description.value,
-      organizerName: organizerName.value,
+      name: name.value.trim(),
+      organizerName: organizerName.value.trim(),
       organizerParticipates: organizerParticipates.value,
-      eventDate: eventDate.value || undefined,
-      drawDeadlineAt: localDateTimeToIso(drawDeadlineAtLocal.value),
-      suggestionsDeadlineAt: lockSuggestionsAfterDraw.value
-        ? undefined
-        : localDateTimeToIso(suggestionsDeadlineAtLocal.value),
-      budget: budget.value ?? undefined,
-      budgetCurrency: budgetCurrency.value || undefined,
-      minWishlistSuggestions: minWishlistSuggestions.value,
-      lockSuggestionsAfterDraw: lockSuggestionsAfterDraw.value,
-      noMutualAssignments: noMutualAssignments.value,
       adminPassword: adminPassword.value,
     })
 
@@ -153,6 +92,13 @@ async function handleHidden() {
     @hidden="handleHidden"
   >
     <form id="createExchangeForm" @submit.prevent="handleCreate">
+      <div class="alert alert-light border mb-3">
+        <p class="fw-semibold mb-1">{{ t('exchanges.createModal.introTitle') }}</p>
+        <p class="text-body-secondary mb-0">
+          {{ t('exchanges.createModal.introDescription') }}
+        </p>
+      </div>
+
       <p class="small text-body-secondary mb-3">
         <span class="text-danger fw-semibold" aria-hidden="true">*</span>
         {{ t('exchanges.createModal.requiredLegend') }}
@@ -166,16 +112,6 @@ async function handleHidden() {
         </label>
         <input v-model="name" type="text" class="form-control" id="exchangeName" required />
         <div v-if="fieldErrors.name" class="text-danger small">{{ fieldErrors.name[0] }}</div>
-      </div>
-
-      <div class="mb-3">
-        <label for="exchangeDescription" class="form-label">{{
-          t('exchanges.createModal.description')
-        }}</label>
-        <textarea v-model="description" class="form-control" id="exchangeDescription"></textarea>
-        <div v-if="fieldErrors.description" class="text-danger small">
-          {{ fieldErrors.description[0] }}
-        </div>
       </div>
 
       <div class="mb-3">
@@ -208,144 +144,6 @@ async function handleHidden() {
         </label>
       </div>
 
-      <div class="row g-3 mb-3">
-        <div class="col-12 col-md-6">
-          <label for="exchangeEventDate" class="form-label">{{
-            t('exchanges.createModal.exchangeMoment')
-          }}</label>
-          <input v-model="eventDate" type="date" class="form-control" id="exchangeEventDate" />
-          <div v-if="fieldErrors.eventDate" class="text-danger small">
-            {{ fieldErrors.eventDate[0] }}
-          </div>
-        </div>
-        <div class="col-12 col-md-6">
-          <label for="exchangeDrawDeadline" class="form-label">{{
-            t('exchanges.createModal.drawDeadlineAt')
-          }}</label>
-          <input
-            v-model="drawDeadlineAtLocal"
-            type="datetime-local"
-            class="form-control"
-            id="exchangeDrawDeadline"
-          />
-          <div v-if="fieldErrors.drawDeadlineAt" class="text-danger small">
-            {{ fieldErrors.drawDeadlineAt[0] }}
-          </div>
-        </div>
-        <div v-if="showSuggestionsDeadlineInput" class="col-12 col-md-6">
-          <label for="exchangeSuggestionsDeadline" class="form-label">{{
-            t('exchanges.createModal.suggestionsDeadlineAt')
-          }}</label>
-          <input
-            v-model="suggestionsDeadlineAtLocal"
-            type="datetime-local"
-            class="form-control"
-            id="exchangeSuggestionsDeadline"
-          />
-          <div v-if="fieldErrors.suggestionsDeadlineAt" class="text-danger small">
-            {{ fieldErrors.suggestionsDeadlineAt[0] }}
-          </div>
-          <div v-else-if="isSuggestionsDeadlineAfterExchangeMoment" class="text-danger small">
-            {{ t('apiErrors.SUGGESTIONS_DEADLINE_AFTER_EXCHANGE_MOMENT') }}
-          </div>
-        </div>
-      </div>
-
-      <div class="row g-3 mb-3">
-        <div class="col-12 col-md-4">
-          <label for="exchangeBudget" class="form-label">{{
-            t('exchanges.createModal.budget')
-          }}</label>
-          <input
-            v-model.number="budget"
-            type="number"
-            min="0"
-            step="0.01"
-            class="form-control"
-            id="exchangeBudget"
-          />
-          <div v-if="fieldErrors.budget" class="text-danger small">{{ fieldErrors.budget[0] }}</div>
-        </div>
-        <div class="col-12 col-md-4">
-          <label for="exchangeBudgetCurrency" class="form-label">{{
-            t('exchanges.createModal.budgetCurrency')
-          }}</label>
-          <input
-            v-model="budgetCurrency"
-            type="text"
-            maxlength="3"
-            class="form-control text-uppercase"
-            id="exchangeBudgetCurrency"
-          />
-          <div v-if="fieldErrors.budgetCurrency" class="text-danger small">
-            {{ fieldErrors.budgetCurrency[0] }}
-          </div>
-        </div>
-        <div class="col-12 col-md-4">
-          <label for="exchangeMinSuggestions" class="form-label">{{
-            t('exchanges.createModal.minWishlistSuggestions')
-          }}</label>
-          <input
-            v-model.number="minWishlistSuggestions"
-            type="number"
-            min="0"
-            max="100"
-            step="1"
-            class="form-control"
-            id="exchangeMinSuggestions"
-          />
-          <div v-if="fieldErrors.minWishlistSuggestions" class="text-danger small">
-            {{ fieldErrors.minWishlistSuggestions[0] }}
-          </div>
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label d-block">{{
-          t('exchanges.createModal.suggestionsLockModeLabel')
-        }}</label>
-
-        <div class="form-check">
-          <input
-            id="lockSuggestionsModeFreeze"
-            v-model="lockSuggestionsAfterDraw"
-            :value="true"
-            class="form-check-input"
-            type="radio"
-            name="lockSuggestionsMode"
-          />
-          <label class="form-check-label" for="lockSuggestionsModeFreeze">
-            {{ t('exchanges.createModal.suggestionsLockModeFreeze') }}
-          </label>
-        </div>
-
-        <div class="form-check">
-          <input
-            id="lockSuggestionsModeNoFreeze"
-            v-model="lockSuggestionsAfterDraw"
-            :value="false"
-            class="form-check-input"
-            type="radio"
-            name="lockSuggestionsMode"
-          />
-          <label class="form-check-label" for="lockSuggestionsModeNoFreeze">
-            {{ t('exchanges.createModal.suggestionsLockModeNoFreeze') }}
-          </label>
-        </div>
-      </div>
-
-      <div class="mb-3 form-check">
-        <input
-          v-model="noMutualAssignments"
-          type="checkbox"
-          class="form-check-input"
-          id="noMutualAssignments"
-        />
-        <label class="form-check-label" for="noMutualAssignments">
-          {{ t('exchanges.createModal.noMutualAssignments') }}
-        </label>
-      </div>
-
       <div class="mb-3">
         <label for="adminPassword" class="form-label">
           {{ t('exchanges.createModal.adminPassword') }}
@@ -359,9 +157,27 @@ async function handleHidden() {
           id="adminPassword"
           required
         />
+        <p class="small text-body-secondary mt-2 mb-1">
+          {{ t('exchanges.createModal.adminPasswordRulesTitle') }}
+        </p>
+        <ul class="small text-body-secondary mb-2 ps-3">
+          <li>{{ t('exchanges.createModal.adminPasswordRuleLength') }}</li>
+          <li>{{ t('exchanges.createModal.adminPasswordRuleUnique') }}</li>
+          <li>{{ t('exchanges.createModal.adminPasswordRuleStoredSafely') }}</li>
+        </ul>
         <div v-if="fieldErrors.adminPassword" class="text-danger small">
           {{ fieldErrors.adminPassword[0] }}
         </div>
+      </div>
+
+      <div class="alert alert-light border mb-0">
+        <p class="fw-semibold mb-2">{{ t('exchanges.createModal.whatHappensTitle') }}</p>
+        <ul class="mb-0 ps-3">
+          <li>{{ t('exchanges.createModal.whatHappensCreated') }}</li>
+          <li>{{ t('exchanges.createModal.whatHappensAdminSession') }}</li>
+          <li>{{ t('exchanges.createModal.whatHappensPassword') }}</li>
+          <li>{{ t('exchanges.createModal.whatHappensEditable') }}</li>
+        </ul>
       </div>
 
       <div v-if="formErrors.length" class="text-danger mt-2">

@@ -75,7 +75,7 @@
   },
   "exchanges": {
     "title": "Exchanges",
-    "createExchange": "Create Exchange",
+    "createExchange": "Create a draw",
     "loading": "Loading...",
     "statusValues": {
       "draft": "Draft",
@@ -94,13 +94,15 @@
     "minWishlistSuggestions": "Minimum suggestions",
     "updatedAt": "Updated",
     "createModal": {
-      "title": "Create Exchange",
+      "title": "Create a draw",
+      "introTitle": "Step one: only what is required",
+      "introDescription": "Start with the mandatory information. You can update all other draw details right after creation.",
       "requiredLegend": "Indicates a required field",
       "requiredFieldA11y": "required",
-      "name": "Exchange Name",
+      "name": "Draw name",
       "description": "Description",
       "organizerName": "Organizer Name",
-      "organizerParticipates": "Organizer participates in the exchange",
+      "organizerParticipates": "Organizer participates in the draw",
       "exchangeMoment": "Gift exchange moment",
       "drawDeadlineAt": "Draw date and time deadline",
       "suggestionsDeadlineAt": "Suggestions date and time deadline",
@@ -112,7 +114,16 @@
       "suggestionsLockModeNoFreeze": "No freeze (optional suggestions deadline)",
       "noMutualAssignments": "Disallow mutual assignments",
       "adminPassword": "Admin Password",
-      "submit": "Create Exchange"
+      "adminPasswordRulesTitle": "Admin password requirements:",
+      "adminPasswordRuleLength": "10 to 256 characters.",
+      "adminPasswordRuleUnique": "Use a unique password that is hard to guess.",
+      "adminPasswordRuleStoredSafely": "This password cannot be recovered later.",
+      "whatHappensTitle": "What happens after creation",
+      "whatHappensCreated": "Your draw is created and you are redirected to its management page.",
+      "whatHappensAdminSession": "An administrator session is automatically opened on this device.",
+      "whatHappensPassword": "The admin password cannot be recovered because it is stored securely (hashed), not in plain text.",
+      "whatHappensEditable": "All draw details remain editable after creation.",
+      "submit": "Create draw"
     }
   },
   "exchangeDetail": {
@@ -179,7 +190,7 @@
       "submit": "Save"
     },
     "editExchangeModal": {
-      "title": "Edit Exchange",
+      "title": "Edit draw",
       "submit": "Save"
     },
     "exceptions": {

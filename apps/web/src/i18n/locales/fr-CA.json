@@ -72,7 +72,7 @@
   },
   "exchanges": {
     "title": "Échanges",
-    "createExchange": "Créer un échange",
+    "createExchange": "Créer une pige",
     "loading": "Chargement...",
     "statusValues": {
       "draft": "Brouillon",
@@ -91,13 +91,15 @@
     "minWishlistSuggestions": "Suggestions minimales",
     "updatedAt": "Mis à jour",
     "createModal": {
-      "title": "Créer un échange",
+      "title": "Créer une pige",
+      "introTitle": "Première étape: l'essentiel seulement",
+      "introDescription": "Commencez avec les informations obligatoires. Vous pourrez ajuster les autres détails de la pige juste après la création.",
       "requiredLegend": "Indique un champ obligatoire",
       "requiredFieldA11y": "obligatoire",
-      "name": "Nom de l'échange",
+      "name": "Nom de la pige",
       "description": "Description",
       "organizerName": "Nom de l'organisateur",
-      "organizerParticipates": "L'organisateur participe à l'échange",
+      "organizerParticipates": "L'organisateur participe à la pige",
       "exchangeMoment": "Moment de l'échange des cadeaux",
       "drawDeadlineAt": "Date et heure limite de pige",
       "suggestionsDeadlineAt": "Date et heure limite des suggestions",
@@ -109,7 +111,16 @@
       "suggestionsLockModeNoFreeze": "Pas de freeze (date limite des suggestions optionnelle)",
       "noMutualAssignments": "Interdire les piges mutuelles",
       "adminPassword": "Mot de passe admin",
-      "submit": "Créer l'échange"
+      "adminPasswordRulesTitle": "Contraintes du mot de passe admin:",
+      "adminPasswordRuleLength": "10 à 256 caractères.",
+      "adminPasswordRuleUnique": "Choisissez un mot de passe unique et difficile à deviner.",
+      "adminPasswordRuleStoredSafely": "Ce mot de passe ne pourra pas être récupéré ensuite.",
+      "whatHappensTitle": "Ce qui va se passer après la création",
+      "whatHappensCreated": "Votre pige est créée et vous êtes redirigé vers sa page de gestion.",
+      "whatHappensAdminSession": "Un accès administrateur est ouvert automatiquement sur cet appareil.",
+      "whatHappensPassword": "Le mot de passe admin n'est pas récupérable, car il est stocké de façon sécurisée (hachée) et non en clair.",
+      "whatHappensEditable": "Tous les détails de la pige resteront modifiables après la création.",
+      "submit": "Créer la pige"
     }
   },
   "iconPicker": {
@@ -179,7 +190,7 @@
       "submit": "Enregistrer"
     },
     "editExchangeModal": {
-      "title": "Modifier l'échange",
+      "title": "Modifier la pige",
       "submit": "Enregistrer"
     },
     "exceptions": {
