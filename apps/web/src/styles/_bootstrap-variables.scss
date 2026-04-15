@@ -1,16 +1,40 @@
 @use "sass:color";
 
-// _bootstrap-variables.scss
-// Tokens — palette & typographie
-$primary: #4F46E5;
-$primary-dark: #3730A3;
-$accent: #06B6D4;
-$accent-dark: #0288A2;
-$secondary: #64748B;
-$success: #10B981;
-$info: #0891B2;
-$warning: #F59E0B;
-$danger: #EF4444;
+// Kado / Sandstone Warm
+$theme: "kado-sandstone" !default;
+
+$white: #fff !default;
+$gray-100: #fcfbf8 !default;
+$gray-200: #f5f1e8 !default;
+$gray-300: #ddd4c5 !default;
+$gray-400: #c7beb1 !default;
+$gray-500: #988f81 !default;
+$gray-600: #786f63 !default;
+$gray-700: #514a43 !default;
+$gray-800: #3b352f !default;
+$gray-900: #211d1a !default;
+$black: #000 !default;
+
+$blue: #5b8db8 !default;
+$indigo: #6d5bd0 !default;
+$purple: #8b5fbf !default;
+$pink: #c96a9b !default;
+$red: #c65a52 !default;
+$orange: #c97a2b !default;
+$yellow: #e0a93b !default;
+$green: #7fa35b !default;
+$teal: #4fa08f !default;
+$cyan: #68a9c7 !default;
+
+$primary: #a5671f !default;
+$primary-dark: #8d591c !default;
+$accent: $yellow !default;
+$accent-dark: $orange !default;
+$secondary: $gray-600 !default;
+$success: $green !default;
+$info: $blue !default;
+$warning: $yellow !default;
+$danger: $red !default;
 
 $theme-colors: (
   "primary": $primary,
@@ -19,36 +43,56 @@ $theme-colors: (
   "info": $info,
   "warning": $warning,
   "danger": $danger,
-  "light": #F8FAFC,
-  "dark": #0F1724
+  "light": $gray-200,
+  "dark": $gray-800
 );
 
-$body-bg: #F8FAFC;
-$body-color: #0F172A;
+$body-bg: #f8f6f1 !default;
+$body-color: $gray-800 !default;
+$link-color: $primary !default;
+$link-hover-color: $primary-dark !default;
 
-$font-family-sans-serif: "Source Sans 3", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+$font-family-sans-serif: "Source Sans 3", Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif !default;
 $font-family-base: $font-family-sans-serif;
 $headings-font-family: $font-family-sans-serif;
+$headings-font-weight: 500 !default;
 
 $font-size-base: 1.05rem;
 $line-height-base: 1.62;
 $headings-margin-bottom: .5rem;
 
-// Radius policy: one consistent, moderate radius across interactive surfaces.
-$radius-base: .5rem;
-$border-radius: .5rem;
-$border-radius-lg: $radius-base;
-$btn-border-radius: $radius-base;
+$border-color: rgba($gray-300, .9) !default;
+
+$radius-base: .75rem;
+$border-radius: $radius-base;
+$border-radius-lg: 1rem;
+$btn-border-radius: 999px;
 $enable-gradients: false;
 $enable-shadows: true;
 
 $spacer: 1rem;
 
+$card-bg: rgba($white, .78) !default;
+$card-border-color: rgba($gray-300, .75) !default;
+$card-cap-bg: rgba($gray-200, .55) !default;
+
+$modal-content-bg: #fbfaf7 !default;
+$modal-content-border-color: $gray-300 !default;
+$modal-header-border-color: $gray-300 !default;
+$modal-footer-border-color: $gray-300 !default;
+
 $input-padding-y: .5rem;
 $input-padding-x: .75rem;
+$input-bg: #fff !default;
 $input-border-radius: $radius-base;
-$input-border-color: rgba(15,23,42,.16);
+$input-border-color: $gray-300 !default;
+$input-focus-border-color: #c79b63 !default;
 
-$form-focus-box-shadow: 0 0 0 .15rem color.change($primary, $alpha: .18);
+$form-focus-box-shadow: 0 0 0 .2rem color.change($primary, $alpha: .18);
+$form-check-input-checked-bg-color: $primary !default;
+$form-check-input-checked-border-color: $primary !default;
+$btn-focus-box-shadow: 0 0 0 .2rem color.change($primary, $alpha: .2) !default;
+
+$list-group-border-color: $gray-300 !default;
 
 $enable-reduced-motion: true;

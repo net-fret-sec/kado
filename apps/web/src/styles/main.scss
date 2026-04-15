@@ -6,6 +6,7 @@
   $body-color: vars.$body-color,
   $font-family-base: vars.$font-family-base,
   $headings-font-family: vars.$headings-font-family,
+  $headings-font-weight: vars.$headings-font-weight,
   $font-size-base: vars.$font-size-base,
   $line-height-base: vars.$line-height-base,
   $headings-margin-bottom: vars.$headings-margin-bottom,
@@ -15,17 +16,27 @@
   $enable-gradients: vars.$enable-gradients,
   $enable-shadows: vars.$enable-shadows,
   $spacer: vars.$spacer,
+  $link-color: vars.$link-color,
+  $link-hover-color: vars.$link-hover-color,
+  $border-color: vars.$border-color,
   $input-padding-y: vars.$input-padding-y,
   $input-padding-x: vars.$input-padding-x,
+  $input-bg: vars.$input-bg,
   $input-border-radius: vars.$input-border-radius,
   $input-border-color: vars.$input-border-color,
+  $card-bg: vars.$card-bg,
+  $card-border-color: vars.$card-border-color,
+  $card-cap-bg: vars.$card-cap-bg,
+  $modal-content-bg: vars.$modal-content-bg,
+  $modal-content-border-color: vars.$modal-content-border-color,
+  $modal-header-border-color: vars.$modal-header-border-color,
+  $modal-footer-border-color: vars.$modal-footer-border-color,
   $enable-reduced-motion: vars.$enable-reduced-motion
 );
 @use "./_custom-overrides";
 
-/* Typography and spacing scale tuned for readability across viewports */
 :root {
-  --font-body: "Source Sans 3", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Source Sans 3", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --step--1: clamp(0.88rem, 0.84rem + 0.12vw, 0.95rem);
   --step-0: clamp(1.02rem, 0.98rem + 0.2vw, 1.14rem);
   --step-1: clamp(1.22rem, 1.1rem + 0.42vw, 1.42rem);
@@ -40,19 +51,36 @@
   --space-xl: 2.5rem;
   --space-2xl: 3.5rem;
   --content-max: 72ch;
-  --bs-body-bg: #F8FAFC;
-  --bs-body-color: #0F172A;
+  --bg: #f8f6f1;
+  --surface: #fbfaf7;
+  --surface-soft: #f3eee5;
+  --text-primary: #3b352f;
+  --text-secondary: #786f63;
+  --primary: #a5671f;
+  --primary-hover: #8d591c;
+  --secondary: #786f63;
+  --success: #7fa35b;
+  --info: #5b8db8;
+  --warning: #e0a93b;
+  --danger: #c65a52;
+  --bs-body-bg: var(--bg);
+  --bs-body-color: var(--text-primary);
 }
 
 html {
   font-size: 100%;
   -webkit-text-size-adjust: 100%;
+  background: var(--bg);
 }
 
 body {
   font-family: var(--font-body);
   font-size: var(--step-0);
   line-height: 1.65;
+  background:
+    radial-gradient(circle at top left, rgba(224, 169, 59, 0.08), transparent 24rem),
+    linear-gradient(180deg, #fcfbf8 0%, #f8f6f1 100%);
+  color: var(--text-primary);
 }
 
 h1,
@@ -67,6 +95,7 @@ h4,
   line-height: 1.15;
   letter-spacing: 0.01em;
   text-wrap: balance;
+  color: #211d1a;
 }
 
 h1,
@@ -104,36 +133,45 @@ main > * + * {
   margin-block-start: var(--space-xl);
 }
 
+header.bg-dark {
+  background: linear-gradient(135deg, #3b352f 0%, #514a43 100%) !important;
+  border-bottom: 1px solid rgba(221, 212, 197, .32);
+  box-shadow: 0 .25rem 1rem rgba(33, 29, 26, .08);
+}
+
 .app-shell {
   padding-block: var(--space-lg) var(--space-2xl);
 }
 
 .app-header {
   padding: var(--space-md);
-  margin-block-end: var(--space-lg);
+  margin-block-end: 0;
 }
 
 .app-main {
-  padding-block: var(--space-sm) var(--space-xl);
+  padding-block: var(--space-lg) var(--space-xl);
+}
+
+.text-muted,
+.text-body-secondary {
+  color: var(--text-secondary) !important;
 }
 
 .card,
 .list-group-item,
 .modal-content {
-  border-radius: 0.75rem;
+  border-radius: 1rem;
 }
 
 .btn {
-  padding: 0.56rem 1rem;
-  font-weight: 600;
+  padding: 0.58rem 1rem;
 }
 
-/* Optional: expose a simple dark theme class using CSS variables */
-.theme-dark {
-  --bs-body-bg: #0B1220;
-  --bs-body-color: #E6EEF8;
-  background: var(--bs-body-bg);
-  color: var(--bs-body-color);
-  .card { background-color: #0F1724; box-shadow: 0 6px 18px rgba(2,6,23,0.45); }
-  .btn.btn-primary { box-shadow: 0 6px 18px rgba(79,70,229,0.14); }
+.alert-light {
+  color: #211d1a;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(165, 103, 31, .55);
+  outline-offset: 2px;
 }

@@ -1,96 +1,227 @@
 @use "sass:color";
 @use "./_bootstrap-variables" as vars;
 
-// _custom-overrides.scss
-// Minimal overrides for CTA, Card, Input
+.kado-ui-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
 
-// Buttons — CTA moderne, accessible, pill + smooth hover
-.btn {
-  transition: transform .16s ease, filter .12s ease, box-shadow .12s ease;
+.navbar {
+  box-shadow: 0 .25rem 1rem rgba(33, 29, 26, .08);
 
-  &.btn-primary {
-    border: none;
-    border-radius: vars.$border-radius;
-    background-color: vars.$primary;
-    color: #fff;
-    box-shadow: 0 6px 18px color.change(vars.$primary, $alpha: .12);
-
-    &:hover {
-      background-color: vars.$primary-dark;
-      transform: translateY(-1px);
-    }
-
-    &:active {
-      background-color: vars.$primary-dark;
-      transform: translateY(0);
-    }
-
-    &:focus-visible {
-      box-shadow: 0 0 0 .25rem color.change(vars.$primary, $alpha: .18);
-    }
-  }
-
-  &.btn-accent {
-    border: none;
-    border-radius: vars.$border-radius;
-    background-color: vars.$accent;
-    color: #0F1724;
-    box-shadow: 0 6px 18px color.change(vars.$accent, $alpha: .12);
-
-    &:hover {
-      background-color: vars.$accent-dark;
-    }
-  }
-
-  &.btn-ghost {
-    background: transparent;
-    border: 1px solid color.change(vars.$primary, $alpha: .2);
-    color: vars.$primary;
-
-    &:hover {
-      background: color.change(vars.$primary, $alpha: .08);
-    }
-
-    &:focus-visible {
-      box-shadow: 0 0 0 .15rem color.change(vars.$primary, $alpha: .12);
-    }
+  .navbar-brand {
+    font-size: 1.9rem;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    text-transform: none;
   }
 }
 
-// Card — elevation soft, borderless by default
+.btn {
+  font-weight: 500;
+  border-width: 1px;
+  box-shadow: none;
+  transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+
+  &:hover {
+    border-color: transparent;
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    box-shadow: vars.$btn-focus-box-shadow;
+  }
+
+  &.btn-primary {
+    color: #fff;
+    background-color: vars.$primary;
+    border-color: vars.$primary;
+    box-shadow: 0 .5rem 1.25rem rgba(165, 103, 31, .16);
+
+    &:hover,
+    &:focus {
+      background-color: vars.$primary-dark;
+      border-color: vars.$primary-dark;
+      color: #fff;
+    }
+  }
+
+  &.btn-outline-primary:hover,
+  &.btn-outline-secondary:hover {
+    color: #fff;
+  }
+}
+
 .card {
-  border: none;
-  border-radius: vars.$border-radius;
-  background-color: #fff;
-  box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+  border: 1px solid rgba(221, 212, 197, .75);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, .78);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 .125rem .25rem rgba(33, 29, 26, .06);
+
+  .card-title {
+    font-weight: 500;
+    color: vars.$gray-900;
+  }
 
   .card-header {
-    border-bottom: 1px solid rgba(15,23,42,0.08);
+    background-color: rgba(245, 241, 232, .55);
+    border-bottom: 1px solid rgba(221, 212, 197, .75);
     padding: .75rem 1rem;
   }
 }
 
-// Inputs — softened radius + colored focus ring
-.form-control {
-  border-radius: vars.$input-border-radius;
-  padding: vars.$input-padding-y vars.$input-padding-x;
-  border-color: vars.$input-border-color;
-  transition: box-shadow .12s ease, border-color .12s ease;
+.modal-content,
+.offcanvas,
+.toast {
+  background: #fbfaf7;
+  border: 1px solid rgba(221, 212, 197, .85);
+  box-shadow: 0 1rem 2rem rgba(33, 29, 26, .12);
+}
+
+.modal-header.bg-dark {
+  background: linear-gradient(135deg, #514a43 0%, #3b352f 100%) !important;
+}
+
+.modal-header .modal-title,
+.offcanvas-header .offcanvas-title {
+  font-weight: 500;
+  color: inherit;
+}
+
+.form-label {
+  font-weight: 500;
+  color: vars.$gray-800;
+}
+
+.form-text {
+  color: vars.$gray-600;
+}
+
+.form-control,
+.form-select {
+  box-shadow: none;
 
   &:focus {
     box-shadow: vars.$form-focus-box-shadow;
-    border-color: vars.$primary;
   }
 
   &::placeholder {
-    color: rgba(15,23,42,.35);
+    color: rgba(120, 111, 99, .72);
   }
 }
 
-// Utility: subtle glassy surface (optional)
-.surface {
-  background: color.change(#fff, $alpha: .95);
-  backdrop-filter: blur(6px);
-  border-radius: vars.$border-radius;
-  box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+.nav-tabs {
+  gap: .25rem;
+  border-bottom: 0;
+
+  .nav-link {
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background-color: #f2ede3;
+    border-color: vars.$gray-300;
+    color: vars.$gray-700;
+    border-radius: .75rem .75rem 0 0;
+
+    &:hover,
+    &:focus {
+      color: vars.$gray-900;
+      background-color: #eee7da;
+    }
+
+    &.active {
+      color: vars.$gray-900;
+      background-color: rgba(255, 255, 255, .75);
+      border-color: vars.$gray-300;
+    }
+  }
+}
+
+.nav-pills .nav-link {
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: vars.$gray-700;
+  border: 1px solid transparent;
+  border-radius: 999px;
+
+  &:hover,
+  &:focus,
+  &.active {
+    color: vars.$gray-900;
+    background-color: #efe8dc;
+    border-color: vars.$gray-300;
+  }
+}
+
+.alert {
+  border: 0;
+  border-radius: 1rem;
+  box-shadow: 0 .125rem .25rem rgba(33, 29, 26, .06);
+
+  &.alert-light {
+    color: vars.$gray-900;
+    background-color: #f7f3ea;
+  }
+}
+
+.badge {
+  font-weight: 600;
+  border-radius: 999px;
+}
+
+.badge.text-bg-light,
+.badge.bg-light {
+  color: vars.$gray-900 !important;
+  background-color: #f0eadf !important;
+}
+
+.dropdown-menu {
+  border-radius: .85rem;
+  box-shadow: 0 .5rem 1.25rem rgba(33, 29, 26, .08);
+  border: 1px solid vars.$gray-300;
+
+  .dropdown-item {
+    font-size: .95rem;
+
+    &:hover,
+    &:focus {
+      background-color: #f3efe7;
+    }
+  }
+}
+
+.hero-surface {
+  background:
+    radial-gradient(circle at top left, rgba(201, 122, 43, .18), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(91, 141, 184, .14), transparent 24%),
+    linear-gradient(135deg, #2e2823 0%, #3f3731 100%);
+  color: #fff;
+  border-radius: 1.25rem;
+  box-shadow: 0 1rem 2rem rgba(33, 29, 26, .12);
+}
+
+.section-soft {
+  background: rgba(255, 255, 255, .52);
+  border: 1px solid rgba(221, 212, 197, .7);
+  border-radius: 1rem;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .35rem .6rem;
+  border-radius: 999px;
+  background: #f0eadf;
+  color: vars.$gray-800;
+  border: 1px solid vars.$gray-300;
 }

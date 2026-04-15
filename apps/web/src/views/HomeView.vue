@@ -11,7 +11,7 @@ const showAdminLink = import.meta.env.DEV
 <template>
   <section id="home-view" class="home-landing">
     <section
-      class="home-hero position-relative overflow-hidden rounded-4 px-4 px-lg-5 py-5 py-lg-6"
+      class="home-hero hero-surface position-relative overflow-hidden rounded-4 px-4 px-lg-5 py-5 py-lg-6"
     >
       <div class="home-hero__glow home-hero__glow--warm"></div>
       <div class="home-hero__glow home-hero__glow--cool"></div>
@@ -20,7 +20,7 @@ const showAdminLink = import.meta.env.DEV
         class="position-relative row justify-content-center text-center text-lg-start align-items-center g-4"
       >
         <div class="col-lg-8 col-xl-7">
-          <p class="home-eyebrow text-uppercase fw-semibold mb-3">{{ t('home.hero.eyebrow') }}</p>
+          <p class="home-eyebrow kado-ui-label mb-3">{{ t('home.hero.eyebrow') }}</p>
           <h2 class="display-4 fw-semibold mb-3 text-light">{{ t('home.hero.title') }}</h2>
           <p class="lead text-white-50 mb-4">{{ t('home.hero.description') }}</p>
 
@@ -195,37 +195,32 @@ const showAdminLink = import.meta.env.DEV
 }
 
 .home-hero {
-  background:
-    radial-gradient(circle at top right, rgba(251, 191, 36, 0.18), transparent 24rem),
-    radial-gradient(circle at left center, rgba(34, 197, 94, 0.12), transparent 22rem),
-    linear-gradient(135deg, #102033 0%, #17314a 52%, #0f1c2c 100%);
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+  border: 1px solid rgba(221, 212, 197, 0.42);
 }
 
 .home-hero__glow {
   position: absolute;
   border-radius: 999px;
-  filter: blur(12px);
-  opacity: 0.8;
+  filter: blur(20px);
+  opacity: 0.72;
 }
 
 .home-hero__glow--warm {
   inset: auto 8% 10% auto;
   width: 9rem;
   height: 9rem;
-  background: rgba(245, 158, 11, 0.18);
+  background: rgba(201, 122, 43, 0.16);
 }
 
 .home-hero__glow--cool {
   inset: 12% auto auto 6%;
   width: 7rem;
   height: 7rem;
-  background: rgba(45, 212, 191, 0.12);
+  background: rgba(91, 141, 184, 0.14);
 }
 
 .home-eyebrow {
-  letter-spacing: 0.12em;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 248, 235, 0.8);
 }
 
 .home-icon-badge {
@@ -234,22 +229,29 @@ const showAdminLink = import.meta.env.DEV
   justify-content: center;
   width: 3rem;
   height: 3rem;
-  border-radius: 0.9rem;
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.14), rgba(6, 182, 212, 0.18));
-  color: #1e293b;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, rgba(201, 122, 43, 0.14), rgba(224, 169, 59, 0.12));
+  color: #8d591c;
   font-size: 1.25rem;
 }
 
 .home-action-card--primary {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(239, 246, 255, 0.96));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(249, 244, 236, 0.96));
 }
 
 .home-action-card--secondary {
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .home-why {
-  border: 1px solid rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(221, 212, 197, 0.7);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.home-support {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(221, 212, 197, 0.7);
+  border-radius: 1rem;
 }
 
 .home-support__copy {
