@@ -48,15 +48,6 @@ function areParticipantSuggestionsUpdatesClosed(exchange: {
   return false;
 }
 
-function getPublicBaseUrl(): string {
-  const base =
-    process.env.PUBLIC_BASE_URL ||
-    process.env.FRONTEND_BASE_URL ||
-    "http://localhost:5173";
-
-  return base.endsWith("/") ? base.slice(0, -1) : base;
-}
-
 export async function createParticipant(
   exchangeId: string,
   input: CreateParticipantInputDto,
@@ -110,7 +101,7 @@ export async function createParticipant(
 
   return {
     participant,
-    accessLink: `${getPublicBaseUrl()}/p/${groupedAccessCode}`,
+    accessLink: `/p/${groupedAccessCode}`,
   };
 }
 
@@ -216,7 +207,7 @@ export async function regenerateParticipantAccess(
 
   return {
     participantId: participant.id,
-    accessLink: `${getPublicBaseUrl()}/p/${groupedAccessCode}`,
+    accessLink: `/p/${groupedAccessCode}`,
   };
 }
 
@@ -354,6 +345,7 @@ async function resolveParticipantAccess(rawToken: string) {
   const tokenHash = sha256(normalizedToken);
   const access =
     await participantRepository.findActiveAccessByTokenHash(tokenHash);
+
   if (!access) {
     throw new NotFoundError("Invalid or expired link.", {
       code: "PARTICIPANT_LINK_INVALID_OR_EXPIRED",

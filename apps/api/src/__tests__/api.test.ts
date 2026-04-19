@@ -290,9 +290,7 @@ describe("API Tests", () => {
         .expect(201);
 
       const accessLink = response.body.accessLink as string;
-      participantAccessToken = new URL(accessLink).pathname
-        .split("/")
-        .pop() as string;
+      participantAccessToken = accessLink.split("/").pop() as string;
       participantAccessTokenNormalized = participantAccessToken
         .toUpperCase()
         .replace(/[\s-]/g, "");
@@ -472,7 +470,7 @@ describe("API Tests", () => {
         .send({ name: "Chloe", wishlist: [{ title: "Puzzle" }] })
         .expect(201);
 
-      drawParticipantToken = new URL(p1.body.accessLink).pathname
+      drawParticipantToken = (p1.body.accessLink as string)
         .split("/")
         .pop() as string;
     });
@@ -572,7 +570,7 @@ describe("API Tests", () => {
         .post(`/api/exchanges/${exclusionAwareExchangeId}/draw`)
         .expect(200);
 
-      const annaToken = new URL(annaResponse.body.accessLink).pathname
+      const annaToken = (annaResponse.body.accessLink as string)
         .split("/")
         .pop() as string;
       const annaSelfView = await request(app)

@@ -32,6 +32,7 @@ Cette application couvre trois surfaces:
 
 Note participant:
 - Le backend accepte les variantes de saisie du code (`abcd-efgh-jk23`, `abcd efgh jk23`, sans séparateurs), avec normalisation automatique.
+- L'API retourne un chemin relatif (`/p/:token`) et le frontend construit l'URL absolue depuis l'origine actuelle du navigateur pour eviter les erreurs de configuration d'environnement.
 
 ## Authentification frontend
 

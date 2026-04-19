@@ -52,7 +52,6 @@ cp deploy/env/api.env.example deploy/env/api.env
 4. Editer deploy/env/api.env:
 - FRONTEND_BASE_URL
 - FRONTEND_ALLOWED_ORIGINS
-- PUBLIC_BASE_URL
 - PARTICIPANT_ACCESS_RATE_WINDOW_MS
 - PARTICIPANT_ACCESS_RATE_SOFT_LIMIT
 - PARTICIPANT_ACCESS_BASE_DELAY_MS
@@ -61,7 +60,6 @@ cp deploy/env/api.env.example deploy/env/api.env
 Exemple typique:
 - FRONTEND_BASE_URL=https://kado.netfretsec.com
 - FRONTEND_ALLOWED_ORIGINS=https://kado.netfretsec.com
-- PUBLIC_BASE_URL=https://kado.netfretsec.com
 - PARTICIPANT_ACCESS_RATE_WINDOW_MS=10000
 - PARTICIPANT_ACCESS_RATE_SOFT_LIMIT=10
 - PARTICIPANT_ACCESS_BASE_DELAY_MS=200

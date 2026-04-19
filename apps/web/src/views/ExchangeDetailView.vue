@@ -152,6 +152,17 @@ function legacyCopy(text: string) {
   return copied
 }
 
+function resolveParticipantAccessLink(link: string) {
+  const trimmed = link.trim()
+  if (!trimmed) return ''
+
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed
+  }
+
+  return new URL(trimmed, window.location.origin).toString()
+}
+
 async function copyToClipboard(text: string) {
   if (!text) {
     toasts.error(t('exchangeDetail.copyFailed'))
@@ -177,7 +188,7 @@ async function copyToClipboard(text: string) {
 }
 
 function openAccessLinkModal(link: string) {
-  latestAccessLink.value = link
+  latestAccessLink.value = resolveParticipantAccessLink(link)
   showAccessLinkModal.value = true
 }
 
@@ -620,8 +631,9 @@ async function addParticipant(payload: { name: string; email: string }) {
     )
     showAddParticipantModal.value = false
     if (result?.accessLink) {
-      await copyToClipboard(result.accessLink)
-      openAccessLinkModal(result.accessLink)
+      const resolvedAccessLink = resolveParticipantAccessLink(result.accessLink)
+      await copyToClipboard(resolvedAccessLink)
+      openAccessLinkModal(resolvedAccessLink)
     }
     await fetchExchange()
   } catch (err) {
@@ -724,8 +736,9 @@ async function regenerateParticipantLink(participantId: string) {
       init,
     )
     if (result?.accessLink) {
-      await copyToClipboard(result.accessLink)
-      openAccessLinkModal(result.accessLink)
+      const resolvedAccessLink = resolveParticipantAccessLink(result.accessLink)
+      await copyToClipboard(resolvedAccessLink)
+      openAccessLinkModal(resolvedAccessLink)
     }
   } catch (err) {
     if (isAdminAuthError(err)) {
