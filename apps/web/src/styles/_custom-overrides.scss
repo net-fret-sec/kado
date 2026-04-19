@@ -231,22 +231,6 @@
     color: vars.$gray-900;
     background-color: #f7f3ea;
   }
-
-  &.alert-primary,
-  &.alert-secondary,
-  &.alert-success,
-  &.alert-info,
-  &.alert-danger,
-  &.alert-warning,
-  &.alert-dark {
-    color: #fff;
-
-    a,
-    .alert-link {
-      color: #fff;
-      text-decoration: underline;
-    }
-  }
 }
 
 .badge {

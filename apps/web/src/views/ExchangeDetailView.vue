@@ -621,7 +621,7 @@ async function addParticipant(payload: { name: string; email: string }) {
         }
       : undefined
 
-    const result = await api.post<{ participant: ParticipantDto; accessLink: string }>(
+    await api.post<{ participant: ParticipantDto; accessLink: string }>(
       `/api/exchanges/${exchange.value.id}/participants`,
       {
         name: payload.name,
@@ -630,11 +630,6 @@ async function addParticipant(payload: { name: string; email: string }) {
       init,
     )
     showAddParticipantModal.value = false
-    if (result?.accessLink) {
-      const resolvedAccessLink = resolveParticipantAccessLink(result.accessLink)
-      await copyToClipboard(resolvedAccessLink)
-      openAccessLinkModal(resolvedAccessLink)
-    }
     await fetchExchange()
   } catch (err) {
     if (isAdminAuthError(err)) {
