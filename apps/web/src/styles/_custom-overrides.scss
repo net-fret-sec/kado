@@ -311,3 +311,187 @@
   color: vars.$gray-800;
   border: 1px solid vars.$gray-300;
 }
+
+#participants {
+  .list-group-item {
+    padding: 1rem;
+  }
+
+  .participant-row {
+    gap: 1rem;
+  }
+
+  .participant-main {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .participant-name {
+    display: inline-block;
+    margin-bottom: .1rem;
+  }
+
+  .participant-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: .45rem;
+    align-items: flex-start;
+    justify-content: flex-end;
+    margin-left: .75rem;
+  }
+
+  .participant-exceptions {
+    margin-top: .7rem;
+    padding-top: .65rem;
+    border-top: 1px dashed rgba(120, 111, 99, .35);
+  }
+
+  .participant-exceptions-header {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    margin-bottom: .5rem;
+  }
+
+  .participant-exceptions-list {
+    margin: 0 0 .6rem;
+    padding: 0;
+    display: grid;
+    gap: .45rem;
+  }
+
+  .participant-exception-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .6rem;
+    padding: .5rem .625rem;
+    background: #f9f5ec;
+    border: 1px solid rgba(221, 212, 197, .8);
+    border-radius: .625rem;
+  }
+
+  .participant-exception-form {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+
+  .participant-exception-form .form-select {
+    min-width: 14rem;
+  }
+
+  .btn-icon {
+    width: 2.2rem;
+    height: 2.2rem;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  .btn-icon .bi {
+    font-size: .95rem;
+    line-height: 1;
+  }
+
+  @media (max-width: 767.98px) {
+    .participant-row {
+      flex-direction: column;
+    }
+
+    .participant-actions {
+      margin-left: 0;
+      justify-content: flex-start;
+    }
+
+    .participant-exception-form {
+      flex-wrap: wrap;
+    }
+
+    .participant-exception-form .form-select {
+      min-width: 100%;
+    }
+  }
+}
+
+#participant-self-view {
+  .participant-self-form .card {
+    height: 100%;
+  }
+
+  .participant-suggestions-toolbar {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    margin-bottom: .8rem;
+  }
+
+  .participant-suggestion-list {
+    display: grid;
+    gap: .9rem;
+    margin-bottom: .4rem;
+  }
+
+  .participant-suggestion-item {
+    border: 1px solid rgba(221, 212, 197, .85);
+    border-radius: .85rem;
+    background: #fdfbf7;
+    padding: .8rem .9rem;
+  }
+
+  .participant-suggestion-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .45rem;
+  }
+
+  .participant-suggestion-index {
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    color: vars.$gray-700;
+  }
+
+  .participant-suggestion-remove {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  .participant-suggestion-remove .bi {
+    font-size: .88rem;
+  }
+
+  .participant-suggestion-handle {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    line-height: 1;
+  }
+
+  .participant-suggestion-handle:active {
+    cursor: grabbing;
+  }
+
+  .participant-suggestion-list .sortable-ghost {
+    opacity: .55;
+  }
+
+  @media (max-width: 991.98px) {
+    .participant-profile-card,
+    .participant-suggestions-card {
+      margin-bottom: .5rem;
+    }
+  }
+}

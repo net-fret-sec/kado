@@ -1048,7 +1048,7 @@ async function cancelDraw() {
       <section id="participants">
         <div v-if="participants.length">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <h3>{{ t('exchangeDetail.participants') }}</h3>
+            <h3>{{ t('exchangeDetail.participants') }} ({{ participants.length }})</h3>
             <button
               class="btn btn-sm btn-primary"
               :disabled="isParticipantCreationLocked"
@@ -1062,117 +1062,137 @@ async function cancelDraw() {
             <li
               v-for="participant in participants"
               :key="participant.id"
-              class="list-group-item d-flex justify-content-between align-items-center"
+              class="list-group-item participant-row d-flex justify-content-between align-items-start"
             >
-              <div>
-                <strong>{{ participant.name }}</strong>
+              <div class="participant-main">
+                <strong class="participant-name">{{ participant.name }}</strong>
                 <!-- <span v-if="participant.email" class="text-muted"> ({{ participant.email }})</span> -->
 
-                <div v-if="participant.wishlist?.length" class="small">
+                <div v-if="participant.wishlist?.length" class="small mt-1">
                   <!-- <span class="me-1">{{ t('exchangeDetail.wishlist') }}:</span> -->
                   <span class="badge text-bg-light">{{
                     t('exchangeDetail.wishlistSuggestions', participant.wishlist.length)
                   }}</span>
                 </div>
 
-                <div v-if="!isSummaryMode && participant.note" class="small">
+                <div v-if="!isSummaryMode && participant.note" class="small mt-1">
                   {{ t('exchangeDetail.note') }}: {{ participant.note }}
                 </div>
 
-                <details v-if="!isSummaryMode" class="small mt-2">
-                  <summary class="fw-semibold">
-                    {{ t('exchangeDetail.exceptions.title') }}
-                    <span class="text-muted">
-                      ({{ getParticipantExclusions(participant.id).length }})
+                <div v-if="!isSummaryMode" class="participant-exceptions">
+                  <div class="participant-exceptions-header">
+                    <span class="fw-semibold">{{ t('exchangeDetail.exceptions.title') }}</span>
+                    <span class="badge text-bg-light">
+                      {{ getParticipantExclusions(participant.id).length }}
                     </span>
-                  </summary>
+                  </div>
 
-                  <div class="mt-2">
-                    <ul v-if="getParticipantExclusions(participant.id).length" class="mb-2 ps-3">
-                      <li
-                        v-for="rule in getParticipantExclusions(participant.id)"
-                        :key="rule.id"
-                        class="d-flex align-items-center gap-2 mb-1"
-                      >
-                        <span>
-                          {{ t('exchangeDetail.exceptions.cannotDraw') }}
+                  <ul
+                    v-if="getParticipantExclusions(participant.id).length"
+                    class="participant-exceptions-list list-unstyled"
+                  >
+                    <li
+                      v-for="rule in getParticipantExclusions(participant.id)"
+                      :key="rule.id"
+                      class="participant-exception-item"
+                    >
+                      <span>
+                        {{ t('exchangeDetail.exceptions.cannotDraw') }}
+                        <strong>
                           {{
                             participantNameById[rule.receiverParticipantId] ||
                             rule.receiverParticipantId
                           }}
-                        </span>
-                        <button
-                          type="button"
-                          class="btn btn-sm btn-outline-danger"
-                          :disabled="isExclusionEditingLocked"
-                          @click="removeParticipantExclusion(rule.id)"
-                        >
-                          {{ t('exchangeDetail.exceptions.remove') }}
-                        </button>
-                      </li>
-                    </ul>
-
-                    <p v-else class="mb-2 text-muted">{{ t('exchangeDetail.exceptions.none') }}</p>
-                    <div
-                      class="d-flex gap-2 align-items-center"
-                      v-if="participant.status === 'active'"
-                    >
-                      <select
-                        class="form-select form-select-sm"
-                        :disabled="
-                          isExclusionEditingLocked || !getReceiverCandidates(participant.id).length
-                        "
-                        v-model="selectedExceptionReceiverByParticipant[participant.id]"
-                      >
-                        <option value="">
-                          {{ t('exchangeDetail.exceptions.selectReceiver') }}
-                        </option>
-                        <option
-                          v-for="candidate in getReceiverCandidates(participant.id)"
-                          :key="candidate.id"
-                          :value="candidate.id"
-                        >
-                          {{ candidate.name }}
-                        </option>
-                      </select>
+                        </strong>
+                      </span>
                       <button
                         type="button"
-                        class="btn btn-sm btn-outline-primary"
-                        :disabled="
-                          isExclusionEditingLocked ||
-                          !selectedExceptionReceiverByParticipant[participant.id]
-                        "
-                        @click="addParticipantExclusion(participant.id)"
+                        class="btn btn-sm btn-outline-danger btn-icon"
+                        :disabled="isExclusionEditingLocked"
+                        :aria-label="t('exchangeDetail.exceptions.remove')"
+                        :title="t('exchangeDetail.exceptions.remove')"
+                        @click="removeParticipantExclusion(rule.id)"
                       >
-                        {{ t('exchangeDetail.exceptions.add') }}
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                        <span class="visually-hidden">{{
+                          t('exchangeDetail.exceptions.remove')
+                        }}</span>
                       </button>
-                    </div>
+                    </li>
+                  </ul>
 
-                    <p v-if="isExclusionEditingLocked" class="mb-0 text-muted">
-                      {{ t('exchangeDetail.exceptions.locked') }}
-                    </p>
+                  <p v-else class="mb-2 text-muted small">
+                    {{ t('exchangeDetail.exceptions.none') }}
+                  </p>
+
+                  <div class="participant-exception-form" v-if="participant.status === 'active'">
+                    <select
+                      class="form-select form-select-sm"
+                      :disabled="
+                        isExclusionEditingLocked || !getReceiverCandidates(participant.id).length
+                      "
+                      v-model="selectedExceptionReceiverByParticipant[participant.id]"
+                    >
+                      <option value="">
+                        {{ t('exchangeDetail.exceptions.selectReceiver') }}
+                      </option>
+                      <option
+                        v-for="candidate in getReceiverCandidates(participant.id)"
+                        :key="candidate.id"
+                        :value="candidate.id"
+                      >
+                        {{ candidate.name }}
+                      </option>
+                    </select>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-primary btn-icon"
+                      :disabled="
+                        isExclusionEditingLocked ||
+                        !selectedExceptionReceiverByParticipant[participant.id]
+                      "
+                      :aria-label="t('exchangeDetail.exceptions.add')"
+                      :title="t('exchangeDetail.exceptions.add')"
+                      @click="addParticipantExclusion(participant.id)"
+                    >
+                      <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                      <span class="visually-hidden">{{ t('exchangeDetail.exceptions.add') }}</span>
+                    </button>
                   </div>
-                </details>
+
+                  <p v-if="isExclusionEditingLocked" class="mb-0 text-muted small mt-2">
+                    {{ t('exchangeDetail.exceptions.locked') }}
+                  </p>
+                </div>
               </div>
-              <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
+              <div class="participant-actions mt-2 mt-md-0">
                 <button
-                  class="btn btn-sm btn-outline-primary"
+                  class="btn btn-sm btn-outline-primary btn-icon"
+                  :aria-label="t('exchangeDetail.edit')"
+                  :title="t('exchangeDetail.edit')"
                   @click="openEditParticipantModal(participant)"
                 >
-                  {{ t('exchangeDetail.edit') }}
+                  <i class="bi bi-pencil" aria-hidden="true"></i>
+                  <span class="visually-hidden">{{ t('exchangeDetail.edit') }}</span>
                 </button>
                 <button
-                  class="btn btn-sm btn-outline-secondary"
+                  class="btn btn-sm btn-outline-secondary btn-icon"
+                  :aria-label="t('exchangeDetail.generateLink')"
+                  :title="t('exchangeDetail.generateLink')"
                   @click="regenerateParticipantLink(participant.id)"
                 >
-                  {{ t('exchangeDetail.generateLink') }}
+                  <i class="bi bi-link-45deg" aria-hidden="true"></i>
+                  <span class="visually-hidden">{{ t('exchangeDetail.generateLink') }}</span>
                 </button>
                 <button
-                  class="btn btn-sm btn-outline-danger"
+                  class="btn btn-sm btn-outline-danger btn-icon"
                   v-if="!isSummaryMode"
+                  :aria-label="t('exchangeDetail.delete')"
+                  :title="t('exchangeDetail.delete')"
                   @click="deleteParticipant(participant.id)"
                 >
-                  {{ t('exchangeDetail.delete') }}
+                  <i class="bi bi-trash" aria-hidden="true"></i>
+                  <span class="visually-hidden">{{ t('exchangeDetail.delete') }}</span>
                 </button>
               </div>
             </li>

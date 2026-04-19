@@ -250,7 +250,7 @@
     "yourInfo": "Vos informations",
     "name": "Nom",
     "email": "Courriel",
-    "wishlist": "Liste de souhaits",
+    "wishlist": "suggestions",
     "addSuggestion": "Ajouter une suggestion",
     "noSuggestions": "Aucune suggestion pour le moment.",
     "minWishlistSuggestionsHint": "Minimum requis: {count} suggestion | Minimum requis: {count} suggestions",

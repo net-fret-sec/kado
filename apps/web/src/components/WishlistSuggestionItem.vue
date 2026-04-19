@@ -25,7 +25,6 @@
             :aria-invalid="!!titleError || undefined"
             required
           />
-          <div id="titleHelp" class="form-text">{{ t('participant.wishlistItem.titleHelp') }}</div>
           <div v-if="titleError" class="invalid-feedback">{{ titleError }}</div>
         </div>
         <div class="col-12 col-md-3">

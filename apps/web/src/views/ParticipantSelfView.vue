@@ -11,6 +11,7 @@ import { useI18n } from 'vue-i18n'
 import WishlistSuggestionItem from '@/components/WishlistSuggestionItem.vue'
 import { useToastsStore } from '@/stores/toasts'
 import { getApiErrorMessage } from '@/composables/useApiErrorMessage'
+import Draggable from 'vuedraggable'
 
 const { t } = useI18n()
 const api = useApi()
@@ -193,9 +194,9 @@ onMounted(fetchSelf)
         {{ canEdit ? t('participant.editingOpen') : t('participant.editingClosed') }}
       </div>
 
-      <form @submit.prevent="saveSelf">
-        <div class="d-flex">
-          <section class="card mb-3">
+      <form class="participant-self-form" @submit.prevent="saveSelf">
+        <div class="row g-3 align-items-start">
+          <section class="card mb-3 col-12 col-lg-4 participant-profile-card">
             <div class="card-body">
               <h5 class="card-title">{{ t('participant.profileSectionTitle') }}</h5>
               <div class="mb-3">
@@ -221,25 +222,74 @@ onMounted(fetchSelf)
               </div>
             </div>
           </section>
-          <section class="card mb-3">
+          <section class="card mb-3 col-12 col-lg-8 participant-suggestions-card">
             <div class="card-body">
               <h5 class="card-title">{{ t('participant.suggestionsSectionTitle') }}</h5>
               <p v-if="requiredMinSuggestions > 0" class="small text-body-secondary">
                 {{ t('participant.minWishlistSuggestionsHint', { count: requiredMinSuggestions }) }}
               </p>
-              <WishlistSuggestionItem
-                v-for="(element, index) in wishlist"
-                :key="element._clientId"
-                :modelValue="element"
-                mode="edit"
-                :removable="canEdit && !isSaving"
-                :showHandle="false"
-                :asListItem="true"
-                @update:modelValue="
-                  (v) => wishlist.splice(index, 1, { ...v, _clientId: element._clientId })
-                "
-                @remove="wishlist.splice(index, 1)"
-              />
+
+              <div class="participant-suggestions-toolbar">
+                <span class="badge text-bg-light">{{ wishlist.length }}</span>
+                <span class="small text-muted">{{ t('participant.wishlist') }}</span>
+              </div>
+
+              <Draggable
+                v-if="wishlist.length"
+                v-model="wishlist"
+                item-key="_clientId"
+                handle=".drag-handle"
+                :animation="200"
+                :disabled="!canEdit || isSaving"
+                class="participant-suggestion-list"
+              >
+                <template #item="{ element, index }">
+                  <article class="participant-suggestion-item">
+                    <div class="participant-suggestion-head">
+                      <div class="d-flex align-items-center gap-2">
+                        <button
+                          v-if="canEdit"
+                          type="button"
+                          class="btn btn-sm btn-outline-secondary participant-suggestion-handle drag-handle"
+                          :disabled="isSaving"
+                          :aria-label="t('participant.wishlistItem.reorder')"
+                          :title="t('participant.wishlistItem.reorder')"
+                        >
+                          <i class="bi bi-grip-vertical" aria-hidden="true"></i>
+                          <span class="visually-hidden">{{
+                            t('participant.wishlistItem.reorder')
+                          }}</span>
+                        </button>
+                        <span class="participant-suggestion-index">#{{ index + 1 }}</span>
+                      </div>
+                      <button
+                        v-if="canEdit"
+                        type="button"
+                        class="btn btn-sm btn-outline-danger participant-suggestion-remove"
+                        :disabled="isSaving"
+                        :aria-label="t('exchangeDetail.delete')"
+                        :title="t('exchangeDetail.delete')"
+                        @click="wishlist.splice(index, 1)"
+                      >
+                        <i class="bi bi-trash" aria-hidden="true"></i>
+                        <span class="visually-hidden">{{ t('exchangeDetail.delete') }}</span>
+                      </button>
+                    </div>
+
+                    <WishlistSuggestionItem
+                      :modelValue="element"
+                      mode="edit"
+                      :removable="false"
+                      :showHandle="false"
+                      :asListItem="false"
+                      @update:modelValue="
+                        (v) => wishlist.splice(index, 1, { ...v, _clientId: element._clientId })
+                      "
+                    />
+                  </article>
+                </template>
+              </Draggable>
+
               <button
                 v-if="canEdit"
                 type="button"
@@ -250,14 +300,17 @@ onMounted(fetchSelf)
                 <i class="bi bi-plus-lg"></i>
                 {{ t('participant.addSuggestion') }}
               </button>
+
               <p class="text-muted mb-0 mt-2" v-if="!wishlist.length">
                 {{ t('participant.noSuggestions') }}
               </p>
+
               <p class="text-danger small mt-2" v-if="wishlist.length < requiredMinSuggestions">
                 {{
                   t('participant.minWishlistSuggestionsError', { count: requiredMinSuggestions })
                 }}
               </p>
+
               <button
                 v-if="canEdit"
                 type="submit"
