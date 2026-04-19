@@ -439,13 +439,32 @@
     border-radius: .85rem;
     background: #fdfbf7;
     padding: .8rem .9rem;
+    gap: .9rem;
+    align-items: stretch;
   }
 
   .participant-suggestion-head {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     margin-bottom: .45rem;
+    min-height: 2rem;
+  }
+
+  .participant-suggestion-meta {
+    flex: 0 0 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .35rem;
+    padding-right: .55rem;
+    border-right: 1px dashed rgba(120, 111, 99, .35);
+  }
+
+  .participant-suggestion-content {
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .participant-suggestion-index {
@@ -467,6 +486,20 @@
 
   .participant-suggestion-remove .bi {
     font-size: .88rem;
+  }
+
+  .participant-suggestion-remove {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-2px);
+    transition: opacity .15s ease, transform .15s ease;
+  }
+
+  .participant-suggestion-item:hover .participant-suggestion-remove,
+  .participant-suggestion-item:focus-within .participant-suggestion-remove {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
   }
 
   .participant-suggestion-handle {
@@ -492,6 +525,21 @@
     .participant-profile-card,
     .participant-suggestions-card {
       margin-bottom: .5rem;
+    }
+
+    .participant-suggestion-item {
+      gap: .7rem;
+    }
+
+    .participant-suggestion-meta {
+      flex-basis: 2.6rem;
+      padding-right: .4rem;
+    }
+
+    .participant-suggestion-remove {
+      opacity: 1;
+      pointer-events: auto;
+      transform: none;
     }
   }
 }

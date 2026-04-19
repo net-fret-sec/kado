@@ -244,48 +244,51 @@ onMounted(fetchSelf)
                 class="participant-suggestion-list"
               >
                 <template #item="{ element, index }">
-                  <article class="participant-suggestion-item">
-                    <div class="participant-suggestion-head">
-                      <div class="d-flex align-items-center gap-2">
-                        <button
-                          v-if="canEdit"
-                          type="button"
-                          class="btn btn-sm btn-outline-secondary participant-suggestion-handle drag-handle"
-                          :disabled="isSaving"
-                          :aria-label="t('participant.wishlistItem.reorder')"
-                          :title="t('participant.wishlistItem.reorder')"
-                        >
-                          <i class="bi bi-grip-vertical" aria-hidden="true"></i>
-                          <span class="visually-hidden">{{
-                            t('participant.wishlistItem.reorder')
-                          }}</span>
-                        </button>
-                        <span class="participant-suggestion-index">#{{ index + 1 }}</span>
-                      </div>
+                  <article class="participant-suggestion-item d-flex">
+                    <div class="participant-suggestion-meta">
                       <button
                         v-if="canEdit"
                         type="button"
-                        class="btn btn-sm btn-outline-danger participant-suggestion-remove"
+                        class="btn btn-sm btn-outline-secondary participant-suggestion-handle drag-handle"
                         :disabled="isSaving"
-                        :aria-label="t('exchangeDetail.delete')"
-                        :title="t('exchangeDetail.delete')"
-                        @click="wishlist.splice(index, 1)"
+                        :aria-label="t('participant.wishlistItem.reorder')"
+                        :title="t('participant.wishlistItem.reorder')"
                       >
-                        <i class="bi bi-trash" aria-hidden="true"></i>
-                        <span class="visually-hidden">{{ t('exchangeDetail.delete') }}</span>
+                        <i class="bi bi-grip-vertical" aria-hidden="true"></i>
+                        <span class="visually-hidden">{{
+                          t('participant.wishlistItem.reorder')
+                        }}</span>
                       </button>
+                      <span class="participant-suggestion-index">#{{ index + 1 }}</span>
                     </div>
 
-                    <WishlistSuggestionItem
-                      :modelValue="element"
-                      mode="edit"
-                      :removable="false"
-                      :showHandle="false"
-                      :asListItem="false"
-                      @update:modelValue="
-                        (v) => wishlist.splice(index, 1, { ...v, _clientId: element._clientId })
-                      "
-                    />
+                    <div class="participant-suggestion-content">
+                      <div class="participant-suggestion-head">
+                        <button
+                          v-if="canEdit"
+                          type="button"
+                          class="btn btn-sm btn-outline-danger participant-suggestion-remove"
+                          :disabled="isSaving"
+                          :aria-label="t('exchangeDetail.delete')"
+                          :title="t('exchangeDetail.delete')"
+                          @click="wishlist.splice(index, 1)"
+                        >
+                          <i class="bi bi-trash" aria-hidden="true"></i>
+                          <span class="visually-hidden">{{ t('exchangeDetail.delete') }}</span>
+                        </button>
+                      </div>
+
+                      <WishlistSuggestionItem
+                        :modelValue="element"
+                        mode="edit"
+                        :removable="false"
+                        :showHandle="false"
+                        :asListItem="false"
+                        @update:modelValue="
+                          (v) => wishlist.splice(index, 1, { ...v, _clientId: element._clientId })
+                        "
+                      />
+                    </div>
                   </article>
                 </template>
               </Draggable>
