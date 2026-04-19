@@ -121,7 +121,7 @@
       "whatHappensTitle": "What happens after creation",
       "whatHappensCreated": "Your draw is created and you are redirected to its management page.",
       "whatHappensAdminSession": "An administrator session is automatically opened on this device.",
-      "whatHappensPassword": "The admin password cannot be recovered because it is stored securely (hashed), not in plain text.",
+      "whatHappensPassword": "The <strong>admin password cannot be recovered</strong> because it is stored securely (hashed), not in plain text.",
       "whatHappensEditable": "All draw details remain editable after creation.",
       "submit": "Create draw"
     }

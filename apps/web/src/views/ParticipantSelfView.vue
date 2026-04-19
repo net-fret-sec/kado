@@ -92,7 +92,6 @@ const requiredMinSuggestions = computed(() => view.value?.exchange.minWishlistSu
 const canSubmit = computed(() => {
   if (!name.value.trim()) return false
   if (!isValidEmail(email.value)) return false
-  if (wishlist.value.length < requiredMinSuggestions.value) return false
   return wishlist.value.every(isValidSuggestion)
 })
 
@@ -153,7 +152,11 @@ async function saveSelf() {
       note: note.value.trim() || undefined,
       expectedUpdatedAt: view.value?.participant.updatedAt,
       wishlist: wishlist.value.length
-        ? wishlist.value.map(({ _clientId: _discardedClientId, ...suggestion }) => suggestion)
+        ? wishlist.value.map((suggestion) => ({
+            title: suggestion.title,
+            imageUrl: suggestion.imageUrl,
+            linkUrl: suggestion.linkUrl,
+          }))
         : undefined,
     }
 

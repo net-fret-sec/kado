@@ -96,9 +96,9 @@
       "introDescription": "Commencez avec les informations obligatoires. Vous pourrez ajuster les autres détails de la pige juste après la création.",
       "requiredLegend": "Indique un champ obligatoire",
       "requiredFieldA11y": "obligatoire",
-      "name": "Nom de la pige",
+      "name": "Donnez un nom à la pige",
       "description": "Description",
-      "organizerName": "Nom de l'organisateur",
+      "organizerName": "Nom de l'organisateur(trice)",
       "organizerParticipates": "L'organisateur participe à la pige",
       "exchangeMoment": "Moment de l'échange des cadeaux",
       "drawDeadlineAt": "Date et heure limite de pige",
@@ -118,7 +118,7 @@
       "whatHappensTitle": "Ce qui va se passer après la création",
       "whatHappensCreated": "Votre pige est créée et vous êtes redirigé vers sa page de gestion.",
       "whatHappensAdminSession": "Un accès administrateur est ouvert automatiquement sur cet appareil.",
-      "whatHappensPassword": "Le mot de passe admin n'est pas récupérable, car il est stocké de façon sécurisée (hachée) et non en clair.",
+      "whatHappensPassword": "Le <strong>mot de passe admin n'est pas récupérable</strong>, car il est stocké de façon sécurisée (hachée) et non en clair.",
       "whatHappensEditable": "Tous les détails de la pige resteront modifiables après la création.",
       "submit": "Créer la pige"
     }

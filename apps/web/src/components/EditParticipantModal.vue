@@ -79,7 +79,7 @@ function isValidSuggestion(suggestion: GiftSuggestionDto) {
 }
 
 const isListModeValid = computed(() => {
-  if (!wishlist.value || wishlist.value.length === 0) return false
+  if (!wishlist.value || wishlist.value.length === 0) return true
   return wishlist.value.every(isValidSuggestion)
 })
 
@@ -109,7 +109,11 @@ function handleSubmit() {
   emit('submit', {
     name: name.value,
     email: email.value,
-    wishlist: wishlist.value.map(({ _clientId: _discardedClientId, ...suggestion }) => suggestion),
+    wishlist: wishlist.value.map((suggestion) => ({
+      title: suggestion.title,
+      imageUrl: suggestion.imageUrl,
+      linkUrl: suggestion.linkUrl,
+    })),
     note: note.value,
   })
 }

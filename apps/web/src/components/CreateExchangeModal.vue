@@ -92,47 +92,60 @@ async function handleHidden() {
     @hidden="handleHidden"
   >
     <form id="createExchangeForm" @submit.prevent="handleCreate">
-      <div class="alert alert-light border mb-3">
-        <p class="fw-semibold mb-1">{{ t('exchanges.createModal.introTitle') }}</p>
-        <p class="text-body-secondary mb-0">
-          {{ t('exchanges.createModal.introDescription') }}
-        </p>
-      </div>
-
-      <p class="small text-body-secondary mb-3">
-        <span class="text-danger fw-semibold" aria-hidden="true">*</span>
-        {{ t('exchanges.createModal.requiredLegend') }}
-      </p>
-
       <div class="mb-3">
         <label for="exchangeName" class="form-label">
           {{ t('exchanges.createModal.name') }}
-          <span class="text-danger ms-1" aria-hidden="true">*</span>
-          <span class="visually-hidden">{{ t('exchanges.createModal.requiredFieldA11y') }}</span>
         </label>
         <input v-model="name" type="text" class="form-control" id="exchangeName" required />
         <div v-if="fieldErrors.name" class="text-danger small">{{ fieldErrors.name[0] }}</div>
       </div>
 
-      <div class="mb-3">
-        <label for="organizerName" class="form-label">
-          {{ t('exchanges.createModal.organizerName') }}
-          <span class="text-danger ms-1" aria-hidden="true">*</span>
-          <span class="visually-hidden">{{ t('exchanges.createModal.requiredFieldA11y') }}</span>
-        </label>
-        <input
-          v-model="organizerName"
-          type="text"
-          class="form-control"
-          id="organizerName"
-          required
-        />
-        <div v-if="fieldErrors.organizerName" class="text-danger small">
-          {{ fieldErrors.organizerName[0] }}
+      <div class="row">
+        <div class="col-lg-6 mb-lg-0 mb-3">
+          <label for="organizerName" class="form-label">
+            {{ t('exchanges.createModal.organizerName') }}
+          </label>
+          <input
+            v-model="organizerName"
+            type="text"
+            class="form-control"
+            id="organizerName"
+            required
+          />
+          <div v-if="fieldErrors.organizerName" class="text-danger small">
+            {{ fieldErrors.organizerName[0] }}
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="mb-3">
+            <label for="adminPassword" class="form-label">
+              {{ t('exchanges.createModal.adminPassword') }}
+            </label>
+            <input
+              v-model="adminPassword"
+              type="password"
+              class="form-control"
+              id="adminPassword"
+              required
+            />
+            <div class="d-none">
+              <p class="small text-body-secondary mt-2 mb-1">
+                {{ t('exchanges.createModal.adminPasswordRulesTitle') }}
+              </p>
+              <ul class="small text-body-secondary mb-2 ps-3">
+                <li>{{ t('exchanges.createModal.adminPasswordRuleLength') }}</li>
+                <li>{{ t('exchanges.createModal.adminPasswordRuleUnique') }}</li>
+                <li>{{ t('exchanges.createModal.adminPasswordRuleStoredSafely') }}</li>
+              </ul>
+            </div>
+            <div v-if="fieldErrors.adminPassword" class="text-danger small">
+              {{ fieldErrors.adminPassword[0] }}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="mb-3 form-check">
+      <div class="col mb-3 form-check">
         <input
           v-model="organizerParticipates"
           type="checkbox"
@@ -144,38 +157,12 @@ async function handleHidden() {
         </label>
       </div>
 
-      <div class="mb-3">
-        <label for="adminPassword" class="form-label">
-          {{ t('exchanges.createModal.adminPassword') }}
-          <span class="text-danger ms-1" aria-hidden="true">*</span>
-          <span class="visually-hidden">{{ t('exchanges.createModal.requiredFieldA11y') }}</span>
-        </label>
-        <input
-          v-model="adminPassword"
-          type="password"
-          class="form-control"
-          id="adminPassword"
-          required
-        />
-        <p class="small text-body-secondary mt-2 mb-1">
-          {{ t('exchanges.createModal.adminPasswordRulesTitle') }}
-        </p>
-        <ul class="small text-body-secondary mb-2 ps-3">
-          <li>{{ t('exchanges.createModal.adminPasswordRuleLength') }}</li>
-          <li>{{ t('exchanges.createModal.adminPasswordRuleUnique') }}</li>
-          <li>{{ t('exchanges.createModal.adminPasswordRuleStoredSafely') }}</li>
-        </ul>
-        <div v-if="fieldErrors.adminPassword" class="text-danger small">
-          {{ fieldErrors.adminPassword[0] }}
-        </div>
-      </div>
-
       <div class="alert alert-light border mb-0">
         <p class="fw-semibold mb-2">{{ t('exchanges.createModal.whatHappensTitle') }}</p>
         <ul class="mb-0 ps-3">
           <li>{{ t('exchanges.createModal.whatHappensCreated') }}</li>
           <li>{{ t('exchanges.createModal.whatHappensAdminSession') }}</li>
-          <li>{{ t('exchanges.createModal.whatHappensPassword') }}</li>
+          <li v-html="t('exchanges.createModal.whatHappensPassword')"></li>
           <li>{{ t('exchanges.createModal.whatHappensEditable') }}</li>
         </ul>
       </div>

@@ -330,7 +330,10 @@ export async function authenticateAdminSession(
   }
 
   const adminAccess = await exchangeRepository.findAdminAccess(exchangeId);
-  if (!adminAccess || !verifyPassword(adminPassword, adminAccess.passwordHash)) {
+  if (
+    !adminAccess ||
+    !verifyPassword(adminPassword, adminAccess.passwordHash)
+  ) {
     throw new BadRequestError("Invalid admin credentials.", {
       code: "ADMIN_CREDENTIALS_INVALID",
     });
@@ -371,7 +374,10 @@ export async function changeAdminPassword(
   }
 
   const adminAccess = await exchangeRepository.findAdminAccess(exchangeId);
-  if (!adminAccess || !verifyPassword(currentPassword, adminAccess.passwordHash)) {
+  if (
+    !adminAccess ||
+    !verifyPassword(currentPassword, adminAccess.passwordHash)
+  ) {
     throw new BadRequestError("Invalid admin credentials.", {
       code: "ADMIN_CREDENTIALS_INVALID",
     });
@@ -513,6 +519,15 @@ export async function drawExchange(exchangeId: string): Promise<ExchangeDto> {
       }
     }
 
+    if (participants.length < 3) {
+      throw new BadRequestError(
+        "At least 3 active participants are required to draw.",
+        {
+          code: "DRAW_MIN_ACTIVE_PARTICIPANTS",
+        },
+      );
+    }
+
     const minWishlistSuggestions = exchange.minWishlistSuggestions ?? 0;
     if (minWishlistSuggestions > 0) {
       const participantsMissingSuggestions = participants
@@ -532,15 +547,6 @@ export async function drawExchange(exchangeId: string): Promise<ExchangeDto> {
           },
         );
       }
-    }
-
-    if (participants.length < 3) {
-      throw new BadRequestError(
-        "At least 3 active participants are required to draw.",
-        {
-          code: "DRAW_MIN_ACTIVE_PARTICIPANTS",
-        },
-      );
     }
 
     const ordered = [...participants].sort((a, b) => a.id.localeCompare(b.id));

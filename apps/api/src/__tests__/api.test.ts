@@ -12,6 +12,49 @@ let participantAccessToken: string;
 let participantAccessTokenNormalized: string;
 let participantUpdatedAt: string;
 let participantSelfUpdatedAt: string;
+const adminSessionTokens = new Map<string, string>();
+
+function rememberAdminSession(exchangeId: string, token: string) {
+  adminSessionTokens.set(exchangeId, token);
+}
+
+function requireAdminSessionToken(exchangeId: string): string {
+  const token = adminSessionTokens.get(exchangeId);
+  if (!token) {
+    throw new Error(`Missing admin session token for exchange ${exchangeId}`);
+  }
+  return token;
+}
+
+function asAdmin(exchangeId: string) {
+  const authorization = `Bearer ${requireAdminSessionToken(exchangeId)}`;
+
+  return {
+    get: (path: string) =>
+      request(app).get(path).set("authorization", authorization),
+    post: (path: string) =>
+      request(app).post(path).set("authorization", authorization),
+    put: (path: string) =>
+      request(app).put(path).set("authorization", authorization),
+    delete: (path: string) =>
+      request(app).delete(path).set("authorization", authorization),
+  };
+}
+
+async function createExchangeWithAdminSession(
+  payload: Record<string, unknown>,
+) {
+  const response = await request(app)
+    .post("/api/exchanges")
+    .send(payload)
+    .expect(201);
+
+  const createdExchangeId = response.body.exchange.id as string;
+  const adminSessionToken = response.body.adminSessionToken as string;
+  rememberAdminSession(createdExchangeId, adminSessionToken);
+
+  return response;
+}
 
 describe("API Tests", () => {
   afterAll(async () => {
@@ -20,13 +63,10 @@ describe("API Tests", () => {
 
   describe("Exchanges", () => {
     it("should create an exchange", async () => {
-      const response = await request(app)
-        .post("/api/exchanges")
-        .send({
-          name: "Test Exchange",
-          adminPassword: "testpassword123",
-        })
-        .expect(201);
+      const response = await createExchangeWithAdminSession({
+        name: "Test Exchange",
+        adminPassword: "testpassword123",
+      });
 
       expect(response.body.exchange).toHaveProperty("id");
       expect(response.body.exchange.name).toBe("Test Exchange");
@@ -35,7 +75,7 @@ describe("API Tests", () => {
     });
 
     it("should update an exchange", async () => {
-      const response = await request(app)
+      const response = await asAdmin(exchangeId)
         .put(`/api/exchanges/${exchangeId}`)
         .send({
           name: "Updated Exchange",
@@ -48,11 +88,11 @@ describe("API Tests", () => {
     });
 
     it("should update an exchange with a fresh expectedUpdatedAt", async () => {
-      const currentExchange = await request(app)
+      const currentExchange = await asAdmin(exchangeId)
         .get(`/api/exchanges/${exchangeId}`)
         .expect(200);
 
-      const response = await request(app)
+      const response = await asAdmin(exchangeId)
         .put(`/api/exchanges/${exchangeId}`)
         .send({
           budget: 123,
@@ -64,20 +104,20 @@ describe("API Tests", () => {
     });
 
     it("should return 409 when exchange expectedUpdatedAt is stale", async () => {
-      const currentExchange = await request(app)
+      const currentExchange = await asAdmin(exchangeId)
         .get(`/api/exchanges/${exchangeId}`)
         .expect(200);
 
       const staleUpdatedAt = currentExchange.body.updatedAt as string;
 
-      await request(app)
+      await asAdmin(exchangeId)
         .put(`/api/exchanges/${exchangeId}`)
         .send({
           description: "Concurrent update",
         })
         .expect(200);
 
-      const staleResponse = await request(app)
+      const staleResponse = await asAdmin(exchangeId)
         .put(`/api/exchanges/${exchangeId}`)
         .send({
           name: "Should conflict",
@@ -109,7 +149,7 @@ describe("API Tests", () => {
     });
 
     it("should reject update when suggestions deadline is after exchange moment", async () => {
-      const response = await request(app)
+      const response = await asAdmin(exchangeId)
         .put(`/api/exchanges/${exchangeId}`)
         .send({
           eventDate: "2026-12-01",
@@ -125,29 +165,30 @@ describe("API Tests", () => {
     });
 
     it("should delete an exchange", async () => {
-      await request(app).delete(`/api/exchanges/${exchangeId}`).expect(204);
+      await asAdmin(exchangeId)
+        .delete(`/api/exchanges/${exchangeId}`)
+        .expect(204);
 
-      // Verify it's deleted
-      await request(app).get(`/api/exchanges/${exchangeId}`).expect(404);
+      const deletedResponse = await asAdmin(exchangeId).get(
+        `/api/exchanges/${exchangeId}`,
+      );
+      expect([401, 404]).toContain(deletedResponse.status);
     });
   });
 
   describe("Participants", () => {
     beforeAll(async () => {
       // Create an exchange for participants
-      const response = await request(app)
-        .post("/api/exchanges")
-        .send({
-          name: "Test Exchange for Participants",
-          adminPassword: "testpassword123",
-        })
-        .expect(201);
+      const response = await createExchangeWithAdminSession({
+        name: "Test Exchange for Participants",
+        adminPassword: "testpassword123",
+      });
 
       participantExchangeId = response.body.exchange.id;
     });
 
     it("should create a participant", async () => {
-      const response = await request(app)
+      const response = await asAdmin(participantExchangeId)
         .post(`/api/exchanges/${participantExchangeId}/participants`)
         .send({
           name: "Test Participant",
@@ -163,19 +204,16 @@ describe("API Tests", () => {
     });
 
     it("should reject participant creation after draw", async () => {
-      const exchangeResponse = await request(app)
-        .post("/api/exchanges")
-        .send({
-          name: "Locked participants exchange",
-          adminPassword: "testpassword123",
-        })
-        .expect(201);
+      const exchangeResponse = await createExchangeWithAdminSession({
+        name: "Locked participants exchange",
+        adminPassword: "testpassword123",
+      });
 
       const lockedExchangeId = exchangeResponse.body.exchange.id;
 
       await exchangeRepository.update(lockedExchangeId, { status: "drawn" });
 
-      const response = await request(app)
+      const response = await asAdmin(lockedExchangeId)
         .post(`/api/exchanges/${lockedExchangeId}/participants`)
         .send({ name: "Blocked participant" })
         .expect(400);
@@ -187,7 +225,7 @@ describe("API Tests", () => {
     });
 
     it("should update a participant", async () => {
-      const response = await request(app)
+      const response = await asAdmin(participantExchangeId)
         .put(
           `/api/exchanges/${participantExchangeId}/participants/${participantId}`,
         )
@@ -203,7 +241,7 @@ describe("API Tests", () => {
     });
 
     it("should return 409 when participant expectedUpdatedAt is stale", async () => {
-      await request(app)
+      await asAdmin(participantExchangeId)
         .put(
           `/api/exchanges/${participantExchangeId}/participants/${participantId}`,
         )
@@ -212,7 +250,7 @@ describe("API Tests", () => {
         })
         .expect(200);
 
-      const staleResponse = await request(app)
+      const staleResponse = await asAdmin(participantExchangeId)
         .put(
           `/api/exchanges/${participantExchangeId}/participants/${participantId}`,
         )
@@ -228,14 +266,14 @@ describe("API Tests", () => {
     });
 
     it("should delete a participant", async () => {
-      await request(app)
+      await asAdmin(participantExchangeId)
         .delete(
           `/api/exchanges/${participantExchangeId}/participants/${participantId}`,
         )
         .expect(204);
 
       // Verify it's deleted
-      await request(app)
+      await asAdmin(participantExchangeId)
         .get(`/api/exchanges/${participantExchangeId}/participants`)
         .expect(200)
         .then((res) => {
@@ -246,7 +284,7 @@ describe("API Tests", () => {
 
   describe("Public participant access", () => {
     beforeAll(async () => {
-      const response = await request(app)
+      const response = await asAdmin(participantExchangeId)
         .post(`/api/exchanges/${participantExchangeId}/participants`)
         .send({ name: "Public Participant" })
         .expect(201);
@@ -412,27 +450,24 @@ describe("API Tests", () => {
     let drawParticipantToken: string;
 
     beforeAll(async () => {
-      const exchangeResponse = await request(app)
-        .post("/api/exchanges")
-        .send({
-          name: "Draw Ready Exchange",
-          adminPassword: "testpassword123",
-        })
-        .expect(201);
+      const exchangeResponse = await createExchangeWithAdminSession({
+        name: "Draw Ready Exchange",
+        adminPassword: "testpassword123",
+      });
 
       drawExchangeId = exchangeResponse.body.exchange.id;
 
-      const p1 = await request(app)
+      const p1 = await asAdmin(drawExchangeId)
         .post(`/api/exchanges/${drawExchangeId}/participants`)
         .send({ name: "Anna", wishlist: [{ title: "Livre" }] })
         .expect(201);
 
-      await request(app)
+      await asAdmin(drawExchangeId)
         .post(`/api/exchanges/${drawExchangeId}/participants`)
         .send({ name: "Ben", wishlist: [{ title: "Jeu" }] })
         .expect(201);
 
-      await request(app)
+      await asAdmin(drawExchangeId)
         .post(`/api/exchanges/${drawExchangeId}/participants`)
         .send({ name: "Chloe", wishlist: [{ title: "Puzzle" }] })
         .expect(201);
@@ -443,7 +478,7 @@ describe("API Tests", () => {
     });
 
     it("should trigger draw and set exchange status to drawn", async () => {
-      const response = await request(app)
+      const response = await asAdmin(drawExchangeId)
         .post(`/api/exchanges/${drawExchangeId}/draw`)
         .expect(200);
 
@@ -462,22 +497,19 @@ describe("API Tests", () => {
     });
 
     it("should reject draw when exchange has less than 3 participants", async () => {
-      const exchangeResponse = await request(app)
-        .post("/api/exchanges")
-        .send({
-          name: "Not enough participants",
-          adminPassword: "testpassword123",
-        })
-        .expect(201);
+      const exchangeResponse = await createExchangeWithAdminSession({
+        name: "Not enough participants",
+        adminPassword: "testpassword123",
+      });
 
       const exchangeId = exchangeResponse.body.exchange.id;
 
-      await request(app)
+      await asAdmin(exchangeId)
         .post(`/api/exchanges/${exchangeId}/participants`)
         .send({ name: "Solo" })
         .expect(201);
 
-      const response = await request(app)
+      const response = await asAdmin(exchangeId)
         .post(`/api/exchanges/${exchangeId}/draw`)
         .expect(400);
 
@@ -490,7 +522,7 @@ describe("API Tests", () => {
     });
 
     it("should cancel draw and reopen exchange state", async () => {
-      const cancelResponse = await request(app)
+      const cancelResponse = await asAdmin(drawExchangeId)
         .post(`/api/exchanges/${drawExchangeId}/draw/cancel`)
         .expect(200);
 
@@ -506,32 +538,29 @@ describe("API Tests", () => {
     });
 
     it("should respect exclusion rules during draw", async () => {
-      const exchangeResponse = await request(app)
-        .post("/api/exchanges")
-        .send({
-          name: "Exclusion-aware draw",
-          adminPassword: "testpassword123",
-        })
-        .expect(201);
+      const exchangeResponse = await createExchangeWithAdminSession({
+        name: "Exclusion-aware draw",
+        adminPassword: "testpassword123",
+      });
 
       const exclusionAwareExchangeId = exchangeResponse.body.exchange.id;
 
-      const annaResponse = await request(app)
+      const annaResponse = await asAdmin(exclusionAwareExchangeId)
         .post(`/api/exchanges/${exclusionAwareExchangeId}/participants`)
         .send({ name: "Anna" })
         .expect(201);
 
-      const benResponse = await request(app)
+      const benResponse = await asAdmin(exclusionAwareExchangeId)
         .post(`/api/exchanges/${exclusionAwareExchangeId}/participants`)
         .send({ name: "Ben" })
         .expect(201);
 
-      await request(app)
+      await asAdmin(exclusionAwareExchangeId)
         .post(`/api/exchanges/${exclusionAwareExchangeId}/participants`)
         .send({ name: "Chloe" })
         .expect(201);
 
-      await request(app)
+      await asAdmin(exclusionAwareExchangeId)
         .post(`/api/exchanges/${exclusionAwareExchangeId}/exclusions`)
         .send({
           giverParticipantId: annaResponse.body.participant.id,
@@ -539,7 +568,7 @@ describe("API Tests", () => {
         })
         .expect(201);
 
-      await request(app)
+      await asAdmin(exclusionAwareExchangeId)
         .post(`/api/exchanges/${exclusionAwareExchangeId}/draw`)
         .expect(200);
 
@@ -554,32 +583,29 @@ describe("API Tests", () => {
     });
 
     it("should reject draw when exclusion rules make assignments impossible", async () => {
-      const exchangeResponse = await request(app)
-        .post("/api/exchanges")
-        .send({
-          name: "Impossible exclusion draw",
-          adminPassword: "testpassword123",
-        })
-        .expect(201);
+      const exchangeResponse = await createExchangeWithAdminSession({
+        name: "Impossible exclusion draw",
+        adminPassword: "testpassword123",
+      });
 
       const impossibleExchangeId = exchangeResponse.body.exchange.id;
 
-      const p1Response = await request(app)
+      const p1Response = await asAdmin(impossibleExchangeId)
         .post(`/api/exchanges/${impossibleExchangeId}/participants`)
         .send({ name: "Ariane" })
         .expect(201);
 
-      const p2Response = await request(app)
+      const p2Response = await asAdmin(impossibleExchangeId)
         .post(`/api/exchanges/${impossibleExchangeId}/participants`)
         .send({ name: "Bruno" })
         .expect(201);
 
-      const p3Response = await request(app)
+      const p3Response = await asAdmin(impossibleExchangeId)
         .post(`/api/exchanges/${impossibleExchangeId}/participants`)
         .send({ name: "Clara" })
         .expect(201);
 
-      await request(app)
+      await asAdmin(impossibleExchangeId)
         .post(`/api/exchanges/${impossibleExchangeId}/exclusions`)
         .send({
           giverParticipantId: p1Response.body.participant.id,
@@ -587,7 +613,7 @@ describe("API Tests", () => {
         })
         .expect(201);
 
-      await request(app)
+      await asAdmin(impossibleExchangeId)
         .post(`/api/exchanges/${impossibleExchangeId}/exclusions`)
         .send({
           giverParticipantId: p1Response.body.participant.id,
@@ -595,7 +621,7 @@ describe("API Tests", () => {
         })
         .expect(201);
 
-      await request(app)
+      await asAdmin(impossibleExchangeId)
         .post(`/api/exchanges/${impossibleExchangeId}/exclusions`)
         .send({
           giverParticipantId: p2Response.body.participant.id,
@@ -603,7 +629,7 @@ describe("API Tests", () => {
         })
         .expect(201);
 
-      const drawResponse = await request(app)
+      const drawResponse = await asAdmin(impossibleExchangeId)
         .post(`/api/exchanges/${impossibleExchangeId}/draw`)
         .expect(400);
 
@@ -616,28 +642,25 @@ describe("API Tests", () => {
     });
 
     it("should reject draw with 2 participants when no mutual assignments is enabled", async () => {
-      const exchangeResponse = await request(app)
-        .post("/api/exchanges")
-        .send({
-          name: "No mutual with 2 participants",
-          adminPassword: "testpassword123",
-          noMutualAssignments: true,
-        })
-        .expect(201);
+      const exchangeResponse = await createExchangeWithAdminSession({
+        name: "No mutual with 2 participants",
+        adminPassword: "testpassword123",
+        noMutualAssignments: true,
+      });
 
       const noMutualExchangeId = exchangeResponse.body.exchange.id;
 
-      await request(app)
+      await asAdmin(noMutualExchangeId)
         .post(`/api/exchanges/${noMutualExchangeId}/participants`)
         .send({ name: "Alice" })
         .expect(201);
 
-      await request(app)
+      await asAdmin(noMutualExchangeId)
         .post(`/api/exchanges/${noMutualExchangeId}/participants`)
         .send({ name: "Bob" })
         .expect(201);
 
-      const drawResponse = await request(app)
+      const drawResponse = await asAdmin(noMutualExchangeId)
         .post(`/api/exchanges/${noMutualExchangeId}/draw`)
         .expect(400);
 
@@ -650,33 +673,30 @@ describe("API Tests", () => {
     });
 
     it("should allow draw with 3 participants when no mutual assignments is enabled", async () => {
-      const exchangeResponse = await request(app)
-        .post("/api/exchanges")
-        .send({
-          name: "No mutual with 3 participants",
-          adminPassword: "testpassword123",
-          noMutualAssignments: true,
-        })
-        .expect(201);
+      const exchangeResponse = await createExchangeWithAdminSession({
+        name: "No mutual with 3 participants",
+        adminPassword: "testpassword123",
+        noMutualAssignments: true,
+      });
 
       const noMutualExchangeId = exchangeResponse.body.exchange.id;
 
-      await request(app)
+      await asAdmin(noMutualExchangeId)
         .post(`/api/exchanges/${noMutualExchangeId}/participants`)
         .send({ name: "Alice" })
         .expect(201);
 
-      await request(app)
+      await asAdmin(noMutualExchangeId)
         .post(`/api/exchanges/${noMutualExchangeId}/participants`)
         .send({ name: "Bob" })
         .expect(201);
 
-      await request(app)
+      await asAdmin(noMutualExchangeId)
         .post(`/api/exchanges/${noMutualExchangeId}/participants`)
         .send({ name: "Charlie" })
         .expect(201);
 
-      const drawResponse = await request(app)
+      const drawResponse = await asAdmin(noMutualExchangeId)
         .post(`/api/exchanges/${noMutualExchangeId}/draw`)
         .expect(200);
 
@@ -684,33 +704,30 @@ describe("API Tests", () => {
     });
 
     it("should reject draw when deadline is passed", async () => {
-      const exchangeResponse = await request(app)
-        .post("/api/exchanges")
-        .send({
-          name: "Past deadline exchange",
-          adminPassword: "testpassword123",
-          drawDeadlineAt: "2000-01-01T00:00:00.000Z",
-        })
-        .expect(201);
+      const exchangeResponse = await createExchangeWithAdminSession({
+        name: "Past deadline exchange",
+        adminPassword: "testpassword123",
+        drawDeadlineAt: "2000-01-01T00:00:00.000Z",
+      });
 
       const deadlineExchangeId = exchangeResponse.body.exchange.id;
 
-      await request(app)
+      await asAdmin(deadlineExchangeId)
         .post(`/api/exchanges/${deadlineExchangeId}/participants`)
         .send({ name: "Ari" })
         .expect(201);
 
-      await request(app)
+      await asAdmin(deadlineExchangeId)
         .post(`/api/exchanges/${deadlineExchangeId}/participants`)
         .send({ name: "Bri" })
         .expect(201);
 
-      await request(app)
+      await asAdmin(deadlineExchangeId)
         .post(`/api/exchanges/${deadlineExchangeId}/participants`)
         .send({ name: "Cri" })
         .expect(201);
 
-      const drawResponse = await request(app)
+      const drawResponse = await asAdmin(deadlineExchangeId)
         .post(`/api/exchanges/${deadlineExchangeId}/draw`)
         .expect(400);
 
@@ -720,18 +737,15 @@ describe("API Tests", () => {
     });
 
     it("should reject draw when participants do not meet minimum wishlist suggestions", async () => {
-      const exchangeResponse = await request(app)
-        .post("/api/exchanges")
-        .send({
-          name: "Min wishlist exchange",
-          adminPassword: "testpassword123",
-          minWishlistSuggestions: 2,
-        })
-        .expect(201);
+      const exchangeResponse = await createExchangeWithAdminSession({
+        name: "Min wishlist exchange",
+        adminPassword: "testpassword123",
+        minWishlistSuggestions: 2,
+      });
 
       const minWishlistExchangeId = exchangeResponse.body.exchange.id;
 
-      await request(app)
+      await asAdmin(minWishlistExchangeId)
         .post(`/api/exchanges/${minWishlistExchangeId}/participants`)
         .send({
           name: "Ari",
@@ -739,7 +753,7 @@ describe("API Tests", () => {
         })
         .expect(201);
 
-      await request(app)
+      await asAdmin(minWishlistExchangeId)
         .post(`/api/exchanges/${minWishlistExchangeId}/participants`)
         .send({
           name: "Bri",
@@ -747,7 +761,7 @@ describe("API Tests", () => {
         })
         .expect(201);
 
-      await request(app)
+      await asAdmin(minWishlistExchangeId)
         .post(`/api/exchanges/${minWishlistExchangeId}/participants`)
         .send({
           name: "Cri",
@@ -755,7 +769,7 @@ describe("API Tests", () => {
         })
         .expect(201);
 
-      const drawResponse = await request(app)
+      const drawResponse = await asAdmin(minWishlistExchangeId)
         .post(`/api/exchanges/${minWishlistExchangeId}/draw`)
         .expect(400);
 
@@ -767,6 +781,40 @@ describe("API Tests", () => {
         drawResponse.body.error.details.participantsMissingSuggestions,
       ).toHaveLength(1);
     });
+
+    it("should prioritize minimum active participants over wishlist minimum when both fail", async () => {
+      const exchangeResponse = await createExchangeWithAdminSession({
+        name: "Participants priority over wishlist",
+        adminPassword: "testpassword123",
+        minWishlistSuggestions: 2,
+      });
+
+      const priorityExchangeId = exchangeResponse.body.exchange.id;
+
+      await asAdmin(priorityExchangeId)
+        .post(`/api/exchanges/${priorityExchangeId}/participants`)
+        .send({
+          name: "Ari",
+          wishlist: [{ title: "Livre" }],
+        })
+        .expect(201);
+
+      await asAdmin(priorityExchangeId)
+        .post(`/api/exchanges/${priorityExchangeId}/participants`)
+        .send({
+          name: "Bri",
+          wishlist: [{ title: "Jeu" }],
+        })
+        .expect(201);
+
+      const drawResponse = await asAdmin(priorityExchangeId)
+        .post(`/api/exchanges/${priorityExchangeId}/draw`)
+        .expect(400);
+
+      expect(drawResponse.body.error.details).toMatchObject({
+        code: "DRAW_MIN_ACTIVE_PARTICIPANTS",
+      });
+    });
   });
 
   describe("Exclusion rules", () => {
@@ -777,42 +825,36 @@ describe("API Tests", () => {
     let createdRuleId: string;
 
     beforeAll(async () => {
-      const exchangeResponse = await request(app)
-        .post("/api/exchanges")
-        .send({
-          name: "Exchange with exclusions",
-          adminPassword: "testpassword123",
-        })
-        .expect(201);
+      const exchangeResponse = await createExchangeWithAdminSession({
+        name: "Exchange with exclusions",
+        adminPassword: "testpassword123",
+      });
 
       exclusionExchangeId = exchangeResponse.body.exchange.id;
 
-      const p1Response = await request(app)
+      const p1Response = await asAdmin(exclusionExchangeId)
         .post(`/api/exchanges/${exclusionExchangeId}/participants`)
         .send({ name: "Alex" })
         .expect(201);
 
       p1Id = p1Response.body.participant.id;
 
-      const p2Response = await request(app)
+      const p2Response = await asAdmin(exclusionExchangeId)
         .post(`/api/exchanges/${exclusionExchangeId}/participants`)
         .send({ name: "Camille" })
         .expect(201);
 
       p2Id = p2Response.body.participant.id;
 
-      const otherExchangeResponse = await request(app)
-        .post("/api/exchanges")
-        .send({
-          name: "Other exchange for validation",
-          adminPassword: "testpassword123",
-        })
-        .expect(201);
+      const otherExchangeResponse = await createExchangeWithAdminSession({
+        name: "Other exchange for validation",
+        adminPassword: "testpassword123",
+      });
 
-      const otherParticipantResponse = await request(app)
-        .post(
-          `/api/exchanges/${otherExchangeResponse.body.exchange.id}/participants`,
-        )
+      const otherExchangeId = otherExchangeResponse.body.exchange.id as string;
+
+      const otherParticipantResponse = await asAdmin(otherExchangeId)
+        .post(`/api/exchanges/${otherExchangeId}/participants`)
         .send({ name: "Outside Participant" })
         .expect(201);
 
@@ -820,7 +862,7 @@ describe("API Tests", () => {
     });
 
     it("should create and list exclusion rules", async () => {
-      const createResponse = await request(app)
+      const createResponse = await asAdmin(exclusionExchangeId)
         .post(`/api/exchanges/${exclusionExchangeId}/exclusions`)
         .send({ giverParticipantId: p1Id, receiverParticipantId: p2Id })
         .expect(201);
@@ -832,7 +874,7 @@ describe("API Tests", () => {
 
       createdRuleId = createResponse.body.id;
 
-      const listResponse = await request(app)
+      const listResponse = await asAdmin(exclusionExchangeId)
         .get(`/api/exchanges/${exclusionExchangeId}/exclusions`)
         .expect(200);
 
@@ -841,7 +883,7 @@ describe("API Tests", () => {
     });
 
     it("should reject self exclusion", async () => {
-      const response = await request(app)
+      const response = await asAdmin(exclusionExchangeId)
         .post(`/api/exchanges/${exclusionExchangeId}/exclusions`)
         .send({ giverParticipantId: p1Id, receiverParticipantId: p1Id })
         .expect(400);
@@ -855,7 +897,7 @@ describe("API Tests", () => {
     });
 
     it("should reject duplicate exclusion rule", async () => {
-      const response = await request(app)
+      const response = await asAdmin(exclusionExchangeId)
         .post(`/api/exchanges/${exclusionExchangeId}/exclusions`)
         .send({ giverParticipantId: p1Id, receiverParticipantId: p2Id })
         .expect(400);
@@ -867,7 +909,7 @@ describe("API Tests", () => {
     });
 
     it("should reject exclusion rule when participant is outside exchange", async () => {
-      const response = await request(app)
+      const response = await asAdmin(exclusionExchangeId)
         .post(`/api/exchanges/${exclusionExchangeId}/exclusions`)
         .send({
           giverParticipantId: p1Id,
@@ -884,13 +926,13 @@ describe("API Tests", () => {
     });
 
     it("should delete exclusion rule", async () => {
-      await request(app)
+      await asAdmin(exclusionExchangeId)
         .delete(
           `/api/exchanges/${exclusionExchangeId}/exclusions/${createdRuleId}`,
         )
         .expect(204);
 
-      const listResponse = await request(app)
+      const listResponse = await asAdmin(exclusionExchangeId)
         .get(`/api/exchanges/${exclusionExchangeId}/exclusions`)
         .expect(200);
 
@@ -900,7 +942,7 @@ describe("API Tests", () => {
     it("should reject exclusion changes after draw", async () => {
       await exchangeRepository.update(exclusionExchangeId, { status: "drawn" });
 
-      const createResponse = await request(app)
+      const createResponse = await asAdmin(exclusionExchangeId)
         .post(`/api/exchanges/${exclusionExchangeId}/exclusions`)
         .send({ giverParticipantId: p2Id, receiverParticipantId: p1Id })
         .expect(400);
@@ -910,7 +952,7 @@ describe("API Tests", () => {
         code: "EXCLUSION_RULES_LOCKED",
       });
 
-      const deleteResponse = await request(app)
+      const deleteResponse = await asAdmin(exclusionExchangeId)
         .delete(
           `/api/exchanges/${exclusionExchangeId}/exclusions/non-existent-rule`,
         )
