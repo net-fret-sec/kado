@@ -844,13 +844,28 @@ async function cancelDraw() {
 
     <div v-if="isLoading">{{ t('exchangeDetail.loading') }}</div>
     <div v-else-if="error">{{ error }}</div>
-    <div v-else-if="exchange" class="d-md-flex gap-4">
+    <div v-else-if="exchange" class="kado-exchange-layout d-md-flex gap-4">
       <!-- Détails de l'échange -->
-      <section id="detail">
-        <div>
-          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-            <h2 class="mb-0">{{ exchange.name }}</h2>
-            <div class="d-flex align-items-center gap-2">
+      <section id="detail" class="kado-panel">
+        <div class="card border shadow-sm">
+          <div class="card-body">
+            <div class="kado-hero mb-3">
+              <div>
+                <h2 class="kado-title mb-1">{{ exchange.name }}</h2>
+                <p class="kado-subtitle mb-0">
+                  {{ participantCountLabel }} {{ t('exchangeDetail.participants') }} •
+                  {{ statusLabel }}
+                </p>
+              </div>
+              <router-link
+                class="btn btn-sm btn-outline-primary kado-share"
+                :to="{ name: 'exchange-public', params: { id: exchange.id } }"
+              >
+                {{ t('exchangeDetail.share') }}
+              </router-link>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 mb-3">
               <span class="small text-muted">{{ t('exchangeDetail.viewMode.summary') }}</span>
               <div class="form-check form-switch mb-0">
                 <input
@@ -864,352 +879,360 @@ async function cancelDraw() {
               </div>
               <span class="small text-muted">{{ t('exchangeDetail.viewMode.detail') }}</span>
             </div>
-          </div>
 
-          <p v-if="exchange.description">{{ exchange.description }}</p>
-          <ul>
-            <li>
-              <b>{{ t('exchangeDetail.organizer') }} :</b> {{ exchange.organizerName }}
-            </li>
-            <li>
-              <b>{{ t('exchangeDetail.status') }} :</b>
-              <span class="badge ms-1" :class="statusBadgeClass">{{ statusLabel }}</span>
-            </li>
-            <li>
-              <b>{{ t('exchangeDetail.participants') }} :</b>
-              {{ participantCountLabel }}
-            </li>
-            <li v-if="exchange.drawDeadlineAt">
-              <b>{{ t('exchangeDetail.drawDeadlineAt') }} :</b>
-              {{ new Date(exchange.drawDeadlineAt).toLocaleString() }}
-            </li>
-            <li>
-              <b>{{ t('exchangeDetail.minWishlistSuggestions') }} :</b>
-              {{ exchange.minWishlistSuggestions ?? 0 }}
-            </li>
-
-            <template v-if="!isSummaryMode">
-              <li v-if="exchange.eventDate">
-                <b>{{ t('exchangeDetail.exchangeMoment') }} :</b> {{ exchange.eventDate }}
-              </li>
-              <li v-if="exchange.suggestionsDeadlineAt">
-                <b>{{ t('exchangeDetail.suggestionsDeadlineAt') }} :</b>
-                {{ new Date(exchange.suggestionsDeadlineAt).toLocaleString() }}
-              </li>
-              <li v-if="exchange.budget != null">
-                <b>{{ t('exchangeDetail.budget') }} :</b> {{ exchange.budget }}
-                {{ exchange.budgetCurrency }}
+            <p v-if="exchange.description">{{ exchange.description }}</p>
+            <ul>
+              <li>
+                <b>{{ t('exchangeDetail.organizer') }} :</b> {{ exchange.organizerName }}
               </li>
               <li>
-                <b>{{ t('exchangeDetail.lockSuggestionsAfterDraw') }} :</b>
+                <b>{{ t('exchangeDetail.status') }} :</b>
+                <span class="badge ms-1" :class="statusBadgeClass">{{ statusLabel }}</span>
+              </li>
+              <li>
+                <b>{{ t('exchangeDetail.participants') }} :</b>
+                {{ participantCountLabel }}
+              </li>
+              <li v-if="exchange.drawDeadlineAt">
+                <b>{{ t('exchangeDetail.drawDeadlineAt') }} :</b>
+                {{ new Date(exchange.drawDeadlineAt).toLocaleString() }}
+              </li>
+              <li>
+                <b>{{ t('exchangeDetail.minWishlistSuggestions') }} :</b>
+                {{ exchange.minWishlistSuggestions ?? 0 }}
+              </li>
+
+              <template v-if="!isSummaryMode">
+                <li v-if="exchange.eventDate">
+                  <b>{{ t('exchangeDetail.exchangeMoment') }} :</b> {{ exchange.eventDate }}
+                </li>
+                <li v-if="exchange.suggestionsDeadlineAt">
+                  <b>{{ t('exchangeDetail.suggestionsDeadlineAt') }} :</b>
+                  {{ new Date(exchange.suggestionsDeadlineAt).toLocaleString() }}
+                </li>
+                <li v-if="exchange.budget != null">
+                  <b>{{ t('exchangeDetail.budget') }} :</b> {{ exchange.budget }}
+                  {{ exchange.budgetCurrency }}
+                </li>
+                <li>
+                  <b>{{ t('exchangeDetail.lockSuggestionsAfterDraw') }} :</b>
+                  {{
+                    (exchange.lockSuggestionsAfterDraw ?? true)
+                      ? t('exchangeDetail.enabled')
+                      : t('exchangeDetail.disabled')
+                  }}
+                </li>
+                <li>
+                  <b>{{ t('exchangeDetail.noMutualAssignments') }} :</b>
+                  {{
+                    exchange.noMutualAssignments
+                      ? t('exchangeDetail.enabled')
+                      : t('exchangeDetail.disabled')
+                  }}
+                </li>
+                <li>
+                  <b>{{ t('exchangeDetail.createdAt') }} :</b>
+                  {{ new Date(exchange.createdAt).toLocaleString() }}
+                </li>
+              </template>
+            </ul>
+
+            <div class="d-flex flex-wrap gap-2 mb-2">
+              <button class="btn btn-warning" @click="startEdit">
+                {{ t('exchangeDetail.edit') }}
+              </button>
+              <button
+                v-if="canTriggerDraw"
+                class="btn btn-primary"
+                :disabled="isDrawActionLoading"
+                @click="triggerDraw"
+              >
+                {{ t('exchangeDetail.triggerDraw') }}
+              </button>
+              <button
+                v-else-if="canCancelDraw"
+                class="btn btn-outline-warning"
+                :disabled="isDrawActionLoading"
+                @click="cancelDraw"
+              >
+                {{ t('exchangeDetail.cancelDraw') }}
+              </button>
+              <button
+                class="btn btn-outline-secondary"
+                :disabled="isLoggingOutAdmin"
+                @click="logoutAdmin"
+              >
                 {{
-                  (exchange.lockSuggestionsAfterDraw ?? true)
-                    ? t('exchangeDetail.enabled')
-                    : t('exchangeDetail.disabled')
+                  isLoggingOutAdmin
+                    ? t('exchangeDetail.adminAuth.loggingOut')
+                    : t('exchangeDetail.adminAuth.logout')
                 }}
-              </li>
-              <li>
-                <b>{{ t('exchangeDetail.noMutualAssignments') }} :</b>
-                {{
-                  exchange.noMutualAssignments
-                    ? t('exchangeDetail.enabled')
-                    : t('exchangeDetail.disabled')
-                }}
-              </li>
-              <li>
-                <b>{{ t('exchangeDetail.createdAt') }} :</b>
-                {{ new Date(exchange.createdAt).toLocaleString() }}
-              </li>
-            </template>
-          </ul>
+              </button>
+            </div>
 
-          <div class="d-flex flex-wrap gap-2 mb-2">
-            <button class="btn btn-warning" @click="startEdit">
-              {{ t('exchangeDetail.edit') }}
-            </button>
-            <router-link
-              class="btn btn-outline-primary"
-              :to="{ name: 'exchange-public', params: { id: exchange.id } }"
-            >
-              {{ t('exchangeDetail.openPublicView') }}
-            </router-link>
-            <button
-              v-if="canTriggerDraw"
-              class="btn btn-success"
-              :disabled="isDrawActionLoading"
-              @click="triggerDraw"
-            >
-              {{ t('exchangeDetail.triggerDraw') }}
-            </button>
-            <button
-              v-else-if="canCancelDraw"
-              class="btn btn-outline-warning"
-              :disabled="isDrawActionLoading"
-              @click="cancelDraw"
-            >
-              {{ t('exchangeDetail.cancelDraw') }}
-            </button>
-            <button
-              class="btn btn-outline-secondary"
-              :disabled="isLoggingOutAdmin"
-              @click="logoutAdmin"
-            >
-              {{
-                isLoggingOutAdmin
-                  ? t('exchangeDetail.adminAuth.loggingOut')
-                  : t('exchangeDetail.adminAuth.logout')
-              }}
-            </button>
-          </div>
+            <div v-if="exchange.status === 'drawn'" class="kado-draw-result mb-2">
+              <span class="kado-draw-result-icon" aria-hidden="true">✔</span>
+              <span>{{ t('exchangeDetail.drawSuccess') }}</span>
+              <router-link :to="{ name: 'exchange-public', params: { id: exchange.id } }">
+                {{ t('exchangeDetail.openPublicView') }}
+              </router-link>
+            </div>
 
-          <div v-if="!isSummaryMode">
-            <button class="btn btn-danger" @click="handleDelete">
-              {{ t('exchangeDetail.delete') }}
-            </button>
-          </div>
+            <div v-if="!isSummaryMode">
+              <button class="btn btn-danger" @click="handleDelete">
+                {{ t('exchangeDetail.delete') }}
+              </button>
+            </div>
 
-          <div class="card border mt-3">
-            <div class="card-body">
-              <details>
-                <summary>
-                  <span class="h5">{{ t('exchangeDetail.adminAuth.changePasswordTitle') }}</span>
-                </summary>
+            <div class="card border mt-3">
+              <div class="card-body">
+                <details>
+                  <summary>
+                    <span class="h5">{{ t('exchangeDetail.adminAuth.changePasswordTitle') }}</span>
+                  </summary>
 
-                <p class="small text-muted mb-3">
-                  {{ t('exchangeDetail.adminAuth.changePasswordDescription') }}
-                </p>
+                  <p class="small text-muted mb-3">
+                    {{ t('exchangeDetail.adminAuth.changePasswordDescription') }}
+                  </p>
 
-                <div class="small mb-2" v-if="publicExchangeLink">
-                  <b>{{ t('exchangeDetail.adminAuth.publicLinkLabel') }}:</b>
-                  <a :href="publicExchangeLink">{{ publicExchangeLink }}</a>
-                </div>
-
-                <form class="row g-2" @submit.prevent="changeAdminPassword">
-                  <div class="col-12">
-                    <label for="current-admin-password" class="form-label">
-                      {{ t('exchangeDetail.adminAuth.currentPasswordLabel') }}
-                    </label>
-                    <input
-                      id="current-admin-password"
-                      v-model="currentAdminPassword"
-                      type="password"
-                      class="form-control"
-                      minlength="10"
-                      required
-                    />
+                  <div class="small mb-2" v-if="publicExchangeLink">
+                    <b>{{ t('exchangeDetail.adminAuth.publicLinkLabel') }}:</b>
+                    <a :href="publicExchangeLink">{{ publicExchangeLink }}</a>
                   </div>
-                  <div class="col-12 col-md-6">
-                    <label for="new-admin-password" class="form-label">
-                      {{ t('exchangeDetail.adminAuth.newPasswordLabel') }}
-                    </label>
-                    <input
-                      id="new-admin-password"
-                      v-model="newAdminPassword"
-                      type="password"
-                      class="form-control"
-                      minlength="10"
-                      required
-                    />
-                  </div>
-                  <div class="col-12 col-md-6">
-                    <label for="confirm-admin-password" class="form-label">
-                      {{ t('exchangeDetail.adminAuth.confirmPasswordLabel') }}
-                    </label>
-                    <input
-                      id="confirm-admin-password"
-                      v-model="confirmAdminPassword"
-                      type="password"
-                      class="form-control"
-                      minlength="10"
-                      required
-                    />
-                  </div>
-                  <div class="col-12 d-grid d-md-flex justify-content-md-end">
-                    <button
-                      class="btn btn-outline-secondary"
-                      type="submit"
-                      :disabled="isChangingAdminPassword"
-                    >
-                      {{
-                        isChangingAdminPassword
-                          ? t('exchangeDetail.adminAuth.changingPassword')
-                          : t('exchangeDetail.adminAuth.changePassword')
-                      }}
-                    </button>
-                  </div>
-                </form>
-              </details>
+
+                  <form class="row g-2" @submit.prevent="changeAdminPassword">
+                    <div class="col-12">
+                      <label for="current-admin-password" class="form-label">
+                        {{ t('exchangeDetail.adminAuth.currentPasswordLabel') }}
+                      </label>
+                      <input
+                        id="current-admin-password"
+                        v-model="currentAdminPassword"
+                        type="password"
+                        class="form-control"
+                        minlength="10"
+                        required
+                      />
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label for="new-admin-password" class="form-label">
+                        {{ t('exchangeDetail.adminAuth.newPasswordLabel') }}
+                      </label>
+                      <input
+                        id="new-admin-password"
+                        v-model="newAdminPassword"
+                        type="password"
+                        class="form-control"
+                        minlength="10"
+                        required
+                      />
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label for="confirm-admin-password" class="form-label">
+                        {{ t('exchangeDetail.adminAuth.confirmPasswordLabel') }}
+                      </label>
+                      <input
+                        id="confirm-admin-password"
+                        v-model="confirmAdminPassword"
+                        type="password"
+                        class="form-control"
+                        minlength="10"
+                        required
+                      />
+                    </div>
+                    <div class="col-12 d-grid d-md-flex justify-content-md-end">
+                      <button
+                        class="btn btn-outline-secondary"
+                        type="submit"
+                        :disabled="isChangingAdminPassword"
+                      >
+                        {{
+                          isChangingAdminPassword
+                            ? t('exchangeDetail.adminAuth.changingPassword')
+                            : t('exchangeDetail.adminAuth.changePassword')
+                        }}
+                      </button>
+                    </div>
+                  </form>
+                </details>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       <!-- Participants -->
-      <section id="participants">
-        <div v-if="participants.length">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h3>{{ t('exchangeDetail.participants') }} ({{ participants.length }})</h3>
+      <section id="participants" class="kado-panel">
+        <div v-if="participants.length" class="card border shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h3>{{ t('exchangeDetail.participants') }} ({{ participants.length }})</h3>
+              <button
+                class="btn btn-sm btn-outline-primary"
+                :disabled="isParticipantCreationLocked"
+                @click="openAddParticipantModal"
+              >
+                + {{ t('exchangeDetail.addParticipant') }}
+              </button>
+            </div>
+
+            <ul class="list-group">
+              <li
+                v-for="participant in participants"
+                :key="participant.id"
+                class="list-group-item participant-row kado-participant-row d-flex justify-content-between align-items-start"
+              >
+                <div class="participant-main">
+                  <strong class="participant-name">{{ participant.name }}</strong>
+                  <!-- <span v-if="participant.email" class="text-muted"> ({{ participant.email }})</span> -->
+
+                  <div v-if="participant.wishlist?.length" class="small mt-1">
+                    <!-- <span class="me-1">{{ t('exchangeDetail.wishlist') }}:</span> -->
+                    <span class="badge text-bg-light">{{
+                      t('exchangeDetail.wishlistSuggestions', participant.wishlist.length)
+                    }}</span>
+                  </div>
+
+                  <div v-if="!isSummaryMode && participant.note" class="small mt-1">
+                    {{ t('exchangeDetail.note') }}: {{ participant.note }}
+                  </div>
+
+                  <div v-if="!isSummaryMode" class="participant-exceptions">
+                    <div class="participant-exceptions-header">
+                      <span class="fw-semibold">{{ t('exchangeDetail.exceptions.title') }}</span>
+                      <span class="badge text-bg-light">
+                        {{ getParticipantExclusions(participant.id).length }}
+                      </span>
+                    </div>
+
+                    <ul
+                      v-if="getParticipantExclusions(participant.id).length"
+                      class="participant-exceptions-list list-unstyled"
+                    >
+                      <li
+                        v-for="rule in getParticipantExclusions(participant.id)"
+                        :key="rule.id"
+                        class="participant-exception-item"
+                      >
+                        <span>
+                          {{ t('exchangeDetail.exceptions.cannotDraw') }}
+                          <strong>
+                            {{
+                              participantNameById[rule.receiverParticipantId] ||
+                              rule.receiverParticipantId
+                            }}
+                          </strong>
+                        </span>
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-outline-danger btn-icon"
+                          :disabled="isExclusionEditingLocked"
+                          :aria-label="t('exchangeDetail.exceptions.remove')"
+                          :title="t('exchangeDetail.exceptions.remove')"
+                          @click="removeParticipantExclusion(rule.id)"
+                        >
+                          <i class="bi bi-x-lg" aria-hidden="true"></i>
+                          <span class="visually-hidden">{{
+                            t('exchangeDetail.exceptions.remove')
+                          }}</span>
+                        </button>
+                      </li>
+                    </ul>
+
+                    <p v-else class="mb-2 text-muted small">
+                      {{ t('exchangeDetail.exceptions.none') }}
+                    </p>
+
+                    <div class="participant-exception-form" v-if="participant.status === 'active'">
+                      <select
+                        class="form-select form-select-sm"
+                        :disabled="
+                          isExclusionEditingLocked || !getReceiverCandidates(participant.id).length
+                        "
+                        v-model="selectedExceptionReceiverByParticipant[participant.id]"
+                      >
+                        <option value="">
+                          {{ t('exchangeDetail.exceptions.selectReceiver') }}
+                        </option>
+                        <option
+                          v-for="candidate in getReceiverCandidates(participant.id)"
+                          :key="candidate.id"
+                          :value="candidate.id"
+                        >
+                          {{ candidate.name }}
+                        </option>
+                      </select>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-primary btn-icon"
+                        :disabled="
+                          isExclusionEditingLocked ||
+                          !selectedExceptionReceiverByParticipant[participant.id]
+                        "
+                        :aria-label="t('exchangeDetail.exceptions.add')"
+                        :title="t('exchangeDetail.exceptions.add')"
+                        @click="addParticipantExclusion(participant.id)"
+                      >
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                        <span class="visually-hidden">{{
+                          t('exchangeDetail.exceptions.add')
+                        }}</span>
+                      </button>
+                    </div>
+
+                    <p v-if="isExclusionEditingLocked" class="mb-0 text-muted small mt-2">
+                      {{ t('exchangeDetail.exceptions.locked') }}
+                    </p>
+                  </div>
+                </div>
+                <div class="participant-actions mt-2 mt-md-0">
+                  <button
+                    class="btn btn-sm btn-outline-primary btn-icon"
+                    :aria-label="t('exchangeDetail.edit')"
+                    :title="t('exchangeDetail.edit')"
+                    @click="openEditParticipantModal(participant)"
+                  >
+                    <i class="bi bi-pencil" aria-hidden="true"></i>
+                    <span class="visually-hidden">{{ t('exchangeDetail.edit') }}</span>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-outline-secondary btn-icon"
+                    :aria-label="t('exchangeDetail.generateLink')"
+                    :title="t('exchangeDetail.generateLink')"
+                    @click="regenerateParticipantLink(participant.id)"
+                  >
+                    <i class="bi bi-link-45deg" aria-hidden="true"></i>
+                    <span class="visually-hidden">{{ t('exchangeDetail.generateLink') }}</span>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-outline-danger btn-icon"
+                    v-if="!isSummaryMode"
+                    :aria-label="t('exchangeDetail.delete')"
+                    :title="t('exchangeDetail.delete')"
+                    @click="deleteParticipant(participant.id)"
+                  >
+                    <i class="bi bi-trash" aria-hidden="true"></i>
+                    <span class="visually-hidden">{{ t('exchangeDetail.delete') }}</span>
+                  </button>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div v-else class="card border shadow-sm">
+          <div class="card-body">
+            <h3>{{ t('exchangeDetail.participants') }}</h3>
+            <p>
+              <em>{{ t('exchangeDetail.noParticipants') }}</em>
+            </p>
             <button
-              class="btn btn-sm btn-primary"
+              class="btn btn-primary"
               :disabled="isParticipantCreationLocked"
               @click="openAddParticipantModal"
             >
-              {{ t('exchangeDetail.addParticipant') }}
+              + {{ t('exchangeDetail.addParticipant') }}
             </button>
           </div>
-
-          <ul class="list-group">
-            <li
-              v-for="participant in participants"
-              :key="participant.id"
-              class="list-group-item participant-row d-flex justify-content-between align-items-start"
-            >
-              <div class="participant-main">
-                <strong class="participant-name">{{ participant.name }}</strong>
-                <!-- <span v-if="participant.email" class="text-muted"> ({{ participant.email }})</span> -->
-
-                <div v-if="participant.wishlist?.length" class="small mt-1">
-                  <!-- <span class="me-1">{{ t('exchangeDetail.wishlist') }}:</span> -->
-                  <span class="badge text-bg-light">{{
-                    t('exchangeDetail.wishlistSuggestions', participant.wishlist.length)
-                  }}</span>
-                </div>
-
-                <div v-if="!isSummaryMode && participant.note" class="small mt-1">
-                  {{ t('exchangeDetail.note') }}: {{ participant.note }}
-                </div>
-
-                <div v-if="!isSummaryMode" class="participant-exceptions">
-                  <div class="participant-exceptions-header">
-                    <span class="fw-semibold">{{ t('exchangeDetail.exceptions.title') }}</span>
-                    <span class="badge text-bg-light">
-                      {{ getParticipantExclusions(participant.id).length }}
-                    </span>
-                  </div>
-
-                  <ul
-                    v-if="getParticipantExclusions(participant.id).length"
-                    class="participant-exceptions-list list-unstyled"
-                  >
-                    <li
-                      v-for="rule in getParticipantExclusions(participant.id)"
-                      :key="rule.id"
-                      class="participant-exception-item"
-                    >
-                      <span>
-                        {{ t('exchangeDetail.exceptions.cannotDraw') }}
-                        <strong>
-                          {{
-                            participantNameById[rule.receiverParticipantId] ||
-                            rule.receiverParticipantId
-                          }}
-                        </strong>
-                      </span>
-                      <button
-                        type="button"
-                        class="btn btn-sm btn-outline-danger btn-icon"
-                        :disabled="isExclusionEditingLocked"
-                        :aria-label="t('exchangeDetail.exceptions.remove')"
-                        :title="t('exchangeDetail.exceptions.remove')"
-                        @click="removeParticipantExclusion(rule.id)"
-                      >
-                        <i class="bi bi-x-lg" aria-hidden="true"></i>
-                        <span class="visually-hidden">{{
-                          t('exchangeDetail.exceptions.remove')
-                        }}</span>
-                      </button>
-                    </li>
-                  </ul>
-
-                  <p v-else class="mb-2 text-muted small">
-                    {{ t('exchangeDetail.exceptions.none') }}
-                  </p>
-
-                  <div class="participant-exception-form" v-if="participant.status === 'active'">
-                    <select
-                      class="form-select form-select-sm"
-                      :disabled="
-                        isExclusionEditingLocked || !getReceiverCandidates(participant.id).length
-                      "
-                      v-model="selectedExceptionReceiverByParticipant[participant.id]"
-                    >
-                      <option value="">
-                        {{ t('exchangeDetail.exceptions.selectReceiver') }}
-                      </option>
-                      <option
-                        v-for="candidate in getReceiverCandidates(participant.id)"
-                        :key="candidate.id"
-                        :value="candidate.id"
-                      >
-                        {{ candidate.name }}
-                      </option>
-                    </select>
-                    <button
-                      type="button"
-                      class="btn btn-sm btn-outline-primary btn-icon"
-                      :disabled="
-                        isExclusionEditingLocked ||
-                        !selectedExceptionReceiverByParticipant[participant.id]
-                      "
-                      :aria-label="t('exchangeDetail.exceptions.add')"
-                      :title="t('exchangeDetail.exceptions.add')"
-                      @click="addParticipantExclusion(participant.id)"
-                    >
-                      <i class="bi bi-plus-lg" aria-hidden="true"></i>
-                      <span class="visually-hidden">{{ t('exchangeDetail.exceptions.add') }}</span>
-                    </button>
-                  </div>
-
-                  <p v-if="isExclusionEditingLocked" class="mb-0 text-muted small mt-2">
-                    {{ t('exchangeDetail.exceptions.locked') }}
-                  </p>
-                </div>
-              </div>
-              <div class="participant-actions mt-2 mt-md-0">
-                <button
-                  class="btn btn-sm btn-outline-primary btn-icon"
-                  :aria-label="t('exchangeDetail.edit')"
-                  :title="t('exchangeDetail.edit')"
-                  @click="openEditParticipantModal(participant)"
-                >
-                  <i class="bi bi-pencil" aria-hidden="true"></i>
-                  <span class="visually-hidden">{{ t('exchangeDetail.edit') }}</span>
-                </button>
-                <button
-                  class="btn btn-sm btn-outline-secondary btn-icon"
-                  :aria-label="t('exchangeDetail.generateLink')"
-                  :title="t('exchangeDetail.generateLink')"
-                  @click="regenerateParticipantLink(participant.id)"
-                >
-                  <i class="bi bi-link-45deg" aria-hidden="true"></i>
-                  <span class="visually-hidden">{{ t('exchangeDetail.generateLink') }}</span>
-                </button>
-                <button
-                  class="btn btn-sm btn-outline-danger btn-icon"
-                  v-if="!isSummaryMode"
-                  :aria-label="t('exchangeDetail.delete')"
-                  :title="t('exchangeDetail.delete')"
-                  @click="deleteParticipant(participant.id)"
-                >
-                  <i class="bi bi-trash" aria-hidden="true"></i>
-                  <span class="visually-hidden">{{ t('exchangeDetail.delete') }}</span>
-                </button>
-              </div>
-            </li>
-          </ul>
-        </div>
-        <div v-else>
-          <h3>{{ t('exchangeDetail.participants') }}</h3>
-          <p>
-            <em>{{ t('exchangeDetail.noParticipants') }}</em>
-          </p>
-          <button
-            class="btn btn-primary"
-            :disabled="isParticipantCreationLocked"
-            @click="openAddParticipantModal"
-          >
-            {{ t('exchangeDetail.addParticipant') }}
-          </button>
         </div>
       </section>
 
@@ -1253,3 +1276,91 @@ async function cancelDraw() {
     </div>
   </section>
 </template>
+
+<style scoped lang="scss">
+#exchange-detail-view {
+  color: #1f4e4f;
+}
+
+.kado-exchange-layout {
+  align-items: flex-start;
+}
+
+.kado-panel {
+  flex: 1;
+  min-width: 0;
+}
+
+#detail {
+  flex: 1.35;
+}
+
+#participants {
+  flex: 1;
+}
+
+.kado-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.kado-title {
+  color: #1f4e4f;
+  font-family: Manrope, 'Open Sans', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.kado-subtitle {
+  color: #866c5a;
+  font-size: 0.95rem;
+}
+
+.kado-share {
+  white-space: nowrap;
+}
+
+.kado-draw-result {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  color: #4c7a5a;
+  font-weight: 600;
+}
+
+.kado-draw-result a {
+  color: #2f7c7a;
+  font-weight: 600;
+}
+
+.kado-draw-result-icon {
+  font-size: 1.05rem;
+}
+
+.list-group {
+  --bs-list-group-border-color: #d6cfc4;
+  --bs-list-group-bg: #fff;
+}
+
+.kado-participant-row {
+  transition: background-color 0.18s ease;
+}
+
+.kado-participant-row:hover {
+  background: #f8f5ee;
+}
+
+@media (max-width: 767.98px) {
+  .kado-hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .kado-share {
+    width: 100%;
+  }
+}
+</style>

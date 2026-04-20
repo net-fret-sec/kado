@@ -161,6 +161,7 @@
     "wishlistSuggestions": "{count} suggestion | {count} suggestions",
     "note": "Note",
     "generateLink": "Magic link",
+    "share": "Share",
     "openPublicView": "Open public view",
     "triggerDraw": "Run draw",
     "cancelDraw": "Cancel draw",

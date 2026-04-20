@@ -57,3 +57,4 @@ deploy/backups/
 dev-dist/
 sw.js
 workbox-*.js
+api.env

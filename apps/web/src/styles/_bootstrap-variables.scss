@@ -26,8 +26,8 @@ $green: #7fa35b !default;
 $teal: #4fa08f !default;
 $cyan: #68a9c7 !default;
 
-$primary: #a5671f !default;
-$primary-dark: #8d591c !default;
+$primary: #256665 !default;
+$primary-dark: #1f4e4f !default;
 $accent: $yellow !default;
 $accent-dark: $orange !default;
 $secondary: $gray-600 !default;
@@ -47,7 +47,7 @@ $theme-colors: (
   "dark": $gray-800
 );
 
-$body-bg: #f8f6f1 !default;
+$body-bg: #f8faf9 !default;
 $body-color: $gray-800 !default;
 $link-color: $primary !default;
 $link-hover-color: $primary-dark !default;
@@ -72,9 +72,9 @@ $enable-shadows: true;
 
 $spacer: 1rem;
 
-$card-bg: rgba($white, .78) !default;
-$card-border-color: rgba($gray-300, .75) !default;
-$card-cap-bg: rgba($gray-200, .55) !default;
+$card-bg: $white !default;
+$card-border-color: #e5e7e6 !default;
+$card-cap-bg: rgba($gray-200, .45) !default;
 
 $modal-content-bg: #fbfaf7 !default;
 $modal-content-border-color: $gray-300 !default;
@@ -86,12 +86,12 @@ $input-padding-x: .75rem;
 $input-bg: #fff !default;
 $input-border-radius: $radius-base;
 $input-border-color: $gray-300 !default;
-$input-focus-border-color: #c79b63 !default;
+$input-focus-border-color: #4a9090 !default;
 
-$form-focus-box-shadow: 0 0 0 .2rem color.change($primary, $alpha: .18);
+$form-focus-box-shadow: 0 0 0 .2rem color.change($primary, $alpha: .2);
 $form-check-input-checked-bg-color: $primary !default;
 $form-check-input-checked-border-color: $primary !default;
-$btn-focus-box-shadow: 0 0 0 .2rem color.change($primary, $alpha: .2) !default;
+$btn-focus-box-shadow: 0 0 0 .2rem color.change($primary, $alpha: .22) !default;
 
 $list-group-border-color: $gray-300 !default;
 
