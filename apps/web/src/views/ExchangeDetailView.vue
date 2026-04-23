@@ -891,10 +891,6 @@ async function cancelDraw() {
                 <b>{{ t('exchangeDetail.status') }} :</b>
                 <span class="badge ms-1" :class="statusBadgeClass">{{ statusLabel }}</span>
               </li>
-              <li>
-                <b>{{ t('exchangeDetail.participants') }} :</b>
-                {{ participantCountLabel }}
-              </li>
               <li v-if="exchange.drawDeadlineAt">
                 <b>{{ t('exchangeDetail.drawDeadlineAt') }} :</b>
                 {{ new Date(exchange.drawDeadlineAt).toLocaleString() }}
@@ -1074,7 +1070,10 @@ async function cancelDraw() {
         <div v-if="participants.length" class="card border shadow-sm">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
-              <h2>{{ t('exchangeDetail.participants') }} ({{ participants.length }})</h2>
+              <h2 class="d-inline-flex align-items-center gap-2 mb-0">
+                <span>{{ t('exchangeDetail.participants') }}</span>
+                <span class="badge text-bg-light">{{ participants.length }}</span>
+              </h2>
               <button
                 class="btn btn-sm btn-outline-primary"
                 :disabled="isParticipantCreationLocked"

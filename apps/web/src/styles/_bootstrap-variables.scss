@@ -65,9 +65,9 @@ $border-color: rgba($gray-300, .9);
 
 $radius-base: .25rem;
 
-$enable-gradients: false;
-$enable-shadows: false;
-$enable-rounded: false;
+$enable-gradients: true;
+$enable-shadows: true;
+$enable-rounded: true;
 $enable-caret: true;
 $enable-smooth-scroll: true;
 $enable-floating-labels: true;
@@ -116,9 +116,9 @@ $input-border-radius: 0;
 @if $enable-rounded {
   $border-radius-sm: .2rem;
   $border-radius: $radius-base;
-  $border-radius-lg: 1rem;
-  $border-radius-xl: 1.25rem;
-  $border-radius-xxl: 2rem;
+  $border-radius-lg: 0.75rem;
+  $border-radius-xl: 1rem;
+  $border-radius-xxl: 1.5rem;
   $btn-border-radius: 999px;
   $dropdown-border-radius: .85rem;
   $badge-border-radius: 999px;
@@ -130,7 +130,6 @@ $input-border-radius: 0;
   $alert-border-radius: 1rem;
   $input-border-radius: $radius-base;
 }
-
 
 $spacer: 1rem;
 
