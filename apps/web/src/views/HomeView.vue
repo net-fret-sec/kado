@@ -6,6 +6,7 @@ import CreateExchangeModal from '@/components/CreateExchangeModal.vue'
 const { t } = useI18n()
 const isCreateModalOpen = ref(false)
 const showAdminLink = import.meta.env.DEV
+const donationUrl = ((import.meta.env.VITE_DONATION_URL as string | undefined) ?? '').trim()
 </script>
 
 <template>
@@ -169,12 +170,17 @@ const showAdminLink = import.meta.env.DEV
       </div>
     </section>
 
-    <section class="home-support card border shadow-sm text-center px-3 py-4">
+    <section v-if="donationUrl" class="home-support card border shadow-sm text-center px-3 py-4">
       <h2 class="h3 mb-3">{{ t('home.support.title') }}</h2>
       <p class="text-body-secondary mx-auto mb-4" style="max-width: 42rem">
         {{ t('home.support.subtext') }}
       </p>
-      <a href="#" class="btn btn-outline-primary" target="_blank" rel="noopener noreferrer">
+      <a
+        :href="donationUrl"
+        class="btn btn-outline-primary"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         {{ t('home.support.button') }}
       </a>
     </section>
