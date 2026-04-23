@@ -16,6 +16,9 @@ RUN pnpm install --frozen-lockfile
 COPY apps/web apps/web
 COPY packages/shared packages/shared
 
+ARG VITE_DONATION_URL=
+ENV VITE_DONATION_URL=$VITE_DONATION_URL
+
 RUN pnpm --dir apps/web build
 
 FROM caddy:2.8-alpine

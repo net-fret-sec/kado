@@ -1,150 +1,189 @@
-# Deploiement production sur VPS
+# Déploiement production sur VPS
 
-Ce dossier contient une base de deploiement simple et robuste pour exposer Kado sur un seul point d'entree HTTPS avec Caddy et Let's Encrypt.
+Ce dossier contient la stack de déploiement production de Kado pour un VPS unique avec HTTPS, Caddy, PostgreSQL et une API interne au réseau Docker.
 
-Architecture cible:
-- caddy: reverse proxy TLS et service des assets web
-- api: serveur Node/TypeScript (Express)
-- db: PostgreSQL
+## Architecture cible
 
-## 1) Prerequis VPS
+- `caddy`: terminaison TLS, service des assets web et proxy `/api`.
+- `api`: serveur Node.js/Express exposé uniquement au réseau Docker.
+- `db`: PostgreSQL 16 avec volume persistant.
 
-Systeme recommande:
-- Ubuntu 24.04 LTS ou Debian 12
+## Prérequis VPS
 
-Packages:
-- Docker Engine
-- Docker Compose plugin
-- ufw
-- fail2ban
+Système recommandé:
 
-Ports ouverts:
-- 22/tcp
-- 80/tcp
-- 443/tcp
+- Ubuntu 24.04 LTS ou Debian 12.
 
-## 2) DNS
+Paquets et services attendus:
 
-Creer un enregistrement A:
-- host: kado
-- domaine: netfretsec.com
-- valeur: IP publique du VPS
+- Docker Engine.
+- Docker Compose plugin.
+- `ufw`.
+- `fail2ban`.
 
-Attendre la propagation DNS avant la premiere mise en service TLS.
+Ports à ouvrir:
 
-## 3) Preparation des variables
+- `22/tcp`
+- `80/tcp`
+- `443/tcp`
 
-Depuis la racine du projet:
+## DNS
 
-1. Copier les variables de compose:
+Créer un enregistrement A pointant le sous-domaine voulu vers l'IP publique du VPS, puis attendre la propagation avant le premier démarrage afin que Let's Encrypt puisse émettre le certificat.
 
+## Préparation des variables
+
+Depuis la racine du dépôt:
+
+1. Copier les variables Compose:
+
+```bash
 cp deploy/.env.production.example deploy/.env.production
+```
 
-2. Editer deploy/.env.production:
-- DOMAIN
-- ACME_EMAIL
-- POSTGRES_PASSWORD
+2. Renseigner au minimum dans `deploy/.env.production`:
+
+- `DOMAIN`
+- `ACME_EMAIL`
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `VITE_DONATION_URL` si vous voulez afficher le bloc de soutien sur l'accueil
 
 3. Copier les variables API:
 
+```bash
 cp deploy/env/api.env.example deploy/env/api.env
+```
 
-4. Editer deploy/env/api.env:
-- FRONTEND_BASE_URL
-- FRONTEND_ALLOWED_ORIGINS
-- PARTICIPANT_ACCESS_RATE_WINDOW_MS
-- PARTICIPANT_ACCESS_RATE_SOFT_LIMIT
-- PARTICIPANT_ACCESS_BASE_DELAY_MS
-- PARTICIPANT_ACCESS_MAX_DELAY_MS
+4. Renseigner dans `deploy/env/api.env`:
+
+- `SERVER_ADDRESS`
+- `SERVER_PORT`
+- `FRONTEND_BASE_URL`
+- `FRONTEND_ALLOWED_ORIGINS`
+- `PARTICIPANT_ACCESS_RATE_WINDOW_MS`
+- `PARTICIPANT_ACCESS_RATE_SOFT_LIMIT`
+- `PARTICIPANT_ACCESS_BASE_DELAY_MS`
+- `PARTICIPANT_ACCESS_MAX_DELAY_MS`
 
 Exemple typique:
-- FRONTEND_BASE_URL=https://kado.netfretsec.com
-- FRONTEND_ALLOWED_ORIGINS=https://kado.netfretsec.com
-- PARTICIPANT_ACCESS_RATE_WINDOW_MS=10000
-- PARTICIPANT_ACCESS_RATE_SOFT_LIMIT=10
-- PARTICIPANT_ACCESS_BASE_DELAY_MS=200
-- PARTICIPANT_ACCESS_MAX_DELAY_MS=1500
 
-Ces variables regissent la temporisation progressive appliquee aux endpoints publics participants (`/api/p/:token`) pour limiter l'enumeration de liens.
+- `FRONTEND_BASE_URL=https://kado.exemple.com`
+- `FRONTEND_ALLOWED_ORIGINS=https://kado.exemple.com`
+- `PARTICIPANT_ACCESS_RATE_WINDOW_MS=10000`
+- `PARTICIPANT_ACCESS_RATE_SOFT_LIMIT=10`
+- `PARTICIPANT_ACCESS_BASE_DELAY_MS=200`
+- `PARTICIPANT_ACCESS_MAX_DELAY_MS=1500`
 
-## 4) Premier deploiement
+La variable `DATABASE_URL` n'est pas à définir dans `deploy/env/api.env`: elle est injectée par Compose vers le service `api` à partir des variables PostgreSQL du fichier `deploy/.env.production`.
 
-Commande unique:
+## Premier déploiement
 
-./deploy/scripts/release.sh
+Commande recommandée:
 
-Ce script fait:
-1. build des images
-2. demarrage PostgreSQL
-3. migration SQL
-4. demarrage API et Caddy
-5. affichage de l'etat compose
+```bash
+bash deploy/scripts/release.sh
+```
 
-## 5) Verification post-deploiement
+Ou avec un fichier d'environnement alternatif:
 
-Verifier la sante API:
+```bash
+bash deploy/scripts/release.sh deploy/.env.production
+```
 
-curl -fsS https://kado.netfretsec.com/health
+Le script effectue les étapes suivantes:
 
-Verifier la page web:
+1. Build des images avec `docker compose build --pull`.
+2. Démarrage de PostgreSQL.
+3. Exécution des migrations SQL via le conteneur API.
+4. Démarrage de l'API et de Caddy.
+5. Affichage de l'état des services.
 
-curl -I https://kado.netfretsec.com
+## Vérification post-déploiement
 
-Verifier les services:
+Vérifier la santé API:
 
+```bash
+curl -fsS https://votre-domaine/health
+```
+
+Vérifier la page web:
+
+```bash
+curl -I https://votre-domaine
+```
+
+Vérifier l'état Compose:
+
+```bash
 docker compose --env-file deploy/.env.production -f deploy/docker-compose.prod.yml ps
+```
 
-## 6) Sauvegardes PostgreSQL
+## Sauvegardes PostgreSQL
 
 Backup manuel:
 
-./deploy/scripts/backup-db.sh
+```bash
+bash deploy/scripts/backup-db.sh
+```
 
-Backup dans un dossier specifique:
+Backup dans un dossier spécifique:
 
-./deploy/scripts/backup-db.sh deploy/.env.production /var/backups/kado
+```bash
+bash deploy/scripts/backup-db.sh deploy/.env.production /var/backups/kado
+```
 
-Restore depuis un dump:
+Restauration depuis un dump:
 
-./deploy/scripts/restore-db.sh deploy/.env.production /var/backups/kado/kado-YYYYMMDD-HHMMSS.dump
+```bash
+bash deploy/scripts/restore-db.sh deploy/.env.production /var/backups/kado/kado-YYYYMMDD-HHMMSS.dump
+```
 
-Important:
-- conserver une copie hors VPS (Object Storage Scaleway conseille)
-- tester la restauration regulierement
+À prévoir en exploitation:
 
-## 7) Operations courantes
+- conserver une copie des backups hors VPS,
+- tester régulièrement une restauration complète,
+- surveiller l'espace disque et la date du dernier dump réussi.
 
-Voir les logs Caddy:
+## Opérations courantes
 
+Logs Caddy:
+
+```bash
 docker compose --env-file deploy/.env.production -f deploy/docker-compose.prod.yml logs -f caddy
+```
 
-Voir les logs API:
+Logs API:
 
+```bash
 docker compose --env-file deploy/.env.production -f deploy/docker-compose.prod.yml logs -f api
+```
 
-Redemarrer un service:
+Redémarrer l'API:
 
+```bash
 docker compose --env-file deploy/.env.production -f deploy/docker-compose.prod.yml restart api
+```
 
-Stopper la stack:
+Arrêter la stack:
 
+```bash
 docker compose --env-file deploy/.env.production -f deploy/docker-compose.prod.yml down
+```
 
-## 8) Durcissement recommande
+## Notes techniques
 
-- SSH par cle uniquement
-- fail2ban actif
-- mises a jour de securite automatiques
-- rotation des mots de passe et secrets
-- verification reguliere de l'espace disque
-- monitoring simple sur:
-  - expiration certificat
-  - echec backup
-  - service down
+- Le frontend est build dans l'image Caddy et servi statiquement.
+- Caddy route `/api` vers `api:3000` à l'intérieur du réseau Docker.
+- Le healthcheck du service `api` cible `http://127.0.0.1:3000/health`.
+- Les certificats Let's Encrypt sont persistés dans `caddy_data`.
+- Les données PostgreSQL sont persistées dans `db_data`.
 
-## 9) Notes techniques
+## Durcissement recommandé
 
-- Le web est build dans l'image Caddy et servi statiquement.
-- L'API reste interne au reseau Docker, Caddy route /api vers api:3000.
-- Les certificats Let's Encrypt sont persistants dans le volume caddy_data.
-- Les donnees PostgreSQL sont persistantes dans le volume db_data.
+- SSH par clé uniquement.
+- `fail2ban` actif.
+- mises à jour de sécurité automatiques.
+- rotation régulière des secrets.
+- surveillance simple sur expiration certificat, échec backup et indisponibilité de service.

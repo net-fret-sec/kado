@@ -1,55 +1,56 @@
 # Styles Guide
 
-Ce dossier contient la base de customisation Bootstrap de l'application web.
+Ce dossier contient la couche de thème et d'overrides Bootstrap utilisée par le frontend Kado.
 
 ## Structure
 
-- `_bootstrap-variables.scss`: tokens visuels (palette, radius, typo, inputs) injectes dans Bootstrap.
-- `main.scss`: point d'entree SCSS, charge Bootstrap avec `@use ... with (...)`, puis les overrides.
-- `_custom-overrides.scss`: ajustements cibles de composants (buttons, cards, inputs).
+- `_bootstrap-variables.scss`: tokens de thème injectés dans Bootstrap, palette, typographie, rayons, ombres et variables de formulaires.
+- `main.scss`: point d'entrée SCSS, charge Bootstrap via `@use ... with (...)`, définit aussi des variables CSS d'application.
+- `_custom-overrides.scss`: styles ciblés pour les composants qui ne se règlent pas proprement par variables Bootstrap.
 
-## Philosophie
+## Direction visuelle actuelle
 
-- Bootstrap d'abord: prioriser les variables et utilitaires Bootstrap.
-- Overrides minimaux: n'ajouter du CSS custom que pour des besoins visuels clairs.
-- Accessibilite en premier: contraste lisible, focus visible, et etats hover/active coherents.
+Le thème actif n'est plus le schéma bleu-violet des premières itérations. Le frontend utilise maintenant une palette plus chaude et minérale.
 
-## Tokens principaux
+Tokens dominants actuels:
 
-- Primary: `#4F46E5`
-- Primary dark: `#3730A3`
-- Accent: `#06B6D4`
-- Accent dark: `#0288A2`
-- Secondary: `#64748B`
-- Surface light: `#F8FAFC`
-- Surface dark: `#0F1724`
+- Primary: `#256665`
+- Primary dark: `#1f4e4f`
+- Accent / warning: `#e0a93b`
+- Accent dark: `#c97a2b`
+- Secondary: `#786f63`
+- Fond principal: `#f8faf9`
+- Surface beige: `#f3ead8`
+- Texte principal: `#1f4e4f`
 
-## Regles de style
+## Typographie et formes
 
-- Eviter les gradients sur les boutons primaires si cela degrade le contraste.
-- Appliquer un radius unique et modere (`0.5rem`) pour boutons, cartes et champs.
-- Eviter les formes `pill` (coins totalement arrondis) sauf exigence fonctionnelle explicite.
-- Conserver un focus ring visible (`:focus-visible`) sur les elements interactifs.
-- Eviter `!important` sauf cas exceptionnel documente.
-- Garder les transitions courtes et discretes (environ 120ms a 180ms).
+- Bootstrap reçoit une base sans-serif orientée `Manrope` pour le corps.
+- `main.scss` expose ensuite des variables CSS de typo pour les tests visuels et certaines hiérarchies de titres.
+- Les contrôles de formulaire gardent un rayon discret, mais les boutons, badges et pills peuvent volontairement utiliser des formes très arrondies.
+- Les cartes et modales utilisent des ombres faibles plutôt que des contrastes très durs.
 
-## Ajouter un nouveau style composant
+## Principes de travail
 
-1. Verifier si Bootstrap couvre deja le besoin (variable, classe utilitaire, variante).
-2. Si necessaire, ajouter l'override dans `_custom-overrides.scss`.
-3. Reutiliser les tokens de `_bootstrap-variables.scss` via `@use`.
-4. Tester au minimum:
-- `pnpm --dir apps/web type-check`
-- `pnpm --dir apps/web build`
+- Modifier d'abord les variables Bootstrap avant d'ajouter du CSS spécifique.
+- Réutiliser les tokens déjà présents avant d'introduire une nouvelle couleur ou une nouvelle échelle d'espacement.
+- Garder un focus visible et des contrastes lisibles.
+- Préserver la cohérence entre les variables Sass injectées dans Bootstrap et les variables CSS déclarées dans `main.scss`.
 
-## Theming
+## Ajouter ou modifier un style
 
-- Le theme clair est porte par les variables Bootstrap.
-- Le theme sombre est active via la classe `.theme-dark` dans `main.scss`.
-- Preferer les variables de couleur existantes avant d'introduire de nouveaux tokens.
+1. Vérifier si le besoin peut être couvert par une variable Bootstrap existante.
+2. Sinon, ajouter l'override minimal dans `_custom-overrides.scss`.
+3. Si le style doit être réutilisable à grande échelle, l'exprimer d'abord comme token dans `_bootstrap-variables.scss` ou comme variable CSS dans `main.scss`.
+4. Valider au minimum avec:
+
+```bash
+pnpm --dir apps/web type-check
+pnpm --dir apps/web build
+```
 
 ## Maintenance
 
-- En cas de warning Sass provenant de dependances, garder `quietDeps: true` dans Vite.
-- Migrer vers des APIs Sass modernes (`@use`, `sass:color`) pour les fichiers locaux.
-- Toute nouvelle couleur doit etre justifiee par un usage semantique clair.
+- `quietDeps: true` est conservé dans Vite pour éviter le bruit Sass venant des dépendances.
+- Les fichiers locaux doivent rester sur les APIs Sass modernes comme `@use` et `sass:color`.
+- Toute nouvelle couleur ou variante typographique doit avoir un usage sémantique clair dans l'interface.

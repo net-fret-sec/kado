@@ -2,51 +2,52 @@
 
 Frontend Vue 3 de Kado.
 
-Cette application couvre trois surfaces:
+L'application couvre trois surfaces utilisateur:
 
-- Vue admin d'un echange (`/exchanges/:id`)
-- Vue publique d'un echange (`/x/:id`)
-- Espace participant via lien magique (`/p/:token`, code lisible `XXXX-XXXX-XXXX`)
+- Vue admin d'un échange sur `/exchanges/:id`.
+- Vue publique d'un échange sur `/x/:id`.
+- Espace participant via lien magique sur `/p/:token`.
 
 ## Stack
 
-- Vue 3 + Vite
-- TypeScript
-- Vue Router
-- Pinia
-- Vue I18n
-- Bootstrap + Bootstrap Icons
+- Vue 3.
+- Vite.
+- TypeScript.
+- Vue Router.
+- Pinia.
+- Vue I18n.
+- Bootstrap et Bootstrap Icons.
+- vite-plugin-pwa.
 
-## Locales supportees
+## Routes principales
+
+- `/`: accueil.
+- `/exchanges`: liste admin.
+- `/exchanges/:id`: détail admin.
+- `/x/:id`: vue publique.
+- `/p/:token`: espace participant.
+
+## Locales supportées
 
 - `fr-CA`
 - `en-CA`
 
-## Routes principales
+## Comportements utiles à connaître
 
-- `/` accueil
-- `/exchanges` liste admin
-- `/exchanges/:id` detail admin
-- `/x/:id` vue publique
-- `/p/:token` espace participant
-
-Note participant:
-- Le backend accepte les variantes de saisie du code (`abcd-efgh-jk23`, `abcd efgh jk23`, sans séparateurs), avec normalisation automatique.
-- L'API retourne un chemin relatif (`/p/:token`) et le frontend construit l'URL absolue depuis l'origine actuelle du navigateur pour eviter les erreurs de configuration d'environnement.
-
-## Authentification frontend
-
-- Session admin stockee cote client par echange (Pinia + localStorage)
-- Les appels admin envoient `Authorization: Bearer <token>`
-- Re-auth admin demandee automatiquement si session invalide/expiree
+- Le code participant peut être saisi avec ou sans séparateurs; l'API normalise les variantes.
+- Les liens d'accès participant sont construits côté frontend à partir de l'origine du navigateur, même si l'API retourne seulement un chemin relatif.
+- La session admin est stockée côté client par échange via Pinia et localStorage.
+- Les appels admin transmettent `Authorization: Bearer <token>`.
+- Une ré-auth est demandée automatiquement si le token de session n'est plus valide.
 
 ## Variables d'environnement
 
-- `VITE_API_BASE`: base URL de l'API
+Fichier d'exemple: `apps/web/.env.example`
 
-Si vide, le frontend utilise les chemins relatifs (`/api/...`) avec le proxy Vite en dev.
+- `VITE_API_BASE`: base URL de l'API. Si vide, le frontend utilise les chemins relatifs `/api/...` et le proxy Vite en développement.
+- `VITE_DONATION_URL`: URL publique du lien de soutien affiché sur l'accueil. Si vide ou absente, le bloc n'est pas rendu.
 
-## Demarrage local
+## Développement local
 
 Depuis la racine du monorepo:
 
@@ -60,9 +61,12 @@ Ou depuis `apps/web`:
 pnpm dev
 ```
 
-## Verification
+Par défaut, Vite écoute sur `http://localhost:5173` et proxifie `/api` vers `http://localhost:3000`.
+
+## Vérification
 
 ```bash
+pnpm --dir apps/web type-check
 pnpm --dir apps/web lint
 pnpm --dir apps/web build
 ```

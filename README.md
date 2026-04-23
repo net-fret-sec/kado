@@ -1,131 +1,99 @@
 # Kado
 
-Kado est une application web libre pour organiser simplement des échanges de cadeaux (type "Secret Santa") entre amis, famille ou collègues.
+Kado est une application web libre pour organiser des échanges de cadeaux sans compte utilisateur, avec une interface d'administration, une vue publique d'échange et un espace participant par lien magique.
 
-L'objectif est de retirer toute la friction liée à l'organisation: règles, contraintes, pige et communication, tout en restant simple, fiable et sans inscription obligatoire.
+L'objectif du projet est de réduire la friction d'organisation tout en gardant des règles explicites, une pige fiable et un hébergement simple.
+
+## Vue d'ensemble
+
+Le monorepo PNPM contient trois briques:
+
+- `apps/api`: API Express 5 et logique métier.
+- `apps/web`: application Vue 3, PWA, vue admin, vue publique et espace participant.
+- `packages/shared`: types, DTO et schémas partagés entre front et back.
 
 ## Terminologie
 
-Pour garder le vocabulaire cohérent dans le projet:
-
-- **Échange**: l'entité principale (config, participants, exclusions, statut).
-- **Pige**: l'opération d'assignation (lancer/annuler) dans un échange.
-- **Vue admin**: interface de gestion d'un échange (protégée par session admin).
-- **Vue publique**: page d'information d'un échange sans privilèges admin.
-- **Espace participant**: accès individuel via lien magique (`/p/:token`, code lisible `XXXX-XXXX-XXXX`).
-
-## Philosophie du projet
-
-Kado est conçu comme un outil:
-
-- simple à utiliser, sans friction inutile
-- respectueux de la vie privée (liens personnels, pas de compte requis)
-- transparent dans son fonctionnement (code source ouvert)
-- maintenu de manière indépendante
-
-Le projet est libre et peut être utilisé, modifié ou auto-hébergé.
-
-Le dépôt est un monorepo PNPM composé de 3 briques:
-
-- `apps/api`: API HTTP Node.js/Express (logique métier)
-- `apps/web`: application Vue 3 (vue admin + vue publique + espace participant)
-- `packages/shared`: contrats partagés (DTO, types, schémas Zod)
-
-## Ce que l'application règle
-
-- Centraliser l'organisation d'un échange de cadeaux.
-- Éviter les erreurs de pige (auto-attribution, conflits de contraintes).
-- Gérer automatiquement des règles complexes (exclusions, anti-réciprocité).
-- Donner un accès simple aux participants via un lien personnel (`/p/:token`, format lisible `XXXX-XXXX-XXXX`).
-- Fournir des explications claires lorsque la pige est impossible.
-- Garder front et back synchronisés grâce à un package de types commun.
-
-## Nouveautés / bonifications récentes
-
-- Ajout du mode anti-réciprocité via `noMutualAssignments`.
-- Gestion des règles d'exclusion entre participants (API + UI admin).
-- Verrouillage de l'édition des exclusions quand l'échange est `drawn` ou `archived`.
-- Erreurs de pige enrichies quand aucune solution n'est possible:
-  - code `DRAW_IMPOSSIBLE`
-  - détails: `hasExclusionRules`, `noMutualAssignments`
-- Liens participants migrés vers un format lisible (`XXXX-XXXX-XXXX`) tout en restant robustes:
-  - normalisation backend (majuscules, tirets/espaces tolérés)
-  - même réponse `404` pour format invalide et lien inconnu (`PARTICIPANT_LINK_INVALID_OR_EXPIRED`)
-  - hash basé sur le code normalisé (sans exposer le code brut en base)
-- Protection anti-enumération sur `GET/PUT /api/p/:token`:
-  - temporisation progressive par IP (fenêtre glissante configurable)
-  - journalisation des tentatives sans exposer le code participant dans les logs HTTP
-- Séparation explicite côté web entre vue admin (`/exchanges/:id`) et vue publique (`/x/:id`).
-- Vue de détail admin bonifiée côté web (gestion des exclusions par participant, session admin, changement de mot de passe).
-
-## Soutenir le projet
-
-Kado est un projet libre, maintenu bénévolement.
-
-Si l'application vous a été utile pour organiser un échange, vous pouvez contribuer à son maintien:
-
--> [Soutenir le projet](#)
-
-(Aucune fonctionnalité n'est bloquée: la contribution est entièrement volontaire.)
-
-## Architecture
-
-```text
-kado/
-|- apps/
-|  |- api/          # Backend Express + logique metier
-|  |- web/          # Frontend Vue 3 + Vite
-|- packages/
-   |- shared/       # DTO, schémas Zod, types partagés
-```
+- Échange: l'entité principale avec configuration, participants, exclusions et statut.
+- Pige: l'opération d'assignation des cadeaux.
+- Vue admin: interface protégée par session pour gérer un échange.
+- Vue publique: page en lecture seule accessible sans authentification.
+- Espace participant: accès individuel via `/p/:token` avec code lisible de type `XXXX-XXXX-XXXX`.
 
 ## Fonctionnalités couvertes
 
-- Gestion des échanges
-  - CRUD des échanges
-  - statuts: `draft`, `ready`, `drawn`, `archived`
-  - options: organisateur, budget, date, mot de passe admin, `noMutualAssignments`
-- Gestion des participants (admin)
-  - CRUD participants
-  - régénération de lien d'accès
-- Gestion des exclusions
-  - ajout/suppression de règles entre participants
-- Pige
-  - lancement et annulation
-  - solveur déterministe avec contraintes
-  - détails explicites en cas d'échec de la pige
-- Espace participant public
-  - consultation/mise à jour de son profil via lien magique
-  - affichage du destinataire après pige
-- Vue publique d'échange
-  - consultation en lecture seule des informations publiques d'un échange
-- Auth admin d'échange
-  - session admin (connexion/déconnexion)
-  - changement du mot de passe administrateur
+- Gestion complète des échanges avec statuts `draft`, `ready`, `drawn` et `archived`.
+- Options d'échange incluant budget, date, organisateur, mot de passe admin et anti-réciprocité via `noMutualAssignments`.
+- Gestion des participants avec régénération de lien d'accès.
+- Gestion des exclusions entre participants depuis l'interface admin.
+- Pige déterministe avec contraintes et message d'erreur structuré quand aucune solution n'est possible.
+- Espace participant public pour consulter et mettre à jour son profil, puis voir le destinataire après la pige.
+- Vue publique d'un échange sur une route distincte de la vue admin.
+- Session administrateur par échange avec connexion, déconnexion et changement de mot de passe.
+
+## Évolutions récentes déjà intégrées
+
+- Ajout de l'option `noMutualAssignments` jusqu'au solveur de pige.
+- Détails d'erreur de pige enrichis avec `DRAW_IMPOSSIBLE`, `hasExclusionRules` et `noMutualAssignments`.
+- Gestion des exclusions directement dans la page de détail admin.
+- Liens participant au format lisible avec normalisation côté API.
+- Protection anti-énumération sur `GET /api/p/:token` et `PUT /api/p/:token`.
+- Construction des URLs participant côté frontend à partir de l'origine navigateur, au lieu d'une URL absolue renvoyée par l'API.
 
 ## Stack technique
 
-- Runtime/langage: Node.js, TypeScript, PNPM workspaces
-- API: Express 5, Zod, Helmet, CORS, Morgan, Jest, Supertest
-- Web: Vue 3, Vite, Pinia, Vue Router, Vue I18n, Bootstrap, vite-plugin-pwa
-- Qualité: ESLint, Oxlint, Prettier
+- Runtime: Node.js, TypeScript, PNPM workspaces.
+- API: Express 5, Zod, PostgreSQL, Helmet, CORS, Morgan, Jest, Supertest.
+- Web: Vue 3, Vite, Pinia, Vue Router, Vue I18n, Bootstrap, vite-plugin-pwa.
+- Qualité: ESLint, Oxlint, Prettier.
 
 ## Prérequis
 
-- Node.js: `^20.19.0 || >=22.12.0`
-- PNPM: `10.x`
+- Node.js `^20.19.0 || >=22.12.0`
+- PNPM `10.x`
+- PostgreSQL 16 ou compatible pour l'API
 
 ## Installation
 
-Depuis la racine:
+Depuis la racine du dépôt:
 
 ```bash
 pnpm install
 ```
 
-## Développement local
+## Démarrage local
 
-Dans 2 terminaux:
+1. Copier les fichiers d'environnement:
+
+```bash
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env
+```
+
+2. Démarrer PostgreSQL. Exemple minimal via Docker:
+
+```bash
+docker run --name kado-postgres \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=kado \
+  -p 5432:5432 \
+  -d postgres:16
+```
+
+3. Définir `DATABASE_URL` dans `apps/api/.env`, puis vérifier la connexion:
+
+```bash
+pnpm db:ping:api
+```
+
+4. Appliquer les migrations:
+
+```bash
+pnpm db:migrate:api
+```
+
+5. Lancer l'API et le frontend dans deux terminaux:
 
 ```bash
 pnpm dev:api
@@ -140,125 +108,61 @@ Par défaut:
 - API: `http://localhost:3000`
 - Web: `http://localhost:5173`
 
-## PostgreSQL (démarrage de la persistance)
+Le frontend Vite proxifie `/api` vers `http://localhost:3000` en développement si `VITE_API_BASE` est vide.
 
-Un premier incrément PostgreSQL est en place côté API:
+## Scripts utiles
 
-- couche de connexion DB (`apps/api/src/db.ts`)
-- endpoint santé enrichi (`GET /health` inclut l'état DB)
-- migrations SQL versionnées (`apps/api/migrations`)
+Depuis la racine:
 
-### Démarrage rapide en local
+- `pnpm dev`: lance les workspaces en parallèle.
+- `pnpm dev:api`: démarre l'API en watch.
+- `pnpm dev:web`: démarre Vite.
+- `pnpm build:api`: compile l'API.
+- `pnpm build:web`: build du frontend.
+- `pnpm preview:web`: sert le build frontend.
+- `pnpm db:ping:api`: teste la connexion PostgreSQL.
+- `pnpm db:migrate:api`: applique les migrations SQL.
+- `pnpm db:reset-example-passwords:api`: réinitialise les mots de passe admin des échanges d'exemple.
+- `pnpm db:reset-exchanges:api`: supprime toutes les données métier d'échange après confirmation explicite.
 
-1. Démarrer PostgreSQL (exemple Docker):
+Note: `pnpm preview:api` existe à la racine mais le script `preview` n'est pas défini dans `apps/api` pour l'instant.
 
-```bash
-docker run --name kado-postgres \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=kado \
-  -p 5432:5432 \
-  -d postgres:16
-```
+## Vérification locale
 
-2. Copier l'exemple d'environnement API et définir `DATABASE_URL`:
+- Build API: `pnpm build:api`
+- Build web: `pnpm build:web`
+- Tests API: `pnpm --dir apps/api test`
+- Lint web: `pnpm --dir apps/web lint`
+- Type-check web: `pnpm --dir apps/web type-check`
 
-```bash
-cp apps/api/.env.example apps/api/.env
-```
+## Variables d'environnement
 
-Valeur typique:
+### API
 
-```bash
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/kado
-```
+Fichier d'exemple: `apps/api/.env.example`
 
-3. Vérifier la connexion DB:
+- `SERVER_ADDRESS`: adresse d'écoute affichée dans les logs. Défaut: `http://0.0.0.0`.
+- `SERVER_PORT`: port HTTP. Défaut: `3000`.
+- `FRONTEND_BASE_URL`: URL du frontend, utilisée notamment comme fallback CORS.
+- `FRONTEND_ALLOWED_ORIGINS`: liste CSV d'origines CORS autorisées.
+- `PARTICIPANT_ACCESS_RATE_WINDOW_MS`: fenêtre glissante de protection anti-abus.
+- `PARTICIPANT_ACCESS_RATE_SOFT_LIMIT`: nombre de requêtes tolérées avant augmentation du délai.
+- `PARTICIPANT_ACCESS_BASE_DELAY_MS`: délai de base ajouté sur les endpoints participant publics.
+- `PARTICIPANT_ACCESS_MAX_DELAY_MS`: plafond du délai progressif.
+- `DATABASE_URL`: URL de connexion PostgreSQL.
 
-```bash
-pnpm db:ping:api
-```
+### Web
 
-4. Appliquer les migrations:
+Fichier d'exemple: `apps/web/.env.example`
 
-```bash
-pnpm db:migrate:api
-```
+- `VITE_API_BASE`: base URL de l'API. Laisser vide en développement local pour utiliser le proxy Vite.
+- `VITE_DONATION_URL`: URL de soutien affichée sur l'accueil. Si vide ou absente, le bloc de soutien n'est pas rendu.
 
-### Scripts de maintenance (environnement de test)
-
-Ces scripts sont utiles en local pour repartir rapidement d'un etat propre.
-
-1. Reinitialiser les mots de passe admin des piges d'exemple:
-
-```bash
-pnpm db:reset-example-passwords:api
-```
-
-Comportement par defaut:
-
-- cible les echanges listes dans `apps/api/src/test-data.json`
-- applique le mot de passe commun `Qwerty12345!`
-- revoque les sessions admin existantes
-
-Options:
-
-```bash
-EXAMPLE_ADMIN_PASSWORD='MonMotDePasse123!' pnpm db:reset-example-passwords:api
-EXAMPLE_PASSWORD_TARGET=all pnpm db:reset-example-passwords:api
-```
-
-2. Supprimer tous les echanges (reset complet des donnees metier):
-
-```bash
-RESET_EXCHANGES_CONFIRM=RESET_EXCHANGES pnpm db:reset-exchanges:api
-```
-
-Notes:
-
-- suppression de tous les echanges de la base
-- suppression en cascade des donnees liees (`participants`, `assignments`, `exclusion_rules`, `admin_access`, `admin_sessions`, `participant_access`)
-- confirmation explicite obligatoire pour eviter les erreurs humaines
-
-## Build et vérification
-
-Build web:
-
-```bash
-pnpm build:web
-```
-
-Build API:
-
-```bash
-pnpm build:api
-```
-
-Preview web (build):
-
-```bash
-pnpm preview:web
-```
-
-Tests API:
-
-```bash
-pnpm --dir apps/api test
-```
-
-Lint web:
-
-```bash
-pnpm --dir apps/web lint
-```
-
-Note: `pnpm preview:api` existe à la racine, mais le script `preview` n'est pas défini dans `apps/api` pour le moment.
-
-## Endpoints API principaux
+## Endpoints principaux
 
 - Santé
   - `GET /health`
-- Échanges (admin)
+- Échanges admin
   - `GET /api/exchanges`
   - `POST /api/exchanges`
   - `GET /api/exchanges/:exchangeId`
@@ -266,7 +170,7 @@ Note: `pnpm preview:api` existe à la racine, mais le script `preview` n'est pas
   - `DELETE /api/exchanges/:exchangeId`
   - `POST /api/exchanges/:exchangeId/draw`
   - `POST /api/exchanges/:exchangeId/draw/cancel`
-- Participants (admin)
+- Participants admin
   - `GET /api/exchanges/:exchangeId/participants`
   - `POST /api/exchanges/:exchangeId/participants`
   - `PUT /api/exchanges/:exchangeId/participants/:participantId`
@@ -276,75 +180,58 @@ Note: `pnpm preview:api` existe à la racine, mais le script `preview` n'est pas
   - `GET /api/exchanges/:exchangeId/exclusions`
   - `POST /api/exchanges/:exchangeId/exclusions`
   - `DELETE /api/exchanges/:exchangeId/exclusions/:ruleId`
-- Auth admin d'échange
+- Auth admin
   - `POST /api/exchanges/:exchangeId/admin/sessions`
   - `DELETE /api/exchanges/:exchangeId/admin/sessions/current`
   - `PUT /api/exchanges/:exchangeId/admin/password`
-- Vue publique d'échange
+- Vue publique
   - `GET /api/public/exchanges/:exchangeId`
-- Espace participant public
+- Participant public
   - `GET /api/p/:token`
   - `PUT /api/p/:token`
 
-## Variables d'environnement utiles
+## Scripts de maintenance API
 
-### API (`apps/api/.env`)
+Réinitialiser les mots de passe admin des échanges listés dans `apps/api/src/test-data.json`:
 
-- `SERVER_ADDRESS`: adresse d'écoute loggée (défaut: `http://0.0.0.0`)
-- `SERVER_PORT`: port HTTP (défaut: `3000`)
-- `FRONTEND_BASE_URL`: base URL du front pour construire les liens participant
-- `FRONTEND_ALLOWED_ORIGINS`: liste CSV d'origines autorisées pour CORS (optionnel)
-- `PUBLIC_BASE_URL`: prioritaire sur `FRONTEND_BASE_URL` si définie
-- `PARTICIPANT_ACCESS_RATE_WINDOW_MS`: fenêtre glissante de protection anti-abus (défaut: `10000`)
-- `PARTICIPANT_ACCESS_RATE_SOFT_LIMIT`: nombre de tentatives dans la fenêtre avant augmentation de délai (défaut: `10`)
-- `PARTICIPANT_ACCESS_BASE_DELAY_MS`: délai minimal ajouté sur les endpoints participants publics (défaut: `200`)
-- `PARTICIPANT_ACCESS_MAX_DELAY_MS`: plafond du délai progressif (défaut: `1500`)
+```bash
+pnpm db:reset-example-passwords:api
+```
 
-Exemple: `apps/api/.env.example`
+Options utiles:
 
-### Web (`apps/web/.env`)
+```bash
+EXAMPLE_ADMIN_PASSWORD='MonMotDePasse123!' pnpm db:reset-example-passwords:api
+EXAMPLE_PASSWORD_TARGET=all pnpm db:reset-example-passwords:api
+```
 
-- `VITE_API_BASE`: base URL de l'API. Laisser vide pour utiliser le meme host/port que le frontend (proxy Vite en dev). Exemple explicite possible: `http://localhost:3000`
+Supprimer toutes les données métier d'échange:
 
-Exemple: `apps/web/.env.example`
+```bash
+RESET_EXCHANGES_CONFIRM=RESET_EXCHANGES pnpm db:reset-exchanges:api
+```
 
-## Deploiement production (VPS)
+Cette suppression efface en cascade les participants, assignations, exclusions, accès et sessions associés.
 
-Une base de deploiement production est incluse pour un VPS avec entree unique HTTPS:
+## Déploiement production
 
-- orchestration: Docker Compose
-- reverse proxy TLS: Caddy + Let's Encrypt
-- API: service interne sur le reseau Docker
-- Web: assets statiques servis par Caddy
-- DB: PostgreSQL persistante
+Une stack Docker Compose avec Caddy, API et PostgreSQL est fournie dans `deploy`.
 
-Documentation complete:
+Voir `deploy/README.md` pour:
 
-- `deploy/README.md`
-
-Fichiers principaux:
-
-- `deploy/docker-compose.prod.yml`
-- `deploy/Caddyfile`
-- `deploy/docker/api.Dockerfile`
-- `deploy/docker/caddy.Dockerfile`
-- `deploy/scripts/release.sh`
-- `deploy/scripts/backup-db.sh`
-- `deploy/scripts/restore-db.sh`
+- la préparation des variables,
+- le script de release,
+- les sauvegardes PostgreSQL,
+- les opérations courantes sur le VPS.
 
 ## Limites actuelles
 
-- PostgreSQL doit être disponible pour démarrer l'API (base vide par défaut).
-- La stratégie de synchronisation client temps réel (polling/delta/SSE) n'est pas encore implémentée.
-- Les données de démo ne sont plus chargées automatiquement au démarrage.
+- PostgreSQL doit être disponible pour que l'API démarre.
+- Il n'y a pas encore de stratégie temps réel pour synchroniser l'état côté client.
+- Les données d'exemple ne sont pas chargées automatiquement au démarrage.
 
 ## Licence
 
 Projet publié sous licence AGPL v3.
 
-Cela signifie que:
-
-- vous pouvez utiliser, modifier et redistribuer le code librement
-- toute modification exposée via un service web doit rester accessible publiquement
-
-Le but est de garantir que Kado reste un bien commun, même lorsqu'il est hébergé en ligne.
+Vous pouvez l'utiliser, le modifier et le redistribuer, mais toute version modifiée exposée en service web doit rester disponible publiquement.
