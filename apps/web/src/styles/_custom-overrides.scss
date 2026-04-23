@@ -62,7 +62,11 @@
     color: #fff;
     background-color: vars.$primary;
     border-color: vars.$primary;
-    box-shadow: 0 .25rem .75rem rgba(37, 102, 101, .18);
+    box-shadow: none;
+
+    @if vars.$enable-shadows {
+      box-shadow: 0 .25rem .75rem rgba(37, 102, 101, .18);
+    }
 
     &:hover {
       background-color: vars.$primary-dark;
@@ -106,7 +110,11 @@
 }
 
 .modal-header.bg-dark {
-  background: linear-gradient(135deg, #514a43 0%, #3b352f 100%) !important;
+  background: vars.$gray-700 !important;
+
+  @if vars.$enable-gradients {
+    background: linear-gradient(135deg, #514a43 0%, #3b352f 100%) !important;
+  }
 }
 
 .modal-header .modal-title,
@@ -185,7 +193,11 @@
 }
 
 .alert {
-  box-shadow: 0 .125rem .25rem rgba(33, 29, 26, .06);
+  box-shadow: none;
+
+  @if vars.$enable-shadows {
+    box-shadow: 0 .125rem .25rem rgba(33, 29, 26, .06);
+  }
 
   &.alert-light {
     color: vars.$gray-900;
@@ -237,18 +249,30 @@
 }
 
 .hero-surface {
-  background:
-    radial-gradient(circle at top left, rgba(201, 122, 43, .18), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(91, 141, 184, .14), transparent 24%),
-    linear-gradient(135deg, #2e2823 0%, #3f3731 100%);
+  background: vars.$gray-800;
   color: #fff;
-  box-shadow: 0 1rem 2rem rgba(33, 29, 26, .12);
+  box-shadow: none;
+
+  @if vars.$enable-gradients {
+    background:
+      radial-gradient(circle at top left, rgba(201, 122, 43, .18), transparent 28%),
+      radial-gradient(circle at bottom right, rgba(91, 141, 184, .14), transparent 24%),
+      linear-gradient(135deg, #2e2823 0%, #3f3731 100%);
+  }
+
+  @if vars.$enable-shadows {
+    box-shadow: 0 1rem 2rem rgba(33, 29, 26, .12);
+  }
 }
 
 .section-soft {
   background: rgba(255, 255, 255, .52);
   border: 1px solid rgba(221, 212, 197, .7);
-  border-radius: if(vars.$enable-rounded, 1rem, 0);
+  border-radius: 0;
+
+  @if vars.$enable-rounded {
+    border-radius: 1rem;
+  }
 }
 
 .status-chip {
@@ -256,10 +280,14 @@
   align-items: center;
   gap: .35rem;
   padding: .35rem .6rem;
-  border-radius: if(vars.$enable-rounded, 999px, 0);
+  border-radius: 0;
   background: #f0eadf;
   color: vars.$gray-800;
   border: 1px solid vars.$gray-300;
+
+  @if vars.$enable-rounded {
+    border-radius: 999px;
+  }
 }
 
 #home-view {
@@ -285,13 +313,21 @@
   }
 
   .home-icon-badge {
-    background: linear-gradient(135deg, rgba(201, 122, 43, .14), rgba(224, 169, 59, .12));
+    background: rgba(201, 122, 43, .14);
     color: #8d591c;
     font-size: 1.25rem;
+
+    @if vars.$enable-gradients {
+      background: linear-gradient(135deg, rgba(201, 122, 43, .14), rgba(224, 169, 59, .12));
+    }
   }
 
   .home-action-card--primary {
-    background: linear-gradient(180deg, rgba(255, 255, 255, .88), rgba(249, 244, 236, .96));
+    background: rgba(255, 255, 255, .92);
+
+    @if vars.$enable-gradients {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .88), rgba(249, 244, 236, .96));
+    }
   }
 
   .home-action-card--secondary {
@@ -312,9 +348,13 @@
 #participant-self-view {
   .participant-suggestion-item {
     border: 1px solid rgba(vars.$gray-300, .85);
-    border-radius: if(vars.$enable-rounded, .85rem, 0);
+    border-radius: 0;
     background: #fdfbf7;
     padding: .8rem .9rem;
+
+    @if vars.$enable-rounded {
+      border-radius: .85rem;
+    }
   }
 
   .participant-suggestion-meta {
