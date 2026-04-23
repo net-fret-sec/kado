@@ -9,7 +9,7 @@ const showAdminLink = import.meta.env.DEV
 </script>
 
 <template>
-  <section id="home-view" class="home-landing">
+  <section id="home-view" class="d-grid gap-5">
     <section
       class="home-hero hero-surface position-relative overflow-hidden rounded-4 px-4 px-lg-5 py-5 py-lg-6"
     >
@@ -20,7 +20,7 @@ const showAdminLink = import.meta.env.DEV
         class="position-relative row justify-content-center text-center text-lg-start align-items-center g-4"
       >
         <div class="col-lg-8 col-xl-7">
-          <p class="home-eyebrow kado-ui-label mb-3">{{ t('home.hero.eyebrow') }}</p>
+          <p class="kado-ui-label text-white-50 mb-3">{{ t('home.hero.eyebrow') }}</p>
           <h2 class="display-4 fw-semibold mb-3 text-light">{{ t('home.hero.title') }}</h2>
           <p class="lead text-white-50 mb-4">{{ t('home.hero.description') }}</p>
 
@@ -44,12 +44,15 @@ const showAdminLink = import.meta.env.DEV
       </div>
     </section>
 
-    <section class="home-trust-strip">
+    <section>
       <div class="row g-4 text-center text-md-start">
         <div class="col-md-4">
           <div class="card h-100 shadow-sm border-0">
             <div class="card-body p-4">
-              <div class="home-icon-badge mb-3">
+              <div
+                class="home-icon-badge d-inline-flex align-items-center justify-content-center rounded-4 mb-3"
+                style="width: 3rem; height: 3rem"
+              >
                 <i class="bi bi-shield-lock" aria-hidden="true"></i>
               </div>
               <h3 class="h5">{{ t('home.trustStrip.privacy.title') }}</h3>
@@ -61,7 +64,10 @@ const showAdminLink = import.meta.env.DEV
         <div class="col-md-4">
           <div class="card h-100 shadow-sm border-0">
             <div class="card-body p-4">
-              <div class="home-icon-badge mb-3">
+              <div
+                class="home-icon-badge d-inline-flex align-items-center justify-content-center rounded-4 mb-3"
+                style="width: 3rem; height: 3rem"
+              >
                 <i class="bi bi-badge-ad" aria-hidden="true"></i>
               </div>
               <h3 class="h5">{{ t('home.trustStrip.noMonetization.title') }}</h3>
@@ -75,7 +81,10 @@ const showAdminLink = import.meta.env.DEV
         <div class="col-md-4">
           <div class="card h-100 shadow-sm border-0">
             <div class="card-body p-4">
-              <div class="home-icon-badge mb-3">
+              <div
+                class="home-icon-badge d-inline-flex align-items-center justify-content-center rounded-4 mb-3"
+                style="width: 3rem; height: 3rem"
+              >
                 <i class="bi bi-code-slash" aria-hidden="true"></i>
               </div>
               <h3 class="h5">{{ t('home.trustStrip.openSource.title') }}</h3>
@@ -160,9 +169,9 @@ const showAdminLink = import.meta.env.DEV
       </div>
     </section>
 
-    <section class="home-support text-center px-3 py-4">
+    <section class="home-support card border shadow-sm text-center px-3 py-4">
       <h2 class="h3 mb-3">{{ t('home.support.title') }}</h2>
-      <p class="text-body-secondary mx-auto mb-4 home-support__copy">
+      <p class="text-body-secondary mx-auto mb-4" style="max-width: 42rem">
         {{ t('home.support.subtext') }}
       </p>
       <a href="#" class="btn btn-outline-primary" target="_blank" rel="noopener noreferrer">
@@ -185,74 +194,3 @@ const showAdminLink = import.meta.env.DEV
     <CreateExchangeModal v-model="isCreateModalOpen" />
   </section>
 </template>
-
-<style scoped>
-.home-landing {
-  display: grid;
-  gap: clamp(2rem, 4vw, 4rem);
-}
-
-.home-hero {
-  border: 1px solid rgba(221, 212, 197, 0.42);
-}
-
-.home-hero__glow {
-  position: absolute;
-  border-radius: 999px;
-  filter: blur(20px);
-  opacity: 0.72;
-}
-
-.home-hero__glow--warm {
-  inset: auto 8% 10% auto;
-  width: 9rem;
-  height: 9rem;
-  background: rgba(201, 122, 43, 0.16);
-}
-
-.home-hero__glow--cool {
-  inset: 12% auto auto 6%;
-  width: 7rem;
-  height: 7rem;
-  background: rgba(91, 141, 184, 0.14);
-}
-
-.home-eyebrow {
-  color: rgba(255, 248, 235, 0.8);
-}
-
-.home-icon-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 1rem;
-  background: linear-gradient(135deg, rgba(201, 122, 43, 0.14), rgba(224, 169, 59, 0.12));
-  color: #8d591c;
-  font-size: 1.25rem;
-}
-
-.home-action-card--primary {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(249, 244, 236, 0.96));
-}
-
-.home-action-card--secondary {
-  background: rgba(255, 255, 255, 0.9);
-}
-
-.home-why {
-  border: 1px solid rgba(221, 212, 197, 0.7);
-  background: rgba(255, 255, 255, 0.6);
-}
-
-.home-support {
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(221, 212, 197, 0.7);
-  border-radius: 1rem;
-}
-
-.home-support__copy {
-  max-width: 42rem;
-}
-</style>

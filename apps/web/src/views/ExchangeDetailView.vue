@@ -844,21 +844,23 @@ async function cancelDraw() {
 
     <div v-if="isLoading">{{ t('exchangeDetail.loading') }}</div>
     <div v-else-if="error">{{ error }}</div>
-    <div v-else-if="exchange" class="kado-exchange-layout d-md-flex gap-4">
+    <div v-else-if="exchange" class="row g-4 align-items-start">
       <!-- Détails de l'échange -->
-      <section id="detail" class="kado-panel">
+      <section id="detail" class="col-12 col-xl-7">
         <div class="card border shadow-sm">
           <div class="card-body">
-            <div class="kado-hero mb-3">
+            <div
+              class="d-flex justify-content-between align-items-start gap-2 mb-3 flex-column flex-md-row"
+            >
               <div>
-                <h2 class="kado-title mb-1">{{ exchange.name }}</h2>
-                <p class="kado-subtitle mb-0">
+                <h2 class="mb-1">{{ exchange.name }}</h2>
+                <p class="text-muted small mb-0">
                   {{ participantCountLabel }} {{ t('exchangeDetail.participants') }} •
                   {{ statusLabel }}
                 </p>
               </div>
               <router-link
-                class="btn btn-sm btn-outline-primary kado-share"
+                class="btn btn-sm btn-outline-primary text-nowrap"
                 :to="{ name: 'exchange-public', params: { id: exchange.id } }"
               >
                 {{ t('exchangeDetail.share') }}
@@ -970,10 +972,16 @@ async function cancelDraw() {
               </button>
             </div>
 
-            <div v-if="exchange.status === 'drawn'" class="kado-draw-result mb-2">
-              <span class="kado-draw-result-icon" aria-hidden="true">✔</span>
+            <div
+              v-if="exchange.status === 'drawn'"
+              class="d-flex align-items-center flex-wrap gap-1 mb-2 small fw-semibold text-success"
+            >
+              <span aria-hidden="true">✔</span>
               <span>{{ t('exchangeDetail.drawSuccess') }}</span>
-              <router-link :to="{ name: 'exchange-public', params: { id: exchange.id } }">
+              <router-link
+                class="link-primary text-decoration-none"
+                :to="{ name: 'exchange-public', params: { id: exchange.id } }"
+              >
                 {{ t('exchangeDetail.openPublicView') }}
               </router-link>
             </div>
@@ -995,7 +1003,7 @@ async function cancelDraw() {
                     {{ t('exchangeDetail.adminAuth.changePasswordDescription') }}
                   </p>
 
-                  <div class="small mb-2" v-if="publicExchangeLink">
+                  <div v-if="publicExchangeLink" class="small mb-2">
                     <b>{{ t('exchangeDetail.adminAuth.publicLinkLabel') }}:</b>
                     <a :href="publicExchangeLink">{{ publicExchangeLink }}</a>
                   </div>
@@ -1062,11 +1070,11 @@ async function cancelDraw() {
       </section>
 
       <!-- Participants -->
-      <section id="participants" class="kado-panel">
+      <section id="participants" class="col-12 col-xl-5">
         <div v-if="participants.length" class="card border shadow-sm">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
-              <h3>{{ t('exchangeDetail.participants') }} ({{ participants.length }})</h3>
+              <h2>{{ t('exchangeDetail.participants') }} ({{ participants.length }})</h2>
               <button
                 class="btn btn-sm btn-outline-primary"
                 :disabled="isParticipantCreationLocked"
@@ -1080,10 +1088,10 @@ async function cancelDraw() {
               <li
                 v-for="participant in participants"
                 :key="participant.id"
-                class="list-group-item participant-row kado-participant-row d-flex justify-content-between align-items-start"
+                class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start gap-3"
               >
-                <div class="participant-main">
-                  <strong class="participant-name">{{ participant.name }}</strong>
+                <div class="flex-grow-1">
+                  <strong class="d-inline-block mb-0">{{ participant.name }}</strong>
                   <!-- <span v-if="participant.email" class="text-muted"> ({{ participant.email }})</span> -->
 
                   <div v-if="participant.wishlist?.length" class="small mt-1">
@@ -1097,8 +1105,8 @@ async function cancelDraw() {
                     {{ t('exchangeDetail.note') }}: {{ participant.note }}
                   </div>
 
-                  <div v-if="!isSummaryMode" class="participant-exceptions">
-                    <div class="participant-exceptions-header">
+                  <div v-if="!isSummaryMode" class="mt-3 pt-2 border-top">
+                    <div class="d-inline-flex align-items-center gap-2 mb-2">
                       <span class="fw-semibold">{{ t('exchangeDetail.exceptions.title') }}</span>
                       <span class="badge text-bg-light">
                         {{ getParticipantExclusions(participant.id).length }}
@@ -1107,12 +1115,12 @@ async function cancelDraw() {
 
                     <ul
                       v-if="getParticipantExclusions(participant.id).length"
-                      class="participant-exceptions-list list-unstyled"
+                      class="list-unstyled d-grid gap-2 mb-2"
                     >
                       <li
                         v-for="rule in getParticipantExclusions(participant.id)"
                         :key="rule.id"
-                        class="participant-exception-item"
+                        class="d-flex align-items-center justify-content-between gap-2 p-2 rounded border surface-beige"
                       >
                         <span>
                           {{ t('exchangeDetail.exceptions.cannotDraw') }}
@@ -1125,7 +1133,7 @@ async function cancelDraw() {
                         </span>
                         <button
                           type="button"
-                          class="btn btn-sm btn-outline-danger btn-icon"
+                          class="btn btn-sm btn-outline-danger p-1"
                           :disabled="isExclusionEditingLocked"
                           :aria-label="t('exchangeDetail.exceptions.remove')"
                           :title="t('exchangeDetail.exceptions.remove')"
@@ -1143,9 +1151,12 @@ async function cancelDraw() {
                       {{ t('exchangeDetail.exceptions.none') }}
                     </p>
 
-                    <div class="participant-exception-form" v-if="participant.status === 'active'">
+                    <div
+                      class="d-flex align-items-center flex-wrap gap-2"
+                      v-if="participant.status === 'active'"
+                    >
                       <select
-                        class="form-select form-select-sm"
+                        class="form-select form-select-sm flex-grow-1"
                         :disabled="
                           isExclusionEditingLocked || !getReceiverCandidates(participant.id).length
                         "
@@ -1164,7 +1175,7 @@ async function cancelDraw() {
                       </select>
                       <button
                         type="button"
-                        class="btn btn-sm btn-outline-primary btn-icon"
+                        class="btn btn-sm btn-outline-primary p-1"
                         :disabled="
                           isExclusionEditingLocked ||
                           !selectedExceptionReceiverByParticipant[participant.id]
@@ -1185,9 +1196,11 @@ async function cancelDraw() {
                     </p>
                   </div>
                 </div>
-                <div class="participant-actions mt-2 mt-md-0">
+                <div
+                  class="d-inline-flex flex-wrap gap-2 align-items-start justify-content-start justify-content-md-end mt-2 mt-md-0 ms-md-2"
+                >
                   <button
-                    class="btn btn-sm btn-outline-primary btn-icon"
+                    class="btn btn-sm btn-outline-primary p-1"
                     :aria-label="t('exchangeDetail.edit')"
                     :title="t('exchangeDetail.edit')"
                     @click="openEditParticipantModal(participant)"
@@ -1196,7 +1209,7 @@ async function cancelDraw() {
                     <span class="visually-hidden">{{ t('exchangeDetail.edit') }}</span>
                   </button>
                   <button
-                    class="btn btn-sm btn-outline-secondary btn-icon"
+                    class="btn btn-sm btn-outline-secondary p-1"
                     :aria-label="t('exchangeDetail.generateLink')"
                     :title="t('exchangeDetail.generateLink')"
                     @click="regenerateParticipantLink(participant.id)"
@@ -1205,7 +1218,7 @@ async function cancelDraw() {
                     <span class="visually-hidden">{{ t('exchangeDetail.generateLink') }}</span>
                   </button>
                   <button
-                    class="btn btn-sm btn-outline-danger btn-icon"
+                    class="btn btn-sm btn-outline-danger p-1"
                     v-if="!isSummaryMode"
                     :aria-label="t('exchangeDetail.delete')"
                     :title="t('exchangeDetail.delete')"
@@ -1276,91 +1289,3 @@ async function cancelDraw() {
     </div>
   </section>
 </template>
-
-<style scoped lang="scss">
-#exchange-detail-view {
-  color: #1f4e4f;
-}
-
-.kado-exchange-layout {
-  align-items: flex-start;
-}
-
-.kado-panel {
-  flex: 1;
-  min-width: 0;
-}
-
-#detail {
-  flex: 1.35;
-}
-
-#participants {
-  flex: 1;
-}
-
-.kado-hero {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-
-.kado-title {
-  color: #1f4e4f;
-  font-family: Manrope, 'Open Sans', sans-serif;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-}
-
-.kado-subtitle {
-  color: #866c5a;
-  font-size: 0.95rem;
-}
-
-.kado-share {
-  white-space: nowrap;
-}
-
-.kado-draw-result {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  color: #4c7a5a;
-  font-weight: 600;
-}
-
-.kado-draw-result a {
-  color: #2f7c7a;
-  font-weight: 600;
-}
-
-.kado-draw-result-icon {
-  font-size: 1.05rem;
-}
-
-.list-group {
-  --bs-list-group-border-color: #d6cfc4;
-  --bs-list-group-bg: #fff;
-}
-
-.kado-participant-row {
-  transition: background-color 0.18s ease;
-}
-
-.kado-participant-row:hover {
-  background: #f8f5ee;
-}
-
-@media (max-width: 767.98px) {
-  .kado-hero {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .kado-share {
-    width: 100%;
-  }
-}
-</style>

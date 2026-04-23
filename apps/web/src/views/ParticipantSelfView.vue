@@ -196,7 +196,7 @@ onMounted(fetchSelf)
 
       <form class="participant-self-form" @submit.prevent="saveSelf">
         <div class="row g-3 align-items-start">
-          <section class="card mb-3 col-12 col-lg-4 participant-profile-card">
+          <section class="card mb-3 h-100 col-12 col-lg-4 participant-profile-card">
             <div class="card-body">
               <h5 class="card-title">{{ t('participant.profileSectionTitle') }}</h5>
               <div class="mb-3">
@@ -222,14 +222,14 @@ onMounted(fetchSelf)
               </div>
             </div>
           </section>
-          <section class="card mb-3 col-12 col-lg-8 participant-suggestions-card">
+          <section class="card mb-3 h-100 col-12 col-lg-8 participant-suggestions-card">
             <div class="card-body">
               <h5 class="card-title">{{ t('participant.suggestionsSectionTitle') }}</h5>
               <p v-if="requiredMinSuggestions > 0" class="small text-body-secondary">
                 {{ t('participant.minWishlistSuggestionsHint', { count: requiredMinSuggestions }) }}
               </p>
 
-              <div class="participant-suggestions-toolbar">
+              <div class="d-inline-flex align-items-center gap-2 mb-2">
                 <span class="badge text-bg-light">{{ wishlist.length }}</span>
                 <span class="small text-muted">{{ t('participant.wishlist') }}</span>
               </div>
@@ -241,15 +241,18 @@ onMounted(fetchSelf)
                 handle=".drag-handle"
                 :animation="200"
                 :disabled="!canEdit || isSaving"
-                class="participant-suggestion-list"
+                class="participant-suggestion-list d-grid gap-3 mb-1"
               >
                 <template #item="{ element, index }">
-                  <article class="participant-suggestion-item d-flex">
-                    <div class="participant-suggestion-meta">
+                  <article class="participant-suggestion-item d-flex gap-3 align-items-stretch">
+                    <div
+                      class="participant-suggestion-meta d-flex flex-column align-items-center justify-content-center gap-1 pe-2"
+                      style="flex: 0 0 3rem"
+                    >
                       <button
                         v-if="canEdit"
                         type="button"
-                        class="btn btn-sm btn-outline-secondary participant-suggestion-handle drag-handle"
+                        class="btn btn-sm btn-outline-secondary participant-suggestion-handle drag-handle d-inline-flex align-items-center justify-content-center p-0 lh-1"
                         :disabled="isSaving"
                         :aria-label="t('participant.wishlistItem.reorder')"
                         :title="t('participant.wishlistItem.reorder')"
@@ -262,12 +265,15 @@ onMounted(fetchSelf)
                       <span class="participant-suggestion-index">#{{ index + 1 }}</span>
                     </div>
 
-                    <div class="participant-suggestion-content">
-                      <div class="participant-suggestion-head">
+                    <div class="flex-grow-1 overflow-hidden">
+                      <div
+                        class="d-flex align-items-center justify-content-end mb-2"
+                        style="min-height: 2rem"
+                      >
                         <button
                           v-if="canEdit"
                           type="button"
-                          class="btn btn-sm btn-outline-danger participant-suggestion-remove"
+                          class="btn btn-sm btn-outline-danger participant-suggestion-remove d-inline-flex align-items-center justify-content-center p-0 lh-1"
                           :disabled="isSaving"
                           :aria-label="t('exchangeDetail.delete')"
                           :title="t('exchangeDetail.delete')"

@@ -78,19 +78,34 @@ onMounted(() => {
       {{ t('exchanges.createExchange') }}
     </button>
 
-    <section class="palette-preview card border shadow-sm mb-4" aria-label="Palette visuelle">
+    <section class="card border shadow-sm mb-4" aria-label="Palette visuelle">
       <div class="card-body">
-        <p class="palette-preview-title mb-2">Palette visuelle (brouillon)</p>
-        <div class="palette-grid">
-          <div v-for="swatch in paletteSwatches" :key="swatch.name" class="swatch-item">
-            <span
-              class="swatch-dot"
-              :style="{ backgroundColor: swatch.value }"
-              aria-hidden="true"
-            ></span>
-            <span class="swatch-name">{{ swatch.name }}</span>
-            <span class="swatch-value">{{ swatch.value }}</span>
-            <span v-if="swatch.note" class="swatch-note">{{ swatch.note }}</span>
+        <p class="text-uppercase small fw-semibold text-body-secondary mb-2">
+          Palette visuelle (brouillon)
+        </p>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-2">
+          <div v-for="swatch in paletteSwatches" :key="swatch.name" class="col">
+            <div class="border rounded-4 bg-white h-100 p-2 d-flex align-items-start gap-2">
+              <span
+                class="rounded-circle border flex-shrink-0"
+                style="
+                  width: 1.2rem;
+                  height: 1.2rem;
+                  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+                "
+                :style="{ backgroundColor: swatch.value }"
+                aria-hidden="true"
+              ></span>
+              <span class="d-flex flex-column gap-1">
+                <span class="small fw-semibold text-primary-emphasis lh-sm">{{ swatch.name }}</span>
+                <span class="small font-monospace text-body-secondary lh-sm">{{
+                  swatch.value
+                }}</span>
+                <span v-if="swatch.note" class="small fst-italic text-body-secondary lh-sm">{{
+                  swatch.note
+                }}</span>
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -165,65 +180,3 @@ onMounted(() => {
 
   <CreateExchangeModal v-model="isCreateModalOpen" />
 </template>
-
-<style scoped lang="scss">
-.palette-preview {
-  background: #fff;
-}
-
-.palette-preview-title {
-  color: #866c5a;
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-
-.palette-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 0.7rem;
-}
-
-.swatch-item {
-  display: grid;
-  grid-template-columns: 1.2rem 1fr;
-  align-items: center;
-  column-gap: 0.6rem;
-  row-gap: 0.08rem;
-  padding: 0.55rem 0.65rem;
-  border: 1px solid #e5e7e6;
-  border-radius: 0.65rem;
-  background: #fff;
-}
-
-.swatch-dot {
-  width: 1.2rem;
-  height: 1.2rem;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  grid-row: span 3;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
-}
-
-.swatch-name {
-  color: #1f4e4f;
-  font-size: 0.86rem;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.swatch-value {
-  color: #866c5a;
-  font-size: 0.78rem;
-  letter-spacing: 0.02em;
-  font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
-}
-
-.swatch-note {
-  color: #aaa;
-  font-size: 0.73rem;
-  font-style: italic;
-  line-height: 1.2;
-}
-</style>

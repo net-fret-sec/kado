@@ -11,8 +11,12 @@
   $line-height-base: vars.$line-height-base,
   $headings-margin-bottom: vars.$headings-margin-bottom,
   $border-radius: vars.$border-radius,
+  $border-radius-sm: vars.$border-radius-sm,
   $border-radius-lg: vars.$border-radius-lg,
+  $border-radius-xl: vars.$border-radius-xl,
+  $border-radius-xxl: vars.$border-radius-xxl,
   $btn-border-radius: vars.$btn-border-radius,
+  $enable-rounded: vars.$enable-rounded,
   $enable-gradients: vars.$enable-gradients,
   $enable-shadows: vars.$enable-shadows,
   $spacer: vars.$spacer,
@@ -24,13 +28,64 @@
   $input-bg: vars.$input-bg,
   $input-border-radius: vars.$input-border-radius,
   $input-border-color: vars.$input-border-color,
+  $input-box-shadow: vars.$input-box-shadow,
+  $input-placeholder-color: vars.$input-placeholder-color,
+  $form-label-font-weight: vars.$form-label-font-weight,
+  $form-label-color: vars.$form-label-color,
+  $form-text-color: vars.$form-text-color,
+  $btn-font-size: vars.$btn-font-size,
+  $btn-font-weight: vars.$btn-font-weight,
+  $btn-padding-y: vars.$btn-padding-y,
+  $btn-padding-x: vars.$btn-padding-x,
+  $btn-line-height: vars.$btn-line-height,
+  $btn-box-shadow: vars.$btn-box-shadow,
+  $btn-active-box-shadow: vars.$btn-active-box-shadow,
+  $navbar-padding-y: vars.$navbar-padding-y,
+  $navbar-padding-x: vars.$navbar-padding-x,
+  $navbar-brand-font-size: vars.$navbar-brand-font-size,
+  $navbar-brand-padding-y: vars.$navbar-brand-padding-y,
+  $navbar-light-color: vars.$navbar-light-color,
+  $navbar-light-hover-color: vars.$navbar-light-hover-color,
+  $navbar-light-active-color: vars.$navbar-light-active-color,
+  $navbar-light-brand-color: vars.$navbar-light-brand-color,
+  $navbar-light-brand-hover-color: vars.$navbar-light-brand-hover-color,
   $card-bg: vars.$card-bg,
   $card-border-color: vars.$card-border-color,
   $card-cap-bg: vars.$card-cap-bg,
+  $card-border-radius: vars.$card-border-radius,
+  $card-box-shadow: vars.$card-box-shadow,
   $modal-content-bg: vars.$modal-content-bg,
   $modal-content-border-color: vars.$modal-content-border-color,
+  $modal-content-border-radius: vars.$modal-content-border-radius,
+  $modal-content-box-shadow-xs: vars.$modal-content-box-shadow-xs,
+  $modal-content-box-shadow-sm-up: vars.$modal-content-box-shadow-sm-up,
   $modal-header-border-color: vars.$modal-header-border-color,
   $modal-footer-border-color: vars.$modal-footer-border-color,
+  $offcanvas-bg-color: vars.$offcanvas-bg-color,
+  $offcanvas-border-color: vars.$offcanvas-border-color,
+  $toast-background-color: vars.$toast-background-color,
+  $toast-border-color: vars.$toast-border-color,
+  $toast-box-shadow: vars.$toast-box-shadow,
+  $dropdown-border-color: vars.$dropdown-border-color,
+  $dropdown-border-radius: vars.$dropdown-border-radius,
+  $dropdown-box-shadow: vars.$dropdown-box-shadow,
+  $dropdown-link-hover-bg: vars.$dropdown-link-hover-bg,
+  $badge-border-radius: vars.$badge-border-radius,
+  $badge-font-weight: vars.$badge-font-weight,
+  $nav-tabs-border-width: vars.$nav-tabs-border-width,
+  $nav-tabs-border-radius: vars.$nav-tabs-border-radius,
+  $nav-tabs-link-hover-border-color: vars.$nav-tabs-link-hover-border-color,
+  $nav-tabs-link-active-color: vars.$nav-tabs-link-active-color,
+  $nav-tabs-link-active-bg: vars.$nav-tabs-link-active-bg,
+  $nav-tabs-link-active-border-color: vars.$nav-tabs-link-active-border-color,
+  $nav-pills-border-radius: vars.$nav-pills-border-radius,
+  $list-group-bg: vars.$list-group-bg,
+  $list-group-border-color: vars.$list-group-border-color,
+  $list-group-border-radius: vars.$list-group-border-radius,
+  $list-group-item-padding-y: vars.$list-group-item-padding-y,
+  $list-group-item-padding-x: vars.$list-group-item-padding-x,
+  $alert-border-width: vars.$alert-border-width,
+  $alert-border-radius: vars.$alert-border-radius,
   $enable-reduced-motion: vars.$enable-reduced-motion
 );
 @use "./_custom-overrides";
@@ -122,7 +177,7 @@ body {
   font-family: var(--font-body);
   font-size: var(--step-0);
   line-height: 1.58;
-  background: #f8faf9;
+  background: vars.$body-bg;
   color: var(--text-primary);
 }
 
@@ -134,7 +189,7 @@ h2,
   line-height: 1.2;
   letter-spacing: -0.5px;
   text-wrap: balance;
-  color: #1f4e4f;
+  color: vars.$primary-dark;
 }
 
 h3,
@@ -145,7 +200,7 @@ h4,
   line-height: 1.15;
   letter-spacing: 0;
   text-wrap: balance;
-  color: #1f4e4f;
+  color: vars.$primary-dark;
 }
 
 h1,
@@ -194,9 +249,9 @@ main > * + * {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7e6;
-  box-shadow: 0 1px 4px rgba(31, 78, 79, 0.05);
+  background: vars.$white;
+  border-bottom: 1px solid vars.$card-border-color;
+  box-shadow: 0 1px 4px rgba(vars.$primary-dark, 0.05);
 }
 
 .app-shell {
@@ -209,7 +264,7 @@ main > * + * {
 }
 
 .app-header .navbar-brand {
-  color: #1f4e4f;
+  color: vars.$primary-dark;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -220,20 +275,20 @@ main > * + * {
 }
 
 .app-header .navbar-brand:hover {
-  color: #256665;
+  color: vars.$primary;
 }
 
 .app-header #locale-select {
   min-width: 10rem;
   padding: 0.3rem 0.65rem;
   border-radius: 0.6rem;
-  border: 1px solid #e5e7e6;
-  background: #f8faf9;
-  color: #1f4e4f;
+  border: 1px solid vars.$card-border-color;
+  background: vars.$body-bg;
+  color: vars.$primary-dark;
 }
 
 .app-header #locale-select:hover {
-  border-color: #256665;
+  border-color: vars.$primary;
 }
 
 .app-main {
@@ -247,9 +302,8 @@ main > * + * {
 
 .card,
 .modal-content {
-  border-radius: 1rem;
   background: var(--surface);
-  border-color: #e5e7e6;
+  border-color: vars.$card-border-color;
 }
 
 /* Beige réservé aux encarts/zones explicatives */
