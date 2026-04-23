@@ -100,6 +100,45 @@ Le script effectue les étapes suivantes:
 4. Démarrage de l'API et de Caddy.
 5. Affichage de l'état des services.
 
+## Mise à jour automatique depuis Git
+
+Le script `deploy/scripts/auto-update.sh` permet de détecter automatiquement une mise à jour sur le dépôt distant et de déclencher `release.sh` si un nouveau commit est disponible.
+
+Comportement:
+
+- `git fetch --prune` sur le remote configuré,
+- comparaison de `HEAD` avec `origin/main` (par défaut),
+- `git pull --ff-only` si le remote a avancé,
+- exécution de `deploy/scripts/release.sh`.
+
+Sécurités incluses:
+
+- verrou `flock` pour éviter les exécutions concurrentes,
+- refus si l'arbre Git local contient des changements,
+- refus si le fast-forward n'est pas possible.
+
+Exécution manuelle:
+
+```bash
+bash deploy/scripts/auto-update.sh
+```
+
+Variables optionnelles:
+
+- `REPO_DIR` (racine du dépôt, auto-détectée par défaut),
+- `ENV_FILE` (défaut: `deploy/.env.production`),
+- `REMOTE` (défaut: `origin`),
+- `BRANCH` (défaut: `main`),
+- `LOCK_FILE` (défaut: `/tmp/kado-autodeploy.lock`).
+
+Exemple cron (toutes les 5 minutes):
+
+```cron
+*/5 * * * * cd /chemin/vers/kado && deploy/scripts/auto-update.sh >> /var/log/kado-autoupdate.log 2>&1
+```
+
+Recommandation: ajouter une supervision simple du log `/var/log/kado-autoupdate.log` pour détecter rapidement les échecs de pull ou de déploiement.
+
 ## Vérification post-déploiement
 
 Vérifier la santé API:
