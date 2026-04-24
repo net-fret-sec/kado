@@ -12,6 +12,7 @@ const { t } = useI18n()
         <h1 class="mb-0">
           <a class="navbar-brand h2" href="/">{{ t('app.title') }}</a>
         </h1>
+        (maj)
       </nav>
 
       <LanguageSwitcher />
