@@ -120,7 +120,14 @@
       "whatHappensAdminSession": "Un accès administrateur est ouvert automatiquement sur cet appareil.",
       "whatHappensPassword": "Le <strong>mot de passe admin n'est pas récupérable</strong>, car il est stocké de façon sécurisée (hachée) et non en clair.",
       "whatHappensEditable": "Tous les détails de la pige resteront modifiables après la création.",
-      "submit": "Créer la pige"
+      "submit": "Créer la pige",
+      "successTitle": "Pige créée ✓",
+      "successWarningTitle": "Conservez votre URL d'accès administrateur",
+      "successWarningText": "Ceci est le seul moment où vous verrez cet URL. Les URLs des participants peuvent être regénérés en tout temps, mais pas celui-ci.",
+      "adminLinkLabel": "URL d'accès administrateur",
+      "adminLinkHint": "Vous aurez besoin de cet URL pour gérer votre pige.",
+      "copyButton": "Copier",
+      "continueButton": "Continuer vers la pige"
     }
   },
   "iconPicker": {

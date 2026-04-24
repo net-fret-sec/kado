@@ -46,6 +46,7 @@ Fichier d'exemple: `apps/web/.env.example`
 
 - `VITE_API_BASE`: base URL de l'API. Si vide, le frontend utilise les chemins relatifs `/api/...` et le proxy Vite en développement.
 - `VITE_DONATION_URL`: URL publique du lien de soutien affiché sur l'accueil. Si vide ou absente, le bloc n'est pas rendu.
+- `VITE_ADMIN_LINK_CONTINUE_COUNTDOWN_SECONDS`: délai (en secondes) avant activation du bouton "Continuer" après la création d'une pige. Valeur par défaut: `5`.
 
 ## Développement local
 

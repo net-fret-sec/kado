@@ -8,6 +8,14 @@ const emptyStringToUndefined = <T extends z.ZodTypeAny>(schema: T) =>
     return value;
   }, schema);
 
+const emptyArrayToUndefined = <T extends z.ZodTypeAny>(schema: T) =>
+  z.preprocess((value) => {
+    if (Array.isArray(value) && value.length === 0) {
+      return undefined;
+    }
+    return value;
+  }, schema);
+
 const optionalText = (max: number) =>
   emptyStringToUndefined(z.string().trim().min(1).max(max).optional());
 
@@ -21,7 +29,9 @@ export const giftSuggestionSchema = z.object({
 });
 
 const optionalGiftSuggestionList = emptyStringToUndefined(
-  z.array(giftSuggestionSchema).min(1).max(100).optional(),
+  emptyArrayToUndefined(
+    z.array(giftSuggestionSchema).min(1).max(100).optional(),
+  ),
 );
 
 export const createParticipantInputSchema = z.object({

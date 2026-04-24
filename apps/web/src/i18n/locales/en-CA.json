@@ -123,7 +123,14 @@
       "whatHappensAdminSession": "An administrator session is automatically opened on this device.",
       "whatHappensPassword": "The <strong>admin password cannot be recovered</strong> because it is stored securely (hashed), not in plain text.",
       "whatHappensEditable": "All draw details remain editable after creation.",
-      "submit": "Create draw"
+      "submit": "Create draw",
+      "successTitle": "Draw created ✓",
+      "successWarningTitle": "Keep your admin access URL safe",
+      "successWarningText": "This is the only time you will see this URL. Participant links can be regenerated at any time, but not this one.",
+      "adminLinkLabel": "Admin access URL",
+      "adminLinkHint": "You will need this URL to manage your draw.",
+      "copyButton": "Copy",
+      "continueButton": "Go to draw"
     }
   },
   "exchangeDetail": {

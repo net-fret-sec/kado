@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useExchangesStore } from '@/stores/exchanges'
 import type { ExchangeDto, ExclusionRule } from '@kado/shared'
@@ -7,7 +7,6 @@ import type { ParticipantDto } from '@kado/shared'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
 import EditExchangeModal from '@/components/EditExchangeModal.vue'
-import AddParticipantModal from '@/components/AddParticipantModal.vue'
 import EditParticipantModal from '@/components/EditParticipantModal.vue'
 import ParticipantAccessLinkModal from '@/components/ParticipantAccessLinkModal.vue'
 import { useToastsStore } from '@/stores/toasts'
@@ -45,11 +44,14 @@ let pollTimer: ReturnType<typeof setInterval> | null = null
 const isPolling = ref(false)
 
 // Pour les participants
-const showAddParticipantModal = ref(false)
 const showEditParticipantModal = ref(false)
 const showAccessLinkModal = ref(false)
 const editingParticipant = ref<ParticipantDto | null>(null)
 const latestAccessLink = ref('')
+const newParticipantName = ref('')
+const newParticipantEmail = ref('')
+const newParticipantNameInput = ref<HTMLInputElement | null>(null)
+const isAddingParticipant = ref(false)
 
 const isExclusionEditingLocked = computed(() => {
   if (!exchange.value) return true
@@ -262,7 +264,6 @@ async function pollExchangeIfIdle() {
     requiresAdminAuth.value ||
     !exchange.value ||
     showEditExchangeModal.value ||
-    showAddParticipantModal.value ||
     showEditParticipantModal.value ||
     showAccessLinkModal.value
   ) {
@@ -503,7 +504,6 @@ async function logoutAdmin() {
 
 onMounted(() => {
   // S'assurer que les modales ne sont jamais ouvertes au chargement
-  showAddParticipantModal.value = false
   showEditParticipantModal.value = false
   editingParticipant.value = null
   fetchExchange()
@@ -584,11 +584,6 @@ async function handleDelete() {
 }
 
 // Fonctions pour les participants
-function openAddParticipantModal() {
-  if (isParticipantCreationLocked.value) return
-  showAddParticipantModal.value = true
-}
-
 function openEditParticipantModal(participant: ParticipantDto) {
   editingParticipant.value = participant
   showEditParticipantModal.value = true
@@ -608,8 +603,22 @@ function setAccessLinkModalVisibility(value: boolean) {
   }
 }
 
+async function handleAddNewParticipant(e?: Event) {
+  if (e) {
+    e.preventDefault()
+  }
+  if (!newParticipantName.value.trim()) return
+  await addParticipant({
+    name: newParticipantName.value,
+    email: newParticipantEmail.value,
+  })
+  await nextTick()
+  newParticipantNameInput.value?.focus()
+}
+
 async function addParticipant(payload: { name: string; email: string }) {
   if (!exchange.value || isParticipantCreationLocked.value) return
+  isAddingParticipant.value = true
   try {
     const exchangeId = exchange.value.id
     const token = adminAuthStore.getSessionToken(exchangeId)
@@ -629,7 +638,8 @@ async function addParticipant(payload: { name: string; email: string }) {
       },
       init,
     )
-    showAddParticipantModal.value = false
+    newParticipantName.value = ''
+    newParticipantEmail.value = ''
     await fetchExchange()
   } catch (err) {
     if (isAdminAuthError(err)) {
@@ -638,6 +648,8 @@ async function addParticipant(payload: { name: string; email: string }) {
     }
 
     console.error(err)
+  } finally {
+    isAddingParticipant.value = false
   }
 }
 
@@ -1067,23 +1079,16 @@ async function cancelDraw() {
 
       <!-- Participants -->
       <section id="participants" class="col-12 col-xl-5">
-        <div v-if="participants.length" class="card border shadow-sm">
+        <div class="card border shadow-sm">
           <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h2 class="d-inline-flex align-items-center gap-2 mb-0">
+            <div class="d-flex">
+              <h2 class="d-inline-flex align-items-center gap-2 mb-3">
                 <span>{{ t('exchangeDetail.participants') }}</span>
-                <span class="badge text-bg-light">{{ participants.length }}</span>
+                <span class="badge fs-6 text-bg-light">{{ participants.length }}</span>
               </h2>
-              <button
-                class="btn btn-sm btn-outline-primary"
-                :disabled="isParticipantCreationLocked"
-                @click="openAddParticipantModal"
-              >
-                + {{ t('exchangeDetail.addParticipant') }}
-              </button>
             </div>
 
-            <ul class="list-group">
+            <ul v-if="participants.length" class="list-group mb-3">
               <li
                 v-for="participant in participants"
                 :key="participant.id"
@@ -1091,10 +1096,8 @@ async function cancelDraw() {
               >
                 <div class="flex-grow-1">
                   <strong class="d-inline-block mb-0">{{ participant.name }}</strong>
-                  <!-- <span v-if="participant.email" class="text-muted"> ({{ participant.email }})</span> -->
 
                   <div v-if="participant.wishlist?.length" class="small mt-1">
-                    <!-- <span class="me-1">{{ t('exchangeDetail.wishlist') }}:</span> -->
                     <span class="badge text-bg-light">{{
                       t('exchangeDetail.wishlistSuggestions', participant.wishlist.length)
                     }}</span>
@@ -1229,21 +1232,32 @@ async function cancelDraw() {
                 </div>
               </li>
             </ul>
-          </div>
-        </div>
-        <div v-else class="card border shadow-sm">
-          <div class="card-body">
-            <h3>{{ t('exchangeDetail.participants') }}</h3>
-            <p>
+
+            <p v-else class="mb-3">
               <em>{{ t('exchangeDetail.noParticipants') }}</em>
             </p>
-            <button
-              class="btn btn-primary"
-              :disabled="isParticipantCreationLocked"
-              @click="openAddParticipantModal"
-            >
-              + {{ t('exchangeDetail.addParticipant') }}
-            </button>
+
+            <!-- Formulaire d'ajout de participant inline -->
+            <form v-if="!isParticipantCreationLocked" @submit.prevent="handleAddNewParticipant">
+              <div class="input-group mb-3">
+                <input
+                  ref="newParticipantNameInput"
+                  v-model="newParticipantName"
+                  type="text"
+                  class="form-control"
+                  :placeholder="t('exchangeDetail.addModal.name')"
+                  :disabled="isAddingParticipant"
+                  required
+                />
+                <button
+                  type="submit"
+                  class="btn btn-outline-secondary"
+                  :disabled="!newParticipantName.trim() || isAddingParticipant"
+                >
+                  {{ t('exchangeDetail.addParticipant') }}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </section>
@@ -1264,12 +1278,6 @@ async function cancelDraw() {
         :no-mutual-assignments="exchange.noMutualAssignments"
         @update:model-value="(value) => (showEditExchangeModal = value)"
         @submit="saveEdit"
-      />
-
-      <AddParticipantModal
-        :model-value="showAddParticipantModal"
-        @update:model-value="(value) => (showAddParticipantModal = value)"
-        @submit="addParticipant"
       />
 
       <EditParticipantModal

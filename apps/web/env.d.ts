@@ -4,6 +4,7 @@
 interface ImportMetaEnv {
   readonly VITE_API_BASE?: string
   readonly VITE_DONATION_URL?: string
+  readonly VITE_ADMIN_LINK_CONTINUE_COUNTDOWN_SECONDS?: string
 }
 
 interface ImportMeta {
