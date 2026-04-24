@@ -28,44 +28,54 @@ interface DrawAssignment {
   receiverParticipantId: string;
 }
 
-function isSuggestionsDeadlineAfterEventDate(
-  eventDate?: string,
-  suggestionsDeadlineAt?: string,
-) {
-  if (!eventDate || !suggestionsDeadlineAt) {
-    return false;
-  }
+const ARCHIVE_AFTER_DAYS = 30;
 
-  const suggestionsDeadline = new Date(suggestionsDeadlineAt);
-  const eventDateEnd = new Date(`${eventDate}T23:59:59.999Z`);
-
-  if (
-    Number.isNaN(suggestionsDeadline.getTime()) ||
-    Number.isNaN(eventDateEnd.getTime())
-  ) {
-    return false;
-  }
-
-  return suggestionsDeadline.getTime() > eventDateEnd.getTime();
+function isExchangeDrawn(exchange: { drawAt?: string }) {
+  return Boolean(exchange.drawAt);
 }
 
-function assertSuggestionsDeadlineConsistency(params: {
-  eventDate?: string;
-  suggestionsDeadlineAt?: string;
-}) {
-  if (
-    isSuggestionsDeadlineAfterEventDate(
-      params.eventDate,
-      params.suggestionsDeadlineAt,
-    )
-  ) {
-    throw new BadRequestError(
-      "Suggestions deadline cannot be after the gift exchange moment.",
-      {
-        code: "SUGGESTIONS_DEADLINE_AFTER_EXCHANGE_MOMENT",
-      },
-    );
+function isExchangeArchived(exchange: { eventDate?: string }) {
+  if (!exchange.eventDate) {
+    return false;
   }
+
+  const eventLocalEnd = new Date(`${exchange.eventDate}T23:59:59.999`);
+  if (Number.isNaN(eventLocalEnd.getTime())) {
+    return false;
+  }
+
+  const archiveAt =
+    eventLocalEnd.getTime() + ARCHIVE_AFTER_DAYS * 24 * 60 * 60 * 1000;
+  return Date.now() > archiveAt;
+}
+
+function toExchangeDto(
+  exchange: {
+    id: string;
+    name: string;
+    description?: string;
+    organizerId: string;
+    eventDate?: string;
+    budget?: number;
+    minWishlistSuggestions?: number;
+    lockSuggestionsAfterDraw?: boolean;
+    noMutualAssignments?: boolean;
+    drawAt?: string;
+    createdAt: string;
+    updatedAt: string;
+  },
+  options?: {
+    organizerName?: string;
+    participants?: ExchangeDto["participants"];
+  },
+): ExchangeDto {
+  return {
+    ...exchange,
+    isDrawn: isExchangeDrawn(exchange),
+    isArchived: isExchangeArchived(exchange),
+    organizerName: options?.organizerName,
+    participants: options?.participants,
+  };
 }
 
 function buildAssignmentsWithExclusions(
@@ -182,24 +192,15 @@ async function createAdminSession(exchangeId: string): Promise<string> {
 export async function createExchange(
   input: CreateExchangeInputDto,
 ): Promise<CreateExchangeResultDto> {
-  assertSuggestionsDeadlineConsistency({
-    eventDate: input.eventDate,
-    suggestionsDeadlineAt: input.suggestionsDeadlineAt,
-  });
-
   const now = new Date().toISOString();
 
-  const exchange: ExchangeDto = {
+  const exchange = {
     id: generateId("exc"),
     name: input.name,
     description: input.description,
     organizerId: "", // Temporary
-    status: "draft",
     eventDate: input.eventDate,
-    drawDeadlineAt: input.drawDeadlineAt,
-    suggestionsDeadlineAt: input.suggestionsDeadlineAt,
     budget: input.budget,
-    budgetCurrency: input.budgetCurrency,
     minWishlistSuggestions: input.minWishlistSuggestions ?? 0,
     lockSuggestionsAfterDraw: input.lockSuggestionsAfterDraw ?? true,
     noMutualAssignments: input.noMutualAssignments ?? false,
@@ -240,7 +241,7 @@ export async function createExchange(
   const adminSessionToken = await createAdminSession(exchange.id);
 
   return {
-    exchange: { ...exchange, organizerId },
+    exchange: toExchangeDto({ ...exchange, organizerId }),
     adminSessionToken,
   };
 }
@@ -263,9 +264,7 @@ export async function getExchangeById(
   const organizerName = organizer ? organizer.name : "Unknown";
 
   return {
-    ...exchange,
-    organizerName, // Add for display
-    participants,
+    ...toExchangeDto(exchange, { organizerName, participants }),
   };
 }
 
@@ -274,12 +273,10 @@ export async function getExchangePublicById(exchangeId: string): Promise<{
   name: string;
   description?: string;
   organizerName?: string;
-  status: ExchangeDto["status"];
+  isDrawn: boolean;
+  isArchived: boolean;
   eventDate?: string;
-  drawDeadlineAt?: string;
-  suggestionsDeadlineAt?: string;
   budget?: number;
-  budgetCurrency?: string;
   minWishlistSuggestions?: number;
   lockSuggestionsAfterDraw?: boolean;
   noMutualAssignments?: boolean;
@@ -299,22 +296,9 @@ export async function getExchangePublicById(exchangeId: string): Promise<{
   const organizer = participants.find((p) => p.id === exchange.organizerId);
 
   return {
-    id: exchange.id,
-    name: exchange.name,
-    description: exchange.description,
+    ...toExchangeDto(exchange),
     organizerName: organizer ? organizer.name : "Unknown",
-    status: exchange.status,
-    eventDate: exchange.eventDate,
-    drawDeadlineAt: exchange.drawDeadlineAt,
-    suggestionsDeadlineAt: exchange.suggestionsDeadlineAt,
-    budget: exchange.budget,
-    budgetCurrency: exchange.budgetCurrency,
-    minWishlistSuggestions: exchange.minWishlistSuggestions,
-    lockSuggestionsAfterDraw: exchange.lockSuggestionsAfterDraw,
-    noMutualAssignments: exchange.noMutualAssignments,
-    drawAt: exchange.drawAt,
     participantsCount: participants.length,
-    updatedAt: exchange.updatedAt,
   };
 }
 
@@ -397,11 +381,10 @@ export async function listExchanges(): Promise<ExchangeDto[]> {
         exchange.id,
       );
       const organizer = participants.find((p) => p.id === exchange.organizerId);
-      return {
-        ...exchange,
+      return toExchangeDto(exchange, {
         organizerName: organizer ? organizer.name : "Unknown",
         participants,
-      };
+      });
     }),
   );
 }
@@ -417,27 +400,6 @@ export async function updateExchange(
       code: "EXCHANGE_NOT_FOUND",
     });
   }
-
-  const hasEventDateUpdate = Object.prototype.hasOwnProperty.call(
-    input,
-    "eventDate",
-  );
-  const hasSuggestionsDeadlineUpdate = Object.prototype.hasOwnProperty.call(
-    input,
-    "suggestionsDeadlineAt",
-  );
-
-  const nextEventDate = hasEventDateUpdate
-    ? input.eventDate
-    : exchange.eventDate;
-  const nextSuggestionsDeadlineAt = hasSuggestionsDeadlineUpdate
-    ? input.suggestionsDeadlineAt
-    : exchange.suggestionsDeadlineAt;
-
-  assertSuggestionsDeadlineConsistency({
-    eventDate: nextEventDate,
-    suggestionsDeadlineAt: nextSuggestionsDeadlineAt,
-  });
 
   const { expectedUpdatedAt, ...updates } = input;
 
@@ -464,7 +426,7 @@ export async function updateExchange(
     });
   }
 
-  return updated;
+  return toExchangeDto(updated);
 }
 
 export async function deleteExchange(exchangeId: string): Promise<void> {
@@ -492,32 +454,19 @@ export async function drawExchange(exchangeId: string): Promise<ExchangeDto> {
       });
     }
 
-    if (exchange.status === "archived") {
+    if (isExchangeArchived(exchange)) {
       throw new BadRequestError("Archived exchanges cannot be drawn.", {
         code: "EXCHANGE_ARCHIVED_CANNOT_DRAW",
       });
     }
 
-    if (exchange.status === "drawn") {
-      return exchange;
+    if (isExchangeDrawn(exchange)) {
+      return toExchangeDto(exchange);
     }
 
     const participants = (
       await participantRepository.findByExchangeId(exchangeId, db)
     ).filter((p) => p.status === "active");
-
-    if (exchange.drawDeadlineAt) {
-      const drawDeadline = new Date(exchange.drawDeadlineAt);
-      if (
-        !Number.isNaN(drawDeadline.getTime()) &&
-        drawDeadline.getTime() < Date.now()
-      ) {
-        throw new BadRequestError("The draw deadline has already passed.", {
-          code: "DRAW_DEADLINE_PASSED",
-          drawDeadlineAt: exchange.drawDeadlineAt,
-        });
-      }
-    }
 
     if (participants.length < 3) {
       throw new BadRequestError(
@@ -601,7 +550,6 @@ export async function drawExchange(exchangeId: string): Promise<ExchangeDto> {
     const updated = await exchangeRepository.update(
       exchangeId,
       {
-        status: "drawn",
         drawAt: now,
       },
       db,
@@ -613,7 +561,7 @@ export async function drawExchange(exchangeId: string): Promise<ExchangeDto> {
       });
     }
 
-    return updated;
+    return toExchangeDto(updated);
   });
 }
 
@@ -629,7 +577,7 @@ export async function cancelExchangeDraw(
       });
     }
 
-    if (exchange.status === "archived") {
+    if (isExchangeArchived(exchange)) {
       throw new BadRequestError("Archived exchanges cannot be modified.", {
         code: "EXCHANGE_ARCHIVED_CANNOT_MODIFY",
       });
@@ -640,7 +588,6 @@ export async function cancelExchangeDraw(
     const updated = await exchangeRepository.update(
       exchangeId,
       {
-        status: "ready",
         drawAt: undefined,
       },
       db,
@@ -652,6 +599,6 @@ export async function cancelExchangeDraw(
       });
     }
 
-    return updated;
+    return toExchangeDto(updated);
   });
 }

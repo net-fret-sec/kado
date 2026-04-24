@@ -211,7 +211,9 @@ describe("API Tests", () => {
 
       const lockedExchangeId = exchangeResponse.body.exchange.id;
 
-      await exchangeRepository.update(lockedExchangeId, { status: "drawn" });
+      await exchangeRepository.update(lockedExchangeId, {
+        drawAt: new Date().toISOString(),
+      });
 
       const response = await asAdmin(lockedExchangeId)
         .post(`/api/exchanges/${lockedExchangeId}/participants`)
@@ -384,7 +386,7 @@ describe("API Tests", () => {
 
     it("should reject participant update after draw when lock after draw is enabled", async () => {
       await exchangeRepository.update(participantExchangeId, {
-        status: "drawn",
+        drawAt: new Date().toISOString(),
         lockSuggestionsAfterDraw: true,
       });
 
@@ -403,9 +405,8 @@ describe("API Tests", () => {
 
     it("should allow participant update after draw when lock after draw is disabled", async () => {
       await exchangeRepository.update(participantExchangeId, {
-        status: "drawn",
+        drawAt: new Date().toISOString(),
         lockSuggestionsAfterDraw: false,
-        suggestionsDeadlineAt: undefined,
       });
 
       const response = await request(app)
@@ -422,11 +423,10 @@ describe("API Tests", () => {
       ]);
     });
 
-    it("should reject participant update when suggestions deadline is passed", async () => {
+    it("should reject participant update when exchange is archived", async () => {
       await exchangeRepository.update(participantExchangeId, {
-        status: "drawn",
-        lockSuggestionsAfterDraw: false,
-        suggestionsDeadlineAt: "2000-01-01T00:00:00.000Z",
+        drawAt: undefined,
+        eventDate: "2000-01-01",
       });
 
       const response = await request(app)
@@ -475,12 +475,12 @@ describe("API Tests", () => {
         .pop() as string;
     });
 
-    it("should trigger draw and set exchange status to drawn", async () => {
+    it("should trigger draw and mark exchange as drawn", async () => {
       const response = await asAdmin(drawExchangeId)
         .post(`/api/exchanges/${drawExchangeId}/draw`)
         .expect(200);
 
-      expect(response.body.status).toBe("drawn");
+      expect(response.body.isDrawn).toBe(true);
       expect(response.body.drawAt).toBeTruthy();
     });
 
@@ -489,7 +489,7 @@ describe("API Tests", () => {
         .get(`/api/p/${drawParticipantToken}`)
         .expect(200);
 
-      expect(response.body.exchange.status).toBe("drawn");
+      expect(response.body.exchange.isDrawn).toBe(true);
       expect(response.body.assignment).toBeTruthy();
       expect(response.body.assignment.receiverName).toBeTruthy();
     });
@@ -524,14 +524,14 @@ describe("API Tests", () => {
         .post(`/api/exchanges/${drawExchangeId}/draw/cancel`)
         .expect(200);
 
-      expect(cancelResponse.body.status).toBe("ready");
+      expect(cancelResponse.body.isDrawn).toBe(false);
       expect(cancelResponse.body.drawAt).toBeFalsy();
 
       const selfViewResponse = await request(app)
         .get(`/api/p/${drawParticipantToken}`)
         .expect(200);
 
-      expect(selfViewResponse.body.exchange.status).toBe("ready");
+      expect(selfViewResponse.body.exchange.isDrawn).toBe(false);
       expect(selfViewResponse.body.assignment).toBeFalsy();
     });
 
@@ -698,14 +698,14 @@ describe("API Tests", () => {
         .post(`/api/exchanges/${noMutualExchangeId}/draw`)
         .expect(200);
 
-      expect(drawResponse.body.status).toBe("drawn");
+      expect(drawResponse.body.isDrawn).toBe(true);
     });
 
-    it("should reject draw when deadline is passed", async () => {
+    it("should reject draw when exchange is archived", async () => {
       const exchangeResponse = await createExchangeWithAdminSession({
-        name: "Past deadline exchange",
+        name: "Archived exchange",
         adminPassword: "testpassword123",
-        drawDeadlineAt: "2000-01-01T00:00:00.000Z",
+        eventDate: "2000-01-01",
       });
 
       const deadlineExchangeId = exchangeResponse.body.exchange.id;
@@ -730,7 +730,7 @@ describe("API Tests", () => {
         .expect(400);
 
       expect(drawResponse.body.error.details).toMatchObject({
-        code: "DRAW_DEADLINE_PASSED",
+        code: "EXCHANGE_ARCHIVED_CANNOT_DRAW",
       });
     });
 
@@ -938,7 +938,9 @@ describe("API Tests", () => {
     });
 
     it("should reject exclusion changes after draw", async () => {
-      await exchangeRepository.update(exclusionExchangeId, { status: "drawn" });
+      await exchangeRepository.update(exclusionExchangeId, {
+        drawAt: new Date().toISOString(),
+      });
 
       const createResponse = await asAdmin(exclusionExchangeId)
         .post(`/api/exchanges/${exclusionExchangeId}/exclusions`)

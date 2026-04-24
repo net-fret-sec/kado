@@ -2,8 +2,6 @@
 
 import type { ParticipantDto } from "../participant/participant.dto";
 
-export type ExchangeStatus = "draft" | "ready" | "drawn" | "archived";
-
 export interface ExchangeDto {
   id: string;
   name: string;
@@ -11,13 +9,11 @@ export interface ExchangeDto {
   organizerId: string;
   organizerName?: string; // Computed for display
 
-  status: ExchangeStatus;
+  isDrawn: boolean;
+  isArchived: boolean;
 
   eventDate?: string;
-  drawDeadlineAt?: string;
-  suggestionsDeadlineAt?: string;
   budget?: number;
-  budgetCurrency?: string;
   minWishlistSuggestions?: number;
   lockSuggestionsAfterDraw?: boolean;
   noMutualAssignments?: boolean;
@@ -36,10 +32,7 @@ export interface CreateExchangeInputDto {
   organizerParticipates?: boolean;
 
   eventDate?: string;
-  drawDeadlineAt?: string;
-  suggestionsDeadlineAt?: string;
   budget?: number;
-  budgetCurrency?: string;
   minWishlistSuggestions?: number;
   lockSuggestionsAfterDraw?: boolean;
   noMutualAssignments?: boolean;
@@ -57,13 +50,9 @@ export interface UpdateExchangeInputDto {
   name?: string;
   description?: string;
   organizerId?: string;
-  status?: ExchangeStatus;
 
   eventDate?: string;
-  drawDeadlineAt?: string;
-  suggestionsDeadlineAt?: string;
   budget?: number;
-  budgetCurrency?: string;
   minWishlistSuggestions?: number;
   lockSuggestionsAfterDraw?: boolean;
   noMutualAssignments?: boolean;

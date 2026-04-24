@@ -122,6 +122,7 @@ Depuis la racine:
 - `pnpm preview:web`: sert le build frontend.
 - `pnpm db:ping:api`: teste la connexion PostgreSQL.
 - `pnpm db:migrate:api`: applique les migrations SQL.
+- `pnpm db:reset-db:api`: supprime et recrée le schéma `public`, puis rejoue toutes les migrations.
 - `pnpm db:reset-example-passwords:api`: réinitialise les mots de passe admin des échanges d'exemple.
 - `pnpm db:reset-exchanges:api`: supprime toutes les données métier d'échange après confirmation explicite.
 
@@ -206,6 +207,14 @@ EXAMPLE_ADMIN_PASSWORD='MonMotDePasse123!' pnpm db:reset-example-passwords:api
 EXAMPLE_PASSWORD_TARGET=all pnpm db:reset-example-passwords:api
 ```
 
+Réinitialiser complètement le schéma local et rejouer les migrations:
+
+```bash
+RESET_DB_CONFIRM=RESET_DB pnpm db:reset-db:api
+```
+
+À utiliser quand le schéma local ne correspond plus aux migrations actuelles.
+
 Supprimer toutes les données métier d'échange:
 
 ```bash
@@ -213,6 +222,7 @@ RESET_EXCHANGES_CONFIRM=RESET_EXCHANGES pnpm db:reset-exchanges:api
 ```
 
 Cette suppression efface en cascade les participants, assignations, exclusions, accès et sessions associés.
+Elle ne modifie pas le schéma existant.
 
 ## Déploiement production
 

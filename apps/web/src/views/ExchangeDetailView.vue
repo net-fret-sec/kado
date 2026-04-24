@@ -55,7 +55,7 @@ const isAddingParticipant = ref(false)
 
 const isExclusionEditingLocked = computed(() => {
   if (!exchange.value) return true
-  return exchange.value.status === 'drawn' || exchange.value.status === 'archived'
+  return exchange.value.isDrawn || exchange.value.isArchived
 })
 
 const activeParticipants = computed(() =>
@@ -81,17 +81,17 @@ const isDetailMode = computed({
 
 const canTriggerDraw = computed(() => {
   if (!exchange.value) return false
-  return exchange.value.status === 'draft' || exchange.value.status === 'ready'
+  return !exchange.value.isDrawn && !exchange.value.isArchived
 })
 
 const canCancelDraw = computed(() => {
   if (!exchange.value) return false
-  return exchange.value.status === 'drawn'
+  return exchange.value.isDrawn && !exchange.value.isArchived
 })
 
 const isParticipantCreationLocked = computed(() => {
   if (!exchange.value) return true
-  return exchange.value.status === 'drawn' || exchange.value.status === 'archived'
+  return exchange.value.isDrawn || exchange.value.isArchived
 })
 
 const participantCountLabel = computed(() => String(participants.value.length))
@@ -105,33 +105,17 @@ const publicExchangeLink = computed(() => {
 })
 
 const statusBadgeClass = computed(() => {
-  switch (exchange.value?.status) {
-    case 'draft':
-      return 'text-bg-secondary'
-    case 'ready':
-      return 'text-bg-info'
-    case 'drawn':
-      return 'text-bg-success'
-    case 'archived':
-      return 'text-bg-dark'
-    default:
-      return 'text-bg-light'
-  }
+  if (!exchange.value) return 'text-bg-light'
+  if (exchange.value.isArchived) return 'text-bg-dark'
+  if (exchange.value.isDrawn) return 'text-bg-success'
+  return 'text-bg-secondary'
 })
 
 const statusLabel = computed(() => {
-  switch (exchange.value?.status) {
-    case 'draft':
-      return t('exchangeDetail.statusValues.draft')
-    case 'ready':
-      return t('exchangeDetail.statusValues.ready')
-    case 'drawn':
-      return t('exchangeDetail.statusValues.drawn')
-    case 'archived':
-      return t('exchangeDetail.statusValues.archived')
-    default:
-      return exchange.value?.status ?? '-'
-  }
+  if (!exchange.value) return '-'
+  if (exchange.value.isArchived) return t('exchangeDetail.statusValues.archived')
+  if (exchange.value.isDrawn) return t('exchangeDetail.statusValues.drawn')
+  return t('exchangeDetail.statusValues.undrawn')
 })
 
 function legacyCopy(text: string) {
@@ -524,12 +508,8 @@ function startEdit() {
 async function saveEdit(payload: {
   name: string
   description: string
-  status: ExchangeDto['status']
   eventDate?: string
-  drawDeadlineAt?: string
-  suggestionsDeadlineAt?: string
   budget?: number
-  budgetCurrency?: string
   minWishlistSuggestions: number
   lockSuggestionsAfterDraw: boolean
   noMutualAssignments: boolean
@@ -541,12 +521,8 @@ async function saveEdit(payload: {
     await exchangesStore.updateExchange(exchange.value.id, {
       name: payload.name,
       description: payload.description,
-      status: payload.status,
       eventDate: payload.eventDate,
-      drawDeadlineAt: payload.drawDeadlineAt,
-      suggestionsDeadlineAt: payload.suggestionsDeadlineAt,
       budget: payload.budget,
-      budgetCurrency: payload.budgetCurrency,
       minWishlistSuggestions: payload.minWishlistSuggestions,
       lockSuggestionsAfterDraw: payload.lockSuggestionsAfterDraw,
       noMutualAssignments: payload.noMutualAssignments,
@@ -907,10 +883,6 @@ async function cancelDraw() {
                 <b>{{ t('exchangeDetail.status') }} :</b>
                 <span class="badge ms-1" :class="statusBadgeClass">{{ statusLabel }}</span>
               </li>
-              <li v-if="exchange.drawDeadlineAt">
-                <b>{{ t('exchangeDetail.drawDeadlineAt') }} :</b>
-                {{ new Date(exchange.drawDeadlineAt).toLocaleString() }}
-              </li>
               <li>
                 <b>{{ t('exchangeDetail.minWishlistSuggestions') }} :</b>
                 {{ exchange.minWishlistSuggestions ?? 0 }}
@@ -920,13 +892,8 @@ async function cancelDraw() {
                 <li v-if="exchange.eventDate">
                   <b>{{ t('exchangeDetail.exchangeMoment') }} :</b> {{ exchange.eventDate }}
                 </li>
-                <li v-if="exchange.suggestionsDeadlineAt">
-                  <b>{{ t('exchangeDetail.suggestionsDeadlineAt') }} :</b>
-                  {{ new Date(exchange.suggestionsDeadlineAt).toLocaleString() }}
-                </li>
                 <li v-if="exchange.budget != null">
                   <b>{{ t('exchangeDetail.budget') }} :</b> {{ exchange.budget }}
-                  {{ exchange.budgetCurrency }}
                 </li>
                 <li>
                   <b>{{ t('exchangeDetail.lockSuggestionsAfterDraw') }} :</b>
@@ -985,7 +952,7 @@ async function cancelDraw() {
             </div>
 
             <div
-              v-if="exchange.status === 'drawn'"
+              v-if="exchange.isDrawn"
               class="d-flex align-items-center flex-wrap gap-1 mb-2 small fw-semibold text-success"
             >
               <span aria-hidden="true">✔</span>
@@ -1271,12 +1238,8 @@ async function cancelDraw() {
         :is-submitting="isSavingExchange"
         :name="exchange.name"
         :description="exchange.description || ''"
-        :status="exchange.status"
         :event-date="exchange.eventDate"
-        :draw-deadline-at="exchange.drawDeadlineAt"
-        :suggestions-deadline-at="exchange.suggestionsDeadlineAt"
         :budget="exchange.budget"
-        :budget-currency="exchange.budgetCurrency"
         :min-wishlist-suggestions="exchange.minWishlistSuggestions"
         :lock-suggestions-after-draw="exchange.lockSuggestionsAfterDraw"
         :no-mutual-assignments="exchange.noMutualAssignments"

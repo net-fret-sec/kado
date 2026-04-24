@@ -5,12 +5,8 @@ interface ExchangeRecord {
   name: string;
   description?: string;
   organizerId: string;
-  status: "draft" | "ready" | "drawn" | "archived";
   eventDate?: string;
-  drawDeadlineAt?: string;
-  suggestionsDeadlineAt?: string;
   budget?: number;
-  budgetCurrency?: string;
   minWishlistSuggestions?: number;
   lockSuggestionsAfterDraw?: boolean;
   noMutualAssignments?: boolean;
@@ -39,12 +35,8 @@ interface ExchangeRow {
   name: string;
   description: string | null;
   organizer_id: string;
-  status: "draft" | "ready" | "drawn" | "archived";
   event_date: string | null;
-  draw_deadline_at: string | null;
-  suggestions_deadline_at: string | null;
   budget: string | null;
-  budget_currency: string | null;
   min_wishlist_suggestions: number;
   lock_suggestions_after_draw: boolean;
   no_mutual_assignments: boolean;
@@ -74,12 +66,8 @@ function mapExchangeRow(row: ExchangeRow): ExchangeRecord {
     name: row.name,
     description: row.description ?? undefined,
     organizerId: row.organizer_id,
-    status: row.status,
     eventDate: row.event_date ?? undefined,
-    drawDeadlineAt: row.draw_deadline_at ?? undefined,
-    suggestionsDeadlineAt: row.suggestions_deadline_at ?? undefined,
     budget: row.budget === null ? undefined : Number(row.budget),
-    budgetCurrency: row.budget_currency ?? undefined,
     minWishlistSuggestions: row.min_wishlist_suggestions,
     lockSuggestionsAfterDraw: row.lock_suggestions_after_draw,
     noMutualAssignments: row.no_mutual_assignments,
@@ -112,12 +100,8 @@ const UPDATE_COLUMN_BY_FIELD: Record<string, string> = {
   name: "name",
   description: "description",
   organizerId: "organizer_id",
-  status: "status",
   eventDate: "event_date",
-  drawDeadlineAt: "draw_deadline_at",
-  suggestionsDeadlineAt: "suggestions_deadline_at",
   budget: "budget",
-  budgetCurrency: "budget_currency",
   minWishlistSuggestions: "min_wishlist_suggestions",
   lockSuggestionsAfterDraw: "lock_suggestions_after_draw",
   noMutualAssignments: "no_mutual_assignments",
@@ -129,18 +113,16 @@ export const exchangeRepository = {
     await query(
       `
         INSERT INTO exchanges (
-          id, name, description, organizer_id, status,
-          event_date, draw_deadline_at, suggestions_deadline_at,
-          budget, budget_currency, min_wishlist_suggestions,
+          id, name, description, organizer_id,
+          event_date, budget, min_wishlist_suggestions,
           lock_suggestions_after_draw, no_mutual_assignments,
           draw_at, created_at, updated_at
         )
         VALUES (
-          $1, $2, $3, $4, $5,
-          $6, $7, $8,
-          $9, $10, $11,
-          $12, $13,
-          $14, $15, $16
+          $1, $2, $3, $4,
+          $5, $6, $7,
+          $8, $9,
+          $10, $11, $12
         )
       `,
       [
@@ -148,12 +130,8 @@ export const exchangeRepository = {
         exchange.name,
         exchange.description ?? null,
         exchange.organizerId,
-        exchange.status,
         exchange.eventDate ?? null,
-        exchange.drawDeadlineAt ?? null,
-        exchange.suggestionsDeadlineAt ?? null,
         exchange.budget ?? null,
-        exchange.budgetCurrency ?? null,
         exchange.minWishlistSuggestions ?? 0,
         exchange.lockSuggestionsAfterDraw ?? true,
         exchange.noMutualAssignments ?? false,

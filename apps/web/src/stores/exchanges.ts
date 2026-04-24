@@ -99,10 +99,7 @@ export const useExchangesStore = defineStore('exchanges', () => {
       noMutualAssignments?: boolean
       adminPassword: string
       eventDate?: string
-      drawDeadlineAt?: string
-      suggestionsDeadlineAt?: string
       budget?: number
-      budgetCurrency?: string
       minWishlistSuggestions?: number
       lockSuggestionsAfterDraw?: boolean
     }) {
@@ -114,10 +111,7 @@ export const useExchangesStore = defineStore('exchanges', () => {
         const data = await api.post<
           { exchange: ExchangeDto; adminSessionToken?: string },
           typeof newExchange
-        >(
-          '/api/exchanges',
-          newExchange,
-        )
+        >('/api/exchanges', newExchange)
 
         if (data.adminSessionToken) {
           adminAuthStore.setSession(data.exchange.id, data.adminSessionToken)

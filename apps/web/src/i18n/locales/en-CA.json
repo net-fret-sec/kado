@@ -78,6 +78,7 @@
     "createExchange": "Create a draw",
     "loading": "Loading...",
     "statusValues": {
+      "undrawn": "Not drawn",
       "draft": "Draft",
       "ready": "Ready",
       "drawn": "Drawn",
@@ -139,6 +140,7 @@
     "description": "Description",
     "status": "Status",
     "statusValues": {
+      "undrawn": "Not drawn",
       "draft": "Draft",
       "ready": "Ready",
       "drawn": "Drawn",

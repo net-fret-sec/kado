@@ -61,22 +61,12 @@ function areSuggestionsUpdatesClosed() {
   const exchange = view.value?.exchange
   if (!exchange) return true
 
-  if (exchange.status === 'archived') {
+  if (exchange.isArchived) {
     return true
   }
 
-  if (exchange.suggestionsDeadlineAt) {
-    const suggestionsDeadline = new Date(exchange.suggestionsDeadlineAt)
-    if (
-      !Number.isNaN(suggestionsDeadline.getTime()) &&
-      suggestionsDeadline.getTime() < Date.now()
-    ) {
-      return true
-    }
-  }
-
   const lockAfterDraw = exchange.lockSuggestionsAfterDraw ?? true
-  return exchange.status === 'drawn' && lockAfterDraw
+  return exchange.isDrawn && lockAfterDraw
 }
 
 const canEdit = computed(() => {
@@ -85,8 +75,8 @@ const canEdit = computed(() => {
 
 const hasRecipient = computed(() => !!view.value?.assignment)
 const showRecipient = computed(() => {
-  const status = view.value?.exchange.status
-  return hasRecipient.value && (status === 'drawn' || status === 'archived')
+  const currentExchange = view.value?.exchange
+  return hasRecipient.value && Boolean(currentExchange?.isDrawn || currentExchange?.isArchived)
 })
 const requiredMinSuggestions = computed(() => view.value?.exchange.minWishlistSuggestions ?? 0)
 

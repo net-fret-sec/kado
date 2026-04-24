@@ -10,12 +10,10 @@ type ExchangePublicViewDto = {
   name: string
   description?: string
   organizerName?: string
-  status: 'draft' | 'ready' | 'drawn' | 'archived'
+  isDrawn: boolean
+  isArchived: boolean
   eventDate?: string
-  drawDeadlineAt?: string
-  suggestionsDeadlineAt?: string
   budget?: number
-  budgetCurrency?: string
   minWishlistSuggestions?: number
   lockSuggestionsAfterDraw?: boolean
   noMutualAssignments?: boolean
@@ -33,33 +31,17 @@ const error = ref<string | null>(null)
 const exchange = ref<ExchangePublicViewDto | null>(null)
 
 const statusBadgeClass = computed(() => {
-  switch (exchange.value?.status) {
-    case 'draft':
-      return 'text-bg-secondary'
-    case 'ready':
-      return 'text-bg-info'
-    case 'drawn':
-      return 'text-bg-success'
-    case 'archived':
-      return 'text-bg-dark'
-    default:
-      return 'text-bg-light'
-  }
+  if (!exchange.value) return 'text-bg-light'
+  if (exchange.value.isArchived) return 'text-bg-dark'
+  if (exchange.value.isDrawn) return 'text-bg-success'
+  return 'text-bg-secondary'
 })
 
 const statusLabel = computed(() => {
-  switch (exchange.value?.status) {
-    case 'draft':
-      return t('exchangeDetail.statusValues.draft')
-    case 'ready':
-      return t('exchangeDetail.statusValues.ready')
-    case 'drawn':
-      return t('exchangeDetail.statusValues.drawn')
-    case 'archived':
-      return t('exchangeDetail.statusValues.archived')
-    default:
-      return '-'
-  }
+  if (!exchange.value) return '-'
+  if (exchange.value.isArchived) return t('exchangeDetail.statusValues.archived')
+  if (exchange.value.isDrawn) return t('exchangeDetail.statusValues.drawn')
+  return t('exchangeDetail.statusValues.undrawn')
 })
 
 function formatDate(value?: string) {
@@ -70,8 +52,10 @@ function formatDate(value?: string) {
 
 function formatBudget() {
   if (!exchange.value || exchange.value.budget == null) return '-'
-  const currency = exchange.value.budgetCurrency || 'CAD'
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(exchange.value.budget)
+  return new Intl.NumberFormat(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(exchange.value.budget)
 }
 
 async function fetchPublicExchange() {
@@ -114,12 +98,6 @@ onMounted(fetchPublicExchange)
 
           <dt class="col-6 col-md-4">{{ t('exchangeDetail.exchangeMoment') }}</dt>
           <dd class="col-6 col-md-8">{{ formatDate(exchange.eventDate) }}</dd>
-
-          <dt class="col-6 col-md-4">{{ t('exchangeDetail.drawDeadlineAt') }}</dt>
-          <dd class="col-6 col-md-8">{{ formatDate(exchange.drawDeadlineAt) }}</dd>
-
-          <dt class="col-6 col-md-4">{{ t('exchangeDetail.suggestionsDeadlineAt') }}</dt>
-          <dd class="col-6 col-md-8">{{ formatDate(exchange.suggestionsDeadlineAt) }}</dd>
 
           <dt class="col-6 col-md-4">{{ t('exchangeDetail.budget') }}</dt>
           <dd class="col-6 col-md-8">{{ formatBudget() }}</dd>

@@ -22,30 +22,38 @@ import { participantRepository } from "../repositories/participant.repository";
 import { assignmentRepository } from "../repositories/assignment.repository";
 
 function areParticipantSuggestionsUpdatesClosed(exchange: {
-  status: string;
+  drawAt?: string;
+  eventDate?: string;
   lockSuggestionsAfterDraw?: boolean;
-  suggestionsDeadlineAt?: string;
 }) {
-  if (exchange.status === "archived") {
+  if (isExchangeArchived(exchange)) {
     return true;
   }
 
-  if (exchange.suggestionsDeadlineAt) {
-    const suggestionsDeadline = new Date(exchange.suggestionsDeadlineAt);
-    if (
-      !Number.isNaN(suggestionsDeadline.getTime()) &&
-      suggestionsDeadline.getTime() < Date.now()
-    ) {
-      return true;
-    }
-  }
-
   const lockAfterDraw = exchange.lockSuggestionsAfterDraw ?? true;
-  if (exchange.status === "drawn" && lockAfterDraw) {
+  if (isExchangeDrawn(exchange) && lockAfterDraw) {
     return true;
   }
 
   return false;
+}
+
+function isExchangeDrawn(exchange: { drawAt?: string }) {
+  return Boolean(exchange.drawAt);
+}
+
+function isExchangeArchived(exchange: { eventDate?: string }) {
+  if (!exchange.eventDate) {
+    return false;
+  }
+
+  const eventLocalEnd = new Date(`${exchange.eventDate}T23:59:59.999`);
+  if (Number.isNaN(eventLocalEnd.getTime())) {
+    return false;
+  }
+
+  const archiveAt = eventLocalEnd.getTime() + 30 * 24 * 60 * 60 * 1000;
+  return Date.now() > archiveAt;
 }
 
 export async function createParticipant(
@@ -60,7 +68,7 @@ export async function createParticipant(
     });
   }
 
-  if (exchange.status === "drawn" || exchange.status === "archived") {
+  if (isExchangeDrawn(exchange) || isExchangeArchived(exchange)) {
     throw new BadRequestError(
       "Participants cannot be added for this exchange.",
       {
@@ -219,13 +227,12 @@ export async function getParticipantSelfViewByToken(
 
   await participantRepository.touchAccess(access.id);
 
-  const assignment =
-    exchange.status === "drawn"
-      ? await assignmentRepository.findByExchangeAndGiver(
-          exchange.id,
-          participant.id,
-        )
-      : undefined;
+  const assignment = isExchangeDrawn(exchange)
+    ? await assignmentRepository.findByExchangeAndGiver(
+        exchange.id,
+        participant.id,
+      )
+    : undefined;
 
   const receiver = assignment
     ? await participantRepository.findById(assignment.receiverParticipantId)
@@ -236,12 +243,10 @@ export async function getParticipantSelfViewByToken(
       id: exchange.id,
       name: exchange.name,
       description: exchange.description,
-      status: exchange.status,
+      isDrawn: isExchangeDrawn(exchange),
+      isArchived: isExchangeArchived(exchange),
       eventDate: exchange.eventDate,
-      drawDeadlineAt: exchange.drawDeadlineAt,
-      suggestionsDeadlineAt: exchange.suggestionsDeadlineAt,
       budget: exchange.budget,
-      budgetCurrency: exchange.budgetCurrency,
       minWishlistSuggestions: exchange.minWishlistSuggestions,
       lockSuggestionsAfterDraw: exchange.lockSuggestionsAfterDraw,
     },
@@ -311,12 +316,10 @@ export async function updateParticipantSelfByToken(
       id: exchange.id,
       name: exchange.name,
       description: exchange.description,
-      status: exchange.status,
+      isDrawn: isExchangeDrawn(exchange),
+      isArchived: isExchangeArchived(exchange),
       eventDate: exchange.eventDate,
-      drawDeadlineAt: exchange.drawDeadlineAt,
-      suggestionsDeadlineAt: exchange.suggestionsDeadlineAt,
       budget: exchange.budget,
-      budgetCurrency: exchange.budgetCurrency,
       minWishlistSuggestions: exchange.minWishlistSuggestions,
       lockSuggestionsAfterDraw: exchange.lockSuggestionsAfterDraw,
     },

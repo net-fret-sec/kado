@@ -30,23 +30,16 @@ const sortedExchanges = computed(() => {
   })
 })
 
-function statusBadgeClass(status: ExchangeDto['status']) {
-  switch (status) {
-    case 'draft':
-      return 'text-bg-secondary'
-    case 'ready':
-      return 'text-bg-info'
-    case 'drawn':
-      return 'text-bg-success'
-    case 'archived':
-      return 'text-bg-dark'
-    default:
-      return 'text-bg-light'
-  }
+function statusBadgeClass(exchange: ExchangeDto) {
+  if (exchange.isArchived) return 'text-bg-dark'
+  if (exchange.isDrawn) return 'text-bg-success'
+  return 'text-bg-secondary'
 }
 
-function statusLabel(status: ExchangeDto['status']) {
-  return t(`exchanges.statusValues.${status}`)
+function statusLabel(exchange: ExchangeDto) {
+  if (exchange.isArchived) return t('exchanges.statusValues.archived')
+  if (exchange.isDrawn) return t('exchanges.statusValues.drawn')
+  return t('exchanges.statusValues.undrawn')
 }
 
 function formatDate(value?: string) {
@@ -57,8 +50,10 @@ function formatDate(value?: string) {
 
 function formatBudget(exchange: ExchangeDto) {
   if (exchange.budget == null) return '-'
-  const currency = exchange.budgetCurrency || 'CAD'
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(exchange.budget)
+  return new Intl.NumberFormat(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(exchange.budget)
 }
 
 function participantsCount(exchange: ExchangeDto) {
@@ -127,8 +122,8 @@ onMounted(() => {
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                   <h5 class="card-title mb-0">{{ exchange.name }}</h5>
-                  <span class="badge" :class="statusBadgeClass(exchange.status)">
-                    {{ statusLabel(exchange.status) }}
+                  <span class="badge" :class="statusBadgeClass(exchange)">
+                    {{ statusLabel(exchange) }}
                   </span>
                 </div>
 
@@ -151,11 +146,6 @@ onMounted(() => {
                     {{ t('exchanges.exchangeMoment') }}
                   </dt>
                   <dd class="col-7 mb-2">{{ formatDate(exchange.eventDate) }}</dd>
-
-                  <dt class="col-5 text-body-secondary fw-semibold">
-                    {{ t('exchanges.drawDeadlineAt') }}
-                  </dt>
-                  <dd class="col-7 mb-2">{{ formatDate(exchange.drawDeadlineAt) }}</dd>
 
                   <dt class="col-5 text-body-secondary fw-semibold">{{ t('exchanges.budget') }}</dt>
                   <dd class="col-7 mb-2">{{ formatBudget(exchange) }}</dd>

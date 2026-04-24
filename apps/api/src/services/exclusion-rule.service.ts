@@ -18,7 +18,15 @@ async function assertExchangeExists(exchangeId: string) {
 async function assertExchangeEditable(exchangeId: string) {
   const exchange = await assertExchangeExists(exchangeId);
 
-  if (exchange.status === "drawn" || exchange.status === "archived") {
+  const isDrawn = Boolean(exchange.drawAt);
+  const isArchived = (() => {
+    if (!exchange.eventDate) return false;
+    const eventLocalEnd = new Date(`${exchange.eventDate}T23:59:59.999`);
+    if (Number.isNaN(eventLocalEnd.getTime())) return false;
+    return Date.now() > eventLocalEnd.getTime() + 30 * 24 * 60 * 60 * 1000;
+  })();
+
+  if (isDrawn || isArchived) {
     throw new BadRequestError(
       "Exclusion rules cannot be modified for this exchange.",
       {

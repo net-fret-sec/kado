@@ -75,6 +75,7 @@
     "createExchange": "Créer une pige",
     "loading": "Chargement...",
     "statusValues": {
+      "undrawn": "Non pigée",
       "draft": "Brouillon",
       "ready": "Prête",
       "drawn": "Pigée",
@@ -139,6 +140,7 @@
     "description": "Description",
     "status": "Statut",
     "statusValues": {
+      "undrawn": "Non pigée",
       "draft": "Brouillon",
       "ready": "Prête",
       "drawn": "Pigée",
