@@ -630,7 +630,7 @@ async function addParticipant(payload: { name: string; email: string }) {
         }
       : undefined
 
-    await api.post<{ participant: ParticipantDto; accessLink: string }>(
+    const result = await api.post<{ participant: ParticipantDto; accessLink: string }>(
       `/api/exchanges/${exchange.value.id}/participants`,
       {
         name: payload.name,
@@ -638,9 +638,13 @@ async function addParticipant(payload: { name: string; email: string }) {
       },
       init,
     )
+
+    if (result?.participant) {
+      participants.value = [...participants.value, result.participant]
+    }
+
     newParticipantName.value = ''
     newParticipantEmail.value = ''
-    await fetchExchange()
   } catch (err) {
     if (isAdminAuthError(err)) {
       setAdminAuthRequired()
