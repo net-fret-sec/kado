@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import LanguageSwitcher from './components/LanguageSwitcher.vue'
+import ThemeSwitcher from './components/ThemeSwitcher.vue'
 import AppToasts from './components/AppToasts.vue'
 const { t } = useI18n()
 </script>
@@ -14,7 +15,10 @@ const { t } = useI18n()
         </h1>
       </nav>
 
-      <LanguageSwitcher />
+      <div class="d-flex align-items-center gap-2">
+        <ThemeSwitcher />
+        <LanguageSwitcher />
+      </div>
     </div>
   </header>
 

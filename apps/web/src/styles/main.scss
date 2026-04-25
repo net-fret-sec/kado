@@ -89,6 +89,7 @@
   $enable-reduced-motion: vars.$enable-reduced-motion
 );
 @use "./_custom-overrides";
+@use "./themes/_font-themes";
 
 :root {
   --font-body: "Open Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
@@ -131,40 +132,6 @@
   --bs-focus-ring-color: rgba(37, 102, 101, var(--bs-focus-ring-opacity));
   --bs-body-bg: var(--bg);
   --bs-body-color: var(--text-primary);
-}
-
-html[data-font-test="b"] {
-  --font-heading-h3-h4: var(--font-heading);
-}
-
-html[data-font-test="c"] {
-  --font-body: "Inter", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading: "Space Grotesk", "Inter", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading-h3-h4: var(--font-heading);
-}
-
-html[data-font-test="d"] {
-  --font-body: "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading: "Fraunces", Georgia, "Times New Roman", serif;
-  --font-heading-h3-h4: var(--font-heading);
-}
-
-html[data-font-test="e"] {
-  --font-body: "Noto Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading: "Sora", "Noto Sans", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading-h3-h4: var(--font-heading);
-}
-
-html[data-font-test="f"] {
-  --font-body: "Work Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading: "Archivo", "Work Sans", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading-h3-h4: var(--font-heading);
-}
-
-html[data-font-test="g"] {
-  --font-body: "DM Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading: "DM Serif Display", Georgia, "Times New Roman", serif;
-  --font-heading-h3-h4: var(--font-heading);
 }
 
 html {
@@ -282,7 +249,8 @@ main > * + * {
   color: vars.$primary;
 }
 
-.app-header #locale-select {
+.app-header #locale-select,
+.app-header #theme-select {
   min-width: 10rem;
   padding: 0.3rem 0.65rem;
   border-radius: 0.6rem;
@@ -291,7 +259,8 @@ main > * + * {
   color: vars.$primary-dark;
 }
 
-.app-header #locale-select:hover {
+.app-header #locale-select:hover,
+.app-header #theme-select:hover {
   border-color: vars.$primary;
 }
 

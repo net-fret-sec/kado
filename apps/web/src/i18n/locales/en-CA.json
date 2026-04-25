@@ -4,11 +4,21 @@
   },
   "actions": {
     "changeLanguage": "Change language",
+    "changeTheme": "Change theme",
     "cancel": "Cancel"
   },
   "languages": {
     "fr": "Français",
     "en": "English"
+  },
+  "themes": {
+    "a": "Classic (Open Sans + Manrope)",
+    "b": "Cal Sans + Manrope",
+    "c": "Space Grotesk + Inter",
+    "d": "Fraunces + Manrope",
+    "e": "Sora + Noto Sans",
+    "f": "Archivo + Work Sans",
+    "g": "DM Serif Display + DM Sans"
   },
   "home": {
     "hero": {

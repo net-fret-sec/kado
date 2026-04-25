@@ -1,0 +1,39 @@
+html[data-font-test="b"],
+html[data-theme="b"] {
+  --font-heading-h3-h4: var(--font-heading);
+}
+
+html[data-font-test="c"],
+html[data-theme="c"] {
+  --font-body: "Inter", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "Space Grotesk", "Inter", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading-h3-h4: var(--font-heading);
+}
+
+html[data-font-test="d"],
+html[data-theme="d"] {
+  --font-body: "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-heading-h3-h4: var(--font-heading);
+}
+
+html[data-font-test="e"],
+html[data-theme="e"] {
+  --font-body: "Noto Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "Sora", "Noto Sans", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading-h3-h4: var(--font-heading);
+}
+
+html[data-font-test="f"],
+html[data-theme="f"] {
+  --font-body: "Work Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "Archivo", "Work Sans", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading-h3-h4: var(--font-heading);
+}
+
+html[data-font-test="g"],
+html[data-theme="g"] {
+  --font-body: "DM Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --font-heading-h3-h4: var(--font-heading);
+}
