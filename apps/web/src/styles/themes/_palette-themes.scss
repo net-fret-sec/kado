@@ -1,10 +1,7 @@
-/* Theme B - Sandstone Editorial */
-html[data-font-test="b"],
-html[data-theme="b"],
-html[data-font-theme="b"] {
-  --font-body: "Manrope", "Open Sans", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading: "Cal Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading-h3-h4: var(--font-heading);
+/* Palette A - Lagune claire (default — no overrides needed, matches :root) */
+
+/* Palette B - Sandstone éditorial */
+html[data-palette-theme="b"] {
   --bg: #f8f6f1;
   --surface: #fbfaf7;
   --surface-soft: #f2ece2;
@@ -28,13 +25,8 @@ html[data-font-theme="b"] {
   --topbar-shadow: 0 1px 5px rgba(43, 37, 32, .08);
 }
 
-/* Theme C - Electric Product */
-html[data-font-test="c"],
-html[data-theme="c"],
-html[data-font-theme="c"] {
-  --font-body: "Inter", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading: "Space Grotesk", "Inter", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading-h3-h4: var(--font-heading);
+/* Palette C - Produit électrique */
+html[data-palette-theme="c"] {
   --bg: #f4f8ff;
   --surface: #ffffff;
   --surface-soft: #eaf0fb;
@@ -58,13 +50,8 @@ html[data-font-theme="c"] {
   --topbar-shadow: 0 1px 6px rgba(22, 36, 59, .08);
 }
 
-/* Theme D - Heritage Serif */
-html[data-font-test="d"],
-html[data-theme="d"],
-html[data-font-theme="d"] {
-  --font-body: "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading: "Fraunces", Georgia, "Times New Roman", serif;
-  --font-heading-h3-h4: var(--font-heading);
+/* Palette D - Patrimoine serif */
+html[data-palette-theme="d"] {
   --bg: #f9f5ef;
   --surface: #fffdf8;
   --surface-soft: #f5eee5;
@@ -88,13 +75,8 @@ html[data-font-theme="d"] {
   --topbar-shadow: 0 1px 6px rgba(47, 33, 29, .08);
 }
 
-/* Theme E - Fresh Nordic */
-html[data-font-test="e"],
-html[data-theme="e"],
-html[data-font-theme="e"] {
-  --font-body: "Noto Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading: "Sora", "Noto Sans", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading-h3-h4: var(--font-heading);
+/* Palette E - Nordique frais (same as default :root) */
+html[data-palette-theme="e"] {
   --bg: #f8faf9;
   --surface: #ffffff;
   --surface-soft: #f0f2f1;
@@ -118,13 +100,8 @@ html[data-font-theme="e"] {
   --topbar-shadow: 0 1px 4px rgba(31, 78, 79, .05);
 }
 
-/* Theme F - Atlas Grid */
-html[data-font-test="f"],
-html[data-theme="f"],
-html[data-font-theme="f"] {
-  --font-body: "Work Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading: "Archivo", "Work Sans", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading-h3-h4: var(--font-heading);
+/* Palette F - Atlas structuré */
+html[data-palette-theme="f"] {
   --bg: #f3f5fa;
   --surface: #ffffff;
   --surface-soft: #e7ecf6;
@@ -148,13 +125,8 @@ html[data-font-theme="f"] {
   --topbar-shadow: 0 1px 5px rgba(26, 39, 64, .08);
 }
 
-/* Theme G - Prestige Contrast */
-html[data-font-test="g"],
-html[data-theme="g"],
-html[data-font-theme="g"] {
-  --font-body: "DM Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading: "DM Serif Display", Georgia, "Times New Roman", serif;
-  --font-heading-h3-h4: var(--font-heading);
+/* Palette G - Contraste prestige */
+html[data-palette-theme="g"] {
   --bg: #f7f3ef;
   --surface: #fffdfb;
   --surface-soft: #f2ebe5;
@@ -178,13 +150,8 @@ html[data-font-theme="g"] {
   --topbar-shadow: 0 1px 6px rgba(17, 17, 17, .08);
 }
 
-/* Theme H - Mint Circuit */
-html[data-font-test="h"],
-html[data-theme="h"],
-html[data-font-theme="h"] {
-  --font-body: "Inter", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading: "Cal Sans", "Inter", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading-h3-h4: var(--font-heading);
+/* Palette H - Circuit menthe */
+html[data-palette-theme="h"] {
   --bg: #f2fbf8;
   --surface: #ffffff;
   --surface-soft: #e4f4ef;
@@ -208,13 +175,8 @@ html[data-font-theme="h"] {
   --topbar-shadow: 0 1px 6px rgba(15, 55, 51, .08);
 }
 
-/* Theme I - Soft Night */
-html[data-font-test="i"],
-html[data-theme="i"],
-html[data-font-theme="i"] {
-  --font-body: "Noto Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading: "Space Grotesk", "Noto Sans", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading-h3-h4: var(--font-heading);
+/* Palette I - Nuit douce */
+html[data-palette-theme="i"] {
   --bg: #1b2430;
   --surface: #263243;
   --surface-soft: #2e3b4f;
@@ -239,13 +201,8 @@ html[data-font-theme="i"] {
   --topbar-shadow: 0 1px 8px rgba(0, 0, 0, .25);
 }
 
-/* Theme J - Citrus Pop */
-html[data-font-test="j"],
-html[data-theme="j"],
-html[data-font-theme="j"] {
-  --font-body: "Open Sans", "Noto Sans", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading: "Sora", "Open Sans", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading-h3-h4: var(--font-heading);
+/* Palette J - Citrus pop */
+html[data-palette-theme="j"] {
   --bg: #fffaf1;
   --surface: #ffffff;
   --surface-soft: #fff2df;

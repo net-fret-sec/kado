@@ -2,7 +2,7 @@ import { computed } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 
-export const SUPPORTED_THEMES = ['a', 'b', 'c', 'd', 'e', 'f', 'g'] as const
+export const SUPPORTED_THEMES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'] as const
 export type AppTheme = (typeof SUPPORTED_THEMES)[number]
 
 const defaultTheme: AppTheme = 'a'
@@ -13,25 +13,27 @@ function isSupportedTheme(value: string): value is AppTheme {
 
 function getDocumentTheme(): AppTheme {
   const html = document.documentElement
-  const fromTheme = html.dataset.theme
+  const fromFontTheme = html.dataset.fontTheme
   const fromFontTest = html.dataset.fontTest
+  const fromTheme = html.dataset.theme
 
-  if (fromTheme && isSupportedTheme(fromTheme)) {
-    return fromTheme
+  if (fromFontTheme && isSupportedTheme(fromFontTheme)) {
+    return fromFontTheme
   }
 
   if (fromFontTest && isSupportedTheme(fromFontTest)) {
     return fromFontTest
   }
 
+  if (fromTheme && isSupportedTheme(fromTheme)) {
+    return fromTheme
+  }
+
   return defaultTheme
 }
 
 export function setTheme(theme: AppTheme): void {
-  const html = document.documentElement
-
-  html.dataset.theme = theme
-  html.dataset.fontTest = theme
+  document.documentElement.dataset.fontTheme = theme
 }
 
 export function useTheme() {

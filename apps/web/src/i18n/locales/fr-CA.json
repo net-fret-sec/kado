@@ -5,20 +5,49 @@
   "actions": {
     "changeLanguage": "Changer la langue",
     "changeTheme": "Changer le thème",
+    "changeFontTheme": "Police",
+    "changePaletteTheme": "Palette",
     "cancel": "Annuler"
   },
   "languages": {
     "fr": "Français",
     "en": "English"
   },
+  "fonts": {
+    "a": "Lagune (Open Sans + Manrope)",
+    "b": "Sandstone (Cal Sans + Manrope)",
+    "c": "Électrique (Space Grotesk + Inter)",
+    "d": "Patrimoine (Fraunces + Manrope)",
+    "e": "Nordique (Sora + Noto Sans)",
+    "f": "Atlas (Archivo + Work Sans)",
+    "g": "Prestige (DM Serif Display + DM Sans)",
+    "h": "Circuit (Cal Sans + Inter)",
+    "i": "Nuit douce (Space Grotesk + Noto Sans)",
+    "j": "Citrus (Sora + Open Sans)"
+  },
+  "palettes": {
+    "a": "Lagune claire",
+    "b": "Sandstone éditorial",
+    "c": "Produit électrique",
+    "d": "Patrimoine serif",
+    "e": "Nordique frais",
+    "f": "Atlas structuré",
+    "g": "Contraste prestige",
+    "h": "Circuit menthe",
+    "i": "Nuit douce",
+    "j": "Citrus pop"
+  },
   "themes": {
-    "a": "Classique (Open Sans + Manrope)",
-    "b": "Cal Sans + Manrope",
-    "c": "Space Grotesk + Inter",
-    "d": "Fraunces + Manrope",
-    "e": "Sora + Noto Sans",
-    "f": "Archivo + Work Sans",
-    "g": "DM Serif Display + DM Sans"
+    "a": "Lagune claire (Open Sans + Manrope)",
+    "b": "Sandstone éditorial (Cal Sans + Manrope)",
+    "c": "Produit électrique (Space Grotesk + Inter)",
+    "d": "Patrimoine serif (Fraunces + Manrope)",
+    "e": "Nordique frais (Sora + Noto Sans)",
+    "f": "Atlas structuré (Archivo + Work Sans)",
+    "g": "Contraste prestige (DM Serif Display + DM Sans)",
+    "h": "Circuit menthe (Cal Sans + Inter)",
+    "i": "Nuit douce (Space Grotesk + Noto Sans)",
+    "j": "Citrus pop (Sora + Open Sans)"
   },
   "home": {
     "hero": {

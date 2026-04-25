@@ -5,20 +5,49 @@
   "actions": {
     "changeLanguage": "Change language",
     "changeTheme": "Change theme",
+    "changeFontTheme": "Font",
+    "changePaletteTheme": "Palette",
     "cancel": "Cancel"
   },
   "languages": {
     "fr": "Français",
     "en": "English"
   },
+  "fonts": {
+    "a": "Lagoon (Open Sans + Manrope)",
+    "b": "Sandstone (Cal Sans + Manrope)",
+    "c": "Electric (Space Grotesk + Inter)",
+    "d": "Heritage (Fraunces + Manrope)",
+    "e": "Nordic (Sora + Noto Sans)",
+    "f": "Atlas (Archivo + Work Sans)",
+    "g": "Prestige (DM Serif Display + DM Sans)",
+    "h": "Circuit (Cal Sans + Inter)",
+    "i": "Soft Night (Space Grotesk + Noto Sans)",
+    "j": "Citrus (Sora + Open Sans)"
+  },
+  "palettes": {
+    "a": "Clear Lagoon",
+    "b": "Sandstone Editorial",
+    "c": "Electric Product",
+    "d": "Heritage Serif",
+    "e": "Fresh Nordic",
+    "f": "Structured Atlas",
+    "g": "Prestige Contrast",
+    "h": "Mint Circuit",
+    "i": "Soft Night",
+    "j": "Citrus Pop"
+  },
   "themes": {
-    "a": "Classic (Open Sans + Manrope)",
-    "b": "Cal Sans + Manrope",
-    "c": "Space Grotesk + Inter",
-    "d": "Fraunces + Manrope",
-    "e": "Sora + Noto Sans",
-    "f": "Archivo + Work Sans",
-    "g": "DM Serif Display + DM Sans"
+    "a": "Clear Lagoon (Open Sans + Manrope)",
+    "b": "Sandstone Editorial (Cal Sans + Manrope)",
+    "c": "Electric Product (Space Grotesk + Inter)",
+    "d": "Heritage Serif (Fraunces + Manrope)",
+    "e": "Fresh Nordic (Sora + Noto Sans)",
+    "f": "Structured Atlas (Archivo + Work Sans)",
+    "g": "Prestige Contrast (DM Serif Display + DM Sans)",
+    "h": "Mint Circuit (Cal Sans + Inter)",
+    "i": "Soft Night (Space Grotesk + Noto Sans)",
+    "j": "Citrus Pop (Sora + Open Sans)"
   },
   "home": {
     "hero": {
