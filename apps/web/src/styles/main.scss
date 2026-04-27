@@ -132,6 +132,8 @@
   --focus-ring-outer: rgba(37, 102, 101, .48);
   --focus-ring-shadow: 0 0 0 2px var(--focus-ring-inner), 0 0 0 4px var(--focus-ring-outer);
   --topbar-shadow: 0 1px 4px rgba(31, 78, 79, .05);
+  --hero-bg: var(--text-heading);
+  --hero-color: #fff;
   --bs-focus-ring-width: 0.25rem;
   --bs-focus-ring-opacity: 0.45;
   --bs-focus-ring-color: rgba(37, 102, 101, var(--bs-focus-ring-opacity));

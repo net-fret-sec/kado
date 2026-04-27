@@ -1222,7 +1222,7 @@ async function cancelDraw() {
                 />
                 <button
                   type="submit"
-                  class="btn btn-outline-secondary"
+                  class="btn btn-outline-secondary rounded-end"
                   :disabled="!newParticipantName.trim() || isAddingParticipant"
                 >
                   {{ t('exchangeDetail.addParticipant') }}

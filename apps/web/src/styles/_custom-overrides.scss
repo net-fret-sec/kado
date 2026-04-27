@@ -88,9 +88,52 @@
     color: #fff;
   }
 
-  &.btn-success,
+  &.btn-success {
+    --bs-btn-bg: var(--success);
+    --bs-btn-border-color: var(--success);
+    --bs-btn-color: #fff;
+    --bs-btn-hover-bg: color-mix(in srgb, var(--success) 85%, black);
+    --bs-btn-hover-border-color: color-mix(in srgb, var(--success) 85%, black);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-active-bg: color-mix(in srgb, var(--success) 78%, black);
+    --bs-btn-active-border-color: color-mix(in srgb, var(--success) 78%, black);
+    --bs-btn-active-color: #fff;
+  }
+
+  &.btn-danger {
+    --bs-btn-bg: var(--danger);
+    --bs-btn-border-color: var(--danger);
+    --bs-btn-color: #fff;
+    --bs-btn-hover-bg: color-mix(in srgb, var(--danger) 85%, black);
+    --bs-btn-hover-border-color: color-mix(in srgb, var(--danger) 85%, black);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-active-bg: color-mix(in srgb, var(--danger) 78%, black);
+    --bs-btn-active-border-color: color-mix(in srgb, var(--danger) 78%, black);
+    --bs-btn-active-color: #fff;
+  }
+
   &.btn-warning {
-    color: #fff;
+    --bs-btn-bg: var(--warning);
+    --bs-btn-border-color: var(--warning);
+    --bs-btn-color: var(--text-heading);
+    --bs-btn-hover-bg: color-mix(in srgb, var(--warning) 85%, black);
+    --bs-btn-hover-border-color: color-mix(in srgb, var(--warning) 85%, black);
+    --bs-btn-hover-color: var(--text-heading);
+    --bs-btn-active-bg: color-mix(in srgb, var(--warning) 78%, black);
+    --bs-btn-active-border-color: color-mix(in srgb, var(--warning) 78%, black);
+    --bs-btn-active-color: var(--text-heading);
+  }
+
+  &.btn-info {
+    --bs-btn-bg: var(--info);
+    --bs-btn-border-color: var(--info);
+    --bs-btn-color: #fff;
+    --bs-btn-hover-bg: color-mix(in srgb, var(--info) 85%, black);
+    --bs-btn-hover-border-color: color-mix(in srgb, var(--info) 85%, black);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-active-bg: color-mix(in srgb, var(--info) 78%, black);
+    --bs-btn-active-border-color: color-mix(in srgb, var(--info) 78%, black);
+    --bs-btn-active-color: #fff;
   }
 }
 
@@ -99,12 +142,12 @@
 
   .card-title {
     font-weight: 600;
-    color: #1f4e4f;
+    color: var(--text-heading);
   }
 
   .card-header {
-    background-color: rgba(240, 242, 241, .6);
-    border-bottom: 1px solid #e5e7e6;
+    background-color: color-mix(in srgb, var(--surface-soft) 60%, transparent);
+    border-bottom: 1px solid var(--surface-border);
     padding: .75rem 1rem;
   }
 }
@@ -140,25 +183,25 @@
     line-height: 1.2;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    background-color: #f2ede3;
-    border-color: vars.$gray-300;
-    color: vars.$gray-700;
+    background-color: var(--surface-beige);
+    border-color: var(--surface-border);
+    color: var(--text-secondary);
 
     &:hover {
-      color: vars.$gray-900;
-      background-color: #eee7da;
+      color: var(--text-heading);
+      background-color: color-mix(in srgb, var(--surface-beige) 85%, var(--surface-border));
     }
 
     &:focus-visible {
-      color: vars.$gray-900;
-      background-color: #f6f1e8;
-      border-color: vars.$gray-400;
+      color: var(--text-heading);
+      background-color: var(--surface-soft);
+      border-color: var(--surface-beige-border);
     }
 
     &.active {
-      color: vars.$gray-900;
+      color: var(--text-heading);
       background-color: rgba(255, 255, 255, .75);
-      border-color: vars.$gray-300;
+      border-color: var(--surface-border);
     }
   }
 }
@@ -169,26 +212,26 @@
   line-height: 1.2;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: vars.$gray-700;
+  color: var(--text-secondary);
   border: 1px solid transparent;
   border-radius: 999px;
 
   &:hover {
-    color: vars.$gray-900;
-    background-color: #efe8dc;
-    border-color: vars.$gray-300;
+    color: var(--text-heading);
+    background-color: var(--surface-beige);
+    border-color: var(--surface-border);
   }
 
   &:focus-visible {
-    color: vars.$gray-900;
-    background-color: #f6f1e8;
-    border-color: vars.$gray-400;
+    color: var(--text-heading);
+    background-color: var(--surface-soft);
+    border-color: var(--surface-beige-border);
   }
 
   &.active {
-    color: vars.$gray-900;
-    background-color: #efe8dc;
-    border-color: vars.$gray-300;
+    color: var(--text-heading);
+    background-color: var(--surface-beige);
+    border-color: var(--surface-border);
   }
 }
 
@@ -200,8 +243,32 @@
   }
 
   &.alert-light {
-    color: vars.$gray-900;
-    background-color: #f7f3ea;
+    color: var(--text-primary);
+    background-color: var(--surface-soft);
+  }
+
+  &.alert-success {
+    --bs-alert-bg: color-mix(in srgb, var(--success) 12%, var(--surface));
+    --bs-alert-border-color: color-mix(in srgb, var(--success) 30%, var(--surface));
+    --bs-alert-color: color-mix(in srgb, var(--success) 85%, var(--text-primary));
+  }
+
+  &.alert-danger {
+    --bs-alert-bg: color-mix(in srgb, var(--danger) 12%, var(--surface));
+    --bs-alert-border-color: color-mix(in srgb, var(--danger) 30%, var(--surface));
+    --bs-alert-color: color-mix(in srgb, var(--danger) 85%, var(--text-primary));
+  }
+
+  &.alert-warning {
+    --bs-alert-bg: color-mix(in srgb, var(--warning) 12%, var(--surface));
+    --bs-alert-border-color: color-mix(in srgb, var(--warning) 30%, var(--surface));
+    --bs-alert-color: color-mix(in srgb, var(--warning) 85%, var(--text-primary));
+  }
+
+  &.alert-info {
+    --bs-alert-bg: color-mix(in srgb, var(--info) 12%, var(--surface));
+    --bs-alert-border-color: color-mix(in srgb, var(--info) 30%, var(--surface));
+    --bs-alert-color: color-mix(in srgb, var(--info) 85%, var(--text-primary));
   }
 }
 
@@ -211,14 +278,45 @@
 
 .badge.text-bg-light,
 .badge.bg-light {
-  color: vars.$gray-900 !important;
-  background-color: #f0eadf !important;
+  color: var(--text-primary) !important;
+  background-color: var(--surface-beige) !important;
 }
+
+.text-bg-success {
+  color: #fff !important;
+  background-color: var(--success) !important;
+}
+
+.text-bg-danger {
+  color: #fff !important;
+  background-color: var(--danger) !important;
+}
+
+.text-bg-warning {
+  color: var(--text-heading) !important;
+  background-color: var(--warning) !important;
+}
+
+.text-bg-info {
+  color: #fff !important;
+  background-color: var(--info) !important;
+}
+
+.text-bg-primary {
+  color: #fff !important;
+  background-color: var(--primary) !important;
+}
+
+.text-success { color: var(--success) !important; }
+.text-danger { color: var(--danger) !important; }
+.text-warning { color: var(--warning) !important; }
+.text-info { color: var(--info) !important; }
+.text-primary { color: var(--primary) !important; }
 
 .breadcrumb {
   @extend .kado-ui-label;
-  border: 1px solid vars.$gray-300;
-  background: #f3eee5;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-beige);
 }
 
 .pagination {
@@ -235,7 +333,7 @@
     font-size: .95rem;
 
     &:focus-visible {
-      background-color: #f8f4ec;
+      background-color: var(--surface-beige);
     }
   }
 }
@@ -249,8 +347,8 @@
 }
 
 .hero-surface {
-  background: vars.$gray-800;
-  color: #fff;
+  background: var(--hero-bg);
+  color: var(--hero-color);
   box-shadow: none;
 
   @if vars.$enable-gradients {
@@ -281,9 +379,9 @@
   gap: .35rem;
   padding: .35rem .6rem;
   border-radius: 0;
-  background: #f0eadf;
-  color: vars.$gray-800;
-  border: 1px solid vars.$gray-300;
+  background: var(--surface-beige);
+  color: var(--text-primary);
+  border: 1px solid var(--surface-border);
 
   @if vars.$enable-rounded {
     border-radius: 999px;
@@ -302,19 +400,19 @@
     inset: auto 8% 10% auto;
     width: 9rem;
     height: 9rem;
-    background: rgba(201, 122, 43, .16);
+    background: color-mix(in srgb, var(--cta) 16%, transparent);
   }
 
   .home-hero__glow--cool {
     inset: 12% auto auto 6%;
     width: 7rem;
     height: 7rem;
-    background: rgba(91, 141, 184, .14);
+    background: color-mix(in srgb, var(--info) 14%, transparent);
   }
 
   .home-icon-badge {
-    background: rgba(201, 122, 43, .14);
-    color: #8d591c;
+    background: color-mix(in srgb, var(--cta) 14%, var(--surface));
+    color: var(--primary);
     font-size: 1.25rem;
 
     @if vars.$enable-gradients {
