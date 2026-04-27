@@ -225,3 +225,155 @@ html[data-palette-theme="j"] {
   --bs-focus-ring-color: rgba(222, 107, 47, var(--bs-focus-ring-opacity));
   --topbar-shadow: 0 1px 6px rgba(61, 52, 36, .08);
 }
+
+/* Palette K - Volcan graphique */
+html[data-palette-theme="k"] {
+  --bg: #1f0f0c;
+  --surface: #2a1713;
+  --surface-soft: #37201a;
+  --surface-beige: #4a281f;
+  --surface-beige-border: #6f3b2c;
+  --surface-border: #5d3328;
+  --text-primary: #ffece6;
+  --text-secondary: #f5b8a6;
+  --text-heading: #fff6f2;
+  --primary: #ff5a2a;
+  --primary-hover: #e7481d;
+  --cta: #ffd43b;
+  --cta-hover: #f2bd16;
+  --secondary: #f5b8a6;
+  --success: #71d38b;
+  --info: #6bb9ff;
+  --warning: #ff9c3a;
+  --danger: #ff7a70;
+  --focus-ring-inner: rgba(31, 15, 12, .9);
+  --focus-ring-outer: rgba(255, 90, 42, .6);
+  --bs-focus-ring-color: rgba(255, 90, 42, var(--bs-focus-ring-opacity));
+  --topbar-shadow: 0 1px 10px rgba(0, 0, 0, .28);
+}
+
+/* Palette L - Gel acide */
+html[data-palette-theme="l"] {
+  --bg: #f7ff6a;
+  --surface: #fdffb6;
+  --surface-soft: #f2ff8d;
+  --surface-beige: #f4ffa0;
+  --surface-beige-border: #d6e45e;
+  --surface-border: #dfe978;
+  --text-primary: #213307;
+  --text-secondary: #4f6a16;
+  --text-heading: #122200;
+  --primary: #006a4e;
+  --primary-hover: #00563f;
+  --cta: #ff3d5a;
+  --cta-hover: #e22e4a;
+  --secondary: #4f6a16;
+  --success: #137c42;
+  --info: #005f9f;
+  --warning: #d18800;
+  --danger: #c5223f;
+  --focus-ring-outer: rgba(0, 106, 78, .52);
+  --bs-focus-ring-color: rgba(0, 106, 78, var(--bs-focus-ring-opacity));
+  --topbar-shadow: 0 1px 7px rgba(18, 34, 0, .14);
+}
+
+/* Palette M - Archive solaire */
+html[data-palette-theme="m"] {
+  --bg: #f2e6d0;
+  --surface: #f8efde;
+  --surface-soft: #efe0c7;
+  --surface-beige: #ebd2a9;
+  --surface-beige-border: #c9aa79;
+  --surface-border: #ceb58a;
+  --text-primary: #33251a;
+  --text-secondary: #6a4f38;
+  --text-heading: #26190f;
+  --primary: #8c4a2f;
+  --primary-hover: #743a24;
+  --cta: #2f697c;
+  --cta-hover: #245564;
+  --secondary: #6a4f38;
+  --success: #4f7b3d;
+  --info: #376f9b;
+  --warning: #a86b15;
+  --danger: #a53f3c;
+  --focus-ring-outer: rgba(140, 74, 47, .5);
+  --bs-focus-ring-color: rgba(140, 74, 47, var(--bs-focus-ring-opacity));
+  --topbar-shadow: 0 1px 6px rgba(38, 25, 15, .09);
+}
+
+/* Palette N - Aube glaciaire */
+html[data-palette-theme="n"] {
+  --bg: #eef7ff;
+  --surface: #ffffff;
+  --surface-soft: #ddeeff;
+  --surface-beige: #d7f0ff;
+  --surface-beige-border: #afd4ec;
+  --surface-border: #bfdcf0;
+  --text-primary: #0d2f47;
+  --text-secondary: #3f6783;
+  --text-heading: #08253a;
+  --primary: #0067a3;
+  --primary-hover: #005688;
+  --cta: #ff7b54;
+  --cta-hover: #ea5f33;
+  --secondary: #3f6783;
+  --success: #1f8d6a;
+  --info: #1d7ccf;
+  --warning: #c6861b;
+  --danger: #c34545;
+  --focus-ring-outer: rgba(0, 103, 163, .5);
+  --bs-focus-ring-color: rgba(0, 103, 163, var(--bs-focus-ring-opacity));
+  --topbar-shadow: 0 1px 6px rgba(8, 37, 58, .1);
+}
+
+/* Palette O - Noir phosphore */
+html[data-palette-theme="o"] {
+  --bg: #050b10;
+  --surface: #0d1822;
+  --surface-soft: #132331;
+  --surface-beige: #173245;
+  --surface-beige-border: #27546e;
+  --surface-border: #21485e;
+  --text-primary: #daf3ff;
+  --text-secondary: #89bdd3;
+  --text-heading: #f0fbff;
+  --primary: #00b4d8;
+  --primary-hover: #0093b1;
+  --cta: #f7ff3c;
+  --cta-hover: #dbe91f;
+  --secondary: #89bdd3;
+  --success: #5edd98;
+  --info: #61c8ff;
+  --warning: #ffbf3f;
+  --danger: #ff6a7a;
+  --focus-ring-inner: rgba(5, 11, 16, .9);
+  --focus-ring-outer: rgba(0, 180, 216, .58);
+  --bs-focus-ring-color: rgba(0, 180, 216, var(--bs-focus-ring-opacity));
+  --topbar-shadow: 0 1px 12px rgba(0, 0, 0, .35);
+}
+
+/* Palette P - Canopée humide */
+html[data-palette-theme="p"] {
+  --bg: #eef5e8;
+  --surface: #f6fbf2;
+  --surface-soft: #e3efda;
+  --surface-beige: #d6e7c6;
+  --surface-beige-border: #b4c89f;
+  --surface-border: #bfcfb0;
+  --text-primary: #1f3728;
+  --text-secondary: #4f705a;
+  --text-heading: #12271b;
+  --primary: #2e6a4a;
+  --primary-hover: #24573c;
+  --cta: #c06c2e;
+  --cta-hover: #a95920;
+  --secondary: #4f705a;
+  --success: #3f8a4a;
+  --info: #2f7599;
+  --warning: #c3912f;
+  --danger: #b74f43;
+  --focus-ring-outer: rgba(46, 106, 74, .5);
+  --bs-focus-ring-color: rgba(46, 106, 74, var(--bs-focus-ring-opacity));
+  --topbar-shadow: 0 1px 6px rgba(18, 39, 27, .09);
+}

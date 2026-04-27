@@ -2,7 +2,24 @@ import { computed } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 
-export const SUPPORTED_PALETTE_THEMES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'] as const
+export const SUPPORTED_PALETTE_THEMES = [
+  'a',
+  'b',
+  'c',
+  'd',
+  'e',
+  'f',
+  'g',
+  'h',
+  'i',
+  'j',
+  'k',
+  'l',
+  'm',
+  'n',
+  'o',
+  'p',
+] as const
 export type AppPaletteTheme = (typeof SUPPORTED_PALETTE_THEMES)[number]
 
 const defaultPaletteTheme: AppPaletteTheme = 'a'
@@ -33,7 +50,11 @@ function getDocumentPaletteTheme(): AppPaletteTheme {
 }
 
 export function setPaletteTheme(theme: AppPaletteTheme): void {
-  document.documentElement.dataset.paletteTheme = theme
+  const html = document.documentElement
+  html.dataset.paletteTheme = theme
+  // Legacy attrs can collide with dedicated palette/font selectors.
+  delete html.dataset.theme
+  delete html.dataset.fontTest
 }
 
 export function usePaletteTheme() {

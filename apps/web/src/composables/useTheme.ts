@@ -33,7 +33,11 @@ function getDocumentTheme(): AppTheme {
 }
 
 export function setTheme(theme: AppTheme): void {
-  document.documentElement.dataset.fontTheme = theme
+  const html = document.documentElement
+  html.dataset.fontTheme = theme
+  // Legacy attrs can match old selectors and override active font theme by cascade order.
+  delete html.dataset.theme
+  delete html.dataset.fontTest
 }
 
 export function useTheme() {

@@ -35,7 +35,13 @@
     "g": "Contraste prestige",
     "h": "Circuit menthe",
     "i": "Nuit douce",
-    "j": "Citrus pop"
+    "j": "Citrus pop",
+    "k": "Volcan graphique",
+    "l": "Gel acide",
+    "m": "Archive solaire",
+    "n": "Aube glaciaire",
+    "o": "Noir phosphore",
+    "p": "Canopée humide"
   },
   "themes": {
     "a": "Lagune claire (Open Sans + Manrope)",

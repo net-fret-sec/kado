@@ -26,6 +26,12 @@ const { t, currentPaletteTheme } = usePaletteTheme()
       <option value="h">{{ t('palettes.h') }}</option>
       <option value="i">{{ t('palettes.i') }}</option>
       <option value="j">{{ t('palettes.j') }}</option>
+      <option value="k">{{ t('palettes.k') }}</option>
+      <option value="l">{{ t('palettes.l') }}</option>
+      <option value="m">{{ t('palettes.m') }}</option>
+      <option value="n">{{ t('palettes.n') }}</option>
+      <option value="o">{{ t('palettes.o') }}</option>
+      <option value="p">{{ t('palettes.p') }}</option>
     </select>
   </div>
 </template>
