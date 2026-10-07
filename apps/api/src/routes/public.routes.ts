@@ -8,7 +8,6 @@ import {
 } from "../services/participant.service";
 import { getExchangePublicById } from "../services/exchange.service";
 import { validateBody } from "../middleware/validate";
-import { participantAccessRateGuard } from "../middleware/participant-access-guard";
 
 const router = Router();
 
@@ -30,7 +29,10 @@ router.get(
 
 router.get(
   "/p/:token",
-  participantAccessRateGuard,
+  (req, res, next) => {
+    res.locals.logRoute = "/api/p/:token";
+    req.app.locals.limits.participant(req, res, next);
+  },
   async (req: Request<{ token: string }>, res, next) => {
     try {
       const parsed = tokenParamSchema.parse(req.params);
@@ -44,7 +46,10 @@ router.get(
 
 router.put(
   "/p/:token",
-  participantAccessRateGuard,
+  (req, res, next) => {
+    res.locals.logRoute = "/api/p/:token";
+    req.app.locals.limits.participant(req, res, next);
+  },
   validateBody(updateParticipantInputSchema),
   async (req: Request<{ token: string }>, res, next) => {
     try {

@@ -76,9 +76,10 @@
     <template v-else>
       <div class="d-flex align-items-center">
         <img
-          v-if="modelValue?.imageUrl"
+          v-if="safeUrl(modelValue?.imageUrl, true)"
           class="rounded object-fit-cover me-2 flex-shrink-0"
-          :src="modelValue.imageUrl"
+          :src="safeUrl(modelValue.imageUrl, true)"
+          referrerpolicy="no-referrer"
           :alt="modelValue.title"
           width="40"
           height="40"
@@ -91,8 +92,8 @@
         ></i>
         <span class="flex-grow-1">
           <a
-            v-if="modelValue?.linkUrl"
-            :href="modelValue.linkUrl"
+            v-if="safeUrl(modelValue?.linkUrl)"
+            :href="safeUrl(modelValue.linkUrl)"
             target="_blank"
             rel="noopener noreferrer"
             >{{ modelValue?.title }}</a
@@ -105,6 +106,7 @@
 </template>
 
 <script setup lang="ts">
+import { safeUrl } from '@/composables/useSafeUrl'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import IconPicker from '@/components/IconPicker.vue'

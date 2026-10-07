@@ -12,5 +12,9 @@ if (
 ) {
   throw new Error("Unsafe test database URL.");
 }
-process.env.PARTICIPANT_ACCESS_BASE_DELAY_MS = "1";
-process.env.PARTICIPANT_ACCESS_MAX_DELAY_MS = "2";
+process.env.API_RATE_LIMIT = "100000";
+process.env.PARTICIPANT_RATE_LIMIT = "100000";
+process.env.CREATE_RATE_LIMIT = "100000";
+process.env.AUTH_RATE_LIMIT = "100000";
+process.env.AUTH_PAIR_RATE_LIMIT = "100000";
+process.env.DRAW_RATE_LIMIT = "100000";

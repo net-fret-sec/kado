@@ -9,6 +9,8 @@ const props = defineProps<{
   contentLocked?: boolean
   isSubmitting?: boolean
   name: string
+  organizerName?: string
+  organizerEditable?: boolean
   description?: string
   eventDate?: string
   budget?: number
@@ -23,6 +25,7 @@ const emit = defineEmits<{
     event: 'submit',
     payload: {
       name: string
+      organizerName?: string
       description: string
       eventDate?: string
       budget?: number
@@ -36,6 +39,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const editName = ref('')
+const editOrganizerName = ref('')
 const editDescription = ref('')
 const editEventDate = ref('')
 const editBudget = ref<number | null>(null)
@@ -47,6 +51,7 @@ const isValid = computed(() => editName.value.trim().length > 0)
 
 function syncFromProps() {
   editName.value = props.name || ''
+  editOrganizerName.value = props.organizerName || ''
   editDescription.value = props.description || ''
   editEventDate.value = toDateInput(props.eventDate)
   editBudget.value = props.budget ?? null
@@ -82,6 +87,7 @@ function handleSubmit() {
 
   emit('submit', {
     name: editName.value,
+    ...(props.organizerEditable ? { organizerName: editOrganizerName.value } : {}),
     description: editDescription.value,
     eventDate: toDateInput(editEventDate.value) || undefined,
     budget: editBudget.value ?? undefined,
@@ -101,6 +107,19 @@ function handleSubmit() {
   >
     <form id="editExchangeForm" @submit.prevent="handleSubmit">
       <fieldset :disabled="contentLocked">
+        <div v-if="organizerEditable" class="mb-3">
+          <label for="editOrganizerName" class="form-label">{{
+            t('exchangeDetail.organizer')
+          }}</label>
+          <input
+            id="editOrganizerName"
+            v-model="editOrganizerName"
+            :disabled="rulesLocked"
+            class="form-control"
+            maxlength="150"
+            required
+          />
+        </div>
         <div class="mb-3">
           <label for="editExchangeName" class="form-label">{{ t('exchangeDetail.name') }}</label>
           <input

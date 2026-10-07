@@ -1,3 +1,4 @@
+import { getConfig } from "../lib/config";
 import type {
   CreateParticipantInputDto,
   CreateParticipantResultDto,
@@ -85,6 +86,13 @@ export async function createParticipantInTransaction(
       { code: "PARTICIPANT_CREATION_LOCKED" },
     );
   }
+  const count = (
+    await participantRepository.findByExchangeId(exchange.id, db)
+  ).filter((p) => p.status === "active").length;
+  if (count >= getConfig().maxParticipants)
+    throw new BadRequestError("Participant limit reached.", {
+      code: "PARTICIPANT_LIMIT_REACHED",
+    });
   const now = new Date().toISOString();
   const participant: ParticipantDto = {
     id: generateId("par"),

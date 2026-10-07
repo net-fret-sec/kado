@@ -48,7 +48,7 @@ async function run() {
     return;
   }
 
-  const newPasswordHash = hashPassword(password);
+  const newPasswordHash = await hashPassword(password);
   const client = await getPool().connect();
 
   try {

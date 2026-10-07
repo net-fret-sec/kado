@@ -1,34 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
-ENV_FILE="${1:-deploy/.env.production}"
-COMPOSE_FILE="deploy/docker-compose.prod.yml"
-
-if [[ ! -f "$ENV_FILE" ]]; then
-  echo "Missing env file: $ENV_FILE"
-  exit 1
-fi
-
-if [[ ! -f "deploy/env/api.env" ]]; then
-  echo "Missing API env file: deploy/env/api.env"
-  exit 1
-fi
-
-set -a
-source "$ENV_FILE"
-set +a
-
-echo "==> Building images"
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" build --pull
-
-echo "==> Starting PostgreSQL"
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d db
-
-echo "==> Applying migrations"
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" run --rm api pnpm --dir apps/api run db:migrate
-
-echo "==> Starting API and Caddy"
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d api caddy
-
-echo "==> Current service status"
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" ps
+# shellcheck source=deploy/scripts/common.sh
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+load_config "${1:-deploy/.env.production}"
+BUNDLE="$(realpath "${2:?Supply a validated release directory}")"
+lock_operations
+[[ -f "$BUNDLE/SHA256SUMS" && -f "$BUNDLE/images.tar.gz" && -f "$BUNDLE/version" ]] || { echo "Incomplete release" >&2; exit 1; }
+(cd "$BUNDLE" && sha256sum --check --strict SHA256SUMS)
+IMAGE_TAG="$(cat "$BUNDLE/version")"
+[[ "$IMAGE_TAG" =~ ^[a-f0-9]{40}$ ]] || { echo "Invalid version" >&2; exit 1; }
+export IMAGE_TAG
+trap 'echo "Release failed. Inspect service state; no automatic restoration or database downgrade was performed." >&2' ERR
+# Always back up the initialized database, including an existing volume with no container.
+compose up -d --wait --wait-timeout 90 db
+backup_database "${KADO_BACKUP_DIR:-deploy/backups}"
+docker load -i "$BUNDLE/images.tar.gz"
+compose up -d --wait --wait-timeout 90 db
+compose run --rm --no-deps api node dist/migrate.cjs
+compose up -d --wait --wait-timeout 90 api caddy
+compose exec -T api node -e "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1))"
+echo "Release verified: $IMAGE_TAG. Persist IMAGE_TAG in the trusted environment file for future operations."

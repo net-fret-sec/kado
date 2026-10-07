@@ -1,33 +1,39 @@
-import { getExchangeTimeZone } from "./lib/exchange-state";
-import { localAdminToolsEnabled } from "./lib/local-admin-tools";
 import "dotenv/config";
 import { createApp } from "./app";
-import { checkDatabaseHealth } from "./db";
-
-const SERVER_ADDRESS = process.env.SERVER_ADDRESS || "http://0.0.0.0";
-const PORT = Number(process.env.SERVER_PORT) || 3000;
-
+import { getConfig } from "./lib/config";
+import { localAdminToolsEnabled } from "./lib/local-admin-tools";
+import { checkDatabaseHealth, closePool } from "./db";
+import { stopDrawWorker } from "./draw-worker";
 async function bootstrap() {
-  getExchangeTimeZone();
-  const db = await checkDatabaseHealth();
-
-  if (!db.ok) {
-    console.error(`Database is not ready: ${db.error ?? "unknown error"}`);
-    process.exit(1);
-  }
-
-  const app = createApp();
-
-  app.listen(PORT, localAdminToolsEnabled() ? "127.0.0.1" : "0.0.0.0", () => {
-    console.log(
-      `API listening on ${localAdminToolsEnabled() ? "http://127.0.0.1" : SERVER_ADDRESS}:${PORT}`,
-    );
-  });
+  const config = getConfig();
+  if (!(await checkDatabaseHealth()).ok)
+    throw new Error("Database is not ready.");
+  const server = createApp().listen(
+    config.port,
+    localAdminToolsEnabled() ? "127.0.0.1" : "0.0.0.0",
+    () =>
+      console.info(JSON.stringify({ event: "listening", port: config.port })),
+  );
+  let stopping = false;
+  const shutdown = () => {
+    if (stopping) return;
+    stopping = true;
+    const deadline = setTimeout(() => {
+      server.closeAllConnections();
+      void stopDrawWorker().finally(() => process.exit(1));
+    }, 10000);
+    server.close(async () => {
+      await stopDrawWorker();
+      await closePool();
+      clearTimeout(deadline);
+      process.exit(0);
+    });
+    server.closeIdleConnections();
+  };
+  process.once("SIGTERM", shutdown);
+  process.once("SIGINT", shutdown);
 }
-
-bootstrap().catch((error) => {
-  const message =
-    error instanceof Error ? (error.stack ?? error.message) : String(error);
-  console.error("Failed to start API:\n", message);
+bootstrap().catch(() => {
+  console.error(JSON.stringify({ event: "startup_failed" }));
   process.exit(1);
 });

@@ -28,6 +28,7 @@ const router = Router();
 
 router.post(
   "/",
+  (req, res, next) => req.app.locals.limits.creation(req, res, next),
   validateBody(createExchangeInputSchema),
   async (req, res, next) => {
     try {
@@ -111,6 +112,7 @@ router.post(
   "/:exchangeId/draw",
   validateParams(exchangeIdParamSchema),
   requireAdminSession,
+  (req, res, next) => req.app.locals.limits.draw(req, res, next),
   async (req, res, next) => {
     try {
       const exchangeId = Array.isArray(req.params.exchangeId)

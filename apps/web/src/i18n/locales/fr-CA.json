@@ -369,7 +369,17 @@
     "INVALID_ROUTE_PARAMETERS": "Les paramètres de route sont invalides.",
     "PARTICIPANT_IDENTITY_LOCKED": "Les noms et courriels sont figés après la pige.",
     "PARTICIPANT_DELETION_LOCKED": "Annulez la pige avant de supprimer un participant.",
-    "EXCHANGE_DRAW_SETTINGS_LOCKED": "Annulez la pige avant de modifier ses règles."
+    "EXCHANGE_DRAW_SETTINGS_LOCKED": "Annulez la pige avant de modifier ses règles.",
+    "RATE_LIMITED": "Trop de requêtes. Réessayez après le délai indiqué.",
+    "SERVICE_BUSY": "Le service est occupé. Réessayez plus tard.",
+    "DRAW_BUSY": "Une pige est en cours. Réessayez dans un instant.",
+    "DRAW_COMPUTATION_LIMIT": "Le calcul est trop complexe. Simplifiez les exclusions et réessayez.",
+    "PARTICIPANT_LIMIT_REACHED": "La limite de participants est atteinte.",
+    "SERVICE_UNAVAILABLE": "Le service est temporairement indisponible.",
+    "CORS_ORIGIN_DENIED": "Cette origine n’est pas autorisée.",
+    "INVALID_JSON": "Le contenu envoyé est invalide.",
+    "REQUEST_BODY_TOO_LARGE": "Le contenu envoyé est trop volumineux.",
+    "ORGANIZER_NAME_REQUIRES_NON_PARTICIPANT": "Modifiez le profil de l’organisateur."
   },
   "common": {
     "close": "fermer"

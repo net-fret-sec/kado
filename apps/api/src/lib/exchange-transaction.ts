@@ -1,5 +1,6 @@
 import { withTransaction, type DbExecutor } from "../db";
 import { exchangeRepository } from "../repositories/exchange.repository";
+import { adminContext, validateAdminContext } from "./admin-context";
 import { NotFoundError } from "./http-errors";
 
 export type ExchangeRecord = NonNullable<
@@ -18,6 +19,8 @@ export function withExchangeTransaction<T>(
         code: "EXCHANGE_NOT_FOUND",
       });
     }
+    const context = adminContext.getStore();
+    if (context) await validateAdminContext(context, exchangeId, db);
     return operation(exchange, db);
   });
 }

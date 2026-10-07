@@ -1,0 +1,10 @@
+[Unit]
+Description=Verified local Kado database backup
+After=docker.service
+Requires=docker.service
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/kado
+ExecStart=/bin/bash /opt/kado/deploy/scripts/backup-db.sh /opt/kado/deploy/.env.production /var/backups/kado
+UMask=0077

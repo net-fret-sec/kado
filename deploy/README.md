@@ -1,231 +1,74 @@
-# Déploiement production sur VPS
+# Livraison manuelle sur un VPS
 
-Ce dossier contient la stack de déploiement production de Kado pour un VPS unique avec HTTPS, Caddy, PostgreSQL et une API interne au réseau Docker.
+Kado utilise PostgreSQL 16, une API Node compilée et Caddy pour HTTPS et les fichiers web. L’API et PostgreSQL n’exposent aucun port public. Une seule instance API est prise en charge : les quotas et le worker de pige sont locaux au processus.
 
-## Architecture cible
+## Préparer une version
 
-- `caddy`: terminaison TLS, service des assets web et proxy `/api`.
-- `api`: serveur Node.js/Express exposé uniquement au réseau Docker.
-- `db`: PostgreSQL 16 avec volume persistant.
+La CI vérifie les tests sur une base éphémère, TypeScript, les builds, les lints, les scripts, les images derrière Caddy et une restauration. Elle fournit un artefact `kado-<SHA>` contenant `images.tar.gz`, `version` et `SHA256SUMS`. Les images sont construites hors VPS. Un build local équivalent sur un commit propre est disponible avec `pnpm release:bundle` (Docker, Python 3 et navigateur Playwright requis).
 
-## Prérequis VPS
+Les sommes de contrôle détectent la corruption ; elles ne constituent pas une signature. Télécharger le bundle depuis le workflow de confiance et vérifier le commit et son résultat. Les pull requests ne déclenchent aucun déploiement. Le mécanisme précédent de mise à jour par Git est désactivé.
 
-Système recommandé:
+## Configuration et installation
 
-- Ubuntu 24.04 LTS ou Debian 12.
-
-Paquets et services attendus:
-
-- Docker Engine.
-- Docker Compose plugin.
-- `ufw`.
-- `fail2ban`.
-
-Ports à ouvrir:
-
-- `22/tcp`
-- `80/tcp`
-- `443/tcp`
-
-## DNS
-
-Créer un enregistrement A pointant le sous-domaine voulu vers l'IP publique du VPS, puis attendre la propagation avant le premier démarrage afin que Let's Encrypt puisse émettre le certificat.
-
-## Préparation des variables
-
-Depuis la racine du dépôt:
-
-1. Copier les variables Compose:
+1. Préparer un VPS Ubuntu/Debian avec Docker Compose, Python 3, `flock`, SSH par clé et un pare-feu autorisant seulement les ports nécessaires (SSH, 80, 443).
+2. Installer les fichiers `deploy/` de la version validée, sans secrets provenant du dépôt.
+3. Copier `deploy/.env.production.example` vers `deploy/.env.production` et `deploy/env/api.env.example` vers `deploy/env/api.env`. Protéger les fichiers par des permissions 600. Les fichiers d’environnement de déploiement sont des fichiers shell **de confiance** : ne pas y insérer de contenu non contrôlé.
+4. Renseigner domaine, email ACME, identifiants PostgreSQL et `IMAGE_TAG` avec le SHA de l’artefact. Utiliser des noms de base/utilisateur simples, et citer correctement les mots de passe shell. Compose transmet les identifiants via les variables PostgreSQL natives, sans concaténer de mot de passe dans une URL.
+5. Définir `FRONTEND_BASE_URL` et `FRONTEND_ALLOWED_ORIGINS` avec les origines HTTPS exactes. Compose impose `TRUST_PROXY_HOPS=1` ; ne pas exposer directement l’API, ni ajouter un second proxy sans revoir cette configuration.
+6. Placer le bundle vérifié dans un répertoire privé, puis exécuter :
 
 ```bash
-cp deploy/.env.production.example deploy/.env.production
+bash deploy/scripts/release.sh deploy/.env.production /chemin/bundle
 ```
 
-2. Renseigner au minimum dans `deploy/.env.production`:
+Le script acquiert un verrou commun aux opérations de base, vérifie l’archive, sauvegarde la base existante, charge les images, applique les migrations et attend la santé de l’API. Aucun reset ni restauration automatique. Après succès, conserver le SHA retourné dans `IMAGE_TAG` du fichier de configuration pour les opérations suivantes.
 
-- `DOMAIN`
-- `ACME_EMAIL`
-- `POSTGRES_DB`
-- `POSTGRES_USER`
-- `POSTGRES_PASSWORD`
-- `VITE_DONATION_URL` si vous voulez afficher le bloc de soutien sur l'accueil
+La migration `002_organizer_name.sql` est additive : elle ne requalifie aucun ancien organisateur. Appliquer les migrations par le script de livraison ; ne pas rejouer les fichiers SQL manuellement.
 
-3. Copier les variables API:
+## Sauvegarde et restauration
 
-```bash
-cp deploy/env/api.env.example deploy/env/api.env
-```
-
-4. Renseigner dans `deploy/env/api.env`:
-
-- `EXCHANGE_TIME_ZONE` (défaut `America/Toronto`)
-- `SERVER_ADDRESS`
-- `SERVER_PORT`
-- `FRONTEND_BASE_URL`
-- `FRONTEND_ALLOWED_ORIGINS`
-- `PARTICIPANT_ACCESS_RATE_WINDOW_MS`
-- `PARTICIPANT_ACCESS_RATE_SOFT_LIMIT`
-- `PARTICIPANT_ACCESS_BASE_DELAY_MS`
-- `PARTICIPANT_ACCESS_MAX_DELAY_MS`
-
-Exemple typique:
-
-- `FRONTEND_BASE_URL=https://kado.exemple.com`
-- `FRONTEND_ALLOWED_ORIGINS=https://kado.exemple.com`
-- `PARTICIPANT_ACCESS_RATE_WINDOW_MS=10000`
-- `PARTICIPANT_ACCESS_RATE_SOFT_LIMIT=10`
-- `PARTICIPANT_ACCESS_BASE_DELAY_MS=200`
-- `PARTICIPANT_ACCESS_MAX_DELAY_MS=1500`
-
-La variable `DATABASE_URL` n'est pas à définir dans `deploy/env/api.env`: elle est injectée par Compose vers le service `api` à partir des variables PostgreSQL du fichier `deploy/.env.production`.
-
-## Premier déploiement
-
-Commande recommandée:
-
-```bash
-bash deploy/scripts/release.sh
-```
-
-Ou avec un fichier d'environnement alternatif:
-
-```bash
-bash deploy/scripts/release.sh deploy/.env.production
-```
-
-Le script effectue les étapes suivantes:
-
-1. Build des images avec `docker compose build --pull`.
-2. Démarrage de PostgreSQL.
-3. Exécution des migrations SQL via le conteneur API.
-4. Démarrage de l'API et de Caddy.
-5. Affichage de l'état des services.
-
-## Mise à jour automatique depuis Git
-
-Le script `deploy/scripts/auto-update.sh` permet de détecter automatiquement une mise à jour sur le dépôt distant et de déclencher `release.sh` si un nouveau commit est disponible.
-
-Comportement:
-
-- `git fetch --prune` sur le remote configuré,
-- comparaison de `HEAD` avec `origin/main` (par défaut),
-- `git pull --ff-only` si le remote a avancé,
-- exécution de `deploy/scripts/release.sh`.
-
-Sécurités incluses:
-
-- verrou `flock` pour éviter les exécutions concurrentes,
-- refus si l'arbre Git local contient des changements,
-- refus si le fast-forward n'est pas possible.
-
-Exécution manuelle:
-
-```bash
-bash deploy/scripts/auto-update.sh
-```
-
-Variables optionnelles:
-
-- `REPO_DIR` (racine du dépôt, auto-détectée par défaut),
-- `ENV_FILE` (défaut: `deploy/.env.production`),
-- `REMOTE` (défaut: `origin`),
-- `BRANCH` (défaut: `main`),
-- `LOCK_FILE` (défaut: `/tmp/kado-autodeploy.lock`).
-
-Exemple cron (toutes les 5 minutes):
-
-```cron
-*/5 * * * * cd /chemin/vers/kado && deploy/scripts/auto-update.sh >> /var/log/kado-autoupdate.log 2>&1
-```
-
-Recommandation: ajouter une supervision simple du log `/var/log/kado-autoupdate.log` pour détecter rapidement les échecs de pull ou de déploiement.
-
-## Vérification post-déploiement
-
-Vérifier la santé API:
-
-```bash
-curl -fsS https://votre-domaine/health
-```
-
-Vérifier la page web:
-
-```bash
-curl -I https://votre-domaine
-```
-
-Vérifier l'état Compose:
-
-```bash
-docker compose --env-file deploy/.env.production -f deploy/docker-compose.prod.yml ps
-```
-
-## Sauvegardes PostgreSQL
-
-Backup manuel:
-
-```bash
-bash deploy/scripts/backup-db.sh
-```
-
-Backup dans un dossier spécifique:
+Sauvegarde manuelle :
 
 ```bash
 bash deploy/scripts/backup-db.sh deploy/.env.production /var/backups/kado
 ```
 
-Restauration depuis un dump:
+Le dump est privé, écrit temporairement, vérifié par `pg_restore --list`, puis renommé. Un échec conserve les sauvegardes précédentes. Après un succès, la rotation conserve le dernier dump de chacun des 14 jours ayant une sauvegarde. Cela ne garantit pas 14 jours consécutifs si des sauvegardes ont échoué.
+
+Les unités dans `deploy/systemd/` préparent une sauvegarde quotidienne à 04:00, avec rattrapage après arrêt. Adapter `/opt/kado`, le compte et les chemins, puis installer explicitement les unités sur le VPS. Elles ne sont pas installées par les scripts. Surveiller les échecs avec `systemctl status kado-backup.service` et `journalctl -u kado-backup.service`, la date du dernier dump, sa taille et l’espace disponible.
+
+Restauration volontaire :
 
 ```bash
-bash deploy/scripts/restore-db.sh deploy/.env.production /var/backups/kado/kado-YYYYMMDD-HHMMSS.dump
+bash deploy/scripts/restore-db.sh deploy/.env.production /var/backups/kado/kado-....dump
 ```
 
-À prévoir en exploitation:
+Le dump doit être valide et de confiance. La confirmation `RESTORE_KADO` est obligatoire. Le script arrête l’API, termine les connexions à la base, recrée la base et restaure avec arrêt au premier échec. Il ne redémarre l’API qu’après restauration réussie et vérifie sa santé. En cas d’échec, l’API reste arrêtée pour inspection.
 
-- conserver une copie des backups hors VPS,
-- tester régulièrement une restauration complète,
-- surveiller l'espace disque et la date du dernier dump réussi.
+Un dump local ne protège pas contre la perte du VPS. Une copie hors serveur et son test de récupération restent obligatoires avant ouverture publique.
 
-## Opérations courantes
+## Diagnostic et récupération
 
-Logs Caddy:
+- `/health/live` : processus vivant, sans accès PostgreSQL.
+- `/health` : 200 si PostgreSQL répond, 503 sinon ; aucun détail de connexion public.
+- `docker compose --env-file deploy/.env.production -f deploy/docker-compose.prod.yml ps` : santé des services.
+- Les logs API contiennent identifiant de requête, route normalisée, statut et durée, sans corps ni secrets. Les logs Docker sont bornés à 3 fichiers de 10 Mio par service.
+- Si une migration ou un démarrage échoue : lire les logs, conserver la sauvegarde pré-migration et inspecter le schéma avant toute action. Une migration peut avoir été validée même si le démarrage suivant échoue.
+- Pour revenir aux anciennes images, vérifier d’abord qu’elles sont compatibles avec le schéma actuel. Charger leur bundle et changer `IMAGE_TAG`, puis démarrer ces images. Aucune rétrogradation automatique de schéma.
+- Une restauration de la sauvegarde pré-migration remplace les données : elle demande une décision explicite et la procédure ci-dessus. Ne jamais restaurer simplement parce qu’un contrôle de santé échoue.
+
+## Vérifications reproductibles
 
 ```bash
-docker compose --env-file deploy/.env.production -f deploy/docker-compose.prod.yml logs -f caddy
+pnpm --dir apps/api test
+pnpm build:api
+pnpm build:web
+pnpm --dir apps/web exec eslint .
+pnpm --dir apps/web exec oxlint .
+pnpm test:operations
+pnpm exec playwright install chromium
+# Après construction des deux images locales :
+KADO_IMAGE_TAG=p1-local pnpm release:smoke
 ```
 
-Logs API:
-
-```bash
-docker compose --env-file deploy/.env.production -f deploy/docker-compose.prod.yml logs -f api
-```
-
-Redémarrer l'API:
-
-```bash
-docker compose --env-file deploy/.env.production -f deploy/docker-compose.prod.yml restart api
-```
-
-Arrêter la stack:
-
-```bash
-docker compose --env-file deploy/.env.production -f deploy/docker-compose.prod.yml down
-```
-
-## Notes techniques
-
-- Le frontend est build dans l'image Caddy et servi statiquement.
-- Caddy route `/api` vers `api:3000` à l'intérieur du réseau Docker.
-- Le healthcheck du service `api` cible `http://127.0.0.1:3000/health`.
-- Les certificats Let's Encrypt sont persistés dans `caddy_data`.
-- Les données PostgreSQL sont persistées dans `db_data`.
-
-## Durcissement recommandé
-
-- SSH par clé uniquement.
-- `fail2ban` actif.
-- mises à jour de sécurité automatiques.
-- rotation régulière des secrets.
-- surveillance simple sur expiration certificat, échec backup et indisponibilité de service.
-
-La liste globale `/api/exchanges` est indisponible en production, même si `ENABLE_LOCAL_ADMIN_TOOLS=true` est défini. Les liens individuels admin, publics et participants restent disponibles. Cette P0 ne modifie pas le schéma SQL et ne demande aucun reset de données.
+Le smoke test crée un projet Compose unique, des données synthétiques et des volumes éphémères. Il teste le proxy, les quotas IP, les parcours API et navigateur, le dump/restauration, l’arrêt propre et l’indisponibilité PostgreSQL. Il supprime sa stack et ses volumes en fin de test ; il ne lit pas les fichiers secrets ni la base locale de développement.

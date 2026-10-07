@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { getPool } from "../src/db";
 
-const MIGRATIONS_DIR = path.resolve(process.cwd(), "migrations");
+const MIGRATIONS_DIR = path.resolve(process.cwd(), process.argv[1]?.endsWith(".cjs") ? "dist/migrations" : "migrations");
 
 async function ensureMigrationsTable() {
   await getPool().query(`

@@ -50,6 +50,7 @@ export interface UpdateExchangeInputDto {
   name?: string;
   description?: string;
   organizerId?: string;
+  organizerName?: string;
 
   eventDate?: string;
   budget?: number;

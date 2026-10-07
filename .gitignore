@@ -46,6 +46,8 @@ __screenshots__/
 
 # Deployment artifacts
 deploy/backups/
+release-artifacts/
+deploy/.operation.lock
 
 # Vite cache (optionnel mais propre)
 .vite/

@@ -22,6 +22,8 @@ import { createParticipantInTransaction } from "./participant.service";
 import { assignmentRepository } from "../repositories/assignment.repository";
 import { exclusionRuleRepository } from "../repositories/exclusion-rule.repository";
 import { withTransaction, type DbExecutor } from "../db";
+import { getConfig } from "../lib/config";
+import { runDraw } from "../draw-worker";
 import { withExchangeTransaction } from "../lib/exchange-transaction";
 import {
   assertNotArchived,
@@ -30,17 +32,13 @@ import {
   isExchangeDrawn,
 } from "../lib/exchange-state";
 
-interface DrawAssignment {
-  giverParticipantId: string;
-  receiverParticipantId: string;
-}
-
 function toExchangeDto(
   exchange: {
     id: string;
     name: string;
     description?: string;
     organizerId: string;
+    organizerName?: string;
     eventDate?: string;
     budget?: number;
     minWishlistSuggestions?: number;
@@ -59,101 +57,9 @@ function toExchangeDto(
     ...exchange,
     isDrawn: isExchangeDrawn(exchange),
     isArchived: isExchangeArchived(exchange),
-    organizerName: options?.organizerName,
+    organizerName: options?.organizerName ?? exchange.organizerName,
     participants: options?.participants,
   };
-}
-
-function buildAssignmentsWithExclusions(
-  participantIds: string[],
-  exclusions: Array<{
-    giverParticipantId: string;
-    receiverParticipantId: string;
-  }>,
-  noMutualAssignments: boolean,
-): DrawAssignment[] | null {
-  const forbiddenByGiver = new Map<string, Set<string>>();
-
-  for (const giverId of participantIds) {
-    forbiddenByGiver.set(giverId, new Set([giverId]));
-  }
-
-  for (const exclusion of exclusions) {
-    const forbidden = forbiddenByGiver.get(exclusion.giverParticipantId);
-    if (forbidden) {
-      forbidden.add(exclusion.receiverParticipantId);
-    }
-  }
-
-  const remainingGivers = new Set(participantIds);
-  const usedReceivers = new Set<string>();
-  const assignments = new Map<string, string>();
-
-  function solve(): boolean {
-    if (remainingGivers.size === 0) {
-      return true;
-    }
-
-    let selectedGiverId: string | undefined;
-    let selectedCandidates: string[] = [];
-
-    for (const giverId of remainingGivers) {
-      const forbidden = forbiddenByGiver.get(giverId) ?? new Set<string>();
-
-      const candidates = participantIds
-        .filter(
-          (receiverId) =>
-            !usedReceivers.has(receiverId) && !forbidden.has(receiverId),
-        )
-        .sort((a, b) => a.localeCompare(b));
-
-      if (!selectedGiverId || candidates.length < selectedCandidates.length) {
-        selectedGiverId = giverId;
-        selectedCandidates = candidates;
-      }
-
-      if (candidates.length === 0) {
-        return false;
-      }
-    }
-
-    if (!selectedGiverId) {
-      return false;
-    }
-
-    remainingGivers.delete(selectedGiverId);
-
-    for (const receiverId of selectedCandidates) {
-      if (
-        noMutualAssignments &&
-        assignments.get(receiverId) === selectedGiverId
-      ) {
-        continue;
-      }
-
-      assignments.set(selectedGiverId, receiverId);
-      usedReceivers.add(receiverId);
-
-      if (solve()) {
-        return true;
-      }
-
-      assignments.delete(selectedGiverId);
-      usedReceivers.delete(receiverId);
-    }
-
-    remainingGivers.add(selectedGiverId);
-    return false;
-  }
-
-  if (!solve()) {
-    return null;
-  }
-
-  return participantIds.map((giverParticipantId) => ({
-    giverParticipantId,
-    receiverParticipantId: assignments.get(giverParticipantId) as string,
-  }));
 }
 
 function buildSessionExpiryIso(): string {
@@ -164,6 +70,7 @@ async function createAdminSession(
   exchangeId: string,
   db: DbExecutor,
 ): Promise<string> {
+  await exchangeRepository.deleteExpiredAdminSessions(exchangeId, db);
   const now = new Date().toISOString();
   const adminSessionToken = generateOpaqueToken("adm");
 
@@ -191,7 +98,9 @@ export async function createExchange(
       id: generateId("exc"),
       name: input.name,
       description: input.description,
-      organizerId: "", // Temporary
+      organizerId: "",
+      organizerName:
+        input.organizerParticipates === false ? input.organizerName : undefined,
       eventDate: input.eventDate,
       budget: input.budget,
       minWishlistSuggestions: input.minWishlistSuggestions ?? 0,
@@ -204,8 +113,7 @@ export async function createExchange(
     await exchangeRepository.create(exchange, db);
 
     // Create organizer participant if name provided
-    let organizerId = "";
-    if (input.organizerName) {
+    if (input.organizerName && input.organizerParticipates !== false) {
       const organizerParticipant = await createParticipantInTransaction(
         exchange,
         {
@@ -216,22 +124,16 @@ export async function createExchange(
         },
         db,
       );
-      organizerId = organizerParticipant.participant.id;
+      const organizerId = organizerParticipant.participant.id;
 
       // Update exchange with organizerId
       await exchangeRepository.update(exchange.id, { organizerId }, db);
-
-      // If not participates, remove from participants list (but keep as organizer)
-      if (!(input.organizerParticipates ?? true)) {
-        // For now, since participants are fetched separately, we can handle in getExchangeById
-        // But to keep simple, if not participates, we don't add to participants, but organizerId is set
-      }
     }
 
     await exchangeRepository.createAdminAccess(
       {
         exchangeId: exchange.id,
-        passwordHash: hashPassword(input.adminPassword),
+        passwordHash: await hashPassword(input.adminPassword),
         createdAt: now,
         updatedAt: now,
       },
@@ -264,7 +166,9 @@ export async function getExchangeById(
 
   // Get organizer name from participant
   const organizer = participants.find((p) => p.id === exchange.organizerId);
-  const organizerName = organizer ? organizer.name : "Unknown";
+  const organizerName = organizer
+    ? organizer.name
+    : (exchange.organizerName ?? "Unknown");
 
   return {
     ...toExchangeDto(exchange, { organizerName, participants }),
@@ -311,7 +215,9 @@ export async function getExchangePublicById(exchangeId: string): Promise<{
     noMutualAssignments: exchange.noMutualAssignments,
     drawAt: exchange.drawAt,
     updatedAt: exchange.updatedAt,
-    organizerName: organizer ? organizer.name : "Unknown",
+    organizerName: organizer
+      ? organizer.name
+      : (exchange.organizerName ?? "Unknown"),
     participantsCount: participants.length,
   };
 }
@@ -327,7 +233,7 @@ export async function authenticateAdminSession(
     );
     if (
       !adminAccess ||
-      !verifyPassword(adminPassword, adminAccess.passwordHash)
+      !(await verifyPassword(adminPassword, adminAccess.passwordHash))
     ) {
       throw new BadRequestError("Invalid admin credentials.", {
         code: "ADMIN_CREDENTIALS_INVALID",
@@ -359,7 +265,7 @@ export async function changeAdminPassword(
   exchangeId: string,
   currentPassword: string,
   newPassword: string,
-): Promise<void> {
+): Promise<{ adminSessionToken: string }> {
   return withExchangeTransaction(exchangeId, async (_exchange, db) => {
     const adminAccess = await exchangeRepository.findAdminAccess(
       exchangeId,
@@ -367,7 +273,7 @@ export async function changeAdminPassword(
     );
     if (
       !adminAccess ||
-      !verifyPassword(currentPassword, adminAccess.passwordHash)
+      !(await verifyPassword(currentPassword, adminAccess.passwordHash))
     ) {
       throw new BadRequestError("Invalid admin credentials.", {
         code: "ADMIN_CREDENTIALS_INVALID",
@@ -376,9 +282,11 @@ export async function changeAdminPassword(
 
     await exchangeRepository.updateAdminAccessPassword(
       exchangeId,
-      hashPassword(newPassword),
+      await hashPassword(newPassword),
       db,
     );
+    await exchangeRepository.deleteAdminSessions(exchangeId, db);
+    return { adminSessionToken: await createAdminSession(exchangeId, db) };
   });
 }
 
@@ -391,7 +299,9 @@ export async function listExchanges(): Promise<ExchangeDto[]> {
       );
       const organizer = participants.find((p) => p.id === exchange.organizerId);
       return toExchangeDto(exchange, {
-        organizerName: organizer ? organizer.name : "Unknown",
+        organizerName: organizer
+          ? organizer.name
+          : (exchange.organizerName ?? "Unknown"),
         participants,
       });
     }),
@@ -411,6 +321,7 @@ export async function updateExchange(
         updates,
         [
           "organizerId",
+          "organizerName",
           "minWishlistSuggestions",
           "lockSuggestionsAfterDraw",
           "noMutualAssignments",
@@ -418,6 +329,10 @@ export async function updateExchange(
         "EXCHANGE_DRAW_SETTINGS_LOCKED",
       );
     }
+    if (updates.organizerName !== undefined && exchange.organizerId)
+      throw new BadRequestError("Edit the organizer profile instead.", {
+        code: "ORGANIZER_NAME_REQUIRES_NON_PARTICIPANT",
+      });
     if (
       Object.hasOwn(updates, "organizerId") &&
       updates.organizerId !== exchange.organizerId
@@ -429,6 +344,7 @@ export async function updateExchange(
             db,
           )
         : undefined;
+      updates.organizerName = undefined;
       if (!organizer)
         throw new BadRequestError("Organizer must belong to this exchange.", {
           code: "PARTICIPANT_OUTSIDE_EXCHANGE",
@@ -486,6 +402,10 @@ export async function drawExchange(exchangeId: string): Promise<ExchangeDto> {
       await participantRepository.findByExchangeId(exchangeId, db)
     ).filter((p) => p.status === "active");
 
+    if (participants.length > getConfig().maxParticipants)
+      throw new BadRequestError("Participant limit exceeded.", {
+        code: "PARTICIPANT_LIMIT_REACHED",
+      });
     if (participants.length < 3) {
       throw new BadRequestError(
         "At least 3 active participants are required to draw.",
@@ -523,7 +443,7 @@ export async function drawExchange(exchangeId: string): Promise<ExchangeDto> {
       db,
     );
 
-    const drawAssignments = buildAssignmentsWithExclusions(
+    const drawAssignments = await runDraw(
       participantIds,
       exclusions,
       exchange.noMutualAssignments ?? false,

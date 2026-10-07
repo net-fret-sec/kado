@@ -369,7 +369,17 @@
     "INVALID_ROUTE_PARAMETERS": "The route parameters are invalid.",
     "PARTICIPANT_IDENTITY_LOCKED": "Names and emails are locked after the draw.",
     "PARTICIPANT_DELETION_LOCKED": "Cancel the draw before removing a participant.",
-    "EXCHANGE_DRAW_SETTINGS_LOCKED": "Cancel the draw before changing its rules."
+    "EXCHANGE_DRAW_SETTINGS_LOCKED": "Cancel the draw before changing its rules.",
+    "RATE_LIMITED": "Too many requests. Try again after the indicated delay.",
+    "SERVICE_BUSY": "The service is busy. Try again later.",
+    "DRAW_BUSY": "A draw is in progress. Try again shortly.",
+    "DRAW_COMPUTATION_LIMIT": "The draw is too complex. Simplify exclusions and try again.",
+    "PARTICIPANT_LIMIT_REACHED": "The participant limit has been reached.",
+    "SERVICE_UNAVAILABLE": "The service is temporarily unavailable.",
+    "CORS_ORIGIN_DENIED": "This origin is not allowed.",
+    "INVALID_JSON": "The request content is invalid.",
+    "REQUEST_BODY_TOO_LARGE": "The request content is too large.",
+    "ORGANIZER_NAME_REQUIRES_NON_PARTICIPANT": "Edit the organizer profile instead."
   },
   "common": {
     "close": "close"

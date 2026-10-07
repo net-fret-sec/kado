@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       proxy: {
         '/api': {
-          target: 'http://localhost:3000',
+          target: 'http://127.0.0.1:3000',
           changeOrigin: true,
           // Optionnel : rewrite des chemins si besoin
           // rewrite: (path) => path.replace(/^\/api/, '')
@@ -25,6 +25,10 @@ export default defineConfig(({ mode }) => {
       vueDevTools(),
       VitePWA({
         registerType: 'autoUpdate',
+        workbox: {
+          navigateFallbackDenylist: [/^\/api(?:\/|$)/, /^\/health(?:\/|$)/],
+          runtimeCaching: [],
+        },
         includeAssets: ['favicon.svg', 'robots.txt'],
         manifest: {
           name: 'Kado',
@@ -65,6 +69,10 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
+        // The UMD build probes eval and embeds a second Vue runtime; compile its ESM source for CSP.
+        vuedraggable: fileURLToPath(
+          new URL('./node_modules/vuedraggable/src/vuedraggable.js', import.meta.url),
+        ),
       },
     },
   }

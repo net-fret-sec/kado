@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import { adminContext } from "../lib/admin-context";
 import { UnauthorizedError } from "../lib/http-errors";
 import { sha256 } from "../lib/crypto";
 import { exchangeRepository } from "../repositories/exchange.repository";
@@ -53,13 +54,16 @@ export async function requireAdminSession(
     }
 
     const expiresAt = new Date(session.expiresAt);
-    if (Number.isNaN(expiresAt.getTime()) || expiresAt.getTime() <= Date.now()) {
+    if (
+      Number.isNaN(expiresAt.getTime()) ||
+      expiresAt.getTime() <= Date.now()
+    ) {
       throw new UnauthorizedError("Unauthorized.", {
         code: "ADMIN_SESSION_INVALID_OR_EXPIRED",
       });
     }
 
-    next();
+    adminContext.run({ exchangeId, tokenHash: sha256(rawToken) }, next);
   } catch (error) {
     next(error);
   }

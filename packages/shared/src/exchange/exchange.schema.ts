@@ -49,6 +49,7 @@ export const updateExchangeInputSchema = z.object({
   name: optionalText(150),
   description: optionalText(2000),
   organizerId: z.string().optional(),
+  organizerName: optionalText(150),
   eventDate: emptyStringToUndefined(calendarDate.optional()),
   budget: z.number().nonnegative().optional(),
   minWishlistSuggestions: z.number().int().min(0).max(100).optional(),

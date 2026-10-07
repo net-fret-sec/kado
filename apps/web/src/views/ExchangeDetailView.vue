@@ -16,6 +16,12 @@ import { HttpError } from '@/composables/useApi'
 import { useAdminAuthStore } from '@/stores/useAdminAuthStore'
 
 const api = useApi()
+void api
+  .get<{ maxActiveParticipants: number }>('/api/config')
+  .then((c) => {
+    maxActiveParticipants.value = c.maxActiveParticipants
+  })
+  .catch(() => {})
 const toasts = useToastsStore()
 const adminAuthStore = useAdminAuthStore()
 
@@ -33,6 +39,8 @@ const requiresAdminAuth = ref(false)
 const adminPassword = ref('')
 const isAuthenticatingAdmin = ref(false)
 const showEditExchangeModal = ref(false)
+const maxActiveParticipants = ref(50)
+
 const isSavingExchange = ref(false)
 const isDrawActionLoading = ref(false)
 const isLoggingOutAdmin = ref(false)
@@ -92,7 +100,11 @@ const canCancelDraw = computed(() => {
 
 const isParticipantCreationLocked = computed(() => {
   if (!exchange.value) return true
-  return exchange.value.isDrawn || exchange.value.isArchived
+  return (
+    exchange.value.isDrawn ||
+    exchange.value.isArchived ||
+    activeParticipants.value.length >= maxActiveParticipants.value
+  )
 })
 
 const isParticipantIdentityLocked = computed(
@@ -433,7 +445,7 @@ async function changeAdminPassword() {
         }
       : undefined
 
-    await api.put(
+    const replacement = await api.put<{ adminSessionToken: string }>(
       `/api/exchanges/${exchangeId}/admin/password`,
       {
         currentPassword: currentAdminPassword.value,
@@ -442,6 +454,7 @@ async function changeAdminPassword() {
       init,
     )
 
+    adminAuthStore.setSession(exchangeId, replacement.adminSessionToken)
     currentAdminPassword.value = ''
     newAdminPassword.value = ''
     confirmAdminPassword.value = ''
@@ -512,6 +525,7 @@ function startEdit() {
 
 async function saveEdit(payload: {
   name: string
+  organizerName?: string
   description: string
   eventDate?: string
   budget?: number
@@ -525,6 +539,7 @@ async function saveEdit(payload: {
   try {
     await exchangesStore.updateExchange(exchange.value.id, {
       name: payload.name,
+      organizerName: payload.organizerName,
       description: payload.description,
       eventDate: payload.eventDate,
       budget: payload.budget,
@@ -616,6 +631,7 @@ async function addParticipant(payload: { name: string; email: string }) {
       `/api/exchanges/${exchange.value.id}/participants`,
       {
         name: payload.name,
+
         email: payload.email,
       },
       init,
@@ -663,6 +679,7 @@ async function updateParticipant(payload: {
       `/api/exchanges/${exchange.value.id}/participants/${participantId}`,
       {
         name: payload.name,
+
         email: payload.email,
         wishlist: payload.wishlist,
         note: payload.note,
@@ -1217,6 +1234,7 @@ async function cancelDraw() {
               <em>{{ t('exchangeDetail.noParticipants') }}</em>
             </p>
 
+            <p>{{ activeParticipants.length }} / {{ maxActiveParticipants }}</p>
             <!-- Formulaire d'ajout de participant inline -->
             <form v-if="!isParticipantCreationLocked" @submit.prevent="handleAddNewParticipant">
               <div class="input-group mb-3">
@@ -1234,7 +1252,9 @@ async function cancelDraw() {
                   class="btn btn-outline-secondary rounded-end"
                   :disabled="!newParticipantName.trim() || isAddingParticipant"
                 >
-                  {{ t('exchangeDetail.addParticipant') }}
+                  {{ t('exchangeDetail.addParticipant') }} ({{ activeParticipants.length }}/{{
+                    maxActiveParticipants
+                  }})
                 </button>
               </div>
             </form>
@@ -1248,6 +1268,8 @@ async function cancelDraw() {
         :rules-locked="exchange.isDrawn"
         :content-locked="exchange.isArchived"
         :name="exchange.name"
+        :organizer-name="exchange.organizerName"
+        :organizer-editable="!exchange.organizerId"
         :description="exchange.description || ''"
         :event-date="exchange.eventDate"
         :budget="exchange.budget"

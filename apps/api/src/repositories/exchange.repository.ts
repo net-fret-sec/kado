@@ -5,6 +5,7 @@ interface ExchangeRecord {
   name: string;
   description?: string;
   organizerId: string;
+  organizerName?: string;
   eventDate?: string;
   budget?: number;
   minWishlistSuggestions?: number;
@@ -35,6 +36,7 @@ interface ExchangeRow {
   name: string;
   description: string | null;
   organizer_id: string;
+  organizer_name: string | null;
   event_date: string | null;
   budget: string | null;
   min_wishlist_suggestions: number;
@@ -66,6 +68,7 @@ function mapExchangeRow(row: ExchangeRow): ExchangeRecord {
     name: row.name,
     description: row.description ?? undefined,
     organizerId: row.organizer_id,
+    organizerName: row.organizer_name ?? undefined,
     eventDate: row.event_date ?? undefined,
     budget: row.budget === null ? undefined : Number(row.budget),
     minWishlistSuggestions: row.min_wishlist_suggestions,
@@ -100,6 +103,7 @@ const UPDATE_COLUMN_BY_FIELD: Record<string, string> = {
   name: "name",
   description: "description",
   organizerId: "organizer_id",
+  organizerName: "organizer_name",
   eventDate: "event_date",
   budget: "budget",
   minWishlistSuggestions: "min_wishlist_suggestions",
@@ -109,6 +113,20 @@ const UPDATE_COLUMN_BY_FIELD: Record<string, string> = {
 };
 
 export const exchangeRepository = {
+  async deleteAdminSessions(exchangeId: string, db?: DbExecutor) {
+    await query(
+      "DELETE FROM admin_sessions WHERE exchange_id=$1",
+      [exchangeId],
+      db,
+    );
+  },
+  async deleteExpiredAdminSessions(exchangeId: string, db?: DbExecutor) {
+    await query(
+      "DELETE FROM admin_sessions WHERE exchange_id=$1 AND expires_at <= clock_timestamp()",
+      [exchangeId],
+      db,
+    );
+  },
   async create(exchange: ExchangeRecord, db?: DbExecutor) {
     await query(
       `
@@ -116,13 +134,13 @@ export const exchangeRepository = {
           id, name, description, organizer_id,
           event_date, budget, min_wishlist_suggestions,
           lock_suggestions_after_draw, no_mutual_assignments,
-          draw_at, created_at, updated_at
+          draw_at, created_at, updated_at, organizer_name
         )
         VALUES (
           $1, $2, $3, $4,
           $5, $6, $7,
           $8, $9,
-          $10, $11, $12
+          $10, $11, $12, $13
         )
       `,
       [
@@ -138,6 +156,7 @@ export const exchangeRepository = {
         exchange.drawAt ?? null,
         exchange.createdAt,
         exchange.updatedAt,
+        exchange.organizerName ?? null,
       ],
       db,
     );

@@ -2,7 +2,7 @@
   "name": "kado",
   "version": "0.0.0",
   "private": true,
-  "description": "Échangeons des cadeaux entre amis !",
+  "description": "\u00c9changeons des cadeaux entre amis !",
   "scripts": {
     "dev": "pnpm run -r --parallel dev",
     "dev:web": "pnpm --dir apps/web dev",
@@ -18,10 +18,16 @@
     "db:reset-exchanges:api": "pnpm --dir apps/api run db:reset-exchanges",
     "deploy:prod": "bash deploy/scripts/release.sh",
     "backup:db:prod": "bash deploy/scripts/backup-db.sh",
-    "restore:db:prod": "bash deploy/scripts/restore-db.sh"
+    "restore:db:prod": "bash deploy/scripts/restore-db.sh",
+    "release:bundle": "bash deploy/scripts/package-release.sh",
+    "release:smoke": "node deploy/scripts/smoke.mjs",
+    "test:operations": "node deploy/scripts/test-operations.mjs"
   },
   "keywords": [],
-  "author": "Dave Létourneau <daveletourneau@gmail.com>",
+  "author": "Dave L\u00e9tourneau <daveletourneau@gmail.com>",
   "license": "ISC",
-  "packageManager": "pnpm@10.33.2+sha512.a90faf6feeab71ad6c6e57f94e0fe1a12f5dcc22cd754db40ae9593eb6a3e0b6b12e3540218bb37ae083404b1f2ce6db2a4121e979829b4aff94b99f49da1cf8"
+  "packageManager": "pnpm@10.33.2+sha512.a90faf6feeab71ad6c6e57f94e0fe1a12f5dcc22cd754db40ae9593eb6a3e0b6b12e3540218bb37ae083404b1f2ce6db2a4121e979829b4aff94b99f49da1cf8",
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
 }

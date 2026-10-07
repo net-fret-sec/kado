@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { HttpError } from "./http-errors";
 
 const PARTICIPANT_ACCESS_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const PARTICIPANT_ACCESS_CODE_LENGTH = 12;
@@ -47,19 +48,35 @@ export function sha256(value: string): string {
   return crypto.createHash("sha256").update(value).digest("hex");
 }
 
-export function hashPassword(password: string): string {
-  const salt = crypto.randomBytes(16).toString("hex");
-  const derivedKey = crypto.scryptSync(password, salt, 64).toString("hex");
-  return `${salt}:${derivedKey}`;
+let activeHashes = 0;
+async function derive(password: string, salt: string): Promise<Buffer> {
+  if (activeHashes >= 2)
+    throw new HttpError(503, "Service temporarily busy.", {
+      code: "SERVICE_BUSY",
+    });
+  activeHashes++;
+  try {
+    return await new Promise<Buffer>((resolve, reject) =>
+      crypto.scrypt(password, salt, 64, (err, key) =>
+        err ? reject(err) : resolve(key),
+      ),
+    );
+  } finally {
+    activeHashes--;
+  }
 }
-
-export function verifyPassword(password: string, stored: string): boolean {
+export async function hashPassword(password: string): Promise<string> {
+  const salt = crypto.randomBytes(16).toString("hex");
+  return `${salt}:${(await derive(password, salt)).toString("hex")}`;
+}
+export async function verifyPassword(
+  password: string,
+  stored: string,
+): Promise<boolean> {
   const [salt, originalKey] = stored.split(":");
-  if (!salt || !originalKey) return false;
-
-  const derivedKey = crypto.scryptSync(password, salt, 64).toString("hex");
+  if (!salt || !/^[a-f0-9]{128}$/.test(originalKey ?? "")) return false;
   return crypto.timingSafeEqual(
     Buffer.from(originalKey, "hex"),
-    Buffer.from(derivedKey, "hex"),
+    await derive(password, salt),
   );
 }

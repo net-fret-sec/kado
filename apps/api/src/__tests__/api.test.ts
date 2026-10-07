@@ -884,12 +884,14 @@ describe("Additional contract regressions", () => {
       .post(`${path(f.id)}/admin/sessions`)
       .send({ adminPassword: password })
       .expect(201);
-    const auth = { authorization: `Bearer ${session.body.adminSessionToken}` };
-    await request(app)
+    let auth = { authorization: `Bearer ${session.body.adminSessionToken}` };
+    const replacement = await request(app)
       .put(`${path(f.id)}/admin/password`)
       .set(auth)
       .send({ currentPassword: password, newPassword: "newpassword123" })
-      .expect(204);
+      .expect(200);
+    await request(app).get(path(f.id)).set(auth).expect(401);
+    auth = { authorization: `Bearer ${replacement.body.adminSessionToken}` };
     await request(app)
       .post(`${path(f.id)}/admin/sessions`)
       .send({ adminPassword: password })

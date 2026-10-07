@@ -1,0 +1,29 @@
+name: Validate and package Kado
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --dir apps/api test
+      - run: pnpm build:api
+      - run: pnpm build:web
+      - run: pnpm --dir apps/web exec eslint . && pnpm --dir apps/web exec oxlint .
+      - run: bash -n deploy/scripts/*.sh && shellcheck deploy/scripts/*.sh
+      - run: pnpm test:operations
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm release:bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kado-${{ github.sha }}
+          path: release-artifacts/
+          retention-days: 14

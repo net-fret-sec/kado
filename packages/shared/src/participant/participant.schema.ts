@@ -19,7 +19,18 @@ const emptyArrayToUndefined = <T extends z.ZodTypeAny>(schema: T) =>
 const optionalText = (max: number) =>
   emptyStringToUndefined(z.string().trim().min(1).max(max).optional());
 
-const optionalUrl = () => emptyStringToUndefined(z.string().url().optional());
+const optionalUrl = () =>
+  emptyStringToUndefined(
+    z
+      .string()
+      .max(2048)
+      .url()
+      .refine(
+        (value) => ["http:", "https:"].includes(new URL(value).protocol),
+        "HTTP/HTTPS required.",
+      )
+      .optional(),
+  );
 
 export const giftSuggestionSchema = z.object({
   title: z.string().trim().min(1).max(200),

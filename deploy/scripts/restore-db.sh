@@ -1,39 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
-ENV_FILE="${1:-deploy/.env.production}"
-COMPOSE_FILE="deploy/docker-compose.prod.yml"
-DUMP_FILE="${2:-}"
-
-if [[ ! -f "$ENV_FILE" ]]; then
-  echo "Missing env file: $ENV_FILE"
-  exit 1
-fi
-
-set -a
-source "$ENV_FILE"
-set +a
-
-if [[ -z "$DUMP_FILE" || ! -f "$DUMP_FILE" ]]; then
-  echo "Usage: $0 [env-file] /path/to/backup.dump"
-  exit 1
-fi
-
-echo "This will overwrite database data."
-read -r -p "Type RESTORE_KADO to continue: " CONFIRM
-
-if [[ "$CONFIRM" != "RESTORE_KADO" ]]; then
-  echo "Restore cancelled."
-  exit 1
-fi
-
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T db \
-  psql -U "$POSTGRES_USER" -d postgres -c "DROP DATABASE IF EXISTS \"$POSTGRES_DB\";"
-
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T db \
-  psql -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE \"$POSTGRES_DB\";"
-
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T db \
-  pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists --no-owner --no-privileges < "$DUMP_FILE"
-
-echo "Restore completed from $DUMP_FILE"
+# shellcheck source=deploy/scripts/common.sh
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+load_config "${1:-deploy/.env.production}"
+DUMP_FILE="$(realpath "${2:?Supply a dump}")"
+[[ -s "$DUMP_FILE" ]] || { echo "Missing dump" >&2; exit 1; }
+lock_operations
+compose exec -T db pg_restore --list < "$DUMP_FILE" >/dev/null
+read -r -p "Restoration replaces data. Type RESTORE_KADO: " confirm
+[[ "$confirm" == RESTORE_KADO ]] || { echo "Cancelled"; exit 1; }
+compose stop api
+# Fixed, validated identifier; terminate clients before drop, API remains stopped on failure.
+compose exec -T db psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='$POSTGRES_DB' AND pid <> pg_backend_pid();"
+compose exec -T db dropdb --if-exists -U "$POSTGRES_USER" "$POSTGRES_DB"
+compose exec -T db createdb -U "$POSTGRES_USER" "$POSTGRES_DB"
+compose exec -T db pg_restore --exit-on-error -U "$POSTGRES_USER" -d "$POSTGRES_DB" --no-owner --no-privileges < "$DUMP_FILE"
+compose up -d --wait --wait-timeout 90 api
+compose exec -T api node -e "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1))"
+echo "Restoration verified"

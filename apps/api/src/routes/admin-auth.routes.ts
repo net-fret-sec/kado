@@ -23,6 +23,8 @@ const router = Router();
 router.post(
   "/:exchangeId/admin/sessions",
   validateParams(exchangeIdParamSchema),
+  (req, res, next) => req.app.locals.limits.auth[0](req, res, next),
+  (req, res, next) => req.app.locals.limits.auth[1](req, res, next),
   validateBody(createAdminSessionInputSchema),
   async (req, res, next) => {
     try {
@@ -65,21 +67,23 @@ router.delete(
 router.put(
   "/:exchangeId/admin/password",
   validateParams(exchangeIdParamSchema),
-  validateBody(changeAdminPasswordInputSchema),
   requireAdminSession,
+  (req, res, next) => req.app.locals.limits.auth[0](req, res, next),
+  (req, res, next) => req.app.locals.limits.auth[1](req, res, next),
+  validateBody(changeAdminPasswordInputSchema),
   async (req, res, next) => {
     try {
       const exchangeId = Array.isArray(req.params.exchangeId)
         ? req.params.exchangeId[0]
         : req.params.exchangeId;
 
-      await changeAdminPassword(
+      const result = await changeAdminPassword(
         exchangeId,
         req.body.currentPassword,
         req.body.newPassword,
       );
 
-      res.status(204).send();
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }

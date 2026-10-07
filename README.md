@@ -108,7 +108,7 @@ Par défaut:
 - API: `http://localhost:3000`
 - Web: `http://localhost:5173`
 
-Le frontend Vite proxifie `/api` vers `http://localhost:3000` en développement si `VITE_API_BASE` est vide.
+Le frontend Vite proxifie `/api` vers `http://127.0.0.1:3000` en développement si `VITE_API_BASE` est vide.
 
 ## Scripts utiles
 
@@ -142,14 +142,12 @@ Note: `pnpm preview:api` existe à la racine mais le script `preview` n'est pas 
 
 Fichier d'exemple: `apps/api/.env.example`
 
-- `SERVER_ADDRESS`: adresse d'écoute affichée dans les logs. Défaut: `http://0.0.0.0`.
+- Écoute API : `0.0.0.0` normalement, `127.0.0.1` avec les outils admin locaux. L’ancienne variable `SERVER_ADDRESS` est ignorée.
 - `SERVER_PORT`: port HTTP. Défaut: `3000`.
 - `FRONTEND_BASE_URL`: URL du frontend, utilisée notamment comme fallback CORS.
 - `FRONTEND_ALLOWED_ORIGINS`: liste CSV d'origines CORS autorisées.
-- `PARTICIPANT_ACCESS_RATE_WINDOW_MS`: fenêtre glissante de protection anti-abus.
-- `PARTICIPANT_ACCESS_RATE_SOFT_LIMIT`: nombre de requêtes tolérées avant augmentation du délai.
-- `PARTICIPANT_ACCESS_BASE_DELAY_MS`: délai de base ajouté sur les endpoints participant publics.
-- `PARTICIPANT_ACCESS_MAX_DELAY_MS`: plafond du délai progressif.
+- `PARTICIPANT_RATE_WINDOW_MS`: fenêtre fixe de protection anti-abus.
+- `PARTICIPANT_RATE_LIMIT`: nombre de requêtes autorisées avant un refus 429.
 - `DATABASE_URL`: URL de connexion PostgreSQL.
 - `EXCHANGE_TIME_ZONE`: fuseau IANA validé au démarrage, défaut `America/Toronto`.
 - `ENABLE_LOCAL_ADMIN_TOOLS`: `true` pour activer la liste globale uniquement avec `NODE_ENV=development`; défaut désactivé. Le serveur écoute alors exclusivement sur `127.0.0.1` et refuse les requêtes transférées par proxy.
@@ -269,3 +267,21 @@ Voir `deploy/README.md` pour:
 Projet publié sous licence AGPL v3.
 
 Vous pouvez l'utiliser, le modifier et le redistribuer, mais toute version modifiée exposée en service web doit rester disponible publiquement.
+
+## P1 — sécurité et livraison
+
+- Quotas réels (429 et `Retry-After`), compteurs locaux bornés et expirables. Valeurs et fenêtres dans `.env.example` ; ils repartent à zéro au redémarrage. Une seule instance API.
+- Limite de 50 participants actifs (`MAX_ACTIVE_PARTICIPANTS`), organisateur non participant sans profil ni accès personnel.
+- Pige mélangée avec le générateur cryptographique de Node, sans promesse d’uniformité. Un seul worker ; budget 200 000 nœuds / 2 secondes. Une recherche interrompue est distinguée d’une pige impossible.
+- Changer le mot de passe révoque toutes les anciennes sessions. `PUT /api/exchanges/:exchangeId/admin/password` retourne désormais 200 `{ adminSessionToken }` : l’appareil courant stocke ce remplacement.
+- Les écritures admin revalident la session sous verrou. Les hashes scrypt existants restent compatibles. Deux calculs de mot de passe simultanés maximum.
+- `GET /api/config` expose uniquement `maxActiveParticipants` pour l’interface. `/health` retourne 503 quand la base est indisponible ; `/health/live` vérifie uniquement le processus.
+- JSON limité à 256 Kio ; URLs de souhaits HTTP/HTTPS et 2 048 caractères maximum. Les anciennes URLs dangereuses ne sont pas affichées ; images HTTPS uniquement en production.
+- CORS explicite en production, absence de cache API, CSP sur le frontend servi par Caddy et aucune transmission du lien participant par Referer.
+- La migration additive `002_organizer_name.sql` conserve les anciens échanges. Aucun reset requis.
+
+Démarrage local, après configuration de PostgreSQL et application volontaire des migrations : `pnpm dev`. Outils locaux : `ENABLE_LOCAL_ADMIN_TOOLS=true VITE_ENABLE_LOCAL_ADMIN_TOOLS=true pnpm dev`, puis `/exchanges`. Les deux serveurs écoutent alors sur loopback ; la liste est absente en production.
+
+Les builds API produisent `apps/api/dist/server.cjs`, la migration compilée et le worker. `pnpm --dir apps/api start` utilise Node sans transpilation. En local, `DATABASE_URL` reste supportée ; Compose fournit PGHOST/PGPORT/PGDATABASE/PGUSER/PGPASSWORD.
+
+La CI teste et prépare une archive d’images ; aucune mise à jour automatique ni déploiement. Voir [le guide d’exploitation](deploy/README.md) pour installer une version précise et sauvegarder/restaurer. La copie hors VPS et les contrôles du serveur réel restent nécessaires avant publication.

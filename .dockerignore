@@ -11,3 +11,11 @@ coverage
 .env.*
 !.env.example
 deploy/backups
+
+**/.env
+**/.env.*
+**/api.env
+**/*test*
+**/__tests__
+**/backups
+release-artifacts

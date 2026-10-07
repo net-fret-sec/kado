@@ -9,6 +9,7 @@ RUN corepack enable
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.json ./
 COPY apps/web/package.json apps/web/package.json
+COPY apps/api/package.json apps/api/package.json
 COPY packages/shared/package.json packages/shared/package.json
 
 RUN pnpm install --frozen-lockfile
@@ -21,7 +22,7 @@ ENV VITE_DONATION_URL=$VITE_DONATION_URL
 
 RUN pnpm --dir apps/web build
 
-FROM caddy:2.8-alpine
+FROM caddy:2-alpine
 
 COPY deploy/Caddyfile /etc/caddy/Caddyfile
 COPY --from=web-builder /app/apps/web/dist /srv
