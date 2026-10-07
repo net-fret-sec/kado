@@ -62,16 +62,16 @@ function handleSubmit() {
     </form>
 
     <template #footer>
-      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-        {{ t('actions.cancel') }}
-      </button>
       <button
         type="submit"
-        class="btn btn-primary"
+        class="btn btn-primary order-2"
         form="addParticipantForm"
         :disabled="!isFormValid"
       >
         {{ t('exchangeDetail.addModal.submit') }}
+      </button>
+      <button type="button" class="btn btn-link order-1" data-bs-dismiss="modal">
+        {{ t('actions.cancel') }}
       </button>
     </template>
   </BaseModal>

@@ -170,7 +170,7 @@
       "whatHappensPassword": "The <strong>admin password cannot be recovered</strong> because it is stored securely (hashed), not in plain text.",
       "whatHappensEditable": "All draw details remain editable after creation.",
       "submit": "Create draw",
-      "successTitle": "Draw created ✓",
+      "successTitle": "Draw created",
       "successWarningTitle": "Keep your admin access URL safe",
       "successWarningText": "This is the only time you will see this URL. Participant links can be regenerated at any time, but not this one.",
       "adminLinkLabel": "Admin access URL",
@@ -228,9 +228,13 @@
     "generateFailed": "Failed to generate link",
     "linkModal": {
       "title": "Participant link",
-      "description": "Share this link with the participant. It is automatically selected.",
+      "description": "Share this link with the participant.",
       "copy": "Copy",
-      "close": "Close"
+      "close": "Close",
+      "infoTitle": "Important",
+      "infoNotRecoverable": "Generated links cannot be recovered.",
+      "infoNewLinksAllowed": "New links can be created at will if one is lost.",
+      "infoPreviousExpired": "When a new link is generated, all previous links automatically expire permanently."
     },
     "addModal": {
       "title": "Add Participant",

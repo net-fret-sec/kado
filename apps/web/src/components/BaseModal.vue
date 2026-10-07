@@ -16,11 +16,15 @@ const props = withDefaults(
     title?: string
     size?: ModalSize
     closeButton?: boolean
+    closeOnBackdrop?: boolean
+    closeOnEscape?: boolean
   }>(),
   {
     title: '',
     size: 'md',
     closeButton: false,
+    closeOnBackdrop: true,
+    closeOnEscape: true,
   },
 )
 const { t } = useI18n()
@@ -39,6 +43,9 @@ const dialogClass = computed(() => {
   if (props.size === 'md') return 'modal-dialog'
   return `modal-dialog modal-${props.size}`
 })
+
+const backdropBehavior = computed(() => (props.closeOnBackdrop ? null : 'static'))
+const keyboardBehavior = computed(() => (props.closeOnEscape ? null : 'false'))
 
 function handleShown() {
   emit('shown')
@@ -103,7 +110,14 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section ref="modalRef" class="modal fade" tabindex="-1" aria-hidden="true">
+  <section
+    ref="modalRef"
+    class="modal fade"
+    tabindex="-1"
+    aria-hidden="true"
+    :data-bs-backdrop="backdropBehavior"
+    :data-bs-keyboard="keyboardBehavior"
+  >
     <div :class="dialogClass" class="modal-fullscreen-md-down">
       <div class="modal-content">
         <div class="modal-header bg-dark text-white">

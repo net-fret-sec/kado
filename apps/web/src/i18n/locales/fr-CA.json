@@ -167,7 +167,7 @@
       "whatHappensPassword": "Le <strong>mot de passe admin n'est pas récupérable</strong>, car il est stocké de façon sécurisée (hachée) et non en clair.",
       "whatHappensEditable": "Tous les détails de la pige resteront modifiables après la création.",
       "submit": "Créer la pige",
-      "successTitle": "Pige créée ✓",
+      "successTitle": "Pige créée",
       "successWarningTitle": "Conservez votre URL d'accès administrateur",
       "successWarningText": "Ceci est le seul moment où vous verrez cet URL. Les URLs des participants peuvent être regénérés en tout temps, mais pas celui-ci.",
       "adminLinkLabel": "URL d'accès administrateur",
@@ -228,9 +228,13 @@
     "generateFailed": "Échec de la génération du lien",
     "linkModal": {
       "title": "Lien du participant",
-      "description": "Partage ce lien avec le participant. Il est sélectionné automatiquement.",
+      "description": "Partage ce lien avec le participant.",
       "copy": "Copier",
-      "close": "Fermer"
+      "close": "Fermer",
+      "infoTitle": "Important",
+      "infoNotRecoverable": "Les liens générés ne sont pas récupérables.",
+      "infoNewLinksAllowed": "De nouveaux liens peuvent être créés à volonté en cas de perte.",
+      "infoPreviousExpired": "À chaque génération, les liens précédents deviennent automatiquement périmés de manière permanente."
     },
     "addModal": {
       "title": "Ajouter un participant",

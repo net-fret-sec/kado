@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseModal from '@/components/BaseModal.vue'
 
@@ -10,27 +10,10 @@ defineProps<{
 
 const emit = defineEmits<{
   (event: 'update:modelValue', value: boolean): void
-  (event: 'copy'): void
 }>()
 
 const { t } = useI18n()
 const accessLinkInput = ref<HTMLInputElement | null>(null)
-
-function selectAccessLink() {
-  accessLinkInput.value?.focus()
-  accessLinkInput.value?.select()
-}
-
-function handleShown() {
-  void nextTick(() => {
-    selectAccessLink()
-  })
-}
-
-function handleCopy() {
-  emit('copy')
-  selectAccessLink()
-}
 </script>
 
 <template>
@@ -38,24 +21,24 @@ function handleCopy() {
     :model-value="modelValue"
     :title="t('exchangeDetail.linkModal.title')"
     @update:model-value="(value) => emit('update:modelValue', value)"
-    @shown="handleShown"
   >
     <p class="mb-2">{{ t('exchangeDetail.linkModal.description') }}</p>
-    <input
-      ref="accessLinkInput"
-      :value="link"
-      type="text"
-      class="form-control"
-      readonly
-      @focus="selectAccessLink"
-    />
+    <input ref="accessLinkInput" :value="link" type="text" class="form-control" readonly />
+
+    <div class="alert alert-info mt-3 mb-0 small">
+      <p class="mb-2">
+        <strong>{{ t('exchangeDetail.linkModal.infoTitle') }}</strong>
+      </p>
+      <ul class="mb-0">
+        <li>{{ t('exchangeDetail.linkModal.infoNotRecoverable') }}</li>
+        <li>{{ t('exchangeDetail.linkModal.infoNewLinksAllowed') }}</li>
+        <li>{{ t('exchangeDetail.linkModal.infoPreviousExpired') }}</li>
+      </ul>
+    </div>
 
     <template #footer>
       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
         {{ t('exchangeDetail.linkModal.close') }}
-      </button>
-      <button type="button" class="btn btn-primary" @click="handleCopy">
-        {{ t('exchangeDetail.linkModal.copy') }}
       </button>
     </template>
   </BaseModal>

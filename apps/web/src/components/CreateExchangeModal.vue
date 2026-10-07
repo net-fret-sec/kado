@@ -206,6 +206,8 @@ async function handleHidden() {
   <BaseModal
     :model-value="modelValue"
     size="lg"
+    :closeOnBackdrop="false"
+    :closeOnEscape="false"
     :title="
       modalState === ModalState.FORM
         ? t('exchanges.createModal.title')
@@ -325,7 +327,7 @@ async function handleHidden() {
             class="form-control font-monospace small"
             readonly
           />
-          <button type="button" class="btn btn-primary" @click="copyAdminLink">
+          <button type="button" class="btn btn-primary rounded-end" @click="copyAdminLink">
             {{ t('exchanges.createModal.copyButton') }}
           </button>
         </div>
@@ -337,11 +339,11 @@ async function handleHidden() {
 
     <template #footer>
       <template v-if="modalState === ModalState.FORM">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          {{ t('actions.cancel') }}
-        </button>
-        <button type="submit" class="btn btn-primary" form="createExchangeForm">
+        <button type="submit" class="btn btn-primary order-2" form="createExchangeForm">
           {{ t('exchanges.createModal.submit') }}
+        </button>
+        <button type="button" class="btn btn-link order-1" data-bs-dismiss="modal">
+          {{ t('actions.cancel') }}
         </button>
       </template>
 

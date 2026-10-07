@@ -971,7 +971,7 @@ async function cancelDraw() {
               </button>
             </div>
 
-            <div class="card border mt-3">
+            <div class="card border mt-3 d-none">
               <div class="card-body">
                 <details>
                   <summary>
@@ -1258,7 +1258,6 @@ async function cancelDraw() {
         :model-value="showAccessLinkModal"
         :link="latestAccessLink"
         @update:model-value="setAccessLinkModalVisibility"
-        @copy="copyAccessLinkFromModal"
       />
     </div>
   </section>

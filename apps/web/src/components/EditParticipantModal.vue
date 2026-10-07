@@ -139,6 +139,14 @@ function handleSubmit() {
         }}</label>
         <input v-model="email" type="email" class="form-control" id="editParticipantEmail" />
       </div> -->
+
+      <div class="mb-3">
+        <label for="editParticipantNote" class="form-label">{{
+          t('exchangeDetail.addModal.note')
+        }}</label>
+        <textarea v-model="note" class="form-control" id="editParticipantNote"></textarea>
+      </div>
+
       <div class="mb-3">
         <label class="form-label mb-0">{{ t('exchangeDetail.addModal.wishlist') }}</label>
         <div class="mt-2">
@@ -166,25 +174,19 @@ function handleSubmit() {
           </button>
         </div>
       </div>
-      <div class="mb-3">
-        <label for="editParticipantNote" class="form-label">{{
-          t('exchangeDetail.addModal.note')
-        }}</label>
-        <textarea v-model="note" class="form-control" id="editParticipantNote"></textarea>
-      </div>
     </form>
 
     <template #footer>
-      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-        {{ t('actions.cancel') }}
-      </button>
       <button
         type="submit"
-        class="btn btn-primary"
+        class="btn btn-primary order-2"
         form="editParticipantForm"
         :disabled="!isFormValid"
       >
         {{ t('exchangeDetail.editModal.submit') }}
+      </button>
+      <button type="button" class="btn btn-link order-1" data-bs-dismiss="modal">
+        {{ t('actions.cancel') }}
       </button>
     </template>
   </BaseModal>
