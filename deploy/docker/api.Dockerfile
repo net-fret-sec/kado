@@ -19,6 +19,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=builder --chown=node:node /out/node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/apps/api/dist ./dist
+COPY --chown=node:node LICENSE ./LICENSE
 USER node
 EXPOSE 3000
 CMD ["node","dist/server.cjs"]

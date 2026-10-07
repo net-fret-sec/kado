@@ -26,3 +26,5 @@ FROM caddy:2-alpine
 
 COPY deploy/Caddyfile /etc/caddy/Caddyfile
 COPY --from=web-builder /app/apps/web/dist /srv
+
+COPY LICENSE /usr/share/licenses/kado/LICENSE

@@ -67,13 +67,12 @@ export default defineConfig(({ mode }) => {
       },
     },
     resolve: {
-      alias: {
-        '@': fileURLToPath(new URL('./src', import.meta.url)),
-        // The UMD build probes eval and embeds a second Vue runtime; compile its ESM source for CSP.
-        vuedraggable: fileURLToPath(
-          new URL('./node_modules/vuedraggable/src/vuedraggable.js', import.meta.url),
-        ),
-      },
+      alias: [
+        { find: /^zod$/, replacement: fileURLToPath(new URL('./src/lib/zod-browser.ts', import.meta.url)) },
+        { find: '@', replacement: fileURLToPath(new URL('./src', import.meta.url)) },
+        // Compile the ESM source: the UMD build probes eval and embeds Vue.
+        { find: 'vuedraggable', replacement: fileURLToPath(new URL('./node_modules/vuedraggable/src/vuedraggable.js', import.meta.url)) },
+      ],
     },
   }
 })

@@ -15,9 +15,11 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --dir apps/api test
+      - run: pnpm test:web
+      - run: pnpm --dir apps/api exec tsc --noEmit --strict --target ES2022 --module ESNext --moduleResolution bundler --skipLibCheck ../../packages/shared/src/index.ts
       - run: pnpm build:api
       - run: pnpm build:web
-      - run: pnpm --dir apps/web exec eslint . && pnpm --dir apps/web exec oxlint .
+      - run: pnpm lint:check
       - run: bash -n deploy/scripts/*.sh && shellcheck deploy/scripts/*.sh
       - run: pnpm test:operations
       - run: pnpm exec playwright install --with-deps chromium

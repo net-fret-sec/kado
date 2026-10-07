@@ -10,6 +10,7 @@ await new Promise((r) => listener.listen(0, "127.0.0.1", r));
 const httpsPort = listener.address().port;
 await new Promise((r) => listener.close(r));
 import assert from "node:assert/strict";
+import { browserP2 } from "./browser-p2.mjs";
 import { chromium } from "@playwright/test";
 const root = path.resolve(import.meta.dirname, "../..");
 const scratch = await mkdtemp(path.join(tmpdir(), "kado-p1-smoke-"));
@@ -95,14 +96,15 @@ function localFetch(url, options = {}) {
       (res) => {
         const chunks = [];
         res.on("data", (c) => chunks.push(c));
-        res.on("end", () =>
-          resolve(
-            new Response(Buffer.concat(chunks), {
+        res.on("error", reject);
+        res.on("end", () => {
+          try {
+            resolve(new Response([204, 205, 304].includes(res.statusCode) ? null : Buffer.concat(chunks), {
               status: res.statusCode,
               headers: res.headers,
-            }),
-          ),
-        );
+            }));
+          } catch (error) { reject(error); }
+        });
       },
     );
     req.on("error", reject);
@@ -394,6 +396,17 @@ try {
     }),
     false,
   );
+  await context.close();
+  await browserP2({ browser, base, api, root, scratch, restart: async () => {
+    compose("restart", "api");
+    const deadline = Date.now() + 20000;
+    while (true) {
+      try { await api("GET", "/health"); break; } catch (error) {
+        if (Date.now() > deadline) throw error;
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+  } });
   // Check SIGTERM readiness and clean exit using the actual Node process.
   const container = compose("ps", "-q", "api");
   compose("stop", "-t", "15", "api");

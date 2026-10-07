@@ -63,7 +63,7 @@ Ou depuis `apps/web`:
 pnpm dev
 ```
 
-Par défaut, Vite écoute sur `http://localhost:5173` et proxifie `/api` vers `http://localhost:3000`.
+Par défaut, Vite écoute sur `http://localhost:5173` et proxifie `/api` vers `http://127.0.0.1:3000`.
 
 ## Vérification
 
@@ -73,3 +73,11 @@ pnpm --dir apps/web exec eslint .
 pnpm --dir apps/web exec oxlint .
 pnpm --dir apps/web build
 ```
+
+## Vérifications P2
+
+Depuis la racine : `pnpm test:web`, `pnpm lint:check`, puis `pnpm test:e2e` pour les images de production derrière Caddy. Les tests E2E utilisent une base PostgreSQL éphémère. Les scénarios couvrent les brouillons en mémoire, les conflits, les interruptions réseau, le clavier, les deux langues et les largeurs mobile/tablette/desktop.
+
+La vue admin utilise un polling visible et inactif à 5 secondes ; les vues publique et participant utilisent le retour sur l’onglet et le bouton Actualiser. Les souhaits partagent validation, sérialisation et édition. Les erreurs conservent la saisie et les champs verrouillés n’acceptent pas de modification. Les brouillons ne survivent pas au rechargement.
+
+Les champs facultatifs ne disposent pas encore d’un contrat d’effacement explicite homogène ; ce complément est reporté.

@@ -1,9 +1,22 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import {
+  updateExchangeInputSchema,
+  type ExchangeDto,
+  type UpdateExchangeInputDto,
+} from '@kado/shared'
+import { clone, equal, useConflict, type FormValues } from '@/composables/useConflict'
+import { useDraftGuard, confirmDiscard } from '@/composables/useDraftGuard'
+import ConflictReview from './ConflictReview.vue'
 import BaseModal from '@/components/BaseModal.vue'
 
 const props = defineProps<{
+  updatedAt: string
+  suspended?: boolean
+  conflictVersion?: ExchangeDto | null
+  saveError?: string | null
+  fieldErrors?: Record<string, string[]>
   modelValue: boolean
   rulesLocked?: boolean
   contentLocked?: boolean
@@ -21,19 +34,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (event: 'update:modelValue', value: boolean): void
-  (
-    event: 'submit',
-    payload: {
-      name: string
-      organizerName?: string
-      description: string
-      eventDate?: string
-      budget?: number
-      minWishlistSuggestions: number
-      lockSuggestionsAfterDraw: boolean
-      noMutualAssignments: boolean
-    },
-  ): void
+  (event: 'submit', payload: UpdateExchangeInputDto): void
+  (event: 'dirty', value: boolean): void
 }>()
 
 const { t } = useI18n()
@@ -47,7 +49,63 @@ const editMinWishlistSuggestions = ref(0)
 const editLockSuggestionsAfterDraw = ref(true)
 const editNoMutualAssignments = ref(false)
 
-const isValid = computed(() => editName.value.trim().length > 0)
+const baselineVersion = ref('')
+const conflict = useConflict()
+const { remote, fields, choices, ready } = conflict
+function values(): FormValues {
+  return {
+    name: editName.value,
+    ...(props.organizerEditable ? { organizerName: editOrganizerName.value } : {}),
+    description: editDescription.value,
+    eventDate: editEventDate.value,
+    budget: editBudget.value,
+    minWishlistSuggestions: editMinWishlistSuggestions.value,
+    lockSuggestionsAfterDraw: editLockSuggestionsAfterDraw.value,
+    noMutualAssignments: editNoMutualAssignments.value,
+  }
+}
+function setValues(value: FormValues) {
+  editName.value = String(value.name ?? '')
+  editOrganizerName.value = String(value.organizerName ?? '')
+  editDescription.value = String(value.description ?? '')
+  editEventDate.value = String(value.eventDate ?? '')
+  editBudget.value = value.budget == null ? null : Number(value.budget)
+  editMinWishlistSuggestions.value = Number(value.minWishlistSuggestions ?? 0)
+  editLockSuggestionsAfterDraw.value = Boolean(value.lockSuggestionsAfterDraw)
+  editNoMutualAssignments.value = Boolean(value.noMutualAssignments)
+}
+function serverValues(current: ExchangeDto): FormValues {
+  return {
+    name: current.name,
+    ...(!current.organizerId ? { organizerName: current.organizerName ?? '' } : {}),
+    description: current.description ?? '',
+    eventDate: current.eventDate ?? '',
+    budget: current.budget ?? null,
+    minWishlistSuggestions: current.minWishlistSuggestions ?? 0,
+    lockSuggestionsAfterDraw: current.lockSuggestionsAfterDraw ?? true,
+    noMutualAssignments: current.noMutualAssignments ?? false,
+  }
+}
+const dirty = computed(() => props.modelValue && !equal(values(), conflict.baseline.value))
+useDraftGuard(dirty)
+watch(dirty, (value) => emit('dirty', value))
+function beforeClose() {
+  return props.suspended || (!props.isSubmitting && (!dirty.value || confirmDiscard()))
+}
+function payload(): UpdateExchangeInputDto {
+  return {
+    name: editName.value,
+    ...(props.organizerEditable ? { organizerName: editOrganizerName.value } : {}),
+    description: editDescription.value || undefined,
+    eventDate: toDateInput(editEventDate.value) || undefined,
+    budget: editBudget.value ?? undefined,
+    minWishlistSuggestions: editMinWishlistSuggestions.value,
+    lockSuggestionsAfterDraw: editLockSuggestionsAfterDraw.value,
+    noMutualAssignments: editNoMutualAssignments.value,
+    expectedUpdatedAt: baselineVersion.value,
+  }
+}
+const isValid = computed(() => updateExchangeInputSchema.safeParse(payload()).success)
 
 function syncFromProps() {
   editName.value = props.name || ''
@@ -77,48 +135,84 @@ watch(
   (isOpen) => {
     if (isOpen) {
       syncFromProps()
+      conflict.baseline.value = clone(values())
+      baselineVersion.value = props.updatedAt
+      remote.value = null
     }
   },
 )
 
+watch(
+  () => props.conflictVersion,
+  (current) => {
+    if (!current || !props.modelValue) return
+    const locked = current.isArchived
+      ? Object.keys(serverValues(current))
+      : current.isDrawn
+        ? [
+            'organizerName',
+            'minWishlistSuggestions',
+            'lockSuggestionsAfterDraw',
+            'noMutualAssignments',
+          ]
+        : []
+    conflict.open(values(), serverValues(current), locked)
+  },
+)
+function applyConflict() {
+  const current = conflict.apply()
+  if (current && props.conflictVersion) {
+    setValues(current)
+    baselineVersion.value = props.conflictVersion.updatedAt
+  }
+}
 function handleSubmit() {
-  if (props.isSubmitting || props.contentLocked) return
-  if (!isValid.value) return
-
-  emit('submit', {
-    name: editName.value,
-    ...(props.organizerEditable ? { organizerName: editOrganizerName.value } : {}),
-    description: editDescription.value,
-    eventDate: toDateInput(editEventDate.value) || undefined,
-    budget: editBudget.value ?? undefined,
-    minWishlistSuggestions: editMinWishlistSuggestions.value,
-    lockSuggestionsAfterDraw: editLockSuggestionsAfterDraw.value,
-    noMutualAssignments: editNoMutualAssignments.value,
-  })
+  if (props.isSubmitting || props.contentLocked || !isValid.value || remote.value) return
+  emit('submit', payload())
+}
+function visibility(value: boolean) {
+  if (!props.suspended) emit('update:modelValue', value)
 }
 </script>
 
 <template>
   <BaseModal
-    :model-value="modelValue"
+    :model-value="modelValue && !suspended"
+    :before-close="beforeClose"
     :title="t('exchangeDetail.editExchangeModal.title')"
     size="lg"
-    @update:model-value="(value) => emit('update:modelValue', value)"
+    @update:model-value="visibility"
   >
+    <p v-if="saveError" class="alert alert-danger" role="alert">{{ saveError }}</p>
+    <p v-if="dirty" class="small text-body-secondary">{{ t('p2.unsaved') }}</p>
+    <ConflictReview
+      v-if="remote"
+      :fields="fields"
+      :choices="choices"
+      :ready="ready"
+      :current="remote"
+      @choice="(key, choice) => (choices[key] = choice)"
+      @apply="applyConflict"
+    />
     <form id="editExchangeForm" @submit.prevent="handleSubmit">
-      <fieldset :disabled="contentLocked">
+      <fieldset :disabled="contentLocked || isSubmitting || !!remote">
         <div v-if="organizerEditable" class="mb-3">
           <label for="editOrganizerName" class="form-label">{{
             t('exchangeDetail.organizer')
           }}</label>
           <input
             id="editOrganizerName"
+            :aria-invalid="!!fieldErrors?.organizerName || undefined"
+            :aria-describedby="fieldErrors?.organizerName ? 'editOrganizerName-error' : undefined"
             v-model="editOrganizerName"
             :disabled="rulesLocked"
             class="form-control"
             maxlength="150"
             required
           />
+          <p v-if="fieldErrors?.organizerName" id="editOrganizerName-error" class="text-danger">
+            {{ t('p2.invalidField') }}
+          </p>
         </div>
         <div class="mb-3">
           <label for="editExchangeName" class="form-label">{{ t('exchangeDetail.name') }}</label>
@@ -127,8 +221,13 @@ function handleSubmit() {
             type="text"
             class="form-control"
             id="editExchangeName"
+            :aria-invalid="!!fieldErrors?.name || undefined"
+            :aria-describedby="fieldErrors?.name ? 'editExchangeName-error' : undefined"
             required
           />
+          <p v-if="fieldErrors?.name" id="editExchangeName-error" class="text-danger">
+            {{ t('p2.invalidField') }}
+          </p>
         </div>
         <div class="mb-3">
           <label for="editExchangeDescription" class="form-label">{{
@@ -138,7 +237,14 @@ function handleSubmit() {
             v-model="editDescription"
             class="form-control"
             id="editExchangeDescription"
+            :aria-invalid="!!fieldErrors?.description || undefined"
+            :aria-describedby="
+              fieldErrors?.description ? 'editExchangeDescription-error' : undefined
+            "
           ></textarea>
+          <p v-if="fieldErrors?.description" id="editExchangeDescription-error" class="text-danger">
+            {{ t('p2.invalidField') }}
+          </p>
         </div>
         <div class="row g-3 mb-3">
           <div class="col-12">
@@ -150,7 +256,12 @@ function handleSubmit() {
               type="date"
               class="form-control"
               id="editExchangeEventDate"
+              :aria-invalid="!!fieldErrors?.eventDate || undefined"
+              :aria-describedby="fieldErrors?.eventDate ? 'editExchangeEventDate-error' : undefined"
             />
+            <p v-if="fieldErrors?.eventDate" id="editExchangeEventDate-error" class="text-danger">
+              {{ t('p2.invalidField') }}
+            </p>
           </div>
         </div>
         <div class="row g-3 mb-3">
@@ -165,7 +276,12 @@ function handleSubmit() {
               step="0.01"
               class="form-control"
               id="editExchangeBudget"
+              :aria-invalid="!!fieldErrors?.budget || undefined"
+              :aria-describedby="fieldErrors?.budget ? 'editExchangeBudget-error' : undefined"
             />
+            <p v-if="fieldErrors?.budget" id="editExchangeBudget-error" class="text-danger">
+              {{ t('p2.invalidField') }}
+            </p>
           </div>
           <div class="col-12 col-md-6">
             <label for="editExchangeMinSuggestions" class="form-label">{{
@@ -179,8 +295,19 @@ function handleSubmit() {
               step="1"
               class="form-control"
               id="editExchangeMinSuggestions"
+              :aria-invalid="!!fieldErrors?.minWishlistSuggestions || undefined"
+              :aria-describedby="
+                fieldErrors?.minWishlistSuggestions ? 'editExchangeMinSuggestions-error' : undefined
+              "
               :disabled="rulesLocked"
             />
+            <p
+              v-if="fieldErrors?.minWishlistSuggestions"
+              id="editExchangeMinSuggestions-error"
+              class="text-danger"
+            >
+              {{ t('p2.invalidField') }}
+            </p>
           </div>
         </div>
         <div class="mb-3 form-check">
@@ -215,11 +342,11 @@ function handleSubmit() {
         type="submit"
         class="btn btn-primary order-2"
         form="editExchangeForm"
-        :disabled="contentLocked || !isValid || !!props.isSubmitting"
+        :disabled="contentLocked || !isValid || !!props.isSubmitting || !!remote"
       >
         {{ t('exchangeDetail.editExchangeModal.submit') }}
       </button>
-      <button type="button" class="btn btn-link order-1" data-bs-dismiss="modal">
+      <button type="button" class="btn btn-link order-1" data-bs-dismiss="modal" :disabled="isSubmitting">
         {{ t('actions.cancel') }}
       </button>
     </template>

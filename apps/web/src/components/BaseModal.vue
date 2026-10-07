@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch, useId } from 'vue'
 import { Modal } from 'bootstrap'
 import { useI18n } from 'vue-i18n'
 
@@ -18,6 +18,7 @@ const props = withDefaults(
     closeButton?: boolean
     closeOnBackdrop?: boolean
     closeOnEscape?: boolean
+    beforeClose?: () => boolean
   }>(),
   {
     title: '',
@@ -35,6 +36,7 @@ const emit = defineEmits<{
   (event: 'hidden'): void
 }>()
 
+const titleId = `modal-title-${useId()}`
 const modalRef = ref<HTMLElement | null>(null)
 let modalInstance: ModalController | null = null
 let previousFocusedElement: HTMLElement | null = null
@@ -48,10 +50,48 @@ const backdropBehavior = computed(() => (props.closeOnBackdrop ? null : 'static'
 const keyboardBehavior = computed(() => (props.closeOnEscape ? null : 'false'))
 
 function handleShown() {
+  const first =
+    modalRef.value?.querySelector<HTMLElement>('[autofocus]:not(:disabled)') ??
+    modalRef.value?.querySelector<HTMLElement>(
+      'input:not([type=hidden]):not(:disabled), textarea:not(:disabled), select:not(:disabled)',
+    ) ??
+    modalRef.value?.querySelector<HTMLElement>('button:not(:disabled)')
+  first?.focus()
   emit('shown')
 }
 
-function handleHide() {
+function handleKeydown(event: KeyboardEvent) {
+  if (event.key !== 'Tab' || !modalRef.value) return
+  const focusable = Array.from(
+    modalRef.value.querySelectorAll<HTMLElement>(
+      'a[href], button:not(:disabled), input:not([type=hidden]):not(:disabled), textarea:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])',
+    ),
+  ).filter((element) => element.getClientRects().length && !element.closest('[inert]'))
+  const first = focusable[0],
+    last = focusable[focusable.length - 1]
+  if (!first) {
+    event.preventDefault()
+    modalRef.value.focus()
+    return
+  }
+  if (
+    event.shiftKey &&
+    (document.activeElement === first || document.activeElement === modalRef.value)
+  ) {
+    event.preventDefault()
+    last?.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
+
+function handleHide(event: Event) {
+  if (props.modelValue && props.beforeClose && !props.beforeClose()) {
+    event.preventDefault()
+    emit('update:modelValue', true)
+    return
+  }
   if (!modalRef.value) return
 
   const activeElement = document.activeElement
@@ -74,11 +114,14 @@ onMounted(() => {
   if (!modalRef.value) return
 
   modalInstance = new Modal(modalRef.value) as unknown as ModalController
+  modalRef.value.addEventListener('keydown', handleKeydown)
   modalRef.value.addEventListener('shown.bs.modal', handleShown)
   modalRef.value.addEventListener('hide.bs.modal', handleHide)
   modalRef.value.addEventListener('hidden.bs.modal', handleHidden)
 
   if (props.modelValue) {
+    previousFocusedElement =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
     modalInstance.show()
   }
 })
@@ -101,6 +144,7 @@ watch(
 onBeforeUnmount(() => {
   if (!modalRef.value) return
 
+  modalRef.value.removeEventListener('keydown', handleKeydown)
   modalRef.value.removeEventListener('shown.bs.modal', handleShown)
   modalRef.value.removeEventListener('hide.bs.modal', handleHide)
   modalRef.value.removeEventListener('hidden.bs.modal', handleHidden)
@@ -114,6 +158,8 @@ onBeforeUnmount(() => {
     ref="modalRef"
     class="modal fade"
     tabindex="-1"
+    role="dialog"
+    :aria-labelledby="titleId"
     aria-hidden="true"
     :data-bs-backdrop="backdropBehavior"
     :data-bs-keyboard="keyboardBehavior"
@@ -122,7 +168,7 @@ onBeforeUnmount(() => {
       <div class="modal-content">
         <div class="modal-header bg-dark text-white">
           <slot name="header">
-            <h5 class="modal-title">{{ title }}</h5>
+            <h2 :id="titleId" class="modal-title h5">{{ title }}</h2>
             <button
               v-if="props.closeButton"
               type="button"

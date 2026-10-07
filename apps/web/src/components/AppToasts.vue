@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useToastsStore } from '@/stores/toasts'
 
+const { t: translate } = useI18n()
 const toasts = useToastsStore()
 const { items } = storeToRefs(toasts)
 </script>
@@ -13,14 +15,14 @@ const { items } = storeToRefs(toasts)
       :key="t.id"
       class="alert mb-2 pe-auto"
       :class="`alert-${t.variant}`"
-      role="alert"
+:role="t.variant === 'danger' ? 'alert' : 'status'"
     >
       <div class="d-flex justify-content-between align-items-start gap-3">
         <div class="flex-grow-1">{{ t.message }}</div>
         <button
           type="button"
           class="btn-close"
-          aria-label="Close"
+          :aria-label="translate('common.close')"
           @click="toasts.remove(t.id)"
         ></button>
       </div>

@@ -1,213 +1,189 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { GiftSuggestionDto, ParticipantDto } from '@kado/shared'
-import BaseModal from '@/components/BaseModal.vue'
-import WishlistSuggestionItem from '@/components/WishlistSuggestionItem.vue'
-import Draggable from 'vuedraggable'
-
+import {
+  updateParticipantInputSchema,
+  type ParticipantDto,
+  type UpdateParticipantInputDto,
+} from '@kado/shared'
+import BaseModal from './BaseModal.vue'
+import WishlistEditor from './WishlistEditor.vue'
+import ConflictReview from './ConflictReview.vue'
+import { useWishlist, serializeWishlist } from '@/composables/useWishlist'
+import { clone, equal, useConflict, type FormValues } from '@/composables/useConflict'
+import { confirmDiscard, useDraftGuard } from '@/composables/useDraftGuard'
 const props = defineProps<{
   modelValue: boolean
   identityLocked?: boolean
   suggestionsLocked?: boolean
   participant: ParticipantDto | null
+  isSubmitting?: boolean
+  suspended?: boolean
+  saveError?: string | null
+  conflictVersion?: ParticipantDto | null
+  fieldErrors?: Record<string, string[]>
 }>()
-
 const emit = defineEmits<{
-  (event: 'update:modelValue', value: boolean): void
-  (
-    event: 'submit',
-    payload: {
-      name: string
-      email: string
-      wishlist: GiftSuggestionDto[]
-      note: string
-    },
-  ): void
+  'update:modelValue': [value: boolean]
+  submit: [payload: UpdateParticipantInputDto]
+  dirty: [value: boolean]
 }>()
-
 const { t } = useI18n()
-
-const name = ref('')
-const email = ref('')
-const note = ref('')
-type EditableSuggestion = GiftSuggestionDto & { _clientId: string }
-
-let clientIdCounter = 0
-
-function generateClientId(): string {
-  const c = globalThis.crypto
-  if (c?.randomUUID) {
-    return c.randomUUID()
-  }
-
-  if (c?.getRandomValues) {
-    const bytes = new Uint8Array(16)
-    c.getRandomValues(bytes)
-    bytes[6] = (bytes[6]! & 0x0f) | 0x40
-    bytes[8] = (bytes[8]! & 0x3f) | 0x80
-    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
-    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
-  }
-
-  clientIdCounter += 1
-  return `cid-${Date.now().toString(36)}-${clientIdCounter.toString(36)}`
-}
-
-function withClientId(suggestion: GiftSuggestionDto): EditableSuggestion {
+const name = ref(''),
+  email = ref(''),
+  note = ref('')
+const { wishlist, hydrate } = useWishlist()
+const baselineVersion = ref('')
+const conflict = useConflict()
+const { remote, fields, choices, ready } = conflict
+function values(): FormValues {
   return {
-    ...suggestion,
-    _clientId: generateClientId(),
-  }
-}
-
-const wishlist = ref<EditableSuggestion[]>([])
-
-function isValidUrl(value?: string | null) {
-  if (!value) return true
-  try {
-    const parsed = new URL(value)
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
-  } catch {
-    return false
-  }
-}
-
-function isValidSuggestion(suggestion: GiftSuggestionDto) {
-  const titleOk = !!suggestion?.title && suggestion.title.trim().length > 0
-  const imgOk = isValidUrl(suggestion?.imageUrl)
-  const linkOk = isValidUrl(suggestion?.linkUrl)
-  return titleOk && imgOk && linkOk
-}
-
-const isListModeValid = computed(() => {
-  if (!wishlist.value || wishlist.value.length === 0) return true
-  return wishlist.value.every(isValidSuggestion)
-})
-
-const isFormValid = computed(() => {
-  const nameOk = name.value.trim().length > 0
-  return nameOk && isListModeValid.value
-})
-
-function syncFromParticipant() {
-  name.value = props.participant?.name || ''
-  email.value = props.participant?.email || ''
-  note.value = props.participant?.note || ''
-  wishlist.value = (props.participant?.wishlist || []).map(withClientId)
-}
-
-watch(
-  () => [props.modelValue, props.participant] as const,
-  ([isOpen]) => {
-    if (!isOpen) return
-    syncFromParticipant()
-  },
-)
-
-function handleSubmit() {
-  if (!isFormValid.value || props.suggestionsLocked) return
-
-  emit('submit', {
     name: name.value,
     email: email.value,
-    wishlist: wishlist.value.map((suggestion) => ({
-      title: suggestion.title,
-      imageUrl: suggestion.imageUrl,
-      linkUrl: suggestion.linkUrl,
-      icon: suggestion.icon,
-    })),
     note: note.value,
-  })
+    wishlist: serializeWishlist(wishlist.value),
+  }
+}
+function participantValues(p: ParticipantDto): FormValues {
+  return { name: p.name, email: p.email ?? '', note: p.note ?? '', wishlist: p.wishlist ?? [] }
+}
+function setValues(value: FormValues) {
+  name.value = String(value.name ?? '')
+  email.value = String(value.email ?? '')
+  note.value = String(value.note ?? '')
+  hydrate((value.wishlist ?? []) as NonNullable<ParticipantDto['wishlist']>)
+}
+const dirty = computed(() => props.modelValue && !equal(values(), conflict.baseline.value))
+useDraftGuard(dirty)
+watch(dirty, (value) => emit('dirty', value))
+function beforeClose() {
+  return props.suspended || (!props.isSubmitting && (!dirty.value || confirmDiscard()))
+}
+function payload(): UpdateParticipantInputDto {
+  return {
+    name: name.value,
+    email: email.value || undefined,
+    note: note.value || undefined,
+    wishlist: wishlist.value.length ? serializeWishlist(wishlist.value) : undefined,
+    expectedUpdatedAt: baselineVersion.value,
+  }
+}
+const valid = computed(() => updateParticipantInputSchema.safeParse(payload()).success)
+watch(
+  () => props.modelValue,
+  (open) => {
+    if (!open || !props.participant) return
+    const current = participantValues(props.participant)
+    setValues(current)
+    conflict.baseline.value = clone(current)
+    baselineVersion.value = props.participant.updatedAt
+    remote.value = null
+  },
+)
+watch(
+  () => props.conflictVersion,
+  (current) => {
+    if (!current || !props.modelValue) return
+    const locked = props.identityLocked ? ['name', 'email'] : []
+    if (props.suggestionsLocked) locked.push('note', 'wishlist')
+    conflict.open(values(), participantValues(current), locked)
+  },
+)
+function applyConflict() {
+  const value = conflict.apply()
+  if (value && props.conflictVersion) {
+    setValues(value)
+    baselineVersion.value = props.conflictVersion.updatedAt
+  }
+}
+function submit() {
+  if (!props.isSubmitting && !props.suggestionsLocked && valid.value && !remote.value)
+    emit('submit', payload())
+}
+function visibility(value: boolean) {
+  if (!props.suspended) emit('update:modelValue', value)
 }
 </script>
-
 <template>
   <BaseModal
-    :model-value="modelValue"
+    :model-value="modelValue && !suspended"
+    :before-close="beforeClose"
     :title="t('exchangeDetail.editModal.title')"
     size="lg"
-    @update:model-value="(value) => emit('update:modelValue', value)"
+    @update:model-value="visibility"
   >
-    <form id="editParticipantForm" @submit.prevent="handleSubmit">
+    <p v-if="saveError" class="alert alert-danger" role="alert">{{ saveError }}</p>
+    <p v-if="dirty" class="small text-body-secondary">{{ t('p2.unsaved') }}</p>
+    <ConflictReview
+      v-if="remote"
+      :fields="fields"
+      :choices="choices"
+      :ready="ready"
+      :current="remote"
+      @choice="(key, choice) => (choices[key] = choice)"
+      @apply="applyConflict"
+    />
+    <form id="editParticipantForm" @submit.prevent="submit">
       <div class="mb-3">
         <label for="editParticipantName" class="form-label">{{
           t('exchangeDetail.addModal.name')
-        }}</label>
-        <input
-          v-model="name"
-          type="text"
-          class="form-control"
+        }}</label
+        ><input
           id="editParticipantName"
-          :disabled="identityLocked"
+          v-model="name"
+          class="form-control"
+          maxlength="150"
+          :readonly="identityLocked"
+          :disabled="isSubmitting || !!remote"
+          :aria-invalid="!!fieldErrors?.name || undefined"
+          :aria-describedby="fieldErrors?.name ? 'edit-name-error' : undefined"
           required
         />
+        <p v-if="fieldErrors?.name" id="edit-name-error" class="text-danger">
+          {{ t('p2.invalidField') }}
+        </p>
       </div>
-      <!-- <div class="mb-3">
-        <label for="editParticipantEmail" class="form-label">{{
-          t('exchangeDetail.addModal.email')
-        }}</label>
-        <input v-model="email" type="email" class="form-control" id="editParticipantEmail" :disabled="identityLocked" />
-      </div> -->
-
       <div class="mb-3">
         <label for="editParticipantNote" class="form-label">{{
           t('exchangeDetail.addModal.note')
-        }}</label>
-        <textarea
+        }}</label
+        ><textarea
+          id="editParticipantNote"
           v-model="note"
           class="form-control"
-          id="editParticipantNote"
-          :disabled="suggestionsLocked"
+          maxlength="2000"
+          :readonly="suggestionsLocked"
+          :disabled="isSubmitting || !!remote"
+          :aria-invalid="!!fieldErrors?.note || undefined"
+          :aria-describedby="fieldErrors?.note ? 'edit-note-error' : undefined"
         ></textarea>
+        <p v-if="fieldErrors?.note" id="edit-note-error" class="text-danger">
+          {{ t('p2.invalidField') }}
+        </p>
       </div>
-
-      <div class="mb-3">
-        <label class="form-label mb-0">{{ t('exchangeDetail.addModal.wishlist') }}</label>
-        <div class="mt-2">
-          <Draggable
-            :disabled="suggestionsLocked"
-            v-model="wishlist"
-            handle=".drag-handle"
-            :animation="200"
-            item-key="_clientId"
-          >
-            <template #item="{ element: suggestion, index: idx }">
-              <WishlistSuggestionItem
-                :modelValue="suggestion"
-                @update:modelValue="
-                  (value) => wishlist.splice(idx, 1, { ...value, _clientId: suggestion._clientId })
-                "
-                :mode="suggestionsLocked ? 'detail' : 'edit'"
-                :removable="!suggestionsLocked"
-                :showHandle="!suggestionsLocked"
-                :asListItem="true"
-                @remove="wishlist.splice(idx, 1)"
-              />
-            </template>
-          </Draggable>
-          <button
-            type="button"
-            class="btn btn-sm btn-outline-primary"
-            :disabled="suggestionsLocked"
-            @click="wishlist.push(withClientId({ title: '' }))"
-          >
-            <i class="bi bi-plus-lg"></i> Ajouter une suggestion
-          </button>
-        </div>
-      </div>
+      <h3 class="h6">{{ t('exchangeDetail.addModal.wishlist') }}</h3>
+      <WishlistEditor
+        v-model="wishlist"
+        :locked="suggestionsLocked"
+        :busy="isSubmitting || !!remote"
+      />
+      <p v-if="fieldErrors?.wishlist" class="text-danger">{{ t('p2.invalidField') }}</p>
     </form>
-
     <template #footer>
       <button
         type="submit"
         class="btn btn-primary order-2"
         form="editParticipantForm"
-        :disabled="suggestionsLocked || !isFormValid"
+        :disabled="suggestionsLocked || !valid || isSubmitting || !!remote"
       >
         {{ t('exchangeDetail.editModal.submit') }}
       </button>
-      <button type="button" class="btn btn-link order-1" data-bs-dismiss="modal">
+      <button
+        type="button"
+        class="btn btn-link order-1"
+        data-bs-dismiss="modal"
+        :disabled="isSubmitting"
+      >
         {{ t('actions.cancel') }}
       </button>
     </template>

@@ -2,7 +2,7 @@
   "name": "kado",
   "version": "0.0.0",
   "private": true,
-  "description": "\u00c9changeons des cadeaux entre amis !",
+  "description": "Échangeons des cadeaux entre amis !",
   "scripts": {
     "dev": "pnpm run -r --parallel dev",
     "dev:web": "pnpm --dir apps/web dev",
@@ -21,13 +21,17 @@
     "restore:db:prod": "bash deploy/scripts/restore-db.sh",
     "release:bundle": "bash deploy/scripts/package-release.sh",
     "release:smoke": "node deploy/scripts/smoke.mjs",
-    "test:operations": "node deploy/scripts/test-operations.mjs"
+    "test:operations": "node deploy/scripts/test-operations.mjs",
+    "test:web": "pnpm --dir apps/web test",
+    "test:e2e": "node deploy/scripts/e2e.mjs",
+    "lint:check": "pnpm --dir apps/web exec eslint . && pnpm --dir apps/web exec oxlint ."
   },
   "keywords": [],
-  "author": "Dave L\u00e9tourneau <daveletourneau@gmail.com>",
-  "license": "ISC",
+  "author": "Dave Létourneau <daveletourneau@gmail.com>",
+  "license": "AGPL-3.0-only",
   "packageManager": "pnpm@10.33.2+sha512.a90faf6feeab71ad6c6e57f94e0fe1a12f5dcc22cd754db40ae9593eb6a3e0b6b12e3540218bb37ae083404b1f2ce6db2a4121e979829b4aff94b99f49da1cf8",
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.63.0"
   }
 }

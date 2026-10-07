@@ -3,6 +3,9 @@ import { computed, ref, watch, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import type { ExchangeDto } from '@kado/shared'
+import { copyText } from '@/composables/useClipboard'
+import { computed as draftComputed } from 'vue'
+import { useDraftGuard, confirmDiscard } from '@/composables/useDraftGuard'
 import BaseModal from '@/components/BaseModal.vue'
 import { useExchangesStore } from '@/stores/exchanges'
 import { useToastsStore } from '@/stores/toasts'
@@ -88,48 +91,20 @@ function startCountdown() {
   }, 1000)
 }
 
-function legacyCopy(text: string) {
-  const textarea = document.createElement('textarea')
-  textarea.value = text
-  textarea.setAttribute('readonly', '')
-  textarea.style.position = 'fixed'
-  textarea.style.left = '-9999px'
-  document.body.appendChild(textarea)
-  textarea.select()
-  textarea.setSelectionRange(0, textarea.value.length)
-
-  let copied = false
-  try {
-    copied = document.execCommand('copy')
-  } finally {
-    document.body.removeChild(textarea)
-  }
-
-  return copied
+const dirty = draftComputed(
+  () =>
+    modalState.value === ModalState.FORM &&
+    Boolean(name.value || organizerName.value || adminPassword.value),
+)
+useDraftGuard(dirty)
+function beforeClose() {
+  return !exchangesStore.isLoading && (!dirty.value || confirmDiscard())
 }
-
 async function copyAdminLink() {
-  if (!adminLink.value) {
-    toasts.error(t('exchangeDetail.copyFailed'))
-    return
-  }
-
-  try {
-    if (window.isSecureContext && navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(adminLink.value)
-      toasts.success(t('exchangeDetail.linkCopied'))
-      return
-    }
-  } catch {
-    // Ignore and try legacy copy below.
-  }
-
-  if (legacyCopy(adminLink.value)) {
-    toasts.success(t('exchangeDetail.linkCopied'))
-    return
-  }
-
-  toasts.error(t('exchangeDetail.copyFailed'))
+  const copied = await copyText(adminLink.value)
+  toasts[copied ? 'success' : 'error'](
+    t(copied ? 'exchangeDetail.linkCopied' : 'exchangeDetail.copyFailed'),
+  )
 }
 
 watch(
@@ -149,6 +124,7 @@ onUnmounted(() => {
 })
 
 async function handleCreate() {
+  if (exchangesStore.isLoading) return
   exchangesStore.fieldErrors = null
   exchangesStore.formErrors = null
 
@@ -205,6 +181,7 @@ async function handleHidden() {
 <template>
   <BaseModal
     :model-value="modelValue"
+    :before-close="beforeClose"
     size="lg"
     :closeOnBackdrop="false"
     :closeOnEscape="false"
@@ -226,8 +203,18 @@ async function handleHidden() {
         <label for="exchangeName" class="form-label">
           {{ t('exchanges.createModal.name') }}
         </label>
-        <input v-model="name" type="text" class="form-control" id="exchangeName" required />
-        <div v-if="fieldErrors.name" class="text-danger small">{{ fieldErrors.name[0] }}</div>
+        <input
+          v-model="name"
+          type="text"
+          class="form-control"
+          id="exchangeName"
+          :aria-invalid="!!fieldErrors.name || undefined"
+          :aria-describedby="fieldErrors.name ? 'create-name-error' : undefined"
+          required
+        />
+        <div v-if="fieldErrors.name" id="create-name-error" class="text-danger small">
+          {{ t('p2.invalidField') }}
+        </div>
       </div>
 
       <div class="row">
@@ -240,10 +227,16 @@ async function handleHidden() {
             type="text"
             class="form-control"
             id="organizerName"
+            :aria-invalid="!!fieldErrors.organizerName || undefined"
+            :aria-describedby="fieldErrors.organizerName ? 'create-organizerName-error' : undefined"
             required
           />
-          <div v-if="fieldErrors.organizerName" class="text-danger small">
-            {{ fieldErrors.organizerName[0] }}
+          <div
+            v-if="fieldErrors.organizerName"
+            id="create-organizerName-error"
+            class="text-danger small"
+          >
+            {{ t('p2.invalidField') }}
           </div>
         </div>
         <div class="col-lg-6">
@@ -256,6 +249,10 @@ async function handleHidden() {
               type="password"
               class="form-control"
               id="adminPassword"
+              :aria-invalid="!!fieldErrors.adminPassword || undefined"
+              :aria-describedby="
+                fieldErrors.adminPassword ? 'create-adminPassword-error' : undefined
+              "
               required
             />
             <div class="d-none">
@@ -268,8 +265,12 @@ async function handleHidden() {
                 <li>{{ t('exchanges.createModal.adminPasswordRuleStoredSafely') }}</li>
               </ul>
             </div>
-            <div v-if="fieldErrors.adminPassword" class="text-danger small">
-              {{ fieldErrors.adminPassword[0] }}
+            <div
+              v-if="fieldErrors.adminPassword"
+              id="create-adminPassword-error"
+              class="text-danger small"
+            >
+              {{ t('p2.invalidField') }}
             </div>
           </div>
         </div>
@@ -298,7 +299,7 @@ async function handleHidden() {
       </div>
 
       <div v-if="formErrors.length" class="text-danger mt-2">
-        <div v-for="err in formErrors" :key="err">{{ err }}</div>
+        <div v-for="err in formErrors" :key="err">{{ t('p2.invalidField') }}</div>
       </div>
     </form>
 
@@ -339,7 +340,12 @@ async function handleHidden() {
 
     <template #footer>
       <template v-if="modalState === ModalState.FORM">
-        <button type="submit" class="btn btn-primary order-2" form="createExchangeForm">
+        <button
+          type="submit"
+          class="btn btn-primary order-2"
+          form="createExchangeForm"
+          :disabled="exchangesStore.isLoading"
+        >
           {{ t('exchanges.createModal.submit') }}
         </button>
         <button type="button" class="btn btn-link order-1" data-bs-dismiss="modal">

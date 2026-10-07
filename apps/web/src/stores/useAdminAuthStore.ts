@@ -1,4 +1,5 @@
-import { ref } from 'vue'
+import { ref, onScopeDispose } from 'vue'
+import { readStorage, writeStorage } from '@/composables/useStorage'
 import { defineStore } from 'pinia'
 
 const STORAGE_KEY = 'kado.adminSessions'
@@ -8,7 +9,7 @@ type AdminSessions = Record<string, string>
 function loadSessionsFromStorage(): AdminSessions {
   if (typeof window === 'undefined') return {}
 
-  const raw = window.localStorage.getItem(STORAGE_KEY)
+  const raw = readStorage(STORAGE_KEY)
   if (!raw) return {}
 
   try {
@@ -34,11 +35,16 @@ function loadSessionsFromStorage(): AdminSessions {
 
 function saveSessionsToStorage(sessions: AdminSessions) {
   if (typeof window === 'undefined') return
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions))
+  writeStorage(STORAGE_KEY, JSON.stringify(sessions))
 }
 
 export const useAdminAuthStore = defineStore('admin-auth', () => {
   const sessions = ref<AdminSessions>(loadSessionsFromStorage())
+  const synchronize = (event: StorageEvent) => {
+    if (event.key === STORAGE_KEY || event.key === null) sessions.value = loadSessionsFromStorage()
+  }
+  window.addEventListener('storage', synchronize)
+  onScopeDispose(() => window.removeEventListener('storage', synchronize))
 
   function getSessionToken(exchangeId: string): string | null {
     return sessions.value[exchangeId] ?? null

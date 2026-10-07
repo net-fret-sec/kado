@@ -1,7 +1,7 @@
 import { localAdminToolsEnabled } from '@/local-admin-tools'
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { ExchangeDto } from '@kado/shared'
+import type { ExchangeDto, UpdateExchangeInputDto, CreateExchangeInputDto } from '@kado/shared'
 import { useApi } from '@/composables/useApi'
 import { useToastsStore } from '@/stores/toasts'
 import { getApiErrorMessage } from '@/composables/useApiErrorMessage'
@@ -96,18 +96,7 @@ export const useExchangesStore = defineStore('exchanges', () => {
     fieldErrors,
     formErrors,
     fetchExchanges,
-    async createExchange(newExchange: {
-      name: string
-      description?: string
-      organizerName: string
-      organizerParticipates?: boolean
-      noMutualAssignments?: boolean
-      adminPassword: string
-      eventDate?: string
-      budget?: number
-      minWishlistSuggestions?: number
-      lockSuggestionsAfterDraw?: boolean
-    }) {
+    async createExchange(newExchange: CreateExchangeInputDto) {
       isLoading.value = true
       error.value = null
       fieldErrors.value = null
@@ -133,30 +122,26 @@ export const useExchangesStore = defineStore('exchanges', () => {
         if (!error.value) {
           error.value = getApiErrorMessage(err)
         }
-        toasts.error(error.value)
         throw err
       } finally {
         isLoading.value = false
       }
     },
 
-    async updateExchange(
-      id: string,
-      updatedFields: Partial<ExchangeDto> & { expectedUpdatedAt?: string },
-    ) {
+    async updateExchange(id: string, updatedFields: UpdateExchangeInputDto) {
       isLoading.value = true
       error.value = null
       try {
-        const updated = await api.put<
-          ExchangeDto,
-          Partial<ExchangeDto> & { expectedUpdatedAt?: string }
-        >(`/api/exchanges/${id}`, updatedFields, getAdminRequestInit(id))
+        const updated = await api.put<ExchangeDto, UpdateExchangeInputDto>(
+          `/api/exchanges/${id}`,
+          updatedFields,
+          getAdminRequestInit(id),
+        )
         const idx = exchanges.value.findIndex((e) => e.id === id)
         if (idx !== -1) exchanges.value[idx] = updated
         return updated
       } catch (err) {
         error.value = getApiErrorMessage(err)
-        toasts.error(error.value)
         throw err
       } finally {
         isLoading.value = false
@@ -171,7 +156,6 @@ export const useExchangesStore = defineStore('exchanges', () => {
         exchanges.value = exchanges.value.filter((e) => e.id !== id)
       } catch (err) {
         error.value = getApiErrorMessage(err)
-        toasts.error(error.value)
         throw err
       } finally {
         isLoading.value = false

@@ -14,22 +14,27 @@
           </button>
         </div>
         <div class="col-12 col-md-5">
-          <label class="form-label">{{ t('participant.wishlistItem.titleLabel') }}</label>
+          <label :for="`${uniqueId}-title`" class="form-label">{{ t('participant.wishlistItem.titleLabel') }}</label>
           <input
+            :id="`${uniqueId}-title`"
+            :disabled="disabled"
+            maxlength="200"
             :value="modelValue?.title || ''"
             @input="(e) => onChange('title', (e.target as HTMLInputElement).value)"
             type="text"
             class="form-control"
             :class="{ 'is-invalid': !!titleError }"
-            aria-describedby="titleHelp"
+            :aria-describedby="titleError ? `${uniqueId}-title-error` : undefined"
             :aria-invalid="!!titleError || undefined"
             required
           />
-          <div v-if="titleError" class="invalid-feedback">{{ titleError }}</div>
+          <div :id="`${uniqueId}-title-error`" v-if="titleError" class="invalid-feedback">{{ titleError }}</div>
         </div>
         <div class="col-12 col-md-3">
-          <label class="form-label">{{ t('participant.wishlistItem.iconLabel') }}</label>
+          <label :for="`${uniqueId}-icon`" class="form-label">{{ t('participant.wishlistItem.iconLabel') }}</label>
           <IconPicker
+            :id="`${uniqueId}-icon`"
+            :disabled="disabled"
             :modelValue="modelValue?.icon"
             @update:modelValue="(v) => onChange('icon', v)"
             :placeholder="t('participant.wishlistItem.iconPlaceholder')"
@@ -39,8 +44,12 @@
           </div>
         </div>
         <div class="col-12 col-md-4">
-          <label class="form-label">{{ t('participant.wishlistItem.imageUrlLabel') }}</label>
+          <label :for="`${uniqueId}-imageUrl`" class="form-label">{{ t('participant.wishlistItem.imageUrlLabel') }}</label>
           <input
+            :id="`${uniqueId}-imageUrl`"
+            :disabled="disabled"
+            maxlength="2048"
+            :aria-describedby="imageUrlError ? `${uniqueId}-imageUrl-error` : undefined"
             :value="modelValue?.imageUrl || ''"
             @input="(e) => onChange('imageUrl', (e.target as HTMLInputElement).value)"
             type="url"
@@ -49,11 +58,15 @@
             :placeholder="t('participant.wishlistItem.imageUrlPlaceholder')"
             :aria-invalid="!!imageUrlError || undefined"
           />
-          <div v-if="imageUrlError" class="invalid-feedback">{{ imageUrlError }}</div>
+          <div :id="`${uniqueId}-imageUrl-error`" v-if="imageUrlError" class="invalid-feedback">{{ imageUrlError }}</div>
         </div>
         <div class="col-12">
-          <label class="form-label">{{ t('participant.wishlistItem.linkLabel') }}</label>
+          <label :for="`${uniqueId}-linkUrl`" class="form-label">{{ t('participant.wishlistItem.linkLabel') }}</label>
           <input
+            :id="`${uniqueId}-linkUrl`"
+            :disabled="disabled"
+            maxlength="2048"
+            :aria-describedby="linkUrlError ? `${uniqueId}-linkUrl-error` : undefined"
             :value="modelValue?.linkUrl || ''"
             @input="(e) => onChange('linkUrl', (e.target as HTMLInputElement).value)"
             type="url"
@@ -62,10 +75,10 @@
             :placeholder="t('participant.wishlistItem.linkPlaceholder')"
             :aria-invalid="!!linkUrlError || undefined"
           />
-          <div v-if="linkUrlError" class="invalid-feedback">{{ linkUrlError }}</div>
+          <div :id="`${uniqueId}-linkUrl-error`" v-if="linkUrlError" class="invalid-feedback">{{ linkUrlError }}</div>
         </div>
         <div class="col-12 d-flex justify-content-end mt-2" v-if="removable">
-          <button type="button" class="btn btn-sm btn-outline-danger" @click="$emit('remove')">
+          <button type="button" :disabled="disabled" :aria-label="t('exchangeDetail.delete')" class="btn btn-sm btn-outline-danger" @click="$emit('remove')">
             <i class="bi bi-trash"></i>
           </button>
         </div>
@@ -107,8 +120,9 @@
 
 <script setup lang="ts">
 import { safeUrl } from '@/composables/useSafeUrl'
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { giftSuggestionSchema } from '@kado/shared'
 import IconPicker from '@/components/IconPicker.vue'
 
 export type Mode = 'edit' | 'detail' | 'list'
@@ -126,6 +140,7 @@ const props = defineProps<{
   removable?: boolean
   showHandle?: boolean
   asListItem?: boolean
+  disabled?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -135,6 +150,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
+const uniqueId = `suggestion-${useId()}`
 const wrapperClass = computed(() => (props.asListItem ? 'list-group-item' : ''))
 
 function onChange<K extends keyof Suggestion>(key: K, value: Suggestion[K] | undefined) {
@@ -146,29 +162,22 @@ function onChange<K extends keyof Suggestion>(key: K, value: Suggestion[K] | und
   emit('update:modelValue', next)
 }
 
-function isValidUrl(u?: string) {
-  if (!u) return true
-  try {
-    const parsed = new URL(u)
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
-  } catch {
-    return false
-  }
+function fieldValid(field: 'imageUrl' | 'linkUrl') {
+  return giftSuggestionSchema.shape[field].safeParse(props.modelValue[field]).success
 }
-
 const titleError = computed(() => {
   const title = props.modelValue?.title?.trim() || ''
-  return title.length === 0 ? t('participant.wishlistItem.titleRequired') : ''
+  return !giftSuggestionSchema.shape.title.safeParse(title).success ? t('participant.wishlistItem.titleRequired') : ''
 })
 
 const imageUrlError = computed(() =>
-  props.modelValue?.imageUrl && !isValidUrl(props.modelValue.imageUrl)
+  props.modelValue?.imageUrl && !fieldValid('imageUrl')
     ? t('participant.wishlistItem.imageUrlInvalid')
     : '',
 )
 
 const linkUrlError = computed(() =>
-  props.modelValue?.linkUrl && !isValidUrl(props.modelValue.linkUrl)
+  props.modelValue?.linkUrl && !fieldValid('linkUrl')
     ? t('participant.wishlistItem.linkUrlInvalid')
     : '',
 )

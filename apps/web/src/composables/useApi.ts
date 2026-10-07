@@ -1,82 +1,38 @@
-// TypeScript composable to centralize API calls
 const BASE = ((import.meta.env.VITE_API_BASE as string | undefined) ?? '').trim()
+export const REQUEST_TIMEOUT_MS = 15_000
 
 function buildUrl(path: string) {
-  if (path.startsWith('http://') || path.startsWith('https://')) return path
   const cleaned = path.startsWith('/') ? path : `/${path}`
-
   if (!BASE) return cleaned
-
-  // Avoid duplicating '/api' when both BASE and path include it.
-  if (BASE.endsWith('/api') && cleaned.startsWith('/api/')) {
-    return `${BASE}${cleaned.slice(4)}`
-  }
-
-  return `${BASE}${cleaned}`
-}
-
-type ErrorLike = {
-  error?: { message?: unknown; code?: unknown; details?: { code?: unknown } }
-  message?: unknown
-  code?: unknown
-  details?: { code?: unknown }
-}
-
-function extractMessage(data: unknown): string | undefined {
-  if (typeof data === 'string') return data
-  if (data && typeof data === 'object') {
-    const e = data as ErrorLike
-    if (typeof e.error?.message === 'string') return e.error.message as string
-    if (typeof e.message === 'string') return e.message as string
-  }
-  return undefined
-}
-
-function extractCode(data: unknown): string | undefined {
-  if (data && typeof data === 'object') {
-    const e = data as ErrorLike
-    if (typeof e.error?.code === 'string') return e.error.code as string
-    if (typeof e.error?.details?.code === 'string') return e.error.details.code as string
-    if (typeof e.code === 'string') return e.code as string
-    if (typeof e.details?.code === 'string') return e.details.code as string
-  }
-  return undefined
+  return BASE.endsWith('/api') && cleaned.startsWith('/api/')
+    ? `${BASE}${cleaned.slice(4)}`
+    : `${BASE}${cleaned}`
 }
 
 export class HttpError extends Error {
-  status: number
-  data: unknown
-  code?: string
-  constructor(message: string, status: number, data: unknown, code?: string) {
+  constructor(
+    message: string,
+    public status: number,
+    public data: unknown,
+    public code?: string,
+    public retryAfterMs?: number,
+    public outcomeUncertain = false,
+  ) {
     super(message)
     this.name = 'HttpError'
-    this.status = status
-    this.data = data
-    this.code = code
   }
 }
 
-async function parseResponse<T = unknown>(response: Response): Promise<T> {
-  const text = await response.text()
-  let data: unknown = null
-  try {
-    data = text ? JSON.parse(text) : null
-  } catch {
-    // response not JSON
-    data = text
-  }
-
-  if (!response.ok) {
-    const msg = extractMessage(data) ?? response.statusText
-    const code = extractCode(data)
-    throw new HttpError(msg, response.status, data, code)
-  }
-
-  return data as T
+export function parseRetryAfter(value: string | null, now = Date.now()): number | undefined {
+  if (!value?.trim()) return undefined
+  const seconds = Number(value)
+  if (Number.isFinite(seconds)) return seconds >= 0 ? seconds * 1000 : undefined
+  const date = Date.parse(value)
+  return Number.isFinite(date) ? Math.max(0, date - now) : undefined
 }
 
-function normalizeHeaders(input?: HeadersInit): Headers {
-  return new Headers(input)
+export function isRequestAborted(error: unknown) {
+  return error instanceof HttpError && error.code === 'REQUEST_ABORTED'
 }
 
 async function request<T = unknown, B = unknown>(
@@ -85,32 +41,63 @@ async function request<T = unknown, B = unknown>(
   body?: B,
   init?: RequestInit,
 ): Promise<T> {
-  const url = buildUrl(path)
-  const headers = normalizeHeaders(init?.headers)
+  const controller = new AbortController()
+  let timedOut = false
+  const abort = () => controller.abort()
+  init?.signal?.addEventListener('abort', abort, { once: true })
+  if (init?.signal?.aborted) abort()
+  const timer = setTimeout(() => {
+    timedOut = true
+    controller.abort()
+  }, REQUEST_TIMEOUT_MS)
+  const headers = new Headers(init?.headers)
   headers.set('Accept', 'application/json')
-
   const opts: RequestInit = {
-    method,
     ...init,
+    method,
     headers,
+    signal: controller.signal,
+    cache: 'no-store',
   }
-
-  if (body !== undefined && !(body instanceof FormData)) {
-    if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
+  if (body instanceof FormData) opts.body = body
+  else if (body !== undefined) {
+    headers.set('Content-Type', 'application/json')
     opts.body = typeof body === 'string' ? body : JSON.stringify(body)
-  } else if (body instanceof FormData) {
-    opts.body = body
   }
-
-  let response: Response
-
   try {
-    response = await fetch(url, opts)
-  } catch {
-    throw new HttpError('API unavailable.', 0, null, 'API_UNAVAILABLE')
+    const response = await fetch(buildUrl(path), opts)
+    const text = await response.text()
+    let data: unknown = null
+    try {
+      data = text ? JSON.parse(text) : null
+    } catch {
+      data = text
+    }
+    if (!response.ok) {
+      const payload = data as {
+        error?: { message?: string; code?: string; details?: { code?: string } }
+      } | null
+      throw new HttpError(
+        payload?.error?.message ?? response.statusText,
+        response.status,
+        data,
+        payload?.error?.details?.code ?? payload?.error?.code,
+        parseRetryAfter(response.headers.get('Retry-After')),
+      )
+    }
+    return data as T
+  } catch (error) {
+    if (error instanceof HttpError) throw error
+    const code = timedOut
+      ? 'API_TIMEOUT'
+      : controller.signal.aborted
+        ? 'REQUEST_ABORTED'
+        : 'API_UNAVAILABLE'
+    throw new HttpError('API request interrupted.', 0, null, code, undefined, method !== 'GET')
+  } finally {
+    clearTimeout(timer)
+    init?.signal?.removeEventListener('abort', abort)
   }
-
-  return await parseResponse<T>(response)
 }
 
 export function useApi() {

@@ -1,31 +1,16 @@
 <script setup lang="ts">
 import { formatCivilDate } from '@/composables/useCivilDate'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useApi } from '@/composables/useApi'
+import { useRefresh } from '@/composables/useRefresh'
+import type { ExchangePublicViewDto } from '@kado/shared'
+import { useApi, isRequestAborted, HttpError } from '@/composables/useApi'
 import { getApiErrorMessage } from '@/composables/useApiErrorMessage'
 import { useI18n } from 'vue-i18n'
 
-type ExchangePublicViewDto = {
-  id: string
-  name: string
-  description?: string
-  organizerName?: string
-  isDrawn: boolean
-  isArchived: boolean
-  eventDate?: string
-  budget?: number
-  minWishlistSuggestions?: number
-  lockSuggestionsAfterDraw?: boolean
-  noMutualAssignments?: boolean
-  drawAt?: string
-  participantsCount: number
-  updatedAt: string
-}
-
 const route = useRoute()
 const api = useApi()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const isLoading = ref(true)
 const error = ref<string | null>(null)
@@ -48,40 +33,74 @@ const statusLabel = computed(() => {
 function formatDate(value?: string) {
   if (!value) return '-'
   const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString()
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString(locale.value)
 }
 
 function formatBudget() {
   if (!exchange.value || exchange.value.budget == null) return '-'
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(locale.value, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(exchange.value.budget)
 }
 
-async function fetchPublicExchange() {
-  isLoading.value = true
-  error.value = null
-
+const enabled = ref(true)
+const refreshState = useRefresh(async (signal) => {
+  const id = String(route.params.id)
   try {
-    const id = route.params.id as string
-    exchange.value = await api.get<ExchangePublicViewDto>(`/api/public/exchanges/${id}`)
-  } catch (err) {
-    error.value = getApiErrorMessage(err)
+    const current = await api.get<ExchangePublicViewDto>(`/api/public/exchanges/${id}`, { signal })
+    if (id === route.params.id && !signal.aborted) {
+      exchange.value = current
+      error.value = null
+    }
+  } catch (cause) {
+    if (id !== route.params.id || signal.aborted || isRequestAborted(cause)) return
+    if (cause instanceof HttpError && cause.status === 404) exchange.value = null
+    error.value = getApiErrorMessage(cause)
+    throw cause
   } finally {
-    isLoading.value = false
+    if (id === route.params.id) isLoading.value = false
+  }
+}, enabled)
+const busy = refreshState.busy,
+  paused = refreshState.paused
+async function fetchPublicExchange() {
+  try {
+    await refreshState.refresh()
+  } catch {
+    /* Inline recovery state. */
   }
 }
-
 onMounted(fetchPublicExchange)
+watch(
+  () => route.params.id,
+  () => {
+    refreshState.cancel(true)
+    exchange.value = null
+    isLoading.value = true
+    error.value = null
+    void fetchPublicExchange()
+  },
+)
 </script>
 
 <template>
   <section id="exchange-public-view">
-    <div v-if="isLoading">{{ t('exchangePublic.loading') }}</div>
-    <div v-else-if="error" class="alert alert-danger">{{ error }}</div>
+    <button
+      type="button"
+      class="btn btn-outline-secondary mb-3"
+      :disabled="busy"
+      @click="fetchPublicExchange"
+    >
+      {{ t('p2.refresh') }}
+    </button>
+    <p v-if="paused" role="status" class="small text-body-secondary">{{ t('p2.refreshPaused') }}</p>
+    <div v-if="isLoading" role="status">{{ t('exchangePublic.loading') }}</div>
+    <div v-if="error" class="alert alert-danger" role="alert">
+      {{ error }} <router-link to="/">{{ t('p2.home') }}</router-link>
+    </div>
 
-    <article v-else-if="exchange" class="card border shadow-sm">
+    <article v-if="exchange && !isLoading" class="card border shadow-sm">
       <div class="card-body">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
           <h1 class="h3 mb-0">{{ exchange.name }}</h1>

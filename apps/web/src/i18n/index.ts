@@ -1,3 +1,4 @@
+import { readStorage, writeStorage } from '@/composables/useStorage'
 import { createI18n } from 'vue-i18n'
 
 export const SUPPORT_LOCALES = ['fr-CA', 'en-CA'] as const
@@ -34,7 +35,7 @@ export function getBrowserLocale(): AppLocale {
 }
 
 export function getStoredLocale(): AppLocale | null {
-  const stored = localStorage.getItem('locale')
+  const stored = readStorage('locale')
 
   if (stored && isSupportedLocale(stored)) {
     return stored
@@ -65,7 +66,7 @@ export async function setLocale(locale: AppLocale): Promise<void> {
   }
 
   i18n.global.locale.value = locale
-  localStorage.setItem('locale', locale)
+  writeStorage('locale', locale)
   document.documentElement.lang = locale
 }
 

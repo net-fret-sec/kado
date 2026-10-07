@@ -389,3 +389,27 @@ main > * + * {
   outline-offset: 2px;
   box-shadow: var(--focus-ring-shadow);
 }
+
+.skip-link { position: fixed; top: .5rem; left: .5rem; transform: translateY(-200%); z-index: 2000; padding: .75rem; background: white; color: #111; }
+.skip-link:focus { transform: translateY(0); }
+#main-content { scroll-margin-top: 5rem; }
+.card, .modal-content, .input-group { min-width: 0; }
+.card-body, .conflict-value { overflow-wrap: anywhere; }
+.wishlist-controls .btn { min-width: 2.75rem; min-height: 2.75rem; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+
+// Keep the palette backgrounds, but use its legible text color for alert copy.
+.alert:not(.alert-dark) { --bs-alert-color: var(--text-primary); }
+
+.btn.btn-warning {
+  --bs-btn-color: #142f30;
+  --bs-btn-hover-color: #142f30;
+  --bs-btn-active-color: #142f30;
+  --bs-btn-disabled-color: #142f30;
+}
+
+// Restore Bootstrap row gutters across the shared disabled fieldset wrapper.
+.admin-actions-contents > section {
+  padding-inline: calc(var(--bs-gutter-x) * .5);
+  margin-block-start: var(--bs-gutter-y);
+}

@@ -26,7 +26,7 @@ Le monorepo PNPM contient trois briques:
 - Options d'échange incluant budget, date, organisateur, mot de passe admin et anti-réciprocité via `noMutualAssignments`.
 - Gestion des participants avec régénération de lien d'accès.
 - Gestion des exclusions entre participants depuis l'interface admin.
-- Pige déterministe avec contraintes et message d'erreur structuré quand aucune solution n'est possible.
+- Pige aléatoire et bornée avec contraintes et message d'erreur structuré quand aucune solution n'est possible.
 - Espace participant public pour consulter et mettre à jour son profil, puis voir le destinataire après la pige.
 - Vue publique d'un échange sur une route distincte de la vue admin.
 - Session administrateur par échange avec connexion, déconnexion et changement de mot de passe.
@@ -43,7 +43,7 @@ Le monorepo PNPM contient trois briques:
 ## Stack technique
 
 - Runtime: Node.js, TypeScript, PNPM workspaces.
-- API: Express 5, Zod, PostgreSQL, Helmet, CORS, Morgan, Jest, Supertest.
+- API: Express 5, Zod, PostgreSQL, Helmet, CORS, logs structurés, Jest, Supertest.
 - Web: Vue 3, Vite, Pinia, Vue Router, Vue I18n, Bootstrap, vite-plugin-pwa.
 - Qualité: ESLint, Oxlint, Prettier.
 
@@ -243,7 +243,7 @@ Les dates d’échange sont des dates civiles `YYYY-MM-DD`, validées et affich�
 
 La commande de tests crée et supprime son propre conteneur PostgreSQL et utilise un port loopback aléatoire. Les scénarios sont isolés entre tests. Un lancement direct de Jest sans URL de test explicitement fournie est refusé. Aucun reset de la base existante n’est nécessaire pour cette P0 et aucune nouvelle migration SQL n’est requise.
 
-Cette P0 ne valide pas la production : rate limiting, CSP, santé du service, sauvegardes et exploitation restent à consolider.
+La P0 a ensuite été complétée par les protections et outils d’exploitation P1 ci-dessous. Les tests locaux ne constituent pas une validation du serveur de production.
 
 ## Déploiement production
 
@@ -264,7 +264,7 @@ Voir `deploy/README.md` pour:
 
 ## Licence
 
-Projet publié sous licence AGPL v3.
+Projet sous licence [GNU AGPL v3 uniquement](LICENSE), identifiant `AGPL-3.0-only`.
 
 Vous pouvez l'utiliser, le modifier et le redistribuer, mais toute version modifiée exposée en service web doit rester disponible publiquement.
 
@@ -285,3 +285,33 @@ Démarrage local, après configuration de PostgreSQL et application volontaire d
 Les builds API produisent `apps/api/dist/server.cjs`, la migration compilée et le worker. `pnpm --dir apps/api start` utilise Node sans transpilation. En local, `DATABASE_URL` reste supportée ; Compose fournit PGHOST/PGPORT/PGDATABASE/PGUSER/PGPASSWORD.
 
 La CI teste et prépare une archive d’images ; aucune mise à jour automatique ni déploiement. Voir [le guide d’exploitation](deploy/README.md) pour installer une version précise et sauvegarder/restaurer. La copie hors VPS et les contrôles du serveur réel restent nécessaires avant publication.
+
+## P2 — parcours, accessibilité et maintenance
+
+Les vues admin s’actualisent toutes les 5 secondes lorsqu’elles sont visibles, sans écriture ni formulaire ouvert. Une panne espace les tentatives à 10, 20, 40 puis 60 secondes et respecte `Retry-After`. Les vues participant et publique se mettent à jour au retour sur l’onglet et avec **Actualiser**, sans polling permanent. Les appels API sont bornés à 15 secondes ; aucune écriture n’est répétée automatiquement. Après une interruption d’écriture, son résultat peut être incertain et doit être vérifié avant une nouvelle tentative.
+
+Les brouillons restent en mémoire pendant les erreurs, conflits et réauthentifications du même échange. Aucun profil ou souhait n’est enregistré comme brouillon sur l’appareil. Une fermeture ou navigation demande confirmation si la saisie n’est pas enregistrée ; après rechargement, elle ne peut pas être récupérée. Un stockage navigateur bloqué conserve les sessions uniquement en mémoire.
+
+Lors d’un conflit, la référence initiale, la saisie et la version serveur sont comparées. Les changements indépendants sont réunis ; les champs modifiés différemment demandent un choix. La liste de souhaits constitue un champ complet. **Préparer le brouillon** utilise la nouvelle version de référence mais n’enregistre rien : une sauvegarde explicite reste nécessaire. Les permissions courantes priment sur les choix du brouillon.
+
+Un ajout de participant présente immédiatement son nouveau lien. **Remplacer le lien** demande confirmation et révoque les anciens liens. Si le logout distant échoue, la déconnexion locale est effectuée sans annoncer une révocation serveur confirmée.
+
+Les souhaits conservent icônes et ordre ; ils peuvent être déplacés au clavier avec **Monter/Descendre**. Les formulaires verrouillés restent en lecture seule. Les pages et modales fournissent labels, annonces, gestion du focus et lien d’évitement. Les vérifications automatisées d’accessibilité ne constituent pas une certification complète.
+
+### Vérifier les changements
+
+```bash
+pnpm test:web
+pnpm lint:check
+pnpm test:e2e
+```
+
+`test:web` exécute les tests Vitest des formulaires et composables. `test:e2e` construit les images locales et lance une stack Compose éphémère avec PostgreSQL 16, HTTPS/Caddy, Playwright et axe ; elle ne cible pas la base de développement. Avec `KADO_IMAGE_TAG`, elle réutilise des images déjà construites. Définir `KADO_E2E_OUTPUT` avec un chemin absolu pour conserver les captures synthétiques. Docker Compose et Chromium Playwright sont requis (`pnpm exec playwright install chromium`).
+
+La CI exécute ces vérifications frontend et les scénarios navigateur pendant la fabrication des images, sans second build. Un résultat local et un résultat GitHub Actions sont distincts : le workflow n’est validé sur GitHub qu’après son exécution réelle.
+
+### Compléments reportés
+
+L’effacement explicite des champs facultatifs (description, date, budget, notes, liste complète de souhaits) n’a pas été normalisé dans cette P2. Les contrats actuels restent inchangés : selon le champ et sa sérialisation, une valeur vidée peut être omise et laisser la valeur existante intacte. Cette limitation demande un lot séparé, sans migration ou réécriture de données dans la P2.
+
+Les sauvegardes hors VPS et la validation du serveur réel restent nécessaires avant ouverture publique.

@@ -1,4 +1,5 @@
 import { i18n } from '@/i18n'
+import { HttpError } from './useApi'
 
 type ErrorPayload = {
   error?: { code?: unknown; details?: { code?: unknown } }
@@ -50,6 +51,8 @@ function extractApiErrorCode(error: unknown): string | undefined {
 }
 
 export function getApiErrorMessage(error: unknown, options: ApiErrorMessageOptions = {}): string {
+  if (error instanceof HttpError && error.outcomeUncertain)
+    return i18n.global.t('p2.outcomeUncertain')
   const code = extractApiErrorCode(error)
 
   if (code) {
@@ -65,10 +68,6 @@ export function getApiErrorMessage(error: unknown, options: ApiErrorMessageOptio
     i18n.global.te('apiErrors.API_UNAVAILABLE')
   ) {
     return i18n.global.t('apiErrors.API_UNAVAILABLE')
-  }
-
-  if (error instanceof Error && error.message) {
-    return error.message
   }
 
   if (options.fallbackKey && i18n.global.te(options.fallbackKey)) {

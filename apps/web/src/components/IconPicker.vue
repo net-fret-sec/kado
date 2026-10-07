@@ -5,9 +5,12 @@
         <i class="bi fs-5" :class="iconClass" aria-hidden="true"></i>
       </span>
       <input
+        :id="inputId"
         :list="datalistId"
+        :disabled="disabled"
         class="form-control"
         type="text"
+        maxlength="50"
         :placeholder="placeholder"
         :value="modelValue || ''"
         @input="onInput"
@@ -15,6 +18,8 @@
       <button
         class="btn btn-outline-secondary"
         type="button"
+        :disabled="disabled"
+        :aria-label="$t('p2.clearIcon')"
         @click="$emit('update:modelValue', undefined)"
       >
         <i class="bi bi-x-circle"></i>
@@ -30,12 +35,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 
 const props = defineProps<{
   modelValue?: string
   placeholder?: string
   id?: string
+  disabled?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -115,7 +121,9 @@ const baseList: string[] = [
 
 const suggestions = computed(() => Array.from(new Set(baseList)).sort())
 
-const datalistId = computed(() => (props.id ? `${props.id}-icons` : 'icon-picker-list'))
+const uniqueId = useId()
+const inputId = computed(() => props.id ?? `icon-${uniqueId}`)
+const datalistId = computed(() => `${inputId.value}-icons`)
 const iconClass = computed(() => (props.modelValue ? `bi-${props.modelValue}` : 'bi-emoji-neutral'))
 
 function onInput(e: Event) {

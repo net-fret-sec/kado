@@ -1,351 +1,330 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useApi } from '@/composables/useApi'
-import type {
-  GiftSuggestionDto,
-  ParticipantSelfViewDto,
-  UpdateParticipantInputDto,
-} from '@kado/shared'
 import { useI18n } from 'vue-i18n'
-import WishlistSuggestionItem from '@/components/WishlistSuggestionItem.vue'
+import {
+  updateParticipantInputSchema,
+  type ParticipantSelfViewDto,
+  type UpdateParticipantInputDto,
+} from '@kado/shared'
+import { useApi, HttpError, isRequestAborted } from '@/composables/useApi'
+import { useWishlist, serializeWishlist } from '@/composables/useWishlist'
+import { clone, equal, useConflict, type FormValues } from '@/composables/useConflict'
+import { useDraftGuard } from '@/composables/useDraftGuard'
+import { useRefresh } from '@/composables/useRefresh'
+import { useFormErrors } from '@/composables/useFormErrors'
 import { useToastsStore } from '@/stores/toasts'
-import { getApiErrorMessage } from '@/composables/useApiErrorMessage'
-import Draggable from 'vuedraggable'
+import WishlistEditor from '@/components/WishlistEditor.vue'
+import WishlistSuggestionItem from '@/components/WishlistSuggestionItem.vue'
+import ConflictReview from '@/components/ConflictReview.vue'
 
 const { t } = useI18n()
-const api = useApi()
 const route = useRoute()
+const api = useApi()
 const toasts = useToastsStore()
-
-const isLoading = ref(true)
-const isSaving = ref(false)
-const error = ref<string | null>(null)
 const view = ref<ParticipantSelfViewDto | null>(null)
-const name = ref('')
-const email = ref('')
-const note = ref('')
-type EditableSuggestion = GiftSuggestionDto & { _clientId: string }
-
-let clientIdCounter = 0
-
-function generateClientId(): string {
-  const c = globalThis.crypto
-  if (c?.randomUUID) {
-    return c.randomUUID()
-  }
-
-  if (c?.getRandomValues) {
-    const bytes = new Uint8Array(16)
-    c.getRandomValues(bytes)
-    bytes[6] = (bytes[6]! & 0x0f) | 0x40
-    bytes[8] = (bytes[8]! & 0x3f) | 0x80
-    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
-    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
-  }
-
-  clientIdCounter += 1
-  return `cid-${Date.now().toString(36)}-${clientIdCounter.toString(36)}`
-}
-
-function withClientId(suggestion: GiftSuggestionDto): EditableSuggestion {
+const name = ref(''),
+  email = ref(''),
+  note = ref('')
+const { wishlist, hydrate } = useWishlist()
+const isLoading = ref(true),
+  isSaving = ref(false)
+const baselineVersion = ref('')
+const form = useFormErrors()
+const { error, fieldErrors } = form
+const conflict = useConflict()
+const { remote, fields, choices, ready } = conflict
+function values(): FormValues {
   return {
-    ...suggestion,
-    _clientId: generateClientId(),
+    name: name.value,
+    email: email.value,
+    note: note.value,
+    wishlist: serializeWishlist(wishlist.value),
   }
 }
-
-const wishlist = ref<EditableSuggestion[]>([])
-
-function areSuggestionsUpdatesClosed() {
-  const exchange = view.value?.exchange
-  if (!exchange) return true
-
-  if (exchange.isArchived) {
-    return true
+function serverValues(current: ParticipantSelfViewDto): FormValues {
+  return {
+    name: current.participant.name,
+    email: current.participant.email ?? '',
+    note: current.participant.note ?? '',
+    wishlist: current.participant.wishlist ?? [],
   }
-
-  const lockAfterDraw = exchange.lockSuggestionsAfterDraw ?? true
-  return exchange.isDrawn && lockAfterDraw
 }
-
-const canEdit = computed(() => {
-  return !areSuggestionsUpdatesClosed()
-})
-
-const hasRecipient = computed(() => !!view.value?.assignment)
-const showRecipient = computed(() => {
-  const currentExchange = view.value?.exchange
-  return hasRecipient.value && Boolean(currentExchange?.isDrawn || currentExchange?.isArchived)
-})
+const dirty = computed(() => Boolean(view.value) && !equal(values(), conflict.baseline.value))
+useDraftGuard(dirty)
+const identityLocked = computed(
+  () => !view.value || view.value.exchange.isDrawn || view.value.exchange.isArchived,
+)
+const suggestionsLocked = computed(
+  () =>
+    !view.value ||
+    view.value.exchange.isArchived ||
+    (view.value.exchange.isDrawn && view.value.exchange.lockSuggestionsAfterDraw),
+)
+const canEdit = computed(() => !suggestionsLocked.value)
+const enabled = computed(() => !isSaving.value)
 const requiredMinSuggestions = computed(() => view.value?.exchange.minWishlistSuggestions ?? 0)
-
-const canSubmit = computed(() => {
-  if (!name.value.trim()) return false
-  if (!isValidEmail(email.value)) return false
-  return wishlist.value.every(isValidSuggestion)
-})
-
-function isValidEmail(value: string) {
-  const v = value.trim()
-  if (!v) return true
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
-}
-
-function isValidUrl(value?: string) {
-  if (!value) return true
-  try {
-    const parsed = new URL(value)
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
-  } catch {
-    return false
+function payload(): UpdateParticipantInputDto {
+  return {
+    name: name.value.trim(),
+    email: email.value.trim() || undefined,
+    note: note.value.trim() || undefined,
+    wishlist: wishlist.value.length ? serializeWishlist(wishlist.value) : undefined,
+    expectedUpdatedAt: baselineVersion.value,
   }
 }
-
-function isValidSuggestion(s: GiftSuggestionDto) {
-  const titleOk = !!s.title?.trim()
-  const imageOk = isValidUrl(s.imageUrl)
-  const linkOk = isValidUrl(s.linkUrl)
-  return titleOk && imageOk && linkOk
+const valid = computed(() => updateParticipantInputSchema.safeParse(payload()).success)
+function setValues(value: FormValues) {
+  name.value = String(value.name ?? '')
+  email.value = String(value.email ?? '')
+  note.value = String(value.note ?? '')
+  hydrate((value.wishlist ?? []) as NonNullable<ParticipantSelfViewDto['participant']['wishlist']>)
 }
-
-function hydrateForm() {
-  name.value = view.value?.participant.name ?? ''
-  email.value = view.value?.participant.email ?? ''
-  note.value = view.value?.participant.note ?? ''
-  wishlist.value = (view.value?.participant.wishlist ?? []).map(withClientId)
+function initialize(current: ParticipantSelfViewDto) {
+  const currentValues = serverValues(current)
+  setValues(currentValues)
+  conflict.baseline.value = clone(currentValues)
+  baselineVersion.value = current.participant.updatedAt
+  remote.value = null
 }
-
-async function fetchSelf() {
-  isLoading.value = true
-  error.value = null
+function lockedFields(current: ParticipantSelfViewDto) {
+  const locked = current.exchange.isDrawn || current.exchange.isArchived ? ['name', 'email'] : []
+  if (
+    current.exchange.isArchived ||
+    (current.exchange.isDrawn && current.exchange.lockSuggestionsAfterDraw)
+  )
+    locked.push('note', 'wishlist')
+  return locked
+}
+async function load(signal: AbortSignal) {
+  const token = String(route.params.token)
   try {
-    const token = route.params.token as string
-    view.value = await api.get<ParticipantSelfViewDto>(`/api/p/${encodeURIComponent(token)}`)
-    hydrateForm()
-  } catch (err) {
-    error.value = getApiErrorMessage(err)
-  } finally {
-    isLoading.value = false
-  }
-}
-
-async function saveSelf() {
-  if (!canEdit.value || !canSubmit.value) return
-
-  isSaving.value = true
-  error.value = null
-  try {
-    const token = route.params.token as string
-    const payload: UpdateParticipantInputDto = {
-      name: name.value.trim(),
-      email: email.value.trim() || undefined,
-      note: note.value.trim() || undefined,
-      expectedUpdatedAt: view.value?.participant.updatedAt,
-      wishlist: wishlist.value.length
-        ? wishlist.value.map((suggestion) => ({
-            title: suggestion.title,
-            imageUrl: suggestion.imageUrl,
-            linkUrl: suggestion.linkUrl,
-          }))
-        : undefined,
-    }
-
-    view.value = await api.put<ParticipantSelfViewDto, UpdateParticipantInputDto>(
-      `/api/p/${encodeURIComponent(token)}`,
-      payload,
+    const current = await api.get<ParticipantSelfViewDto>(`/api/p/${encodeURIComponent(token)}`, {
+      signal,
+    })
+    if (signal.aborted || token !== route.params.token) return
+    const wasDirty = dirty.value
+    view.value = current
+    if (!wasDirty) initialize(current)
+    else if (
+      current.participant.updatedAt !== baselineVersion.value ||
+      current.exchange.isArchived ||
+      current.exchange.isDrawn
     )
-    hydrateForm()
+      conflict.open(values(), serverValues(current), lockedFields(current))
+    form.clear()
+  } catch (cause) {
+    if (signal.aborted || token !== route.params.token || isRequestAborted(cause)) return
+    if (cause instanceof HttpError && cause.status === 404) {
+      view.value = null
+      setValues({})
+      conflict.baseline.value = {}
+      remote.value = null
+    }
+    form.capture(cause)
+    throw cause
+  } finally {
+    if (token === route.params.token) isLoading.value = false
+  }
+}
+const refreshState = useRefresh(load, enabled)
+const { busy: isRefreshing, paused } = refreshState
+async function refresh() {
+  try {
+    await refreshState.refresh()
+  } catch {
+    /* Inline error keeps the draft visible. */
+  }
+}
+function applyConflict() {
+  const result = conflict.apply()
+  if (!result || !view.value) return
+  setValues(result)
+  baselineVersion.value = view.value.participant.updatedAt
+  form.clear()
+}
+async function saveSelf() {
+  if (isSaving.value || isRefreshing.value || !canEdit.value || !valid.value || remote.value) return
+  isSaving.value = true
+  form.clear()
+  refreshState.cancel()
+  const token = String(route.params.token)
+  try {
+    const current = await api.put<ParticipantSelfViewDto>(
+      `/api/p/${encodeURIComponent(token)}`,
+      payload(),
+    )
+    if (token !== route.params.token) return
+    view.value = current
+    initialize(current)
     toasts.success(t('participant.saveSuccess'))
-  } catch (err) {
-    const message = getApiErrorMessage(err)
-    error.value = message
-    toasts.error(message)
+  } catch (cause) {
+    form.capture(cause)
+    if (
+      cause instanceof HttpError &&
+      (cause.status === 409 ||
+        [
+          'PARTICIPANT_IDENTITY_LOCKED',
+          'PARTICIPANT_SUGGESTIONS_LOCKED',
+          'EXCHANGE_ARCHIVED_CANNOT_MODIFY',
+        ].includes(cause.code ?? ''))
+    ) {
+      const controller = new AbortController()
+      try {
+        await load(controller.signal)
+      } catch {
+        /* Keep the first error and draft. */
+      }
+    } else if (cause instanceof HttpError && cause.status === 404) {
+      view.value = null
+      setValues({})
+      remote.value = null
+    }
   } finally {
     isSaving.value = false
   }
 }
-
-function addSuggestion() {
-  wishlist.value.push(withClientId({ title: '' }))
-}
-
-onMounted(fetchSelf)
+onMounted(refresh)
+watch(
+  () => route.params.token,
+  () => {
+    refreshState.cancel(true)
+    view.value = null
+    conflict.baseline.value = {}
+    remote.value = null
+    setValues({})
+    isLoading.value = true
+    form.clear()
+    void refresh()
+  },
+)
 </script>
 
 <template>
-  <section id="participant-self-view">
-    <div v-if="isLoading">{{ t('participant.loading') }}</div>
-    <div v-else-if="error" class="alert alert-danger">{{ error }}</div>
-    <div v-else-if="view">
-      <h2>{{ view.exchange.name }}</h2>
-      <p class="text-muted" v-if="view.exchange.description">{{ view.exchange.description }}</p>
-      <div class="alert" :class="canEdit ? 'alert-info' : 'alert-secondary'">
+  <section id="participant-self-view" :aria-busy="isLoading || isSaving || isRefreshing">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <h1 class="h3">{{ view?.exchange.name || t('participant.profileSectionTitle') }}</h1>
+      <button
+        class="btn btn-outline-secondary"
+        type="button"
+        :disabled="isSaving || isRefreshing"
+        @click="refresh"
+      >
+        {{ t('p2.refresh') }}
+      </button>
+    </div>
+    <p v-if="isLoading" role="status">{{ t('participant.loading') }}</p>
+    <p v-if="error" class="alert alert-danger" role="alert">{{ error }}</p>
+    <p v-if="paused && view" class="text-body-secondary" role="status">
+      {{ t('p2.refreshPaused') }}
+    </p>
+    <router-link v-if="!view && !isLoading" to="/" class="btn btn-outline-primary">{{
+      t('p2.home')
+    }}</router-link>
+    <div v-if="view">
+      <p v-if="view.exchange.description" class="text-muted">{{ view.exchange.description }}</p>
+      <p class="alert" :class="canEdit ? 'alert-info' : 'alert-secondary'">
         {{ canEdit ? t('participant.editingOpen') : t('participant.editingClosed') }}
-      </div>
-
+      </p>
+      <p v-if="dirty" class="small text-body-secondary">{{ t('p2.unsaved') }}</p>
+      <ConflictReview
+        v-if="remote"
+        :fields="fields"
+        :choices="choices"
+        :ready="ready"
+        :current="remote"
+        @choice="(key, choice) => (choices[key] = choice)"
+        @apply="applyConflict"
+      />
       <form class="participant-self-form" @submit.prevent="saveSelf">
         <div class="row g-3 align-items-start">
-          <section class="card mb-3 h-100 col-12 col-lg-4 participant-profile-card">
+          <section class="card mb-3 col-12 col-lg-4 participant-profile-card">
             <div class="card-body">
-              <h5 class="card-title">{{ t('participant.profileSectionTitle') }}</h5>
+              <h2 class="h5">{{ t('participant.profileSectionTitle') }}</h2>
               <div class="mb-3">
-                <label for="participant-name" class="form-label">{{ t('participant.name') }}</label>
-                <input
+                <label for="participant-name" class="form-label">{{ t('participant.name') }}</label
+                ><input
                   id="participant-name"
-                  :readonly="view.exchange.isDrawn"
                   v-model="name"
                   class="form-control"
-                  type="text"
-                  :disabled="!canEdit || isSaving"
+                  maxlength="150"
+                  :readonly="identityLocked"
+                  :disabled="isSaving || !!remote"
+                  :aria-invalid="!!fieldErrors.name || undefined"
+                  :aria-describedby="fieldErrors.name ? 'participant-name-error' : undefined"
                   required
                 />
+                <p v-if="fieldErrors.name" id="participant-name-error" class="text-danger">
+                  {{ t('p2.invalidField') }}
+                </p>
               </div>
-              <div class="mb-0">
-                <label for="participant-note" class="form-label">{{ t('participant.note') }}</label>
-                <textarea
-                  id="participant-note"
-                  v-model="note"
-                  class="form-control"
-                  rows="3"
-                  :disabled="!canEdit || isSaving"
-                ></textarea>
-              </div>
+              <label for="participant-note" class="form-label">{{ t('participant.note') }}</label
+              ><textarea
+                id="participant-note"
+                v-model="note"
+                class="form-control"
+                rows="3"
+                maxlength="2000"
+                :readonly="suggestionsLocked"
+                :disabled="isSaving || !!remote"
+                :aria-invalid="!!fieldErrors.note || undefined"
+                :aria-describedby="fieldErrors.note ? 'participant-note-error' : undefined"
+              ></textarea>
+              <p v-if="fieldErrors.note" id="participant-note-error" class="text-danger">
+                {{ t('p2.invalidField') }}
+              </p>
             </div>
           </section>
-          <section class="card mb-3 h-100 col-12 col-lg-8 participant-suggestions-card">
+          <section class="card mb-3 col-12 col-lg-8 participant-suggestions-card">
             <div class="card-body">
-              <h5 class="card-title">{{ t('participant.suggestionsSectionTitle') }}</h5>
-              <p v-if="requiredMinSuggestions > 0" class="small text-body-secondary">
+              <h2 class="h5">{{ t('participant.suggestionsSectionTitle') }}</h2>
+              <p v-if="requiredMinSuggestions > 0" class="small">
                 {{ t('participant.minWishlistSuggestionsHint', { count: requiredMinSuggestions }) }}
               </p>
-
-              <div class="d-inline-flex align-items-center gap-2 mb-2">
-                <span class="badge text-bg-light">{{ wishlist.length }}</span>
-                <span class="small text-muted">{{ t('participant.wishlist') }}</span>
-              </div>
-
-              <Draggable
-                v-if="wishlist.length"
-                v-model="wishlist"
-                item-key="_clientId"
-                handle=".drag-handle"
-                :animation="200"
-                :disabled="!canEdit || isSaving"
-                class="participant-suggestion-list d-grid gap-3 mb-1"
-              >
-                <template #item="{ element, index }">
-                  <article class="participant-suggestion-item d-flex gap-3 align-items-stretch">
-                    <div
-                      class="participant-suggestion-meta d-flex flex-column align-items-center justify-content-center gap-1 pe-2"
-                      style="flex: 0 0 3rem"
-                    >
-                      <button
-                        v-if="canEdit"
-                        type="button"
-                        class="btn btn-sm btn-outline-secondary participant-suggestion-handle drag-handle d-inline-flex align-items-center justify-content-center p-0 lh-1"
-                        :disabled="isSaving"
-                        :aria-label="t('participant.wishlistItem.reorder')"
-                        :title="t('participant.wishlistItem.reorder')"
-                      >
-                        <i class="bi bi-grip-vertical" aria-hidden="true"></i>
-                        <span class="visually-hidden">{{
-                          t('participant.wishlistItem.reorder')
-                        }}</span>
-                      </button>
-                      <span class="participant-suggestion-index">#{{ index + 1 }}</span>
-                    </div>
-
-                    <div class="flex-grow-1 overflow-hidden">
-                      <div
-                        class="d-flex align-items-center justify-content-end mb-2"
-                        style="min-height: 2rem"
-                      >
-                        <button
-                          v-if="canEdit"
-                          type="button"
-                          class="btn btn-sm btn-outline-danger participant-suggestion-remove d-inline-flex align-items-center justify-content-center p-0 lh-1"
-                          :disabled="isSaving"
-                          :aria-label="t('exchangeDetail.delete')"
-                          :title="t('exchangeDetail.delete')"
-                          @click="wishlist.splice(index, 1)"
-                        >
-                          <i class="bi bi-trash" aria-hidden="true"></i>
-                          <span class="visually-hidden">{{ t('exchangeDetail.delete') }}</span>
-                        </button>
-                      </div>
-
-                      <WishlistSuggestionItem
-                        :modelValue="element"
-                        mode="edit"
-                        :removable="false"
-                        :showHandle="false"
-                        :asListItem="false"
-                        @update:modelValue="
-                          (v) => wishlist.splice(index, 1, { ...v, _clientId: element._clientId })
-                        "
-                      />
-                    </div>
-                  </article>
-                </template>
-              </Draggable>
-
-              <button
-                v-if="canEdit"
-                type="button"
-                class="btn btn-sm btn-outline-primary mt-2"
-                :disabled="isSaving"
-                @click="addSuggestion"
-              >
-                <i class="bi bi-plus-lg"></i>
-                {{ t('participant.addSuggestion') }}
-              </button>
-
-              <p class="text-muted mb-0 mt-2" v-if="!wishlist.length">
-                {{ t('participant.noSuggestions') }}
-              </p>
-
-              <p class="text-danger small mt-2" v-if="wishlist.length < requiredMinSuggestions">
+              <WishlistEditor v-model="wishlist" :locked="suggestionsLocked" :busy="isSaving || !!remote" />
+              <p v-if="fieldErrors.wishlist" class="text-danger">{{ t('p2.invalidField') }}</p>
+              <p v-if="wishlist.length < requiredMinSuggestions" class="text-danger small">
                 {{
                   t('participant.minWishlistSuggestionsError', { count: requiredMinSuggestions })
                 }}
               </p>
-
               <button
                 v-if="canEdit"
                 type="submit"
                 class="btn btn-primary mt-3"
-                :disabled="!canSubmit || isSaving"
+                :disabled="!valid || isSaving || isRefreshing || !!remote"
               >
                 {{ isSaving ? t('participant.saving') : t('participant.save') }}
               </button>
             </div>
           </section>
         </div>
-
-        <section class="card mb-3" v-if="showRecipient">
+        <section
+          v-if="view.assignment && (view.exchange.isDrawn || view.exchange.isArchived)"
+          class="card mb-3"
+        >
           <div class="card-body">
-            <h5 class="card-title">{{ t('participant.recipientSectionTitle') }}</h5>
-            <p class="mb-1">
+            <h2 class="h5">{{ t('participant.recipientSectionTitle') }}</h2>
+            <p>
               <strong>{{ t('participant.recipientName') }}:</strong>
-              {{ view.assignment?.receiverName }}
+              {{ view.assignment.receiverName }}
             </p>
-            <div class="mb-1" v-if="view.assignment?.receiverWishlist?.length">
-              <strong class="d-block mb-1">{{ t('participant.recipientWishlist') }}:</strong>
-              <ol class="list-group list-group-numbered">
-                <li
-                  class="list-group-item"
-                  v-for="(s, idx) in view.assignment?.receiverWishlist"
-                  :key="idx"
-                >
-                  <WishlistSuggestionItem :modelValue="s" mode="detail" />
-                </li>
-              </ol>
-            </div>
-            <div class="mb-1" v-if="view.assignment?.receiverNote">
+            <ol
+              v-if="view.assignment.receiverWishlist?.length"
+              class="list-group list-group-numbered"
+            >
+              <li
+                v-for="(suggestion, index) in view.assignment.receiverWishlist"
+                :key="index"
+                class="list-group-item"
+              >
+                <WishlistSuggestionItem :model-value="suggestion" mode="detail" />
+              </li>
+            </ol>
+            <p v-if="view.assignment.receiverNote">
               <strong>{{ t('participant.recipientNote') }}:</strong>
-              {{ view.assignment?.receiverNote }}
-            </div>
+              {{ view.assignment.receiverNote }}
+            </p>
           </div>
         </section>
       </form>

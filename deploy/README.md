@@ -61,10 +61,10 @@ Un dump local ne protège pas contre la perte du VPS. Une copie hors serveur et 
 
 ```bash
 pnpm --dir apps/api test
+pnpm test:web
 pnpm build:api
 pnpm build:web
-pnpm --dir apps/web exec eslint .
-pnpm --dir apps/web exec oxlint .
+pnpm lint:check
 pnpm test:operations
 pnpm exec playwright install chromium
 # Après construction des deux images locales :
@@ -72,3 +72,5 @@ KADO_IMAGE_TAG=p1-local pnpm release:smoke
 ```
 
 Le smoke test crée un projet Compose unique, des données synthétiques et des volumes éphémères. Il teste le proxy, les quotas IP, les parcours API et navigateur, le dump/restauration, l’arrêt propre et l’indisponibilité PostgreSQL. Il supprime sa stack et ses volumes en fin de test ; il ne lit pas les fichiers secrets ni la base locale de développement.
+
+La validation navigateur P2 est incluse dans le smoke test, sur la même stack éphémère, avec des fixtures distinctes et remise à zéro des compteurs en mémoire entre fixtures. Elle teste aussi les conflits, sessions, erreurs réseau, commandes clavier et contrôles axe. Le mode `pnpm test:e2e` construit les images si aucun `KADO_IMAGE_TAG` n’est fourni. Les captures peuvent être conservées avec `KADO_E2E_OUTPUT=/chemin/absolu`. Ces tests n’installent rien sur le VPS et n’utilisent aucune base existante.

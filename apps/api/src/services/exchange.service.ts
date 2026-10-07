@@ -2,6 +2,7 @@ import type {
   CreateExchangeInputDto,
   CreateExchangeResultDto,
   ExchangeDto,
+  ExchangePublicViewDto,
   UpdateExchangeInputDto,
 } from "@kado/shared";
 import {
@@ -175,22 +176,7 @@ export async function getExchangeById(
   };
 }
 
-export async function getExchangePublicById(exchangeId: string): Promise<{
-  id: string;
-  name: string;
-  description?: string;
-  organizerName?: string;
-  isDrawn: boolean;
-  isArchived: boolean;
-  eventDate?: string;
-  budget?: number;
-  minWishlistSuggestions?: number;
-  lockSuggestionsAfterDraw?: boolean;
-  noMutualAssignments?: boolean;
-  drawAt?: string;
-  participantsCount: number;
-  updatedAt: string;
-}> {
+export async function getExchangePublicById(exchangeId: string): Promise<ExchangePublicViewDto> {
   const exchange = await exchangeRepository.findById(exchangeId);
 
   if (!exchange) {

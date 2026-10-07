@@ -65,3 +65,20 @@ export interface ExchangeAdminViewDto {
   exclusionRulesCount: number;
   assignmentsExist: boolean;
 }
+
+export interface ExchangePublicViewDto {
+  id: string;
+  name: string;
+  description?: string;
+  organizerName?: string;
+  isDrawn: boolean;
+  isArchived: boolean;
+  eventDate?: string;
+  budget?: number;
+  minWishlistSuggestions?: number;
+  lockSuggestionsAfterDraw?: boolean;
+  noMutualAssignments?: boolean;
+  drawAt?: string;
+  participantsCount: number;
+  updatedAt: string;
+}
