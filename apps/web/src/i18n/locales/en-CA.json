@@ -350,11 +350,11 @@
     "SUGGESTIONS_DEADLINE_AFTER_EXCHANGE_MOMENT": "Suggestions deadline cannot be after the gift exchange moment.",
     "DRAW_IMPOSSIBLE": "No valid draw is possible with the current settings.",
     "EXCHANGE_ARCHIVED_CANNOT_DRAW": "Archived exchanges cannot be drawn.",
-    "EXCHANGE_ARCHIVED_CANNOT_MODIFY": "Archived exchanges cannot be modified.",
+    "EXCHANGE_ARCHIVED_CANNOT_MODIFY": "This exchange is archived and its content can no longer be edited.",
     "EXCHANGE_NOT_FOUND": "The requested exchange was not found.",
     "PARTICIPANT_NOT_FOUND": "The requested participant was not found.",
     "PARTICIPANT_CREATION_LOCKED": "No new participant can be added for this exchange.",
-    "PARTICIPANT_SUGGESTIONS_LOCKED": "Suggestions updates are closed for this exchange.",
+    "PARTICIPANT_SUGGESTIONS_LOCKED": "Wishlist suggestions and notes are locked for this exchange.",
     "PARTICIPANT_LINK_INVALID_OR_EXPIRED": "This participant link is invalid or expired.",
     "EXCLUSION_RULES_LOCKED": "Exclusion rules cannot be modified for this exchange.",
     "PARTICIPANT_OUTSIDE_EXCHANGE": "The participant does not belong to this exchange.",
@@ -366,7 +366,10 @@
     "ADMIN_SESSION_INVALID_OR_EXPIRED": "Your administrator session is invalid or expired.",
     "API_UNAVAILABLE": "The server is temporarily unavailable. Verify that the API and PostgreSQL are running.",
     "INVALID_REQUEST_BODY": "The request body is invalid.",
-    "INVALID_ROUTE_PARAMETERS": "The route parameters are invalid."
+    "INVALID_ROUTE_PARAMETERS": "The route parameters are invalid.",
+    "PARTICIPANT_IDENTITY_LOCKED": "Names and emails are locked after the draw.",
+    "PARTICIPANT_DELETION_LOCKED": "Cancel the draw before removing a participant.",
+    "EXCHANGE_DRAW_SETTINGS_LOCKED": "Cancel the draw before changing its rules."
   },
   "common": {
     "close": "close"

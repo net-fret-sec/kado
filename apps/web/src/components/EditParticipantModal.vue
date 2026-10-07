@@ -8,6 +8,8 @@ import Draggable from 'vuedraggable'
 
 const props = defineProps<{
   modelValue: boolean
+  identityLocked?: boolean
+  suggestionsLocked?: boolean
   participant: ParticipantDto | null
 }>()
 
@@ -104,7 +106,7 @@ watch(
 )
 
 function handleSubmit() {
-  if (!isFormValid.value) return
+  if (!isFormValid.value || props.suggestionsLocked) return
 
   emit('submit', {
     name: name.value,
@@ -113,6 +115,7 @@ function handleSubmit() {
       title: suggestion.title,
       imageUrl: suggestion.imageUrl,
       linkUrl: suggestion.linkUrl,
+      icon: suggestion.icon,
     })),
     note: note.value,
   })
@@ -131,35 +134,53 @@ function handleSubmit() {
         <label for="editParticipantName" class="form-label">{{
           t('exchangeDetail.addModal.name')
         }}</label>
-        <input v-model="name" type="text" class="form-control" id="editParticipantName" required />
+        <input
+          v-model="name"
+          type="text"
+          class="form-control"
+          id="editParticipantName"
+          :disabled="identityLocked"
+          required
+        />
       </div>
       <!-- <div class="mb-3">
         <label for="editParticipantEmail" class="form-label">{{
           t('exchangeDetail.addModal.email')
         }}</label>
-        <input v-model="email" type="email" class="form-control" id="editParticipantEmail" />
+        <input v-model="email" type="email" class="form-control" id="editParticipantEmail" :disabled="identityLocked" />
       </div> -->
 
       <div class="mb-3">
         <label for="editParticipantNote" class="form-label">{{
           t('exchangeDetail.addModal.note')
         }}</label>
-        <textarea v-model="note" class="form-control" id="editParticipantNote"></textarea>
+        <textarea
+          v-model="note"
+          class="form-control"
+          id="editParticipantNote"
+          :disabled="suggestionsLocked"
+        ></textarea>
       </div>
 
       <div class="mb-3">
         <label class="form-label mb-0">{{ t('exchangeDetail.addModal.wishlist') }}</label>
         <div class="mt-2">
-          <Draggable v-model="wishlist" handle=".drag-handle" :animation="200" item-key="_clientId">
+          <Draggable
+            :disabled="suggestionsLocked"
+            v-model="wishlist"
+            handle=".drag-handle"
+            :animation="200"
+            item-key="_clientId"
+          >
             <template #item="{ element: suggestion, index: idx }">
               <WishlistSuggestionItem
                 :modelValue="suggestion"
                 @update:modelValue="
                   (value) => wishlist.splice(idx, 1, { ...value, _clientId: suggestion._clientId })
                 "
-                mode="edit"
-                :removable="true"
-                :showHandle="true"
+                :mode="suggestionsLocked ? 'detail' : 'edit'"
+                :removable="!suggestionsLocked"
+                :showHandle="!suggestionsLocked"
                 :asListItem="true"
                 @remove="wishlist.splice(idx, 1)"
               />
@@ -168,6 +189,7 @@ function handleSubmit() {
           <button
             type="button"
             class="btn btn-sm btn-outline-primary"
+            :disabled="suggestionsLocked"
             @click="wishlist.push(withClientId({ title: '' }))"
           >
             <i class="bi bi-plus-lg"></i> Ajouter une suggestion
@@ -181,7 +203,7 @@ function handleSubmit() {
         type="submit"
         class="btn btn-primary order-2"
         form="editParticipantForm"
-        :disabled="!isFormValid"
+        :disabled="suggestionsLocked || !isFormValid"
       >
         {{ t('exchangeDetail.editModal.submit') }}
       </button>

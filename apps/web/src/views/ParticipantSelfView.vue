@@ -193,6 +193,7 @@ onMounted(fetchSelf)
                 <label for="participant-name" class="form-label">{{ t('participant.name') }}</label>
                 <input
                   id="participant-name"
+                  :readonly="view.exchange.isDrawn"
                   v-model="name"
                   class="form-control"
                   type="text"

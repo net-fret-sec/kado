@@ -32,8 +32,8 @@ interface ParticipantRow {
   wishlist: GiftSuggestionDto[] | null;
   note: string | null;
   status: "active" | "removed";
-  created_at: string;
-  updated_at: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 interface ParticipantAccessRow {
@@ -43,8 +43,8 @@ interface ParticipantAccessRow {
   token_hash: string;
   token_preview: string;
   status: "active" | "revoked";
-  created_at: string;
-  last_accessed_at: string | null;
+  created_at: Date;
+  last_accessed_at: Date | null;
 }
 
 function mapParticipantRow(row: ParticipantRow): ParticipantRecord {
@@ -56,8 +56,8 @@ function mapParticipantRow(row: ParticipantRow): ParticipantRecord {
     wishlist: row.wishlist ?? undefined,
     note: row.note ?? undefined,
     status: row.status,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: row.created_at.toISOString(),
+    updatedAt: row.updated_at.toISOString(),
   };
 }
 
@@ -71,8 +71,8 @@ function mapParticipantAccessRow(
     tokenHash: row.token_hash,
     tokenPreview: row.token_preview,
     status: row.status,
-    createdAt: row.created_at,
-    lastAccessedAt: row.last_accessed_at ?? undefined,
+    createdAt: row.created_at.toISOString(),
+    lastAccessedAt: row.last_accessed_at?.toISOString(),
   };
 }
 
@@ -118,14 +118,14 @@ export const participantRepository = {
     return participant;
   },
 
-  async findById(participantId: string, db?: DbExecutor) {
+  async findById(exchangeId: string, participantId: string, db?: DbExecutor) {
     const result = await query<ParticipantRow>(
       `
         SELECT *
         FROM participants
-        WHERE id = $1
+        WHERE id = $1 AND exchange_id = $2
       `,
-      [participantId],
+      [participantId, exchangeId],
       db,
     );
 
@@ -149,6 +149,7 @@ export const participantRepository = {
   },
 
   async update(
+    exchangeId: string,
     participantId: string,
     updates: Partial<ParticipantRecord>,
     db?: DbExecutor,
@@ -181,11 +182,11 @@ export const participantRepository = {
         UPDATE participants
         SET
           ${setClauses.length > 0 ? `${setClauses.join(", ")},` : ""}
-          updated_at = NOW()
-        WHERE id = $1
+          updated_at = GREATEST(clock_timestamp(), updated_at + interval '1 millisecond')
+        WHERE id = $1 AND exchange_id = $${values.length + 2}
         RETURNING *
       `,
-      [participantId, ...values],
+      [participantId, ...values, exchangeId],
       db,
     );
 
@@ -194,6 +195,7 @@ export const participantRepository = {
   },
 
   async updateIfUnchanged(
+    exchangeId: string,
     participantId: string,
     updates: Partial<ParticipantRecord>,
     expectedUpdatedAt: string,
@@ -227,12 +229,12 @@ export const participantRepository = {
         UPDATE participants
         SET
           ${setClauses.length > 0 ? `${setClauses.join(", ")},` : ""}
-          updated_at = NOW()
-        WHERE id = $1
+          updated_at = GREATEST(clock_timestamp(), updated_at + interval '1 millisecond')
+        WHERE id = $1 AND exchange_id = $${values.length + 3}
           AND date_trunc('milliseconds', updated_at) = date_trunc('milliseconds', $${values.length + 2}::timestamptz)
         RETURNING *
       `,
-      [participantId, ...values, expectedUpdatedAt],
+      [participantId, ...values, expectedUpdatedAt, exchangeId],
       db,
     );
 
@@ -240,13 +242,13 @@ export const participantRepository = {
     return row ? mapParticipantRow(row) : null;
   },
 
-  async delete(participantId: string, db?: DbExecutor) {
+  async delete(exchangeId: string, participantId: string, db?: DbExecutor) {
     const result = await query(
       `
         DELETE FROM participants
-        WHERE id = $1
+        WHERE id = $1 AND exchange_id = $2
       `,
-      [participantId],
+      [participantId, exchangeId],
       db,
     );
 
@@ -305,6 +307,7 @@ export const participantRepository = {
   },
 
   async revokeActiveAccessForParticipant(
+    exchangeId: string,
     participantId: string,
     db?: DbExecutor,
   ) {
@@ -312,9 +315,9 @@ export const participantRepository = {
       `
         UPDATE participant_access
         SET status = 'revoked', revoked_at = NOW()
-        WHERE participant_id = $1 AND status = 'active'
+        WHERE participant_id = $1 AND exchange_id = $2 AND status = 'active'
       `,
-      [participantId],
+      [participantId, exchangeId],
       db,
     );
   },

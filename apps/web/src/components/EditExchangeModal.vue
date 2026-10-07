@@ -5,6 +5,8 @@ import BaseModal from '@/components/BaseModal.vue'
 
 const props = defineProps<{
   modelValue: boolean
+  rulesLocked?: boolean
+  contentLocked?: boolean
   isSubmitting?: boolean
   name: string
   description?: string
@@ -75,7 +77,7 @@ watch(
 )
 
 function handleSubmit() {
-  if (props.isSubmitting) return
+  if (props.isSubmitting || props.contentLocked) return
   if (!isValid.value) return
 
   emit('submit', {
@@ -98,84 +100,95 @@ function handleSubmit() {
     @update:model-value="(value) => emit('update:modelValue', value)"
   >
     <form id="editExchangeForm" @submit.prevent="handleSubmit">
-      <div class="mb-3">
-        <label for="editExchangeName" class="form-label">{{ t('exchangeDetail.name') }}</label>
-        <input v-model="editName" type="text" class="form-control" id="editExchangeName" required />
-      </div>
-      <div class="mb-3">
-        <label for="editExchangeDescription" class="form-label">{{
-          t('exchangeDetail.description')
-        }}</label>
-        <textarea
-          v-model="editDescription"
-          class="form-control"
-          id="editExchangeDescription"
-        ></textarea>
-      </div>
-      <div class="row g-3 mb-3">
-        <div class="col-12">
-          <label for="editExchangeEventDate" class="form-label">{{
-            t('exchangeDetail.exchangeMoment')
-          }}</label>
+      <fieldset :disabled="contentLocked">
+        <div class="mb-3">
+          <label for="editExchangeName" class="form-label">{{ t('exchangeDetail.name') }}</label>
           <input
-            v-model="editEventDate"
-            type="date"
+            v-model="editName"
+            type="text"
             class="form-control"
-            id="editExchangeEventDate"
+            id="editExchangeName"
+            required
           />
         </div>
-      </div>
-      <div class="row g-3 mb-3">
-        <div class="col-12 col-md-6">
-          <label for="editExchangeBudget" class="form-label">{{
-            t('exchangeDetail.budget')
+        <div class="mb-3">
+          <label for="editExchangeDescription" class="form-label">{{
+            t('exchangeDetail.description')
           }}</label>
-          <input
-            v-model.number="editBudget"
-            type="number"
-            min="0"
-            step="0.01"
+          <textarea
+            v-model="editDescription"
             class="form-control"
-            id="editExchangeBudget"
-          />
+            id="editExchangeDescription"
+          ></textarea>
         </div>
-        <div class="col-12 col-md-6">
-          <label for="editExchangeMinSuggestions" class="form-label">{{
-            t('exchangeDetail.minWishlistSuggestions')
-          }}</label>
+        <div class="row g-3 mb-3">
+          <div class="col-12">
+            <label for="editExchangeEventDate" class="form-label">{{
+              t('exchangeDetail.exchangeMoment')
+            }}</label>
+            <input
+              v-model="editEventDate"
+              type="date"
+              class="form-control"
+              id="editExchangeEventDate"
+            />
+          </div>
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-12 col-md-6">
+            <label for="editExchangeBudget" class="form-label">{{
+              t('exchangeDetail.budget')
+            }}</label>
+            <input
+              v-model.number="editBudget"
+              type="number"
+              min="0"
+              step="0.01"
+              class="form-control"
+              id="editExchangeBudget"
+            />
+          </div>
+          <div class="col-12 col-md-6">
+            <label for="editExchangeMinSuggestions" class="form-label">{{
+              t('exchangeDetail.minWishlistSuggestions')
+            }}</label>
+            <input
+              v-model.number="editMinWishlistSuggestions"
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              class="form-control"
+              id="editExchangeMinSuggestions"
+              :disabled="rulesLocked"
+            />
+          </div>
+        </div>
+        <div class="mb-3 form-check">
           <input
-            v-model.number="editMinWishlistSuggestions"
-            type="number"
-            min="0"
-            max="100"
-            step="1"
-            class="form-control"
-            id="editExchangeMinSuggestions"
+            id="editLockSuggestionsAfterDraw"
+            :disabled="rulesLocked"
+            v-model="editLockSuggestionsAfterDraw"
+            type="checkbox"
+            class="form-check-input"
           />
+          <label class="form-check-label" for="editLockSuggestionsAfterDraw">
+            {{ t('exchangeDetail.lockSuggestionsAfterDraw') }}
+          </label>
         </div>
-      </div>
-      <div class="mb-3 form-check">
-        <input
-          id="editLockSuggestionsAfterDraw"
-          v-model="editLockSuggestionsAfterDraw"
-          type="checkbox"
-          class="form-check-input"
-        />
-        <label class="form-check-label" for="editLockSuggestionsAfterDraw">
-          {{ t('exchangeDetail.lockSuggestionsAfterDraw') }}
-        </label>
-      </div>
-      <div class="mb-3 form-check">
-        <input
-          id="editNoMutualAssignments"
-          v-model="editNoMutualAssignments"
-          type="checkbox"
-          class="form-check-input"
-        />
-        <label class="form-check-label" for="editNoMutualAssignments">
-          {{ t('exchangeDetail.noMutualAssignments') }}
-        </label>
-      </div>
+        <div class="mb-3 form-check">
+          <input
+            id="editNoMutualAssignments"
+            :disabled="rulesLocked"
+            v-model="editNoMutualAssignments"
+            type="checkbox"
+            class="form-check-input"
+          />
+          <label class="form-check-label" for="editNoMutualAssignments">
+            {{ t('exchangeDetail.noMutualAssignments') }}
+          </label>
+        </div>
+      </fieldset>
     </form>
 
     <template #footer>
@@ -183,7 +196,7 @@ function handleSubmit() {
         type="submit"
         class="btn btn-primary order-2"
         form="editExchangeForm"
-        :disabled="!isValid || !!props.isSubmitting"
+        :disabled="contentLocked || !isValid || !!props.isSubmitting"
       >
         {{ t('exchangeDetail.editExchangeModal.submit') }}
       </button>

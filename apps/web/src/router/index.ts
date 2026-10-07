@@ -1,3 +1,4 @@
+import { localAdminToolsEnabled } from '../local-admin-tools'
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import ExchangesView from '../views/ExchangesView.vue'
@@ -14,6 +15,7 @@ const router = createRouter({
       path: '/exchanges',
       name: 'exchanges',
       component: ExchangesView,
+      beforeEnter: () => (localAdminToolsEnabled ? true : { name: 'home' }),
     },
     {
       path: '/exchanges/:id',

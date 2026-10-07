@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatCivilDate } from '@/composables/useCivilDate'
 import { ref, onMounted, computed } from 'vue'
 import { useExchangesStore } from '@/stores/exchanges'
 import { useI18n } from 'vue-i18n'
@@ -145,7 +146,7 @@ onMounted(() => {
                   <dt class="col-5 text-body-secondary fw-semibold">
                     {{ t('exchanges.exchangeMoment') }}
                   </dt>
-                  <dd class="col-7 mb-2">{{ formatDate(exchange.eventDate) }}</dd>
+                  <dd class="col-7 mb-2">{{ formatCivilDate(exchange.eventDate) }}</dd>
 
                   <dt class="col-5 text-body-secondary fw-semibold">{{ t('exchanges.budget') }}</dt>
                   <dd class="col-7 mb-2">{{ formatBudget(exchange) }}</dd>

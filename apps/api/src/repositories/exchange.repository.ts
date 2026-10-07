@@ -40,24 +40,24 @@ interface ExchangeRow {
   min_wishlist_suggestions: number;
   lock_suggestions_after_draw: boolean;
   no_mutual_assignments: boolean;
-  draw_at: string | null;
-  created_at: string;
-  updated_at: string;
+  draw_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
 }
 
 interface AdminAccessRow {
   exchange_id: string;
   password_hash: string;
-  created_at: string;
-  updated_at: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 interface AdminSessionRow {
   id: string;
   exchange_id: string;
   token_hash: string;
-  created_at: string;
-  expires_at: string;
+  created_at: Date;
+  expires_at: Date;
 }
 
 function mapExchangeRow(row: ExchangeRow): ExchangeRecord {
@@ -71,9 +71,9 @@ function mapExchangeRow(row: ExchangeRow): ExchangeRecord {
     minWishlistSuggestions: row.min_wishlist_suggestions,
     lockSuggestionsAfterDraw: row.lock_suggestions_after_draw,
     noMutualAssignments: row.no_mutual_assignments,
-    drawAt: row.draw_at ?? undefined,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    drawAt: row.draw_at?.toISOString(),
+    createdAt: row.created_at.toISOString(),
+    updatedAt: row.updated_at.toISOString(),
   };
 }
 
@@ -81,8 +81,8 @@ function mapAdminAccessRow(row: AdminAccessRow): AdminAccessRecord {
   return {
     exchangeId: row.exchange_id,
     passwordHash: row.password_hash,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: row.created_at.toISOString(),
+    updatedAt: row.updated_at.toISOString(),
   };
 }
 
@@ -91,8 +91,8 @@ function mapAdminSessionRow(row: AdminSessionRow): AdminSessionRecord {
     id: row.id,
     exchangeId: row.exchange_id,
     tokenHash: row.token_hash,
-    createdAt: row.created_at,
-    expiresAt: row.expires_at,
+    createdAt: row.created_at.toISOString(),
+    expiresAt: row.expires_at.toISOString(),
   };
 }
 
@@ -148,7 +148,7 @@ export const exchangeRepository = {
   async findById(exchangeId: string, db?: DbExecutor) {
     const result = await query<ExchangeRow>(
       `
-        SELECT *
+        SELECT *, event_date::text AS event_date
         FROM exchanges
         WHERE id = $1
       `,
@@ -160,10 +160,19 @@ export const exchangeRepository = {
     return row ? mapExchangeRow(row) : undefined;
   },
 
+  async findByIdForUpdate(exchangeId: string, db: DbExecutor) {
+    const result = await query<ExchangeRow>(
+      "SELECT *, event_date::text AS event_date FROM exchanges WHERE id = $1 FOR UPDATE",
+      [exchangeId],
+      db,
+    );
+    return result.rows[0] ? mapExchangeRow(result.rows[0]) : undefined;
+  },
+
   async findAll(db?: DbExecutor) {
     const result = await query<ExchangeRow>(
       `
-        SELECT *
+        SELECT *, event_date::text AS event_date
         FROM exchanges
         ORDER BY created_at ASC
       `,
@@ -195,9 +204,9 @@ export const exchangeRepository = {
         UPDATE exchanges
         SET
           ${setClauses.length > 0 ? `${setClauses.join(", ")},` : ""}
-          updated_at = NOW()
+          updated_at = GREATEST(clock_timestamp(), updated_at + interval '1 millisecond')
         WHERE id = $1
-        RETURNING *
+        RETURNING *, event_date::text AS event_date
       `,
       [exchangeId, ...values],
       db,
@@ -229,10 +238,10 @@ export const exchangeRepository = {
         UPDATE exchanges
         SET
           ${setClauses.length > 0 ? `${setClauses.join(", ")},` : ""}
-          updated_at = NOW()
+          updated_at = GREATEST(clock_timestamp(), updated_at + interval '1 millisecond')
         WHERE id = $1
           AND date_trunc('milliseconds', updated_at) = date_trunc('milliseconds', $${values.length + 2}::timestamptz)
-        RETURNING *
+        RETURNING *, event_date::text AS event_date
       `,
       [exchangeId, ...values, expectedUpdatedAt],
       db,
@@ -296,7 +305,7 @@ export const exchangeRepository = {
     const result = await query<AdminAccessRow>(
       `
         UPDATE admin_access
-        SET password_hash = $2, updated_at = NOW()
+        SET password_hash = $2, updated_at = GREATEST(clock_timestamp(), updated_at + interval '1 millisecond')
         WHERE exchange_id = $1
         RETURNING *
       `,

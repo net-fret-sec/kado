@@ -132,8 +132,8 @@ Note: `pnpm preview:api` existe à la racine mais le script `preview` n'est pas 
 
 - Build API: `pnpm build:api`
 - Build web: `pnpm build:web`
-- Tests API: `pnpm --dir apps/api test`
-- Lint web: `pnpm --dir apps/web lint`
+- Tests API: `pnpm --dir apps/api test` (Docker requis ; PostgreSQL 16 éphémère, migrations appliquées, aucun accès implicite à la base locale).
+- Lint web sans modification: `pnpm --dir apps/web exec eslint .` puis `pnpm --dir apps/web exec oxlint .`
 - Type-check web: `pnpm --dir apps/web type-check`
 
 ## Variables d'environnement
@@ -151,11 +151,14 @@ Fichier d'exemple: `apps/api/.env.example`
 - `PARTICIPANT_ACCESS_BASE_DELAY_MS`: délai de base ajouté sur les endpoints participant publics.
 - `PARTICIPANT_ACCESS_MAX_DELAY_MS`: plafond du délai progressif.
 - `DATABASE_URL`: URL de connexion PostgreSQL.
+- `EXCHANGE_TIME_ZONE`: fuseau IANA validé au démarrage, défaut `America/Toronto`.
+- `ENABLE_LOCAL_ADMIN_TOOLS`: `true` pour activer la liste globale uniquement avec `NODE_ENV=development`; défaut désactivé. Le serveur écoute alors exclusivement sur `127.0.0.1` et refuse les requêtes transférées par proxy.
 
 ### Web
 
 Fichier d'exemple: `apps/web/.env.example`
 
+- `VITE_ENABLE_LOCAL_ADMIN_TOOLS`: `true` pour activer la page `/exchanges` uniquement en développement ; Vite écoute alors sur `127.0.0.1`. Nécessite aussi le drapeau API. Hors activation, cette route revient à l’accueil et la liste n’est jamais appelée.
 - `VITE_API_BASE`: base URL de l'API. Laisser vide en développement local pour utiliser le proxy Vite.
 - `VITE_DONATION_URL`: URL de soutien affichée sur l'accueil. Si vide ou absente, le bloc de soutien n'est pas rendu.
 - `VITE_ADMIN_LINK_CONTINUE_COUNTDOWN_SECONDS`: délai (en secondes) avant activation du bouton "Continuer" après la création d'une pige. Valeur par défaut: `5`.
@@ -165,7 +168,7 @@ Fichier d'exemple: `apps/web/.env.example`
 - Santé
   - `GET /health`
 - Échanges admin
-  - `GET /api/exchanges`
+  - `GET /api/exchanges` (outil local désactivé par défaut, indisponible en production)
   - `POST /api/exchanges`
   - `GET /api/exchanges/:exchangeId`
   - `PUT /api/exchanges/:exchangeId`
@@ -223,6 +226,26 @@ RESET_EXCHANGES_CONFIRM=RESET_EXCHANGES pnpm db:reset-exchanges:api
 
 Cette suppression efface en cascade les participants, assignations, exclusions, accès et sessions associés.
 Elle ne modifie pas le schéma existant.
+
+## Confidentialité et intégrité (P0)
+
+Les sessions admin sont limitées à un échange. Chaque opération individuelle sur un participant filtre simultanément son identifiant et celui de l’échange autorisé. Un participant absent ou extérieur à l’échange produit le même `PARTICIPANT_NOT_FOUND` (404). La vue publique expose uniquement un contrat explicite, sans profils participants ni champs d’administration.
+
+Les mutations utilisent une transaction et verrouillent d’abord la ligne de l’échange. Créations et rotations de liens sont atomiques ; un accès participant est revalidé après acquisition du verrou. Une seconde pige concurrente renvoie la pige déjà réalisée. Avec `revokeExisting=true`, seule la dernière rotation validée reste active ; `false` conserve les accès précédents.
+
+| État | Modifications permises |
+|---|---|
+| Avant pige, non archivé | Édition habituelle ; l’organisateur référencé doit appartenir à l’échange |
+| Tiré, non archivé | Titre, description, budget, date ; souhaits et notes si `lockSuggestionsAfterDraw=false` ; rotation, annulation et suppression complète |
+| Archivé | Consultation, rotation des liens et suppression complète |
+
+Après pige, noms et emails, ajout/suppression de participants, organisateur, exclusions et options de pige sont figés. Les mêmes règles de souhaits/notes s’appliquent à l’admin et au participant. Les champs figés envoyés avec leur valeur actuelle sont acceptés. Les refus métier utilisent HTTP 400 avec des codes traduits dans l’interface.
+
+Les dates d’échange sont des dates civiles `YYYY-MM-DD`, validées et affichées sans décalage de fuseau navigateur. Les horodatages sont ISO UTC. L’archivage commence à minuit, dans `EXCHANGE_TIME_ZONE`, 31 jours calendaires après la date d’échange. Sans date, aucun archivage automatique. Modifier la date peut archiver immédiatement un échange ; une archive ne peut pas être réouverte par édition.
+
+La commande de tests crée et supprime son propre conteneur PostgreSQL et utilise un port loopback aléatoire. Les scénarios sont isolés entre tests. Un lancement direct de Jest sans URL de test explicitement fournie est refusé. Aucun reset de la base existante n’est nécessaire pour cette P0 et aucune nouvelle migration SQL n’est requise.
+
+Cette P0 ne valide pas la production : rate limiting, CSP, santé du service, sauvegardes et exploitation restent à consolider.
 
 ## Déploiement production
 

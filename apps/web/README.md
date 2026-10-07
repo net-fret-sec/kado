@@ -22,7 +22,7 @@ L'application couvre trois surfaces utilisateur:
 ## Routes principales
 
 - `/`: accueil.
-- `/exchanges`: liste admin.
+- `/exchanges`: liste globale de développement, uniquement avec `VITE_ENABLE_LOCAL_ADMIN_TOOLS=true` et activation API locale. Sinon, retour à l’accueil.
 - `/exchanges/:id`: détail admin.
 - `/x/:id`: vue publique.
 - `/p/:token`: espace participant.
@@ -44,6 +44,7 @@ L'application couvre trois surfaces utilisateur:
 
 Fichier d'exemple: `apps/web/.env.example`
 
+- `VITE_ENABLE_LOCAL_ADMIN_TOOLS`: outil local facultatif, désactivé par défaut et toujours indisponible dans le build production.
 - `VITE_API_BASE`: base URL de l'API. Si vide, le frontend utilise les chemins relatifs `/api/...` et le proxy Vite en développement.
 - `VITE_DONATION_URL`: URL publique du lien de soutien affiché sur l'accueil. Si vide ou absente, le bloc n'est pas rendu.
 - `VITE_ADMIN_LINK_CONTINUE_COUNTDOWN_SECONDS`: délai (en secondes) avant activation du bouton "Continuer" après la création d'une pige. Valeur par défaut: `5`.
@@ -68,6 +69,7 @@ Par défaut, Vite écoute sur `http://localhost:5173` et proxifie `/api` vers `h
 
 ```bash
 pnpm --dir apps/web type-check
-pnpm --dir apps/web lint
+pnpm --dir apps/web exec eslint .
+pnpm --dir apps/web exec oxlint .
 pnpm --dir apps/web build
 ```

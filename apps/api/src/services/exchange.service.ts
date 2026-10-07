@@ -18,35 +18,21 @@ import {
   sha256,
   verifyPassword,
 } from "../lib/crypto";
-import { createParticipant } from "./participant.service";
+import { createParticipantInTransaction } from "./participant.service";
 import { assignmentRepository } from "../repositories/assignment.repository";
 import { exclusionRuleRepository } from "../repositories/exclusion-rule.repository";
-import { withTransaction } from "../db";
+import { withTransaction, type DbExecutor } from "../db";
+import { withExchangeTransaction } from "../lib/exchange-transaction";
+import {
+  assertNotArchived,
+  assertUnchangedFields,
+  isExchangeArchived,
+  isExchangeDrawn,
+} from "../lib/exchange-state";
 
 interface DrawAssignment {
   giverParticipantId: string;
   receiverParticipantId: string;
-}
-
-const ARCHIVE_AFTER_DAYS = 30;
-
-function isExchangeDrawn(exchange: { drawAt?: string }) {
-  return Boolean(exchange.drawAt);
-}
-
-function isExchangeArchived(exchange: { eventDate?: string }) {
-  if (!exchange.eventDate) {
-    return false;
-  }
-
-  const eventLocalEnd = new Date(`${exchange.eventDate}T23:59:59.999`);
-  if (Number.isNaN(eventLocalEnd.getTime())) {
-    return false;
-  }
-
-  const archiveAt =
-    eventLocalEnd.getTime() + ARCHIVE_AFTER_DAYS * 24 * 60 * 60 * 1000;
-  return Date.now() > archiveAt;
 }
 
 function toExchangeDto(
@@ -174,17 +160,23 @@ function buildSessionExpiryIso(): string {
   return new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString();
 }
 
-async function createAdminSession(exchangeId: string): Promise<string> {
+async function createAdminSession(
+  exchangeId: string,
+  db: DbExecutor,
+): Promise<string> {
   const now = new Date().toISOString();
   const adminSessionToken = generateOpaqueToken("adm");
 
-  await exchangeRepository.createAdminSession({
-    id: generateId("sess"),
-    exchangeId,
-    tokenHash: sha256(adminSessionToken),
-    createdAt: now,
-    expiresAt: buildSessionExpiryIso(),
-  });
+  await exchangeRepository.createAdminSession(
+    {
+      id: generateId("sess"),
+      exchangeId,
+      tokenHash: sha256(adminSessionToken),
+      createdAt: now,
+      expiresAt: buildSessionExpiryIso(),
+    },
+    db,
+  );
 
   return adminSessionToken;
 }
@@ -192,58 +184,69 @@ async function createAdminSession(exchangeId: string): Promise<string> {
 export async function createExchange(
   input: CreateExchangeInputDto,
 ): Promise<CreateExchangeResultDto> {
-  const now = new Date().toISOString();
+  return withTransaction(async (db) => {
+    const now = new Date().toISOString();
 
-  const exchange = {
-    id: generateId("exc"),
-    name: input.name,
-    description: input.description,
-    organizerId: "", // Temporary
-    eventDate: input.eventDate,
-    budget: input.budget,
-    minWishlistSuggestions: input.minWishlistSuggestions ?? 0,
-    lockSuggestionsAfterDraw: input.lockSuggestionsAfterDraw ?? true,
-    noMutualAssignments: input.noMutualAssignments ?? false,
-    createdAt: now,
-    updatedAt: now,
-  };
+    const exchange = {
+      id: generateId("exc"),
+      name: input.name,
+      description: input.description,
+      organizerId: "", // Temporary
+      eventDate: input.eventDate,
+      budget: input.budget,
+      minWishlistSuggestions: input.minWishlistSuggestions ?? 0,
+      lockSuggestionsAfterDraw: input.lockSuggestionsAfterDraw ?? true,
+      noMutualAssignments: input.noMutualAssignments ?? false,
+      createdAt: now,
+      updatedAt: now,
+    };
 
-  await exchangeRepository.create(exchange);
+    await exchangeRepository.create(exchange, db);
 
-  // Create organizer participant if name provided
-  let organizerId = "";
-  if (input.organizerName) {
-    const organizerParticipant = await createParticipant(exchange.id, {
-      name: input.organizerName,
-      email: undefined,
-      wishlist: undefined,
-      note: undefined,
-    });
-    organizerId = organizerParticipant.participant.id;
+    // Create organizer participant if name provided
+    let organizerId = "";
+    if (input.organizerName) {
+      const organizerParticipant = await createParticipantInTransaction(
+        exchange,
+        {
+          name: input.organizerName,
+          email: undefined,
+          wishlist: undefined,
+          note: undefined,
+        },
+        db,
+      );
+      organizerId = organizerParticipant.participant.id;
 
-    // Update exchange with organizerId
-    await exchangeRepository.update(exchange.id, { organizerId });
+      // Update exchange with organizerId
+      await exchangeRepository.update(exchange.id, { organizerId }, db);
 
-    // If not participates, remove from participants list (but keep as organizer)
-    if (!(input.organizerParticipates ?? true)) {
-      // For now, since participants are fetched separately, we can handle in getExchangeById
-      // But to keep simple, if not participates, we don't add to participants, but organizerId is set
+      // If not participates, remove from participants list (but keep as organizer)
+      if (!(input.organizerParticipates ?? true)) {
+        // For now, since participants are fetched separately, we can handle in getExchangeById
+        // But to keep simple, if not participates, we don't add to participants, but organizerId is set
+      }
     }
-  }
 
-  await exchangeRepository.createAdminAccess({
-    exchangeId: exchange.id,
-    passwordHash: hashPassword(input.adminPassword),
-    createdAt: now,
-    updatedAt: now,
+    await exchangeRepository.createAdminAccess(
+      {
+        exchangeId: exchange.id,
+        passwordHash: hashPassword(input.adminPassword),
+        createdAt: now,
+        updatedAt: now,
+      },
+      db,
+    );
+
+    const adminSessionToken = await createAdminSession(exchange.id, db);
+
+    const saved = await exchangeRepository.findById(exchange.id, db);
+    if (!saved) throw new Error("Exchange creation did not persist.");
+    return {
+      exchange: toExchangeDto(saved),
+      adminSessionToken,
+    };
   });
-
-  const adminSessionToken = await createAdminSession(exchange.id);
-
-  return {
-    exchange: toExchangeDto({ ...exchange, organizerId }),
-    adminSessionToken,
-  };
 }
 
 export async function getExchangeById(
@@ -296,7 +299,18 @@ export async function getExchangePublicById(exchangeId: string): Promise<{
   const organizer = participants.find((p) => p.id === exchange.organizerId);
 
   return {
-    ...toExchangeDto(exchange),
+    id: exchange.id,
+    name: exchange.name,
+    description: exchange.description,
+    isDrawn: isExchangeDrawn(exchange),
+    isArchived: isExchangeArchived(exchange),
+    eventDate: exchange.eventDate,
+    budget: exchange.budget,
+    minWishlistSuggestions: exchange.minWishlistSuggestions,
+    lockSuggestionsAfterDraw: exchange.lockSuggestionsAfterDraw,
+    noMutualAssignments: exchange.noMutualAssignments,
+    drawAt: exchange.drawAt,
+    updatedAt: exchange.updatedAt,
     organizerName: organizer ? organizer.name : "Unknown",
     participantsCount: participants.length,
   };
@@ -306,43 +320,39 @@ export async function authenticateAdminSession(
   exchangeId: string,
   adminPassword: string,
 ): Promise<{ adminSessionToken: string }> {
-  const exchange = await exchangeRepository.findById(exchangeId);
-  if (!exchange) {
-    throw new NotFoundError("Exchange not found.", {
-      code: "EXCHANGE_NOT_FOUND",
-    });
-  }
+  return withExchangeTransaction(exchangeId, async (_exchange, db) => {
+    const adminAccess = await exchangeRepository.findAdminAccess(
+      exchangeId,
+      db,
+    );
+    if (
+      !adminAccess ||
+      !verifyPassword(adminPassword, adminAccess.passwordHash)
+    ) {
+      throw new BadRequestError("Invalid admin credentials.", {
+        code: "ADMIN_CREDENTIALS_INVALID",
+      });
+    }
 
-  const adminAccess = await exchangeRepository.findAdminAccess(exchangeId);
-  if (
-    !adminAccess ||
-    !verifyPassword(adminPassword, adminAccess.passwordHash)
-  ) {
-    throw new BadRequestError("Invalid admin credentials.", {
-      code: "ADMIN_CREDENTIALS_INVALID",
-    });
-  }
-
-  const adminSessionToken = await createAdminSession(exchangeId);
-  return { adminSessionToken };
+    const adminSessionToken = await createAdminSession(exchangeId, db);
+    return { adminSessionToken };
+  });
 }
 
 export async function revokeAdminSession(
   exchangeId: string,
   rawToken: string,
 ): Promise<void> {
-  const exchange = await exchangeRepository.findById(exchangeId);
-  if (!exchange) {
-    throw new NotFoundError("Exchange not found.", {
-      code: "EXCHANGE_NOT_FOUND",
-    });
-  }
+  return withExchangeTransaction(exchangeId, async (_exchange, db) => {
+    if (!rawToken) {
+      return;
+    }
 
-  if (!rawToken) {
-    return;
-  }
-
-  await exchangeRepository.deleteAdminSessionByTokenHash(sha256(rawToken));
+    await exchangeRepository.deleteAdminSessionByTokenHash(
+      sha256(rawToken),
+      db,
+    );
+  });
 }
 
 export async function changeAdminPassword(
@@ -350,27 +360,26 @@ export async function changeAdminPassword(
   currentPassword: string,
   newPassword: string,
 ): Promise<void> {
-  const exchange = await exchangeRepository.findById(exchangeId);
-  if (!exchange) {
-    throw new NotFoundError("Exchange not found.", {
-      code: "EXCHANGE_NOT_FOUND",
-    });
-  }
+  return withExchangeTransaction(exchangeId, async (_exchange, db) => {
+    const adminAccess = await exchangeRepository.findAdminAccess(
+      exchangeId,
+      db,
+    );
+    if (
+      !adminAccess ||
+      !verifyPassword(currentPassword, adminAccess.passwordHash)
+    ) {
+      throw new BadRequestError("Invalid admin credentials.", {
+        code: "ADMIN_CREDENTIALS_INVALID",
+      });
+    }
 
-  const adminAccess = await exchangeRepository.findAdminAccess(exchangeId);
-  if (
-    !adminAccess ||
-    !verifyPassword(currentPassword, adminAccess.passwordHash)
-  ) {
-    throw new BadRequestError("Invalid admin credentials.", {
-      code: "ADMIN_CREDENTIALS_INVALID",
-    });
-  }
-
-  await exchangeRepository.updateAdminAccessPassword(
-    exchangeId,
-    hashPassword(newPassword),
-  );
+    await exchangeRepository.updateAdminAccessPassword(
+      exchangeId,
+      hashPassword(newPassword),
+      db,
+    );
+  });
 }
 
 export async function listExchanges(): Promise<ExchangeDto[]> {
@@ -393,67 +402,76 @@ export async function updateExchange(
   exchangeId: string,
   input: UpdateExchangeInputDto,
 ): Promise<ExchangeDto> {
-  const exchange = await exchangeRepository.findById(exchangeId);
-
-  if (!exchange) {
-    throw new NotFoundError("Exchange not found.", {
-      code: "EXCHANGE_NOT_FOUND",
-    });
-  }
-
-  const { expectedUpdatedAt, ...updates } = input;
-
-  const updated = expectedUpdatedAt
-    ? await exchangeRepository.updateIfUnchanged(
-        exchangeId,
+  return withExchangeTransaction(exchangeId, async (exchange, db) => {
+    assertNotArchived(exchange);
+    const { expectedUpdatedAt, ...updates } = input;
+    if (isExchangeDrawn(exchange)) {
+      assertUnchangedFields(
+        exchange,
         updates,
-        expectedUpdatedAt,
-      )
-    : await exchangeRepository.update(exchangeId, updates);
-
-  if (!updated) {
-    if (expectedUpdatedAt) {
-      throw new ConflictError(
-        "Exchange was modified by another user. Refresh and try again.",
-        {
-          code: "RESOURCE_MODIFIED_CONCURRENTLY",
-        },
+        [
+          "organizerId",
+          "minWishlistSuggestions",
+          "lockSuggestionsAfterDraw",
+          "noMutualAssignments",
+        ],
+        "EXCHANGE_DRAW_SETTINGS_LOCKED",
       );
     }
+    if (
+      Object.hasOwn(updates, "organizerId") &&
+      updates.organizerId !== exchange.organizerId
+    ) {
+      const organizer = updates.organizerId
+        ? await participantRepository.findById(
+            exchangeId,
+            updates.organizerId,
+            db,
+          )
+        : undefined;
+      if (!organizer)
+        throw new BadRequestError("Organizer must belong to this exchange.", {
+          code: "PARTICIPANT_OUTSIDE_EXCHANGE",
+        });
+    }
 
-    throw new NotFoundError("Exchange not found.", {
-      code: "EXCHANGE_NOT_FOUND",
-    });
-  }
+    const updated = expectedUpdatedAt
+      ? await exchangeRepository.updateIfUnchanged(
+          exchangeId,
+          updates,
+          expectedUpdatedAt,
+          db,
+        )
+      : await exchangeRepository.update(exchangeId, updates, db);
 
-  return toExchangeDto(updated);
-}
+    if (!updated) {
+      if (expectedUpdatedAt) {
+        throw new ConflictError(
+          "Exchange was modified by another user. Refresh and try again.",
+          {
+            code: "RESOURCE_MODIFIED_CONCURRENTLY",
+          },
+        );
+      }
 
-export async function deleteExchange(exchangeId: string): Promise<void> {
-  await withTransaction(async (db) => {
-    const exchange = await exchangeRepository.findById(exchangeId, db);
-
-    if (!exchange) {
       throw new NotFoundError("Exchange not found.", {
         code: "EXCHANGE_NOT_FOUND",
       });
     }
 
+    return toExchangeDto(updated);
+  });
+}
+
+export async function deleteExchange(exchangeId: string): Promise<void> {
+  await withExchangeTransaction(exchangeId, async (_exchange, db) => {
     await exclusionRuleRepository.deleteByExchangeId(exchangeId, db);
     await exchangeRepository.delete(exchangeId, db);
   });
 }
 
 export async function drawExchange(exchangeId: string): Promise<ExchangeDto> {
-  return await withTransaction(async (db) => {
-    const exchange = await exchangeRepository.findById(exchangeId, db);
-
-    if (!exchange) {
-      throw new NotFoundError("Exchange not found.", {
-        code: "EXCHANGE_NOT_FOUND",
-      });
-    }
-
+  return await withExchangeTransaction(exchangeId, async (exchange, db) => {
     if (isExchangeArchived(exchange)) {
       throw new BadRequestError("Archived exchanges cannot be drawn.", {
         code: "EXCHANGE_ARCHIVED_CANNOT_DRAW",
@@ -568,15 +586,7 @@ export async function drawExchange(exchangeId: string): Promise<ExchangeDto> {
 export async function cancelExchangeDraw(
   exchangeId: string,
 ): Promise<ExchangeDto> {
-  return await withTransaction(async (db) => {
-    const exchange = await exchangeRepository.findById(exchangeId, db);
-
-    if (!exchange) {
-      throw new NotFoundError("Exchange not found.", {
-        code: "EXCHANGE_NOT_FOUND",
-      });
-    }
-
+  return await withExchangeTransaction(exchangeId, async (exchange, db) => {
     if (isExchangeArchived(exchange)) {
       throw new BadRequestError("Archived exchanges cannot be modified.", {
         code: "EXCHANGE_ARCHIVED_CANNOT_MODIFY",

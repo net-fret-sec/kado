@@ -58,6 +58,7 @@ cp deploy/env/api.env.example deploy/env/api.env
 
 4. Renseigner dans `deploy/env/api.env`:
 
+- `EXCHANGE_TIME_ZONE` (défaut `America/Toronto`)
 - `SERVER_ADDRESS`
 - `SERVER_PORT`
 - `FRONTEND_BASE_URL`
@@ -226,3 +227,5 @@ docker compose --env-file deploy/.env.production -f deploy/docker-compose.prod.y
 - mises à jour de sécurité automatiques.
 - rotation régulière des secrets.
 - surveillance simple sur expiration certificat, échec backup et indisponibilité de service.
+
+La liste globale `/api/exchanges` est indisponible en production, même si `ENABLE_LOCAL_ADMIN_TOOLS=true` est défini. Les liens individuels admin, publics et participants restent disponibles. Cette P0 ne modifie pas le schéma SQL et ne demande aucun reset de données.

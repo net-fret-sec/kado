@@ -13,7 +13,7 @@ interface AssignmentRow {
   exchange_id: string;
   giver_participant_id: string;
   receiver_participant_id: string;
-  created_at: string;
+  created_at: Date;
 }
 
 function mapAssignmentRow(row: AssignmentRow): AssignmentRecord {
@@ -22,7 +22,7 @@ function mapAssignmentRow(row: AssignmentRow): AssignmentRecord {
     exchangeId: row.exchange_id,
     giverParticipantId: row.giver_participant_id,
     receiverParticipantId: row.receiver_participant_id,
-    createdAt: row.created_at,
+    createdAt: row.created_at.toISOString(),
   };
 }
 

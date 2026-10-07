@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatCivilDate } from '@/composables/useCivilDate'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useApi } from '@/composables/useApi'
@@ -97,7 +98,7 @@ onMounted(fetchPublicExchange)
           <dd class="col-6 col-md-8">{{ exchange.participantsCount }}</dd>
 
           <dt class="col-6 col-md-4">{{ t('exchangeDetail.exchangeMoment') }}</dt>
-          <dd class="col-6 col-md-8">{{ formatDate(exchange.eventDate) }}</dd>
+          <dd class="col-6 col-md-8">{{ formatCivilDate(exchange.eventDate) }}</dd>
 
           <dt class="col-6 col-md-4">{{ t('exchangeDetail.budget') }}</dt>
           <dd class="col-6 col-md-8">{{ formatBudget() }}</dd>

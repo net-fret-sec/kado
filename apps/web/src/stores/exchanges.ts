@@ -1,3 +1,4 @@
+import { localAdminToolsEnabled } from '@/local-admin-tools'
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { ExchangeDto } from '@kado/shared'
@@ -72,6 +73,10 @@ export const useExchangesStore = defineStore('exchanges', () => {
   }
 
   async function fetchExchanges() {
+    if (!localAdminToolsEnabled) {
+      exchanges.value = []
+      return
+    }
     isLoading.value = true
     error.value = null
     try {

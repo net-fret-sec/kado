@@ -2,6 +2,12 @@ import type { CreateExclusionRuleInputDto, ExclusionRule } from "@kado/shared";
 import { generateId } from "../lib/crypto";
 import { BadRequestError, NotFoundError } from "../lib/http-errors";
 import { exchangeRepository } from "../repositories/exchange.repository";
+import { type DbExecutor } from "../db";
+import {
+  withExchangeTransaction,
+  type ExchangeRecord,
+} from "../lib/exchange-transaction";
+import { isExchangeArchived, isExchangeDrawn } from "../lib/exchange-state";
 import { exclusionRuleRepository } from "../repositories/exclusion-rule.repository";
 import { participantRepository } from "../repositories/participant.repository";
 
@@ -15,34 +21,25 @@ async function assertExchangeExists(exchangeId: string) {
   return exchange;
 }
 
-async function assertExchangeEditable(exchangeId: string) {
-  const exchange = await assertExchangeExists(exchangeId);
-
-  const isDrawn = Boolean(exchange.drawAt);
-  const isArchived = (() => {
-    if (!exchange.eventDate) return false;
-    const eventLocalEnd = new Date(`${exchange.eventDate}T23:59:59.999`);
-    if (Number.isNaN(eventLocalEnd.getTime())) return false;
-    return Date.now() > eventLocalEnd.getTime() + 30 * 24 * 60 * 60 * 1000;
-  })();
-
-  if (isDrawn || isArchived) {
+function assertExchangeEditable(exchange: ExchangeRecord) {
+  if (isExchangeDrawn(exchange) || isExchangeArchived(exchange)) {
     throw new BadRequestError(
       "Exclusion rules cannot be modified for this exchange.",
-      {
-        code: "EXCLUSION_RULES_LOCKED",
-      },
+      { code: "EXCLUSION_RULES_LOCKED" },
     );
   }
-
-  return exchange;
 }
 
 async function assertParticipantBelongsToExchange(
   exchangeId: string,
   participantId: string,
+  db: DbExecutor,
 ) {
-  const participant = await participantRepository.findById(participantId);
+  const participant = await participantRepository.findById(
+    exchangeId,
+    participantId,
+    db,
+  );
 
   if (
     !participant ||
@@ -68,63 +65,70 @@ export async function createExclusionRule(
   exchangeId: string,
   input: CreateExclusionRuleInputDto,
 ): Promise<ExclusionRule> {
-  await assertExchangeEditable(exchangeId);
+  return withExchangeTransaction(exchangeId, async (exchange, db) => {
+    assertExchangeEditable(exchange);
 
-  if (input.giverParticipantId === input.receiverParticipantId) {
-    throw new BadRequestError(
-      "A participant cannot be excluded from drawing themselves.",
-      {
-        code: "EXCLUSION_SELF_NOT_ALLOWED",
-      },
-    );
-  }
+    if (input.giverParticipantId === input.receiverParticipantId) {
+      throw new BadRequestError(
+        "A participant cannot be excluded from drawing themselves.",
+        {
+          code: "EXCLUSION_SELF_NOT_ALLOWED",
+        },
+      );
+    }
 
-  await assertParticipantBelongsToExchange(
-    exchangeId,
-    input.giverParticipantId,
-  );
-  await assertParticipantBelongsToExchange(
-    exchangeId,
-    input.receiverParticipantId,
-  );
-
-  if (
-    await exclusionRuleRepository.existsByExchangeAndPair(
+    await assertParticipantBelongsToExchange(
       exchangeId,
       input.giverParticipantId,
+      db,
+    );
+    await assertParticipantBelongsToExchange(
+      exchangeId,
       input.receiverParticipantId,
-    )
-  ) {
-    throw new BadRequestError("This exclusion rule already exists.", {
-      code: "EXCLUSION_RULE_ALREADY_EXISTS",
-    });
-  }
+      db,
+    );
 
-  const rule: ExclusionRule = {
-    id: generateId("exr"),
-    exchangeId,
-    giverParticipantId: input.giverParticipantId,
-    receiverParticipantId: input.receiverParticipantId,
-    type: "manual",
-    createdAt: new Date().toISOString(),
-  };
+    if (
+      await exclusionRuleRepository.existsByExchangeAndPair(
+        exchangeId,
+        input.giverParticipantId,
+        input.receiverParticipantId,
+        db,
+      )
+    ) {
+      throw new BadRequestError("This exclusion rule already exists.", {
+        code: "EXCLUSION_RULE_ALREADY_EXISTS",
+      });
+    }
 
-  return await exclusionRuleRepository.create(rule);
+    const rule: ExclusionRule = {
+      id: generateId("exr"),
+      exchangeId,
+      giverParticipantId: input.giverParticipantId,
+      receiverParticipantId: input.receiverParticipantId,
+      type: "manual",
+      createdAt: new Date().toISOString(),
+    };
+
+    return await exclusionRuleRepository.create(rule, db);
+  });
 }
 
 export async function deleteExclusionRule(
   exchangeId: string,
   ruleId: string,
 ): Promise<void> {
-  await assertExchangeEditable(exchangeId);
+  return withExchangeTransaction(exchangeId, async (exchange, db) => {
+    assertExchangeEditable(exchange);
 
-  const rule = await exclusionRuleRepository.findById(ruleId);
+    const rule = await exclusionRuleRepository.findById(ruleId, db);
 
-  if (!rule || rule.exchangeId !== exchangeId) {
-    throw new NotFoundError("Exclusion rule not found.", {
-      code: "EXCLUSION_RULE_NOT_FOUND",
-    });
-  }
+    if (!rule || rule.exchangeId !== exchangeId) {
+      throw new NotFoundError("Exclusion rule not found.", {
+        code: "EXCLUSION_RULE_NOT_FOUND",
+      });
+    }
 
-  await exclusionRuleRepository.deleteById(ruleId);
+    await exclusionRuleRepository.deleteById(ruleId, db);
+  });
 }

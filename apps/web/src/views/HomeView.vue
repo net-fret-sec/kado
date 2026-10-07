@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { localAdminToolsEnabled } from '@/local-admin-tools'
 import { useI18n } from 'vue-i18n'
 import CreateExchangeModal from '@/components/CreateExchangeModal.vue'
 
 const { t } = useI18n()
 const isCreateModalOpen = ref(false)
-const showAdminLink = import.meta.env.DEV
+const showAdminLink = localAdminToolsEnabled
 const donationUrl = ((import.meta.env.VITE_DONATION_URL as string | undefined) ?? '').trim()
 </script>
 

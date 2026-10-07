@@ -1,967 +1,945 @@
 import request from "supertest";
 import { createApp } from "../app";
+import { closePool, query } from "../db";
 import { exchangeRepository } from "../repositories/exchange.repository";
-import { closePool } from "../db";
+import { participantRepository } from "../repositories/participant.repository";
+import { assignmentRepository } from "../repositories/assignment.repository";
+import {
+  createExchange,
+  drawExchange,
+  cancelExchangeDraw,
+  updateExchange,
+} from "../services/exchange.service";
+import {
+  createParticipant,
+  regenerateParticipantAccess,
+  deleteParticipant,
+  getParticipantSelfViewByToken,
+} from "../services/participant.service";
+import { createExclusionRule } from "../services/exclusion-rule.service";
+import {
+  archiveAt,
+  getExchangeTimeZone,
+  isExchangeArchived,
+} from "../lib/exchange-state";
+import type { CreateExchangeInputDto } from "@kado/shared";
 
 const app = createApp();
-
-let exchangeId: string;
-let participantId: string;
-let participantExchangeId: string;
-let participantAccessToken: string;
-let participantAccessTokenNormalized: string;
-let participantUpdatedAt: string;
-let participantSelfUpdatedAt: string;
-const adminSessionTokens = new Map<string, string>();
-
-function rememberAdminSession(exchangeId: string, token: string) {
-  adminSessionTokens.set(exchangeId, token);
+const password = "testpassword123";
+function path(id: string) {
+  return `/api/exchanges/${id}`;
 }
-
-function requireAdminSessionToken(exchangeId: string): string {
-  const token = adminSessionTokens.get(exchangeId);
-  if (!token) {
-    throw new Error(`Missing admin session token for exchange ${exchangeId}`);
-  }
-  return token;
-}
-
-function asAdmin(exchangeId: string) {
-  const authorization = `Bearer ${requireAdminSessionToken(exchangeId)}`;
-
+async function fixture(
+  options: Partial<CreateExchangeInputDto> = {},
+  count = 3,
+) {
+  const { exchange, adminSessionToken } = await createExchange({
+    name: "Test",
+    adminPassword: password,
+    ...options,
+  });
+  const members = [];
+  for (let i = 0; i < count; i++)
+    members.push(
+      await createParticipant(exchange.id, {
+        name: `Member ${i}`,
+        email: `member${i}@example.com`,
+        wishlist: [{ title: "Gift" }],
+        note: "Private note",
+      }),
+    );
   return {
-    get: (path: string) =>
-      request(app).get(path).set("authorization", authorization),
-    post: (path: string) =>
-      request(app).post(path).set("authorization", authorization),
-    put: (path: string) =>
-      request(app).put(path).set("authorization", authorization),
-    delete: (path: string) =>
-      request(app).delete(path).set("authorization", authorization),
+    id: exchange.id,
+    members,
+    auth: { authorization: `Bearer ${adminSessionToken}` },
+    token: members[0]?.accessLink.split("/").pop() ?? "",
   };
 }
+beforeEach(async () => {
+  jest.restoreAllMocks();
+  process.env.NODE_ENV = "test";
+  delete process.env.ENABLE_LOCAL_ADMIN_TOOLS;
+  process.env.EXCHANGE_TIME_ZONE = "America/Toronto";
+  await query("TRUNCATE exchanges CASCADE");
+});
+afterAll(closePool);
 
-async function createExchangeWithAdminSession(
-  payload: Record<string, unknown>,
-) {
-  const response = await request(app)
-    .post("/api/exchanges")
-    .send(payload)
-    .expect(201);
-
-  const createdExchangeId = response.body.exchange.id as string;
-  const adminSessionToken = response.body.adminSessionToken as string;
-  rememberAdminSession(createdExchangeId, adminSessionToken);
-
-  return response;
+// Inspect real PostgreSQL waits to release a held transaction only once its competitor is blocked.
+async function waitForParentLock() {
+  const deadline = Date.now() + 4000;
+  while (Date.now() < deadline) {
+    const result = await query<{ waiting: boolean }>(
+      "SELECT EXISTS (SELECT 1 FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock' AND query LIKE '%FOR UPDATE%') AS waiting",
+    );
+    if (result.rows[0].waiting) return;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  throw new Error("Competing operation did not wait for the exchange lock");
+}
+function deferred() {
+  let resolve!: () => void;
+  const promise = new Promise<void>((r) => {
+    resolve = r;
+  });
+  return { promise, resolve };
+}
+async function heldDraw(id: string, competitor: () => Promise<unknown>) {
+  const reached = deferred(),
+    release = deferred();
+  const original = participantRepository.findByExchangeId.bind(
+    participantRepository,
+  );
+  jest
+    .spyOn(participantRepository, "findByExchangeId")
+    .mockImplementationOnce(async (...args) => {
+      reached.resolve();
+      await release.promise;
+      return original(...args);
+    });
+  const first = drawExchange(id);
+  await reached.promise;
+  const second = competitor();
+  try {
+    await waitForParentLock();
+  } finally {
+    release.resolve();
+  }
+  return Promise.allSettled([first, second]);
+}
+async function validAssignments(id: string) {
+  const participants = (
+    await participantRepository.findByExchangeId(id)
+  ).filter((p) => p.status === "active");
+  const assignments = await assignmentRepository.findByExchangeId(id);
+  const exclusions = await query<{
+    giver_participant_id: string;
+    receiver_participant_id: string;
+  }>("SELECT * FROM exclusion_rules WHERE exchange_id=$1", [id]);
+  const exchange = await exchangeRepository.findById(id);
+  expect(assignments).toHaveLength(participants.length);
+  expect(new Set(assignments.map((a) => a.giverParticipantId)).size).toBe(
+    participants.length,
+  );
+  expect(new Set(assignments.map((a) => a.receiverParticipantId)).size).toBe(
+    participants.length,
+  );
+  const ids = new Set(participants.map((p) => p.id));
+  for (const a of assignments) {
+    expect(
+      ids.has(a.giverParticipantId) && ids.has(a.receiverParticipantId),
+    ).toBe(true);
+    expect(a.giverParticipantId).not.toBe(a.receiverParticipantId);
+    expect(
+      exclusions.rows.some(
+        (e) =>
+          e.giver_participant_id === a.giverParticipantId &&
+          e.receiver_participant_id === a.receiverParticipantId,
+      ),
+    ).toBe(false);
+    if (exchange?.noMutualAssignments)
+      expect(
+        assignments.some(
+          (b) =>
+            b.giverParticipantId === a.receiverParticipantId &&
+            b.receiverParticipantId === a.giverParticipantId,
+        ),
+      ).toBe(false);
+  }
 }
 
-describe("API Tests", () => {
-  afterAll(async () => {
-    await closePool();
-  });
-
-  describe("Exchanges", () => {
-    it("should create an exchange", async () => {
-      const response = await createExchangeWithAdminSession({
-        name: "Test Exchange",
-        adminPassword: "testpassword123",
-      });
-
-      expect(response.body.exchange).toHaveProperty("id");
-      expect(response.body.exchange.name).toBe("Test Exchange");
-      expect(response.body).toHaveProperty("adminSessionToken");
-      exchangeId = response.body.exchange.id;
-    });
-
-    it("should update an exchange", async () => {
-      const response = await asAdmin(exchangeId)
-        .put(`/api/exchanges/${exchangeId}`)
-        .send({
-          name: "Updated Exchange",
-          description: "Updated description",
-        })
-        .expect(200);
-
-      expect(response.body.name).toBe("Updated Exchange");
-      expect(response.body.description).toBe("Updated description");
-    });
-
-    it("should update an exchange with a fresh expectedUpdatedAt", async () => {
-      const currentExchange = await asAdmin(exchangeId)
-        .get(`/api/exchanges/${exchangeId}`)
-        .expect(200);
-
-      const response = await asAdmin(exchangeId)
-        .put(`/api/exchanges/${exchangeId}`)
-        .send({
-          budget: 123,
-          expectedUpdatedAt: currentExchange.body.updatedAt,
-        })
-        .expect(200);
-
-      expect(response.body.budget).toBe(123);
-    });
-
-    it("should return 409 when exchange expectedUpdatedAt is stale", async () => {
-      const currentExchange = await asAdmin(exchangeId)
-        .get(`/api/exchanges/${exchangeId}`)
-        .expect(200);
-
-      const staleUpdatedAt = currentExchange.body.updatedAt as string;
-
-      await asAdmin(exchangeId)
-        .put(`/api/exchanges/${exchangeId}`)
-        .send({
-          description: "Concurrent update",
-        })
-        .expect(200);
-
-      const staleResponse = await asAdmin(exchangeId)
-        .put(`/api/exchanges/${exchangeId}`)
-        .send({
-          name: "Should conflict",
-          expectedUpdatedAt: staleUpdatedAt,
-        })
-        .expect(409);
-
-      expect(staleResponse.body.error.details).toMatchObject({
-        code: "RESOURCE_MODIFIED_CONCURRENTLY",
-      });
-    });
-
-    it("should reject create when suggestions deadline is after exchange moment", async () => {
-      const response = await request(app)
-        .post("/api/exchanges")
-        .send({
-          name: "Invalid suggestions deadline on create",
-          eventDate: "2026-12-01",
-          suggestionsDeadlineAt: "2026-12-02T10:00:00.000Z",
-          adminPassword: "testpassword123",
-        })
-        .expect(400);
-
-      const code = response.body?.error?.details?.code;
-      expect([
-        "SUGGESTIONS_DEADLINE_AFTER_EXCHANGE_MOMENT",
-        "INVALID_REQUEST_BODY",
-      ]).toContain(code);
-    });
-
-    it("should reject update when suggestions deadline is after exchange moment", async () => {
-      const response = await asAdmin(exchangeId)
-        .put(`/api/exchanges/${exchangeId}`)
-        .send({
-          eventDate: "2026-12-01",
-          suggestionsDeadlineAt: "2026-12-02T10:00:00.000Z",
-        })
-        .expect(400);
-
-      const code = response.body?.error?.details?.code;
-      expect([
-        "SUGGESTIONS_DEADLINE_AFTER_EXCHANGE_MOMENT",
-        "INVALID_REQUEST_BODY",
-      ]).toContain(code);
-    });
-
-    it("should delete an exchange", async () => {
-      await asAdmin(exchangeId)
-        .delete(`/api/exchanges/${exchangeId}`)
-        .expect(204);
-
-      const deletedResponse = await asAdmin(exchangeId).get(
-        `/api/exchanges/${exchangeId}`,
-      );
-      expect([401, 404]).toContain(deletedResponse.status);
-    });
-  });
-
-  describe("Participants", () => {
-    beforeAll(async () => {
-      // Create an exchange for participants
-      const response = await createExchangeWithAdminSession({
-        name: "Test Exchange for Participants",
-        adminPassword: "testpassword123",
-      });
-
-      participantExchangeId = response.body.exchange.id;
-    });
-
-    it("should create a participant", async () => {
-      const response = await asAdmin(participantExchangeId)
-        .post(`/api/exchanges/${participantExchangeId}/participants`)
-        .send({
-          name: "Test Participant",
-        })
-        .expect(201);
-
-      expect(response.body.participant).toHaveProperty("id");
-      expect(response.body.participant.name).toBe("Test Participant");
-      expect(response.body.accessLink).toMatch(
-        /\/p\/[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/,
-      );
-      participantId = response.body.participant.id;
-    });
-
-    it("should reject participant creation after draw", async () => {
-      const exchangeResponse = await createExchangeWithAdminSession({
-        name: "Locked participants exchange",
-        adminPassword: "testpassword123",
-      });
-
-      const lockedExchangeId = exchangeResponse.body.exchange.id;
-
-      await exchangeRepository.update(lockedExchangeId, {
-        drawAt: new Date().toISOString(),
-      });
-
-      const response = await asAdmin(lockedExchangeId)
-        .post(`/api/exchanges/${lockedExchangeId}/participants`)
-        .send({ name: "Blocked participant" })
-        .expect(400);
-
-      expect(response.body.error.message).toMatch(/cannot be added/i);
-      expect(response.body.error.details).toMatchObject({
-        code: "PARTICIPANT_CREATION_LOCKED",
-      });
-    });
-
-    it("should update a participant", async () => {
-      const response = await asAdmin(participantExchangeId)
-        .put(
-          `/api/exchanges/${participantExchangeId}/participants/${participantId}`,
-        )
-        .send({
-          name: "Updated Participant",
-          wishlist: [{ title: "Updated wishlist" }],
-        })
-        .expect(200);
-
-      expect(response.body.name).toBe("Updated Participant");
-      expect(response.body.wishlist).toEqual([{ title: "Updated wishlist" }]);
-      participantUpdatedAt = response.body.updatedAt;
-    });
-
-    it("should return 409 when participant expectedUpdatedAt is stale", async () => {
-      await asAdmin(participantExchangeId)
-        .put(
-          `/api/exchanges/${participantExchangeId}/participants/${participantId}`,
-        )
-        .send({
-          note: "Concurrent participant update",
-        })
-        .expect(200);
-
-      const staleResponse = await asAdmin(participantExchangeId)
-        .put(
-          `/api/exchanges/${participantExchangeId}/participants/${participantId}`,
-        )
-        .send({
-          name: "Should conflict",
-          expectedUpdatedAt: participantUpdatedAt,
-        })
-        .expect(409);
-
-      expect(staleResponse.body.error.details).toMatchObject({
-        code: "RESOURCE_MODIFIED_CONCURRENTLY",
-      });
-    });
-
-    it("should delete a participant", async () => {
-      await asAdmin(participantExchangeId)
-        .delete(
-          `/api/exchanges/${participantExchangeId}/participants/${participantId}`,
-        )
-        .expect(204);
-
-      // Verify it's deleted
-      await asAdmin(participantExchangeId)
-        .get(`/api/exchanges/${participantExchangeId}/participants`)
-        .expect(200)
-        .then((res) => {
-          expect(res.body.length).toBe(0);
-        });
-    });
-  });
-
-  describe("Public participant access", () => {
-    beforeAll(async () => {
-      const response = await asAdmin(participantExchangeId)
-        .post(`/api/exchanges/${participantExchangeId}/participants`)
-        .send({ name: "Public Participant" })
-        .expect(201);
-
-      const accessLink = response.body.accessLink as string;
-      participantAccessToken = accessLink.split("/").pop() as string;
-      participantAccessTokenNormalized = participantAccessToken
-        .toUpperCase()
-        .replace(/[\s-]/g, "");
-
-      expect(participantAccessToken).toMatch(
-        /^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/,
-      );
-      expect(participantAccessTokenNormalized).toMatch(/^[A-Z2-9]{12}$/);
-    });
-
-    it("should fetch self view by token", async () => {
-      const response = await request(app)
-        .get(`/api/p/${participantAccessToken}`)
-        .expect(200);
-
-      expect(response.body.exchange.id).toBe(participantExchangeId);
-      expect(response.body.participant.name).toBe("Public Participant");
-      participantSelfUpdatedAt = response.body.participant.updatedAt;
-    });
-
-    it("should accept lowercase and separators variations for token", async () => {
-      const compactLowercase = participantAccessTokenNormalized.toLowerCase();
-      const spaced = `${compactLowercase.slice(0, 4)} ${compactLowercase.slice(4, 8)} ${compactLowercase.slice(8, 12)}`;
-
-      const response = await request(app)
-        .get(`/api/p/${encodeURIComponent(spaced)}`)
-        .expect(200);
-
-      expect(response.body.exchange.id).toBe(participantExchangeId);
-      expect(response.body.participant.name).toBe("Public Participant");
-    });
-
-    it("should return the same error for invalid format and unknown token", async () => {
-      const invalidFormatResponse = await request(app)
-        .get("/api/p/not-a-valid-token")
-        .expect(404);
-
-      const unknownTokenResponse = await request(app)
-        .get("/api/p/ABCD-EFGH-JKLM")
-        .expect(404);
-
-      expect(invalidFormatResponse.body.error).toEqual(
-        unknownTokenResponse.body.error,
-      );
-      expect(invalidFormatResponse.body.error.details).toMatchObject({
-        code: "PARTICIPANT_LINK_INVALID_OR_EXPIRED",
-      });
-    });
-
-    it("should update participant info by token before draw", async () => {
-      const response = await request(app)
-        .put(`/api/p/${participantAccessToken}`)
-        .send({
-          name: "Participant Public Edit",
-          email: "participant@example.com",
-          note: "Aucune arachide svp",
-          wishlist: [
-            { title: "Livre de cuisine", linkUrl: "https://example.com/livre" },
-            { title: "Chaussettes en laine" },
-          ],
-        })
-        .expect(200);
-
-      expect(response.body.participant.name).toBe("Participant Public Edit");
-      expect(response.body.participant.email).toBe("participant@example.com");
-      expect(response.body.participant.wishlist).toHaveLength(2);
-
-      participantSelfUpdatedAt = response.body.participant.updatedAt;
-    });
-
-    it("should return 409 when participant self expectedUpdatedAt is stale", async () => {
+describe("Confidentiality and ownership", () => {
+  it.each(["test", "production", "development"])(
+    "hides the list by default in %s",
+    async (mode) => {
+      await fixture();
+      process.env.NODE_ENV = mode;
       await request(app)
-        .put(`/api/p/${participantAccessToken}`)
-        .send({
-          note: "Concurrent self update",
-        })
-        .expect(200);
-
-      const staleResponse = await request(app)
-        .put(`/api/p/${participantAccessToken}`)
-        .send({
-          name: "Self conflict",
-          expectedUpdatedAt: participantSelfUpdatedAt,
-        })
-        .expect(409);
-
-      expect(staleResponse.body.error.details).toMatchObject({
-        code: "RESOURCE_MODIFIED_CONCURRENTLY",
-      });
-    });
-
-    it("should reject participant update after draw when lock after draw is enabled", async () => {
-      await exchangeRepository.update(participantExchangeId, {
-        drawAt: new Date().toISOString(),
-        lockSuggestionsAfterDraw: true,
-      });
-
-      const response = await request(app)
-        .put(`/api/p/${participantAccessToken}`)
-        .send({ name: "Blocked update" })
-        .expect(400);
-
-      expect(response.body.error.message).toMatch(
-        /suggestions updates are closed/i,
-      );
-      expect(response.body.error.details).toMatchObject({
-        code: "PARTICIPANT_SUGGESTIONS_LOCKED",
-      });
-    });
-
-    it("should allow participant update after draw when lock after draw is disabled", async () => {
-      await exchangeRepository.update(participantExchangeId, {
-        drawAt: new Date().toISOString(),
-        lockSuggestionsAfterDraw: false,
-      });
-
-      const response = await request(app)
-        .put(`/api/p/${participantAccessToken}`)
-        .send({
-          name: "Allowed after draw",
-          wishlist: [{ title: "Nouvelle suggestion" }],
-        })
-        .expect(200);
-
-      expect(response.body.participant.name).toBe("Allowed after draw");
-      expect(response.body.participant.wishlist).toEqual([
-        { title: "Nouvelle suggestion" },
-      ]);
-    });
-
-    it("should reject participant update when exchange is archived", async () => {
-      await exchangeRepository.update(participantExchangeId, {
-        drawAt: undefined,
-        eventDate: "2000-01-01",
-      });
-
-      const response = await request(app)
-        .put(`/api/p/${participantAccessToken}`)
-        .send({ name: "Blocked update" })
-        .expect(400);
-
-      expect(response.body.error.message).toMatch(
-        /suggestions updates are closed/i,
-      );
-      expect(response.body.error.details).toMatchObject({
-        code: "PARTICIPANT_SUGGESTIONS_LOCKED",
-      });
-    });
+        .get("/api/exchanges")
+        .expect(404, { error: { message: "Not found." } });
+    },
+  );
+  it("refuses production even with local tools enabled", async () => {
+    process.env.NODE_ENV = "production";
+    process.env.ENABLE_LOCAL_ADMIN_TOOLS = "true";
+    await request(app).get("/api/exchanges").expect(404);
   });
-
-  describe("Draw mechanism", () => {
-    let drawExchangeId: string;
-    let drawParticipantToken: string;
-
-    beforeAll(async () => {
-      const exchangeResponse = await createExchangeWithAdminSession({
-        name: "Draw Ready Exchange",
-        adminPassword: "testpassword123",
-      });
-
-      drawExchangeId = exchangeResponse.body.exchange.id;
-
-      const p1 = await asAdmin(drawExchangeId)
-        .post(`/api/exchanges/${drawExchangeId}/participants`)
-        .send({ name: "Anna", wishlist: [{ title: "Livre" }] })
-        .expect(201);
-
-      await asAdmin(drawExchangeId)
-        .post(`/api/exchanges/${drawExchangeId}/participants`)
-        .send({ name: "Ben", wishlist: [{ title: "Jeu" }] })
-        .expect(201);
-
-      await asAdmin(drawExchangeId)
-        .post(`/api/exchanges/${drawExchangeId}/participants`)
-        .send({ name: "Chloe", wishlist: [{ title: "Puzzle" }] })
-        .expect(201);
-
-      drawParticipantToken = (p1.body.accessLink as string)
-        .split("/")
-        .pop() as string;
+  it("allows explicitly enabled loopback tooling, refusing forwarded and remote-origin requests", async () => {
+    await fixture();
+    process.env.NODE_ENV = "development";
+    process.env.ENABLE_LOCAL_ADMIN_TOOLS = "true";
+    const result = await request(app).get("/api/exchanges").expect(200);
+    expect(result.body).toHaveLength(1);
+    for (const header of ["forwarded", "x-forwarded-for", "x-forwarded-host"])
+      await request(app)
+        .get("/api/exchanges")
+        .set(header, "127.0.0.1")
+        .expect(404);
+    await request(app)
+      .get("/api/exchanges")
+      .set("Origin", "https://evil.example")
+      .expect(404);
+    await request(app)
+      .get("/api/exchanges")
+      .set("Host", "evil.example")
+      .expect(404);
+  });
+  it("uses an explicit public response with no admin or participant fields", async () => {
+    const f = await fixture();
+    const result = await request(app)
+      .get(`/api/public/exchanges/${f.id}`)
+      .expect(200);
+    expect(Object.keys(result.body).sort()).toEqual(
+      [
+        "id",
+        "name",
+        "isDrawn",
+        "isArchived",
+        "minWishlistSuggestions",
+        "lockSuggestionsAfterDraw",
+        "noMutualAssignments",
+        "updatedAt",
+        "organizerName",
+        "participantsCount",
+      ].sort(),
+    );
+    expect(JSON.stringify(result.body)).not.toContain("member0@example.com");
+  });
+  it("requires an admin session for individual management", async () => {
+    const f = await fixture();
+    await request(app).get(path(f.id)).expect(401);
+    await request(app)
+      .put(`${path(f.id)}/participants/${f.members[0].participant.id}`)
+      .send({ name: "Attack" })
+      .expect(401);
+  });
+  it.each(["get", "put", "delete", "rotate"] as const)(
+    "rejects cross-exchange %s identically to missing participants",
+    async (method) => {
+      const a = await fixture(),
+        b = await fixture();
+      const id = b.members[0].participant.id;
+      async function attempt(target: string) {
+        const base = `${path(a.id)}/participants/${target}`;
+        if (method === "get") return request(app).get(base).set(a.auth);
+        if (method === "put")
+          return request(app).put(base).set(a.auth).send({ name: "Attack" });
+        if (method === "delete") return request(app).delete(base).set(a.auth);
+        return request(app)
+          .post(`${base}/access/regenerate`)
+          .set(a.auth)
+          .send({});
+      }
+      const before = await participantRepository.findById(b.id, id);
+      const cross = await attempt(id),
+        missing = await attempt("missing");
+      expect(cross.status).toBe(404);
+      expect(cross.body).toEqual(missing.body);
+      expect(cross.body.error.details.code).toBe("PARTICIPANT_NOT_FOUND");
+      expect(await participantRepository.findById(b.id, id)).toEqual(before);
+      await request(app).get(`/api/p/${b.token}`).expect(200);
+    },
+  );
+  it("rejects inactive participants and inconsistent access ownership uniformly", async () => {
+    const a = await fixture(),
+      b = await fixture();
+    await participantRepository.update(a.id, a.members[0].participant.id, {
+      status: "removed",
     });
+    const inactive = await request(app).get(`/api/p/${a.token}`).expect(404);
+    await query(
+      "UPDATE participant_access SET exchange_id=$1 WHERE participant_id=$2",
+      [a.id, b.members[0].participant.id],
+    );
+    const inconsistent = await request(app)
+      .get(`/api/p/${b.token}`)
+      .expect(404);
+    const unknown = await request(app).get("/api/p/AAAAAAAAAAAA").expect(404);
+    const malformed = await request(app).get("/api/p/bad").expect(404);
+    expect(inactive.body).toEqual(unknown.body);
+    expect(inconsistent.body).toEqual(unknown.body);
+    expect(malformed.body).toEqual(unknown.body);
+  });
+});
 
-    it("should trigger draw and mark exchange as drawn", async () => {
-      const response = await asAdmin(drawExchangeId)
-        .post(`/api/exchanges/${drawExchangeId}/draw`)
-        .expect(200);
-
-      expect(response.body.isDrawn).toBe(true);
-      expect(response.body.drawAt).toBeTruthy();
-    });
-
-    it("should expose assignment in participant self view after draw", async () => {
-      const response = await request(app)
-        .get(`/api/p/${drawParticipantToken}`)
-        .expect(200);
-
-      expect(response.body.exchange.isDrawn).toBe(true);
-      expect(response.body.assignment).toBeTruthy();
-      expect(response.body.assignment.receiverName).toBeTruthy();
-    });
-
-    it("should reject draw when exchange has less than 3 participants", async () => {
-      const exchangeResponse = await createExchangeWithAdminSession({
-        name: "Not enough participants",
-        adminPassword: "testpassword123",
-      });
-
-      const exchangeId = exchangeResponse.body.exchange.id;
-
-      await asAdmin(exchangeId)
-        .post(`/api/exchanges/${exchangeId}/participants`)
-        .send({ name: "Solo" })
-        .expect(201);
-
-      const response = await asAdmin(exchangeId)
-        .post(`/api/exchanges/${exchangeId}/draw`)
-        .expect(400);
-
-      expect(response.body.error.message).toMatch(
-        /at least 3 active participants/i,
-      );
-      expect(response.body.error.details).toMatchObject({
-        code: "DRAW_MIN_ACTIVE_PARTICIPANTS",
-      });
-    });
-
-    it("should cancel draw and reopen exchange state", async () => {
-      const cancelResponse = await asAdmin(drawExchangeId)
-        .post(`/api/exchanges/${drawExchangeId}/draw/cancel`)
-        .expect(200);
-
-      expect(cancelResponse.body.isDrawn).toBe(false);
-      expect(cancelResponse.body.drawAt).toBeFalsy();
-
-      const selfViewResponse = await request(app)
-        .get(`/api/p/${drawParticipantToken}`)
-        .expect(200);
-
-      expect(selfViewResponse.body.exchange.isDrawn).toBe(false);
-      expect(selfViewResponse.body.assignment).toBeFalsy();
-    });
-
-    it("should respect exclusion rules during draw", async () => {
-      const exchangeResponse = await createExchangeWithAdminSession({
-        name: "Exclusion-aware draw",
-        adminPassword: "testpassword123",
-      });
-
-      const exclusionAwareExchangeId = exchangeResponse.body.exchange.id;
-
-      const annaResponse = await asAdmin(exclusionAwareExchangeId)
-        .post(`/api/exchanges/${exclusionAwareExchangeId}/participants`)
-        .send({ name: "Anna" })
-        .expect(201);
-
-      const benResponse = await asAdmin(exclusionAwareExchangeId)
-        .post(`/api/exchanges/${exclusionAwareExchangeId}/participants`)
-        .send({ name: "Ben" })
-        .expect(201);
-
-      await asAdmin(exclusionAwareExchangeId)
-        .post(`/api/exchanges/${exclusionAwareExchangeId}/participants`)
-        .send({ name: "Chloe" })
-        .expect(201);
-
-      await asAdmin(exclusionAwareExchangeId)
-        .post(`/api/exchanges/${exclusionAwareExchangeId}/exclusions`)
-        .send({
-          giverParticipantId: annaResponse.body.participant.id,
-          receiverParticipantId: benResponse.body.participant.id,
-        })
-        .expect(201);
-
-      await asAdmin(exclusionAwareExchangeId)
-        .post(`/api/exchanges/${exclusionAwareExchangeId}/draw`)
-        .expect(200);
-
-      const annaToken = (annaResponse.body.accessLink as string)
-        .split("/")
-        .pop() as string;
-      const annaSelfView = await request(app)
-        .get(`/api/p/${annaToken}`)
-        .expect(200);
-
-      expect(annaSelfView.body.assignment.receiverName).not.toBe("Ben");
-    });
-
-    it("should reject draw when exclusion rules make assignments impossible", async () => {
-      const exchangeResponse = await createExchangeWithAdminSession({
-        name: "Impossible exclusion draw",
-        adminPassword: "testpassword123",
-      });
-
-      const impossibleExchangeId = exchangeResponse.body.exchange.id;
-
-      const p1Response = await asAdmin(impossibleExchangeId)
-        .post(`/api/exchanges/${impossibleExchangeId}/participants`)
-        .send({ name: "Ariane" })
-        .expect(201);
-
-      const p2Response = await asAdmin(impossibleExchangeId)
-        .post(`/api/exchanges/${impossibleExchangeId}/participants`)
-        .send({ name: "Bruno" })
-        .expect(201);
-
-      const p3Response = await asAdmin(impossibleExchangeId)
-        .post(`/api/exchanges/${impossibleExchangeId}/participants`)
-        .send({ name: "Clara" })
-        .expect(201);
-
-      await asAdmin(impossibleExchangeId)
-        .post(`/api/exchanges/${impossibleExchangeId}/exclusions`)
-        .send({
-          giverParticipantId: p1Response.body.participant.id,
-          receiverParticipantId: p2Response.body.participant.id,
-        })
-        .expect(201);
-
-      await asAdmin(impossibleExchangeId)
-        .post(`/api/exchanges/${impossibleExchangeId}/exclusions`)
-        .send({
-          giverParticipantId: p1Response.body.participant.id,
-          receiverParticipantId: p3Response.body.participant.id,
-        })
-        .expect(201);
-
-      await asAdmin(impossibleExchangeId)
-        .post(`/api/exchanges/${impossibleExchangeId}/exclusions`)
-        .send({
-          giverParticipantId: p2Response.body.participant.id,
-          receiverParticipantId: p1Response.body.participant.id,
-        })
-        .expect(201);
-
-      const drawResponse = await asAdmin(impossibleExchangeId)
-        .post(`/api/exchanges/${impossibleExchangeId}/draw`)
-        .expect(400);
-
-      expect(drawResponse.body.error.message).toMatch(
-        /no valid draw is possible/i,
-      );
-      expect(drawResponse.body.error.details).toMatchObject({
-        code: "DRAW_IMPOSSIBLE",
-      });
-    });
-
-    it("should reject draw with 2 participants when no mutual assignments is enabled", async () => {
-      const exchangeResponse = await createExchangeWithAdminSession({
-        name: "No mutual with 2 participants",
-        adminPassword: "testpassword123",
-        noMutualAssignments: true,
-      });
-
-      const noMutualExchangeId = exchangeResponse.body.exchange.id;
-
-      await asAdmin(noMutualExchangeId)
-        .post(`/api/exchanges/${noMutualExchangeId}/participants`)
-        .send({ name: "Alice" })
-        .expect(201);
-
-      await asAdmin(noMutualExchangeId)
-        .post(`/api/exchanges/${noMutualExchangeId}/participants`)
-        .send({ name: "Bob" })
-        .expect(201);
-
-      const drawResponse = await asAdmin(noMutualExchangeId)
-        .post(`/api/exchanges/${noMutualExchangeId}/draw`)
-        .expect(400);
-
-      expect(drawResponse.body.error.message).toMatch(
-        /at least 3 active participants/i,
-      );
-      expect(drawResponse.body.error.details).toMatchObject({
-        code: "DRAW_MIN_ACTIVE_PARTICIPANTS",
-      });
-    });
-
-    it("should allow draw with 3 participants when no mutual assignments is enabled", async () => {
-      const exchangeResponse = await createExchangeWithAdminSession({
-        name: "No mutual with 3 participants",
-        adminPassword: "testpassword123",
-        noMutualAssignments: true,
-      });
-
-      const noMutualExchangeId = exchangeResponse.body.exchange.id;
-
-      await asAdmin(noMutualExchangeId)
-        .post(`/api/exchanges/${noMutualExchangeId}/participants`)
-        .send({ name: "Alice" })
-        .expect(201);
-
-      await asAdmin(noMutualExchangeId)
-        .post(`/api/exchanges/${noMutualExchangeId}/participants`)
-        .send({ name: "Bob" })
-        .expect(201);
-
-      await asAdmin(noMutualExchangeId)
-        .post(`/api/exchanges/${noMutualExchangeId}/participants`)
-        .send({ name: "Charlie" })
-        .expect(201);
-
-      const drawResponse = await asAdmin(noMutualExchangeId)
-        .post(`/api/exchanges/${noMutualExchangeId}/draw`)
-        .expect(200);
-
-      expect(drawResponse.body.isDrawn).toBe(true);
-    });
-
-    it("should reject draw when exchange is archived", async () => {
-      const exchangeResponse = await createExchangeWithAdminSession({
-        name: "Archived exchange",
-        adminPassword: "testpassword123",
-        eventDate: "2000-01-01",
-      });
-
-      const deadlineExchangeId = exchangeResponse.body.exchange.id;
-
-      await asAdmin(deadlineExchangeId)
-        .post(`/api/exchanges/${deadlineExchangeId}/participants`)
-        .send({ name: "Ari" })
-        .expect(201);
-
-      await asAdmin(deadlineExchangeId)
-        .post(`/api/exchanges/${deadlineExchangeId}/participants`)
-        .send({ name: "Bri" })
-        .expect(201);
-
-      await asAdmin(deadlineExchangeId)
-        .post(`/api/exchanges/${deadlineExchangeId}/participants`)
-        .send({ name: "Cri" })
-        .expect(201);
-
-      const drawResponse = await asAdmin(deadlineExchangeId)
-        .post(`/api/exchanges/${deadlineExchangeId}/draw`)
-        .expect(400);
-
-      expect(drawResponse.body.error.details).toMatchObject({
-        code: "EXCHANGE_ARCHIVED_CANNOT_DRAW",
-      });
-    });
-
-    it("should reject draw when participants do not meet minimum wishlist suggestions", async () => {
-      const exchangeResponse = await createExchangeWithAdminSession({
-        name: "Min wishlist exchange",
-        adminPassword: "testpassword123",
-        minWishlistSuggestions: 2,
-      });
-
-      const minWishlistExchangeId = exchangeResponse.body.exchange.id;
-
-      await asAdmin(minWishlistExchangeId)
-        .post(`/api/exchanges/${minWishlistExchangeId}/participants`)
-        .send({
-          name: "Ari",
-          wishlist: [{ title: "Livre" }],
-        })
-        .expect(201);
-
-      await asAdmin(minWishlistExchangeId)
-        .post(`/api/exchanges/${minWishlistExchangeId}/participants`)
-        .send({
-          name: "Bri",
-          wishlist: [{ title: "Chandail" }, { title: "Bas de laine" }],
-        })
-        .expect(201);
-
-      await asAdmin(minWishlistExchangeId)
-        .post(`/api/exchanges/${minWishlistExchangeId}/participants`)
-        .send({
-          name: "Cri",
-          wishlist: [{ title: "Carte-cadeau" }, { title: "Mug" }],
-        })
-        .expect(201);
-
-      const drawResponse = await asAdmin(minWishlistExchangeId)
-        .post(`/api/exchanges/${minWishlistExchangeId}/draw`)
-        .expect(400);
-
-      expect(drawResponse.body.error.details).toMatchObject({
-        code: "DRAW_MIN_WISHLIST_SUGGESTIONS",
-        minWishlistSuggestions: 2,
-      });
+describe("Transactions and concurrency", () => {
+  it("rolls back exchange, organizer, access and auth on session failure", async () => {
+    jest
+      .spyOn(exchangeRepository, "createAdminSession")
+      .mockRejectedValueOnce(new Error("injected"));
+    await expect(
+      createExchange({
+        name: "Test",
+        organizerName: "Organizer",
+        adminPassword: password,
+      }),
+    ).rejects.toThrow("injected");
+    for (const table of [
+      "exchanges",
+      "participants",
+      "participant_access",
+      "admin_access",
+      "admin_sessions",
+    ]) {
       expect(
-        drawResponse.body.error.details.participantsMissingSuggestions,
-      ).toHaveLength(1);
-    });
-
-    it("should prioritize minimum active participants over wishlist minimum when both fail", async () => {
-      const exchangeResponse = await createExchangeWithAdminSession({
-        name: "Participants priority over wishlist",
-        adminPassword: "testpassword123",
-        minWishlistSuggestions: 2,
-      });
-
-      const priorityExchangeId = exchangeResponse.body.exchange.id;
-
-      await asAdmin(priorityExchangeId)
-        .post(`/api/exchanges/${priorityExchangeId}/participants`)
-        .send({
-          name: "Ari",
-          wishlist: [{ title: "Livre" }],
-        })
-        .expect(201);
-
-      await asAdmin(priorityExchangeId)
-        .post(`/api/exchanges/${priorityExchangeId}/participants`)
-        .send({
-          name: "Bri",
-          wishlist: [{ title: "Jeu" }],
-        })
-        .expect(201);
-
-      const drawResponse = await asAdmin(priorityExchangeId)
-        .post(`/api/exchanges/${priorityExchangeId}/draw`)
-        .expect(400);
-
-      expect(drawResponse.body.error.details).toMatchObject({
-        code: "DRAW_MIN_ACTIVE_PARTICIPANTS",
-      });
-    });
+        (await query(`SELECT count(*)::int AS count FROM ${table}`)).rows[0]
+          .count,
+      ).toBe(0);
+    }
   });
-
-  describe("Exclusion rules", () => {
-    let exclusionExchangeId: string;
-    let p1Id: string;
-    let p2Id: string;
-    let otherExchangeParticipantId: string;
-    let createdRuleId: string;
-
-    beforeAll(async () => {
-      const exchangeResponse = await createExchangeWithAdminSession({
-        name: "Exchange with exclusions",
-        adminPassword: "testpassword123",
+  it("rolls back participant creation and failed token rotation", async () => {
+    const f = await fixture({}, 1);
+    jest
+      .spyOn(participantRepository, "createAccess")
+      .mockRejectedValueOnce(new Error("injected"));
+    await expect(createParticipant(f.id, { name: "Failed" })).rejects.toThrow(
+      "injected",
+    );
+    expect(await participantRepository.findByExchangeId(f.id)).toHaveLength(1);
+    jest
+      .spyOn(participantRepository, "createAccess")
+      .mockRejectedValueOnce(new Error("injected"));
+    await expect(
+      regenerateParticipantAccess(f.id, f.members[0].participant.id),
+    ).rejects.toThrow("injected");
+    await request(app).get(`/api/p/${f.token}`).expect(200);
+  });
+  it("serializes double draws without replacing assignments", async () => {
+    const f = await fixture({ noMutualAssignments: true });
+    const results = await heldDraw(f.id, () => drawExchange(f.id));
+    expect(results.every((r) => r.status === "fulfilled")).toBe(true);
+    if (results[0].status === "fulfilled" && results[1].status === "fulfilled")
+      expect(results[0].value).toEqual(results[1].value);
+    const before = await assignmentRepository.findByExchangeId(f.id);
+    await drawExchange(f.id);
+    expect(await assignmentRepository.findByExchangeId(f.id)).toEqual(before);
+    await validAssignments(f.id);
+  });
+  it.each(["add", "delete", "exclude"] as const)(
+    "draw serializes against %s and rejects incompatible mutation",
+    async (action) => {
+      const f = await fixture();
+      const mutation = () =>
+        action === "add"
+          ? createParticipant(f.id, { name: "Late" })
+          : action === "delete"
+            ? deleteParticipant(f.id, f.members[0].participant.id)
+            : createExclusionRule(f.id, {
+                giverParticipantId: f.members[0].participant.id,
+                receiverParticipantId: f.members[1].participant.id,
+              });
+      const result = await heldDraw(f.id, mutation);
+      expect(result[0].status).toBe("fulfilled");
+      expect(result[1].status).toBe("rejected");
+      await validAssignments(f.id);
+    },
+  );
+  it("draw followed by waiting cancellation returns to an untiré state", async () => {
+    const f = await fixture();
+    const result = await heldDraw(f.id, () => cancelExchangeDraw(f.id));
+    expect(result.every((r) => r.status === "fulfilled")).toBe(true);
+    expect((await exchangeRepository.findById(f.id))?.drawAt).toBeUndefined();
+    expect(await assignmentRepository.findByExchangeId(f.id)).toHaveLength(0);
+  });
+  it("mutation committed before a waiting draw is included in its snapshot", async () => {
+    const f = await fixture();
+    const reached = deferred(),
+      release = deferred();
+    const original = participantRepository.create.bind(participantRepository);
+    jest
+      .spyOn(participantRepository, "create")
+      .mockImplementationOnce(async (...args) => {
+        const result = await original(...args);
+        reached.resolve();
+        await release.promise;
+        return result;
       });
-
-      exclusionExchangeId = exchangeResponse.body.exchange.id;
-
-      const p1Response = await asAdmin(exclusionExchangeId)
-        .post(`/api/exchanges/${exclusionExchangeId}/participants`)
-        .send({ name: "Alex" })
-        .expect(201);
-
-      p1Id = p1Response.body.participant.id;
-
-      const p2Response = await asAdmin(exclusionExchangeId)
-        .post(`/api/exchanges/${exclusionExchangeId}/participants`)
-        .send({ name: "Camille" })
-        .expect(201);
-
-      p2Id = p2Response.body.participant.id;
-
-      const otherExchangeResponse = await createExchangeWithAdminSession({
-        name: "Other exchange for validation",
-        adminPassword: "testpassword123",
+    const add = createParticipant(f.id, { name: "Before" });
+    await reached.promise;
+    const draw = drawExchange(f.id);
+    try {
+      await waitForParentLock();
+    } finally {
+      release.resolve();
+    }
+    await Promise.all([add, draw]);
+    await validAssignments(f.id);
+    expect(await assignmentRepository.findByExchangeId(f.id)).toHaveLength(4);
+  });
+  it("concurrent replacing rotations leave only the last committed link active", async () => {
+    const f = await fixture();
+    const links = await Promise.all([
+      regenerateParticipantAccess(f.id, f.members[0].participant.id),
+      regenerateParticipantAccess(f.id, f.members[0].participant.id),
+    ]);
+    const statuses = await Promise.all(
+      links.map((l) =>
+        request(app)
+          .get(`/api${l.accessLink}`)
+          .then((r) => r.status),
+      ),
+    );
+    expect(statuses.sort()).toEqual([200, 404]);
+    await request(app).get(`/api/p/${f.token}`).expect(404);
+    const access = await query(
+      "SELECT * FROM participant_access WHERE participant_id=$1 AND status='active'",
+      [f.members[0].participant.id],
+    );
+    expect(access.rows).toHaveLength(1);
+  });
+  it("revalidates an old token after a waiting rotation commits", async () => {
+    const f = await fixture();
+    const reached = deferred(),
+      release = deferred();
+    const original = participantRepository.createAccess.bind(
+      participantRepository,
+    );
+    jest
+      .spyOn(participantRepository, "createAccess")
+      .mockImplementationOnce(async (...args) => {
+        reached.resolve();
+        await release.promise;
+        return original(...args);
       });
-
-      const otherExchangeId = otherExchangeResponse.body.exchange.id as string;
-
-      const otherParticipantResponse = await asAdmin(otherExchangeId)
-        .post(`/api/exchanges/${otherExchangeId}/participants`)
-        .send({ name: "Outside Participant" })
-        .expect(201);
-
-      otherExchangeParticipantId = otherParticipantResponse.body.participant.id;
-    });
-
-    it("should create and list exclusion rules", async () => {
-      const createResponse = await asAdmin(exclusionExchangeId)
-        .post(`/api/exchanges/${exclusionExchangeId}/exclusions`)
-        .send({ giverParticipantId: p1Id, receiverParticipantId: p2Id })
-        .expect(201);
-
-      expect(createResponse.body).toHaveProperty("id");
-      expect(createResponse.body.giverParticipantId).toBe(p1Id);
-      expect(createResponse.body.receiverParticipantId).toBe(p2Id);
-      expect(createResponse.body.type).toBe("manual");
-
-      createdRuleId = createResponse.body.id;
-
-      const listResponse = await asAdmin(exclusionExchangeId)
-        .get(`/api/exchanges/${exclusionExchangeId}/exclusions`)
-        .expect(200);
-
-      expect(listResponse.body).toHaveLength(1);
-      expect(listResponse.body[0].id).toBe(createdRuleId);
-    });
-
-    it("should reject self exclusion", async () => {
-      const response = await asAdmin(exclusionExchangeId)
-        .post(`/api/exchanges/${exclusionExchangeId}/exclusions`)
-        .send({ giverParticipantId: p1Id, receiverParticipantId: p1Id })
-        .expect(400);
-
-      expect(response.body.error.message).toMatch(
-        /cannot be excluded from drawing themselves/i,
+    const rotate = regenerateParticipantAccess(
+      f.id,
+      f.members[0].participant.id,
+    );
+    await reached.promise;
+    const read = getParticipantSelfViewByToken(f.token);
+    // Attach rejection handler immediately; the read must wait for the rotation.
+    const outcome = Promise.allSettled([rotate, read]);
+    try {
+      await waitForParentLock();
+    } finally {
+      release.resolve();
+    }
+    const results = await outcome;
+    expect(results[0].status).toBe("fulfilled");
+    expect(results[1].status).toBe("rejected");
+    if (results[1].status === "rejected")
+      expect(results[1].reason.details.code).toBe(
+        "PARTICIPANT_LINK_INVALID_OR_EXPIRED",
       );
-      expect(response.body.error.details).toMatchObject({
-        code: "EXCLUSION_SELF_NOT_ALLOWED",
-      });
-    });
+  });
+  it("can retain an existing link explicitly", async () => {
+    const f = await fixture();
+    const link = await regenerateParticipantAccess(
+      f.id,
+      f.members[0].participant.id,
+      false,
+    );
+    await request(app).get(`/api/p/${f.token}`).expect(200);
+    await request(app).get(`/api${link.accessLink}`).expect(200);
+  });
+});
 
-    it("should reject duplicate exclusion rule", async () => {
-      const response = await asAdmin(exclusionExchangeId)
-        .post(`/api/exchanges/${exclusionExchangeId}/exclusions`)
-        .send({ giverParticipantId: p1Id, receiverParticipantId: p2Id })
+describe("Business state and contracts", () => {
+  it("supports create, edit, participants, exclusions, draw, self view, cancellation, rotation and delete", async () => {
+    const created = await request(app)
+      .post("/api/exchanges")
+      .send({ name: "HTTP", adminPassword: password })
+      .expect(201);
+    const id = created.body.exchange.id;
+    const auth = { authorization: `Bearer ${created.body.adminSessionToken}` };
+    await request(app).put(path(id)).set(auth).send({ budget: 50 }).expect(200);
+    const members = [];
+    for (let i = 0; i < 3; i++)
+      members.push(
+        (
+          await request(app)
+            .post(`${path(id)}/participants`)
+            .set(auth)
+            .send({ name: `HTTP ${i}` })
+            .expect(201)
+        ).body,
+      );
+    const rule = await request(app)
+      .post(`${path(id)}/exclusions`)
+      .set(auth)
+      .send({
+        giverParticipantId: members[0].participant.id,
+        receiverParticipantId: members[1].participant.id,
+      })
+      .expect(201);
+    await request(app)
+      .post(`${path(id)}/draw`)
+      .set(auth)
+      .expect(200);
+    await validAssignments(id);
+    const view = await request(app)
+      .get(`/api${members[0].accessLink}`)
+      .expect(200);
+    expect(view.body.assignment).toBeDefined();
+    await request(app)
+      .post(`${path(id)}/draw/cancel`)
+      .set(auth)
+      .expect(200);
+    await request(app)
+      .delete(`${path(id)}/exclusions/${rule.body.id}`)
+      .set(auth)
+      .expect(204);
+    const link = await request(app)
+      .post(
+        `${path(id)}/participants/${members[0].participant.id}/access/regenerate`,
+      )
+      .set(auth)
+      .send({})
+      .expect(201);
+    await request(app).get(`/api${members[0].accessLink}`).expect(404);
+    await request(app).get(`/api${link.body.accessLink}`).expect(200);
+    await request(app).delete(path(id)).set(auth).expect(204);
+    await request(app).get(`/api${link.body.accessLink}`).expect(404);
+  });
+  it.each([true, false])(
+    "enforces drawn profile and wishlist policy with lock=%s for both actors",
+    async (lock) => {
+      const f = await fixture({ lockSuggestionsAfterDraw: lock });
+      await drawExchange(f.id);
+      const url = `${path(f.id)}/participants/${f.members[0].participant.id}`;
+      for (const actor of ["admin", "self"]) {
+        const put = (body: object) =>
+          actor === "admin"
+            ? request(app).put(url).set(f.auth).send(body)
+            : request(app).put(`/api/p/${f.token}`).send(body);
+        await put({ name: "Changed" }).expect(400);
+        await put({ email: "changed@example.com" }).expect(400);
+        await put({ name: "Member 0", email: "member0@example.com" }).expect(
+          200,
+        );
+        await put({
+          wishlist: [{ title: `New ${actor}` }],
+          note: `New ${actor}`,
+        }).expect(lock ? 400 : 200);
+      }
+      await request(app).delete(url).set(f.auth).expect(400);
+      await request(app)
+        .post(`${path(f.id)}/participants`)
+        .set(f.auth)
+        .send({ name: "Late" })
         .expect(400);
-
-      expect(response.body.error.message).toMatch(/already exists/i);
-      expect(response.body.error.details).toMatchObject({
-        code: "EXCLUSION_RULE_ALREADY_EXISTS",
-      });
-    });
-
-    it("should reject exclusion rule when participant is outside exchange", async () => {
-      const response = await asAdmin(exclusionExchangeId)
-        .post(`/api/exchanges/${exclusionExchangeId}/exclusions`)
+      await request(app)
+        .put(path(f.id))
+        .set(f.auth)
+        .send({ noMutualAssignments: true })
+        .expect(400);
+      await request(app)
+        .put(path(f.id))
+        .set(f.auth)
+        .send({ minWishlistSuggestions: 2 })
+        .expect(400);
+      await request(app)
+        .put(path(f.id))
+        .set(f.auth)
+        .send({ lockSuggestionsAfterDraw: !lock })
+        .expect(400);
+      await request(app)
+        .put(path(f.id))
+        .set(f.auth)
         .send({
-          giverParticipantId: p1Id,
-          receiverParticipantId: otherExchangeParticipantId,
+          name: "Updated",
+          description: "Updated",
+          budget: 70,
+          eventDate: "2099-12-25",
+          noMutualAssignments: false,
+          lockSuggestionsAfterDraw: lock,
+          minWishlistSuggestions: 0,
         })
-        .expect(400);
-
-      expect(response.body.error.message).toMatch(
-        /does not belong to this exchange/i,
-      );
-      expect(response.body.error.details).toMatchObject({
-        code: "PARTICIPANT_OUTSIDE_EXCHANGE",
-      });
-    });
-
-    it("should delete exclusion rule", async () => {
-      await asAdmin(exclusionExchangeId)
-        .delete(
-          `/api/exchanges/${exclusionExchangeId}/exclusions/${createdRuleId}`,
-        )
-        .expect(204);
-
-      const listResponse = await asAdmin(exclusionExchangeId)
-        .get(`/api/exchanges/${exclusionExchangeId}/exclusions`)
         .expect(200);
-
-      expect(listResponse.body).toHaveLength(0);
+      await request(app)
+        .post(`${url}/access/regenerate`)
+        .set(f.auth)
+        .send({})
+        .expect(201);
+      await validAssignments(f.id);
+    },
+  );
+  it("locks archives but permits reading, rotation and complete deletion", async () => {
+    const f = await fixture();
+    await drawExchange(f.id);
+    await updateExchange(f.id, { eventDate: "2020-01-01" });
+    const url = `${path(f.id)}/participants/${f.members[0].participant.id}`;
+    expect(
+      (await request(app).get(path(f.id)).set(f.auth).expect(200)).body
+        .isArchived,
+    ).toBe(true);
+    await request(app).get(`/api/p/${f.token}`).expect(200);
+    await request(app)
+      .put(path(f.id))
+      .set(f.auth)
+      .send({ name: "Locked" })
+      .expect(400);
+    await request(app)
+      .put(url)
+      .set(f.auth)
+      .send({ note: "Locked" })
+      .expect(400);
+    await request(app)
+      .put(`/api/p/${f.token}`)
+      .send({ note: "Locked" })
+      .expect(400);
+    await request(app).delete(url).set(f.auth).expect(400);
+    await request(app)
+      .post(`${path(f.id)}/participants`)
+      .set(f.auth)
+      .send({ name: "Late" })
+      .expect(400);
+    await request(app)
+      .post(`${path(f.id)}/draw`)
+      .set(f.auth)
+      .expect(400);
+    await request(app)
+      .post(`${path(f.id)}/draw/cancel`)
+      .set(f.auth)
+      .expect(400);
+    await request(app)
+      .post(`${path(f.id)}/exclusions`)
+      .set(f.auth)
+      .send({
+        giverParticipantId: f.members[0].participant.id,
+        receiverParticipantId: f.members[1].participant.id,
+      })
+      .expect(400);
+    await request(app)
+      .delete(`${path(f.id)}/exclusions/missing`)
+      .set(f.auth)
+      .expect(400);
+    const link = await request(app)
+      .post(`${url}/access/regenerate`)
+      .set(f.auth)
+      .send({})
+      .expect(201);
+    await request(app).get(`/api${link.body.accessLink}`).expect(200);
+    await request(app).delete(path(f.id)).set(f.auth).expect(204);
+  });
+  it("validates organizer ownership before draw", async () => {
+    const a = await fixture(),
+      b = await fixture();
+    await request(app)
+      .put(path(a.id))
+      .set(a.auth)
+      .send({ organizerId: b.members[0].participant.id })
+      .expect(400);
+    await request(app)
+      .put(path(a.id))
+      .set(a.auth)
+      .send({ organizerId: a.members[0].participant.id })
+      .expect(200);
+  });
+  it("reports minimum participants, wishlist and impossible constraints", async () => {
+    const small = await fixture({}, 2);
+    await expect(drawExchange(small.id)).rejects.toMatchObject({
+      details: { code: "DRAW_MIN_ACTIVE_PARTICIPANTS" },
     });
-
-    it("should reject exclusion changes after draw", async () => {
-      await exchangeRepository.update(exclusionExchangeId, {
-        drawAt: new Date().toISOString(),
-      });
-
-      const createResponse = await asAdmin(exclusionExchangeId)
-        .post(`/api/exchanges/${exclusionExchangeId}/exclusions`)
-        .send({ giverParticipantId: p2Id, receiverParticipantId: p1Id })
-        .expect(400);
-
-      expect(createResponse.body.error.message).toMatch(/cannot be modified/i);
-      expect(createResponse.body.error.details).toMatchObject({
-        code: "EXCLUSION_RULES_LOCKED",
-      });
-
-      const deleteResponse = await asAdmin(exclusionExchangeId)
-        .delete(
-          `/api/exchanges/${exclusionExchangeId}/exclusions/non-existent-rule`,
-        )
-        .expect(400);
-
-      expect(deleteResponse.body.error.message).toMatch(/cannot be modified/i);
-      expect(deleteResponse.body.error.details).toMatchObject({
-        code: "EXCLUSION_RULES_LOCKED",
-      });
+    const wish = await fixture({ minWishlistSuggestions: 2 });
+    await expect(drawExchange(wish.id)).rejects.toMatchObject({
+      details: { code: "DRAW_MIN_WISHLIST_SUGGESTIONS" },
     });
+    const f = await fixture();
+    for (const member of f.members.slice(1))
+      await createExclusionRule(f.id, {
+        giverParticipantId: f.members[0].participant.id,
+        receiverParticipantId: member.participant.id,
+      });
+    await expect(drawExchange(f.id)).rejects.toMatchObject({
+      details: { code: "DRAW_IMPOSSIBLE", hasExclusionRules: true },
+    });
+    expect(await assignmentRepository.findByExchangeId(f.id)).toHaveLength(0);
+  });
+  it("preserves fresh/stale optimistic updates on exchange and both participant routes", async () => {
+    const f = await fixture();
+    for (const url of [
+      path(f.id),
+      `${path(f.id)}/participants/${f.members[0].participant.id}`,
+      `/api/p/${f.token}`,
+    ]) {
+      const self = url.includes("/api/p/");
+      const before = await request(app)
+        .get(url)
+        .set(self ? {} : f.auth)
+        .expect(200);
+      const stamp = self
+        ? before.body.participant.updatedAt
+        : before.body.updatedAt;
+      // Explicitly advance the stored timestamp so this does not depend on sub-millisecond scheduling.
+      const table = url === path(f.id) ? "exchanges" : "participants";
+      const id = table === "exchanges" ? f.id : f.members[0].participant.id;
+      await query(
+        `UPDATE ${table} SET updated_at=updated_at+interval '1 second' WHERE id=$1`,
+        [id],
+      );
+      const payload =
+        table === "exchanges" ? { budget: 42 } : { note: "Updated" };
+      await request(app)
+        .put(url)
+        .set(self ? {} : f.auth)
+        .send({ ...payload, expectedUpdatedAt: stamp })
+        .expect(409);
+      const fresh = await request(app)
+        .get(url)
+        .set(self ? {} : f.auth)
+        .expect(200);
+      await request(app)
+        .put(url)
+        .set(self ? {} : f.auth)
+        .send({
+          ...payload,
+          expectedUpdatedAt: self
+            ? fresh.body.participant.updatedAt
+            : fresh.body.updatedAt,
+        })
+        .expect(200);
+    }
+  });
+  it("normalizes participant token variants", async () => {
+    const f = await fixture();
+    await request(app)
+      .get(`/api/p/${f.token.toLowerCase().replaceAll("-", "")}`)
+      .expect(200);
+  });
+});
+
+describe("Dates and archive boundaries", () => {
+  it("maps PostgreSQL civil dates and timestamps explicitly", async () => {
+    const f = await fixture({ eventDate: "2099-12-25" });
+    const exchange = await exchangeRepository.findById(f.id);
+    expect(exchange?.eventDate).toBe("2099-12-25");
+    expect(exchange?.createdAt).toMatch(/Z$/);
+    expect(exchange?.updatedAt).toMatch(/Z$/);
+    expect(
+      (await participantRepository.findByExchangeId(f.id))[0].createdAt,
+    ).toMatch(/Z$/);
+    const updated = await updateExchange(f.id, { eventDate: "2099-12-24" });
+    expect(updated.eventDate).toBe("2099-12-24");
+  });
+  it.each(["2026-02-29", "2026-13-01", "2026-04-31", "0000-01-01"])(
+    "rejects invalid calendar date %s on create and update",
+    async (date) => {
+      await request(app)
+        .post("/api/exchanges")
+        .send({ name: "Date", adminPassword: password, eventDate: date })
+        .expect(400);
+      const f = await fixture();
+      await request(app)
+        .put(path(f.id))
+        .set(f.auth)
+        .send({ eventDate: date })
+        .expect(400);
+    },
+  );
+  it.each([
+    ["2026-02-10", "2026-03-13T04:00:00.000Z"],
+    ["2026-10-10", "2026-11-10T05:00:00.000Z"],
+  ])("uses calendar days across DST from %s", (day, expected) => {
+    const boundary = archiveAt(day);
+    expect(new Date(boundary).toISOString()).toBe(expected);
+    expect(isExchangeArchived({ eventDate: day }, boundary - 1)).toBe(false);
+    expect(isExchangeArchived({ eventDate: day }, boundary)).toBe(true);
+    expect(isExchangeArchived({}, boundary)).toBe(false);
+  });
+  it("validates configured timezone and uses it independently of host timezone", () => {
+    process.env.EXCHANGE_TIME_ZONE = "UTC";
+    expect(new Date(archiveAt("2026-02-10")).toISOString()).toBe(
+      "2026-03-13T00:00:00.000Z",
+    );
+    process.env.EXCHANGE_TIME_ZONE = "invalid";
+    expect(getExchangeTimeZone).toThrow("EXCHANGE_TIME_ZONE");
+  });
+});
+
+describe("Additional contract regressions", () => {
+  it("supports profile CRUD before draw and rejects invalid payloads", async () => {
+    const f = await fixture({}, 1),
+      id = f.members[0].participant.id;
+    const url = `${path(f.id)}/participants/${id}`;
+    await request(app)
+      .put(url)
+      .set(f.auth)
+      .send({
+        name: "Edited",
+        email: "edited@example.com",
+        note: "Edited",
+        wishlist: [{ title: "Edited" }],
+      })
+      .expect(200);
+    const read = await request(app).get(url).set(f.auth).expect(200);
+    expect(read.body.name).toBe("Edited");
+    await request(app)
+      .put(`/api/p/${f.token}`)
+      .send({ name: "Self edited", email: "self@example.com" })
+      .expect(200);
+    await request(app)
+      .post(`${path(f.id)}/participants`)
+      .set(f.auth)
+      .send({ name: "" })
+      .expect(400);
+    await request(app)
+      .post("/api/exchanges")
+      .send({ name: "Invalid", adminPassword: "short" })
+      .expect(400);
+    await request(app).delete(url).set(f.auth).expect(204);
+    await request(app).get(url).set(f.auth).expect(404);
+    await request(app).get(`/api/p/${f.token}`).expect(404);
+  });
+  it("validates exclusions and locks deletion after draw", async () => {
+    const f = await fixture(),
+      b = await fixture();
+    const giver = f.members[0].participant.id,
+      receiver = f.members[1].participant.id;
+    const post = (r: string) =>
+      request(app)
+        .post(`${path(f.id)}/exclusions`)
+        .set(f.auth)
+        .send({ giverParticipantId: giver, receiverParticipantId: r });
+    await post(giver).expect(400);
+    await post(b.members[0].participant.id).expect(400);
+    const rule = await post(receiver).expect(201);
+    await post(receiver).expect(400);
+    await drawExchange(f.id);
+    await validAssignments(f.id);
+    await post(f.members[2].participant.id).expect(400);
+    await request(app)
+      .delete(`${path(f.id)}/exclusions/${rule.body.id}`)
+      .set(f.auth)
+      .expect(400);
+    await cancelExchangeDraw(f.id);
+    await request(app)
+      .delete(`${path(f.id)}/exclusions/missing`)
+      .set(f.auth)
+      .expect(404);
+    await request(app)
+      .delete(`${path(f.id)}/exclusions/${rule.body.id}`)
+      .set(f.auth)
+      .expect(204);
+  });
+  it("rolls back a draw whose final exchange update fails", async () => {
+    const f = await fixture();
+    jest
+      .spyOn(exchangeRepository, "update")
+      .mockRejectedValueOnce(new Error("injected"));
+    await expect(drawExchange(f.id)).rejects.toThrow("injected");
+    expect(await assignmentRepository.findByExchangeId(f.id)).toHaveLength(0);
+    expect((await exchangeRepository.findById(f.id))?.drawAt).toBeUndefined();
+  });
+  it("rolls back cancellation if drawAt cannot be cleared", async () => {
+    const f = await fixture();
+    await drawExchange(f.id);
+    const before = await assignmentRepository.findByExchangeId(f.id);
+    jest
+      .spyOn(exchangeRepository, "update")
+      .mockRejectedValueOnce(new Error("injected"));
+    await expect(cancelExchangeDraw(f.id)).rejects.toThrow("injected");
+    expect(await assignmentRepository.findByExchangeId(f.id)).toEqual(before);
+    expect((await exchangeRepository.findById(f.id))?.drawAt).toBeDefined();
+  });
+  it("serializes deletion of an exchange against a draw", async () => {
+    const f = await fixture();
+    const result = await heldDraw(f.id, async () => {
+      const response = await request(app).delete(path(f.id)).set(f.auth);
+      expect(response.status).toBe(204);
+    });
+    expect(result.every((r) => r.status === "fulfilled")).toBe(true);
+    expect(await exchangeRepository.findById(f.id)).toBeUndefined();
+    expect(await assignmentRepository.findByExchangeId(f.id)).toHaveLength(0);
+  });
+  it("serializes replacing rotations against a draw", async () => {
+    const f = await fixture();
+    const result = await heldDraw(f.id, () =>
+      regenerateParticipantAccess(f.id, f.members[0].participant.id),
+    );
+    expect(result.every((r) => r.status === "fulfilled")).toBe(true);
+    await request(app).get(`/api/p/${f.token}`).expect(404);
+    await validAssignments(f.id);
+  });
+  it("locks unchanged structured suggestions by value rather than object key order", async () => {
+    const f = await fixture();
+    await drawExchange(f.id);
+    await request(app)
+      .put(`/api/p/${f.token}`)
+      .send({ wishlist: [{ title: "Gift" }], note: "Private note" })
+      .expect(200);
+  });
+  it("keeps version timestamps monotonic for queued optimistic updates", async () => {
+    const f = await fixture(),
+      current = await exchangeRepository.findById(f.id);
+    const results = await Promise.allSettled([
+      updateExchange(f.id, {
+        budget: 1,
+        expectedUpdatedAt: current?.updatedAt,
+      }),
+      updateExchange(f.id, {
+        budget: 2,
+        expectedUpdatedAt: current?.updatedAt,
+      }),
+    ]);
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    expect(results.filter((r) => r.status === "rejected")).toHaveLength(1);
+  });
+  it("keeps auth login, password change and logout working", async () => {
+    const f = await fixture();
+    await request(app)
+      .post(`${path(f.id)}/admin/sessions`)
+      .send({ adminPassword: "wrongpassword" })
+      .expect(400);
+    const session = await request(app)
+      .post(`${path(f.id)}/admin/sessions`)
+      .send({ adminPassword: password })
+      .expect(201);
+    const auth = { authorization: `Bearer ${session.body.adminSessionToken}` };
+    await request(app)
+      .put(`${path(f.id)}/admin/password`)
+      .set(auth)
+      .send({ currentPassword: password, newPassword: "newpassword123" })
+      .expect(204);
+    await request(app)
+      .post(`${path(f.id)}/admin/sessions`)
+      .send({ adminPassword: password })
+      .expect(400);
+    await request(app)
+      .post(`${path(f.id)}/admin/sessions`)
+      .send({ adminPassword: "newpassword123" })
+      .expect(201);
+    await request(app)
+      .delete(`${path(f.id)}/admin/sessions/current`)
+      .set(auth)
+      .expect(204);
+    await request(app).get(path(f.id)).set(auth).expect(401);
+  });
+  it("normalizes timestamps on auth, access, assignments and exclusions", async () => {
+    const f = await fixture();
+    const rule = await createExclusionRule(f.id, {
+      giverParticipantId: f.members[0].participant.id,
+      receiverParticipantId: f.members[1].participant.id,
+    });
+    expect(rule.createdAt).toMatch(/Z$/);
+    await drawExchange(f.id);
+    expect(
+      (await assignmentRepository.findByExchangeId(f.id))[0].createdAt,
+    ).toMatch(/Z$/);
+    const hash = (
+      await query(
+        "SELECT token_hash FROM admin_sessions WHERE exchange_id=$1",
+        [f.id],
+      )
+    ).rows[0].token_hash;
+    const session = await exchangeRepository.findAdminSessionByTokenHash(hash);
+    expect(session?.createdAt).toMatch(/Z$/);
+    expect(session?.expiresAt).toMatch(/Z$/);
+  });
+});
+
+describe("Organizer reference integrity", () => {
+  it("returns the committed version on creation and clears a deleted organizer reference before draw", async () => {
+    const created = await createExchange({
+      name: "Organizer",
+      organizerName: "Organizer",
+      adminPassword: password,
+    });
+    expect(created.exchange.updatedAt).toBe(
+      (await exchangeRepository.findById(created.exchange.id))?.updatedAt,
+    );
+    await deleteParticipant(created.exchange.id, created.exchange.organizerId);
+    expect(
+      (await exchangeRepository.findById(created.exchange.id))?.organizerId,
+    ).toBe("");
   });
 });

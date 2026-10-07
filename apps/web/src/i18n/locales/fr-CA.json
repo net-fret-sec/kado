@@ -350,11 +350,11 @@
     "SUGGESTIONS_DEADLINE_AFTER_EXCHANGE_MOMENT": "La date limite des suggestions ne peut pas être après le moment de l'échange des cadeaux.",
     "DRAW_IMPOSSIBLE": "Aucune pige valide n'est possible avec les paramètres actuels.",
     "EXCHANGE_ARCHIVED_CANNOT_DRAW": "Une pige archivée ne peut pas être lancée.",
-    "EXCHANGE_ARCHIVED_CANNOT_MODIFY": "Une pige archivée ne peut pas être modifiée.",
+    "EXCHANGE_ARCHIVED_CANNOT_MODIFY": "Cet échange est archivé et son contenu ne peut plus être modifié.",
     "EXCHANGE_NOT_FOUND": "La pige demandée est introuvable.",
     "PARTICIPANT_NOT_FOUND": "Le participant demandé est introuvable.",
     "PARTICIPANT_CREATION_LOCKED": "Aucun nouveau participant ne peut être ajouté pour cette pige.",
-    "PARTICIPANT_SUGGESTIONS_LOCKED": "Les modifications des suggestions sont fermées pour cette pige.",
+    "PARTICIPANT_SUGGESTIONS_LOCKED": "Les souhaits et notes sont verrouillés pour cet échange.",
     "PARTICIPANT_LINK_INVALID_OR_EXPIRED": "Ce lien participant est invalide ou expiré.",
     "EXCLUSION_RULES_LOCKED": "Les exceptions de pige ne peuvent pas être modifiées pour cette pige.",
     "PARTICIPANT_OUTSIDE_EXCHANGE": "Le participant n'appartient pas à cette pige.",
@@ -366,7 +366,10 @@
     "ADMIN_SESSION_INVALID_OR_EXPIRED": "Votre session administrateur est invalide ou expirée.",
     "API_UNAVAILABLE": "Le serveur est temporairement indisponible. Vérifiez que l'API et PostgreSQL sont démarrés.",
     "INVALID_REQUEST_BODY": "Le corps de la requête est invalide.",
-    "INVALID_ROUTE_PARAMETERS": "Les paramètres de route sont invalides."
+    "INVALID_ROUTE_PARAMETERS": "Les paramètres de route sont invalides.",
+    "PARTICIPANT_IDENTITY_LOCKED": "Les noms et courriels sont figés après la pige.",
+    "PARTICIPANT_DELETION_LOCKED": "Annulez la pige avant de supprimer un participant.",
+    "EXCHANGE_DRAW_SETTINGS_LOCKED": "Annulez la pige avant de modifier ses règles."
   },
   "common": {
     "close": "fermer"

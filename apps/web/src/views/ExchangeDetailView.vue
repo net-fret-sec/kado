@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatCivilDate } from '@/composables/useCivilDate'
 import { computed, onMounted, onUnmounted, ref, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useExchangesStore } from '@/stores/exchanges'
@@ -94,6 +95,15 @@ const isParticipantCreationLocked = computed(() => {
   return exchange.value.isDrawn || exchange.value.isArchived
 })
 
+const isParticipantIdentityLocked = computed(
+  () => !exchange.value || exchange.value.isDrawn || exchange.value.isArchived,
+)
+const isParticipantSuggestionsLocked = computed(
+  () =>
+    !exchange.value ||
+    exchange.value.isArchived ||
+    (exchange.value.isDrawn && (exchange.value.lockSuggestionsAfterDraw ?? true)),
+)
 const participantCountLabel = computed(() => String(participants.value.length))
 
 const publicExchangeLink = computed(() => {
@@ -176,11 +186,6 @@ async function copyToClipboard(text: string) {
 function openAccessLinkModal(link: string) {
   latestAccessLink.value = resolveParticipantAccessLink(link)
   showAccessLinkModal.value = true
-}
-
-async function copyAccessLinkFromModal() {
-  if (!latestAccessLink.value) return
-  await copyToClipboard(latestAccessLink.value)
 }
 
 async function fetchExchangeData() {
@@ -501,7 +506,7 @@ onUnmounted(() => {
 })
 
 function startEdit() {
-  if (!exchange.value) return
+  if (!exchange.value || exchange.value.isArchived) return
   showEditExchangeModal.value = true
 }
 
@@ -547,7 +552,7 @@ async function handleDelete() {
   if (!confirm(t('exchangeDetail.confirmDeleteExchange'))) return
   try {
     await exchangesStore.deleteExchange(exchange.value.id)
-    window.location.href = '/exchanges'
+    await router.push({ name: 'home' })
   } catch (err) {
     if (isAdminAuthError(err)) {
       setAdminAuthRequired()
@@ -561,6 +566,7 @@ async function handleDelete() {
 
 // Fonctions pour les participants
 function openEditParticipantModal(participant: ParticipantDto) {
+  if (isParticipantSuggestionsLocked.value) return
   editingParticipant.value = participant
   showEditParticipantModal.value = true
 }
@@ -890,7 +896,8 @@ async function cancelDraw() {
 
               <template v-if="!isSummaryMode">
                 <li v-if="exchange.eventDate">
-                  <b>{{ t('exchangeDetail.exchangeMoment') }} :</b> {{ exchange.eventDate }}
+                  <b>{{ t('exchangeDetail.exchangeMoment') }} :</b>
+                  {{ formatCivilDate(exchange.eventDate) }}
                 </li>
                 <li v-if="exchange.budget != null">
                   <b>{{ t('exchangeDetail.budget') }} :</b> {{ exchange.budget }}
@@ -919,7 +926,7 @@ async function cancelDraw() {
             </ul>
 
             <div class="d-flex flex-wrap gap-2 mb-2">
-              <button class="btn btn-warning" @click="startEdit">
+              <button class="btn btn-warning" :disabled="exchange.isArchived" @click="startEdit">
                 {{ t('exchangeDetail.edit') }}
               </button>
               <button
@@ -1176,6 +1183,7 @@ async function cancelDraw() {
                     class="btn btn-sm btn-outline-primary p-1"
                     :aria-label="t('exchangeDetail.edit')"
                     :title="t('exchangeDetail.edit')"
+                    :disabled="isParticipantSuggestionsLocked"
                     @click="openEditParticipantModal(participant)"
                   >
                     <i class="bi bi-pencil" aria-hidden="true"></i>
@@ -1195,6 +1203,7 @@ async function cancelDraw() {
                     v-if="!isSummaryMode"
                     :aria-label="t('exchangeDetail.delete')"
                     :title="t('exchangeDetail.delete')"
+                    :disabled="isParticipantIdentityLocked"
                     @click="deleteParticipant(participant.id)"
                   >
                     <i class="bi bi-trash" aria-hidden="true"></i>
@@ -1236,6 +1245,8 @@ async function cancelDraw() {
       <EditExchangeModal
         :model-value="showEditExchangeModal"
         :is-submitting="isSavingExchange"
+        :rules-locked="exchange.isDrawn"
+        :content-locked="exchange.isArchived"
         :name="exchange.name"
         :description="exchange.description || ''"
         :event-date="exchange.eventDate"
@@ -1250,6 +1261,8 @@ async function cancelDraw() {
       <EditParticipantModal
         :model-value="showEditParticipantModal"
         :participant="editingParticipant"
+        :identity-locked="isParticipantIdentityLocked"
+        :suggestions-locked="isParticipantSuggestionsLocked"
         @update:model-value="setEditParticipantModalVisibility"
         @submit="updateParticipant"
       />

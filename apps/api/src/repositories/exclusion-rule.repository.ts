@@ -15,7 +15,7 @@ interface ExclusionRuleRow {
   giver_participant_id: string;
   receiver_participant_id: string;
   type: "manual";
-  created_at: string;
+  created_at: Date;
 }
 
 function mapExclusionRuleRow(row: ExclusionRuleRow): ExclusionRuleRecord {
@@ -25,7 +25,7 @@ function mapExclusionRuleRow(row: ExclusionRuleRow): ExclusionRuleRecord {
     giverParticipantId: row.giver_participant_id,
     receiverParticipantId: row.receiver_participant_id,
     type: row.type,
-    createdAt: row.created_at,
+    createdAt: row.created_at.toISOString(),
   };
 }
 

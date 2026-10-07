@@ -2,10 +2,10 @@
   "name": "@kado/api",
   "private": true,
   "scripts": {
-    "dev": "tsx --watch src/server.ts",
+    "dev": "NODE_ENV=development tsx --watch src/server.ts",
     "build": "tsc --build",
     "lint": "echo \"No lint configured for api yet\"",
-    "test": "jest",
+    "test": "node scripts/test.mjs",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:ping": "tsx scripts/ping-db.ts",
     "db:reset-db": "tsx scripts/reset-db.ts",
@@ -17,6 +17,12 @@
     "testEnvironment": "node",
     "roots": [
       "<rootDir>/src"
+    ],
+    "setupFiles": [
+      "<rootDir>/src/__tests__/setup.ts"
+    ],
+    "testMatch": [
+      "**/*.test.ts"
     ]
   },
   "dependencies": {
@@ -25,6 +31,7 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "helmet": "^8.1.0",
+    "luxon": "^3.7.2",
     "morgan": "^1.10.1",
     "pg": "^8.20.0",
     "zod": "^4.3.6"
@@ -33,6 +40,7 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
+    "@types/luxon": "^3.7.6",
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.12.0",
     "@types/pg": "^8.20.0",

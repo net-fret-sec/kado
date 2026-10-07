@@ -1,3 +1,4 @@
+import { isLocalAdminRequest } from "../lib/local-admin-tools";
 import { Router } from "express";
 import {
   createExchangeInputSchema,
@@ -7,13 +8,21 @@ import {
   updateExchangeInputSchema,
 } from "@kado/shared";
 import { validateBody, validateParams } from "../middleware/validate";
-import { createExchange, getExchangeById, listExchanges, updateExchange, deleteExchange, drawExchange, cancelExchangeDraw } from "../services/exchange.service";
+import {
+  createExchange,
+  getExchangeById,
+  listExchanges,
+  updateExchange,
+  deleteExchange,
+  drawExchange,
+  cancelExchangeDraw,
+} from "../services/exchange.service";
 import {
   createExclusionRule,
   deleteExclusionRule,
   listExclusionRules,
-} from '../services/exclusion-rule.service'
-import { requireAdminSession } from '../middleware/require-admin-session'
+} from "../services/exclusion-rule.service";
+import { requireAdminSession } from "../middleware/require-admin-session";
 
 const router = Router();
 
@@ -30,7 +39,11 @@ router.post(
   },
 );
 
-router.get("/", async (_req, res, next) => {
+router.get("/", async (req, res, next) => {
+  if (!isLocalAdminRequest(req)) {
+    res.status(404).json({ error: { message: "Not found." } });
+    return;
+  }
   try {
     const exchanges = await listExchanges();
     res.status(200).json(exchanges);
@@ -52,7 +65,7 @@ router.get(
       const exchange = await getExchangeById(exchangeId);
       res.status(200).json(exchange);
     } catch (error) {
-      next(error)
+      next(error);
     }
   },
 );
@@ -71,7 +84,7 @@ router.put(
       const exchange = await updateExchange(exchangeId, req.body);
       res.status(200).json(exchange);
     } catch (error) {
-      next(error)
+      next(error);
     }
   },
 );
@@ -89,7 +102,7 @@ router.delete(
       await deleteExchange(exchangeId);
       res.status(204).send();
     } catch (error) {
-      next(error)
+      next(error);
     }
   },
 );
@@ -107,7 +120,7 @@ router.post(
       const exchange = await drawExchange(exchangeId);
       res.status(200).json(exchange);
     } catch (error) {
-      next(error)
+      next(error);
     }
   },
 );
@@ -125,31 +138,31 @@ router.post(
       const exchange = await cancelExchangeDraw(exchangeId);
       res.status(200).json(exchange);
     } catch (error) {
-      next(error)
+      next(error);
     }
   },
 );
 
 router.get(
-  '/:exchangeId/exclusions',
+  "/:exchangeId/exclusions",
   validateParams(exchangeIdParamSchema),
   requireAdminSession,
   async (req, res, next) => {
     try {
       const exchangeId = Array.isArray(req.params.exchangeId)
         ? req.params.exchangeId[0]
-        : req.params.exchangeId
+        : req.params.exchangeId;
 
-      const rules = await listExclusionRules(exchangeId)
-      res.status(200).json(rules)
+      const rules = await listExclusionRules(exchangeId);
+      res.status(200).json(rules);
     } catch (error) {
-      next(error)
+      next(error);
     }
   },
-)
+);
 
 router.post(
-  '/:exchangeId/exclusions',
+  "/:exchangeId/exclusions",
   validateParams(exchangeIdParamSchema),
   validateBody(createExclusionRuleInputSchema),
   requireAdminSession,
@@ -157,35 +170,35 @@ router.post(
     try {
       const exchangeId = Array.isArray(req.params.exchangeId)
         ? req.params.exchangeId[0]
-        : req.params.exchangeId
+        : req.params.exchangeId;
 
-      const rule = await createExclusionRule(exchangeId, req.body)
-      res.status(201).json(rule)
+      const rule = await createExclusionRule(exchangeId, req.body);
+      res.status(201).json(rule);
     } catch (error) {
-      next(error)
+      next(error);
     }
   },
-)
+);
 
 router.delete(
-  '/:exchangeId/exclusions/:ruleId',
+  "/:exchangeId/exclusions/:ruleId",
   validateParams(exchangeAndExclusionRuleIdParamSchema),
   requireAdminSession,
   async (req, res, next) => {
     try {
       const exchangeId = Array.isArray(req.params.exchangeId)
         ? req.params.exchangeId[0]
-        : req.params.exchangeId
+        : req.params.exchangeId;
       const ruleId = Array.isArray(req.params.ruleId)
         ? req.params.ruleId[0]
-        : req.params.ruleId
+        : req.params.ruleId;
 
-      await deleteExclusionRule(exchangeId, ruleId)
-      res.status(204).send()
+      await deleteExclusionRule(exchangeId, ruleId);
+      res.status(204).send();
     } catch (error) {
-      next(error)
+      next(error);
     }
   },
-)
+);
 
-export default router
+export default router;
