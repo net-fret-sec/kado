@@ -255,7 +255,7 @@ describe('admin authorization and configuration regressions', () => {
     failed = false
     await wrapper
       .findAll('button')
-      .find((button) => button.text() === 'Réessayer la configuration')!
+      .find((button) => button.text() === 'Actualiser la configuration')!
       .trigger('click')
     await flushPromises()
     expect(wrapper.findAll('button').some((button) => button.text().includes('(0/7)'))).toBe(true)

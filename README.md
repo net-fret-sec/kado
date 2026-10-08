@@ -15,7 +15,10 @@ Le monorepo PNPM contient trois briques:
 ## Terminologie
 
 - Échange: l'entité principale avec configuration, participants, exclusions et statut.
-- Pige: l'opération d'assignation des cadeaux.
+- Pige: le calcul qui attribue une personne pigée à chaque participant ; le succès est annoncé par « La pige a été effectuée ».
+- Liste de suggestions de cadeaux: les idées de cadeaux d’un participant, accompagnées au besoin d’un commentaire.
+- Exclusions de pige: les règles indiquant qui un participant ne peut pas piger.
+- Date de l’échange de cadeaux: la date civile de l’événement.
 - Organisateur: personne responsable de la pige et de la gestion de son échange.
 - Administrateur: personne qui déploie et maintient Kado sur un serveur.
 - Vue organisateur: interface protégée par session pour gérer un échange.
@@ -163,7 +166,7 @@ Fichier d'exemple: `apps/web/.env.example`
 - `VITE_ENABLE_LOCAL_ADMIN_TOOLS`: `true` pour activer la page `/exchanges` uniquement en développement ; Vite écoute alors sur `127.0.0.1`. Nécessite aussi le drapeau API. Hors activation, cette route revient à l’accueil et la liste n’est jamais appelée.
 - `VITE_API_BASE`: base URL de l'API. Laisser vide en développement local pour utiliser le proxy Vite.
 - `VITE_DONATION_URL`: URL de soutien affichée sur l'accueil. Si vide ou absente, le bloc de soutien n'est pas rendu.
-- `VITE_ADMIN_LINK_CONTINUE_COUNTDOWN_SECONDS`: délai (en secondes) avant activation du bouton "Continuer" après la création d'une pige. Valeur par défaut: `5`.
+- `VITE_ADMIN_LINK_CONTINUE_COUNTDOWN_SECONDS`: délai (en secondes) avant activation du bouton "Continuer" après la création d’un échange. Valeur par défaut: `5`.
 
 ## Endpoints principaux
 
@@ -238,10 +241,10 @@ Les mutations utilisent une transaction et verrouillent d’abord la ligne de l�
 | État | Modifications permises |
 |---|---|
 | Avant pige, non archivé | Édition habituelle ; l’organisateur référencé doit appartenir à l’échange |
-| Tiré, non archivé | Titre, description, budget, date ; souhaits et notes si `lockSuggestionsAfterDraw=false` ; rotation, annulation et suppression complète |
+| Pige effectuée, non archivé | Titre, description, budget, date ; suggestions et commentaires si `lockSuggestionsAfterDraw=false` ; rotation, annulation et suppression complète |
 | Archivé | Consultation, rotation des liens et suppression complète |
 
-Après pige, noms et emails, ajout/suppression de participants, organisateur, exclusions et options de pige sont figés. Les mêmes règles de souhaits/notes s’appliquent à l’organisateur et au participant. Les champs figés envoyés avec leur valeur actuelle sont acceptés. Les refus métier utilisent HTTP 400 avec des codes traduits dans l’interface.
+Après la pige, les modifications des noms, courriels, participants, organisateur, exclusions et options de pige sont désactivées. Les mêmes règles de suggestions/commentaires s’appliquent à l’organisateur et au participant. Les champs dont les modifications sont désactivées restent acceptés lorsqu’ils sont envoyés avec leur valeur actuelle. Les refus métier utilisent HTTP 400 avec des codes traduits dans l’interface.
 
 Les dates d’échange sont des dates civiles `YYYY-MM-DD`, validées et affichées sans décalage de fuseau navigateur. Les horodatages sont ISO UTC. L’archivage commence à minuit, dans `EXCHANGE_TIME_ZONE`, 31 jours calendaires après la date d’échange. Sans date, aucun archivage automatique. Modifier la date peut archiver immédiatement un échange ; une archive ne peut pas être réouverte par édition.
 
@@ -280,7 +283,7 @@ Vous pouvez l'utiliser, le modifier et le redistribuer, mais toute version modif
 - Changer le mot de passe révoque toutes les anciennes sessions. `PUT /api/exchanges/:exchangeId/admin/password` retourne désormais 200 `{ adminSessionToken }` : l’appareil courant stocke ce remplacement.
 - Les écritures de l’organisateur revalident la session sous verrou. Les hashes scrypt existants restent compatibles. Deux calculs de mot de passe simultanés maximum.
 - `GET /api/config` expose uniquement `maxActiveParticipants` pour l’interface. `/health` retourne 503 quand la base est indisponible ; `/health/live` vérifie uniquement le processus.
-- JSON limité à 256 Kio ; URLs de souhaits HTTP/HTTPS et 2 048 caractères maximum. Les anciennes URLs dangereuses ne sont pas affichées ; images HTTPS uniquement en production.
+- JSON limité à 256 Kio ; URLs de suggestions HTTP/HTTPS et 2 048 caractères maximum. Les anciennes URLs dangereuses ne sont pas affichées ; images HTTPS uniquement en production.
 - CORS explicite en production, absence de cache API, CSP sur le frontend servi par Caddy et aucune transmission du lien participant par Referer.
 - La migration additive `002_organizer_name.sql` conserve les anciens échanges. Aucun reset requis.
 
@@ -294,13 +297,13 @@ La CI teste et prépare une archive d’images ; aucune mise à jour automatique
 
 Les vues organisateur s’actualisent toutes les 5 secondes lorsqu’elles sont visibles, sans écriture ni formulaire ouvert. Une panne espace les tentatives à 10, 20, 40 puis 60 secondes et respecte `Retry-After`. Les vues participant et publique se mettent à jour au retour sur l’onglet et avec **Actualiser**, sans polling permanent. Les appels API sont bornés à 15 secondes ; aucune écriture n’est répétée automatiquement. Après une interruption d’écriture, son résultat peut être incertain et doit être vérifié avant une nouvelle tentative.
 
-Les brouillons restent en mémoire pendant les erreurs, conflits et réauthentifications du même échange. Aucun profil ou souhait n’est enregistré comme brouillon sur l’appareil. Une fermeture ou navigation demande confirmation si la saisie n’est pas enregistrée ; après rechargement, elle ne peut pas être récupérée. Un stockage navigateur bloqué conserve les sessions uniquement en mémoire.
+Les brouillons restent en mémoire pendant les erreurs, conflits et réauthentifications du même échange. Les profils et suggestions ne sont pas enregistrés comme brouillons sur l’appareil. Une fermeture ou navigation demande confirmation si la saisie n’est pas enregistrée ; après rechargement, elle ne peut pas être récupérée. Un stockage navigateur bloqué conserve les sessions uniquement en mémoire.
 
-Lors d’un conflit, la référence initiale, la saisie et la version serveur sont comparées. Les changements indépendants sont réunis ; les champs modifiés différemment demandent un choix. La liste de souhaits constitue un champ complet. **Préparer le brouillon** utilise la nouvelle version de référence mais n’enregistre rien : une sauvegarde explicite reste nécessaire. Les permissions courantes priment sur les choix du brouillon.
+Lors d’un conflit, la référence initiale, la saisie et la version serveur sont comparées. Les changements indépendants sont réunis ; les champs modifiés différemment demandent un choix. La liste de suggestions de cadeaux constitue un champ complet. **Préparer le brouillon** utilise la nouvelle version de référence mais n’enregistre rien : une sauvegarde explicite reste nécessaire. Les permissions courantes priment sur les choix du brouillon.
 
-Un ajout de participant présente immédiatement son nouveau lien. **Remplacer le lien** demande confirmation et révoque les anciens liens. Si le logout distant échoue, la déconnexion locale est effectuée sans annoncer une révocation serveur confirmée.
+Un ajout de participant présente immédiatement son nouveau lien. **Régénérer le lien du participant** demande confirmation et rend définitivement périmés tous les anciens liens du participant (révocation côté serveur). Si le logout distant échoue, la déconnexion locale est effectuée sans annoncer une révocation serveur confirmée.
 
-Les souhaits conservent icônes et ordre ; ils peuvent être déplacés au clavier avec **Monter/Descendre**. Les formulaires verrouillés restent en lecture seule. Les pages et modales fournissent labels, annonces, gestion du focus et lien d’évitement. Les vérifications automatisées d’accessibilité ne constituent pas une certification complète.
+Les suggestions conservent icônes et ordre ; elles peuvent être déplacées au clavier avec **Monter/Descendre**. Les formulaires dont les modifications sont désactivées restent en lecture seule. Les pages et modales fournissent labels, annonces, gestion du focus et lien d’évitement. Les vérifications automatisées d’accessibilité ne constituent pas une certification complète.
 
 ### Vérifier les changements
 
@@ -316,6 +319,6 @@ La CI exécute ces vérifications frontend et les scénarios navigateur pendant 
 
 ### Compléments reportés
 
-L’effacement explicite des champs facultatifs (description, date, budget, notes, liste complète de souhaits) n’a pas été normalisé dans cette P2. Les contrats actuels restent inchangés : selon le champ et sa sérialisation, une valeur vidée peut être omise et laisser la valeur existante intacte. Cette limitation demande un lot séparé, sans migration ou réécriture de données dans la P2.
+L’effacement explicite des champs facultatifs (description, date, budget, commentaires, liste complète de suggestions de cadeaux) n’a pas été normalisé dans cette P2. Les contrats actuels restent inchangés : selon le champ et sa sérialisation, une valeur vidée peut être omise et laisser la valeur existante intacte. Cette limitation demande un lot séparé, sans migration ou réécriture de données dans la P2.
 
 Les sauvegardes hors VPS et la validation du serveur réel restent nécessaires avant ouverture publique.
