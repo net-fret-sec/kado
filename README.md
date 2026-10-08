@@ -1,6 +1,6 @@
 # Kado
 
-Kado est une application web libre pour organiser des échanges de cadeaux sans compte utilisateur, avec une interface d'administration, une vue publique d'échange et un espace participant par lien magique.
+Kado est une application web libre pour organiser des échanges de cadeaux sans compte utilisateur, avec une interface de gestion pour l’organisateur, une vue publique d'échange et un espace participant par lien magique.
 
 L'objectif du projet est de réduire la friction d'organisation tout en gardant des règles explicites, une pige fiable et un hébergement simple.
 
@@ -9,33 +9,37 @@ L'objectif du projet est de réduire la friction d'organisation tout en gardant 
 Le monorepo PNPM contient trois briques:
 
 - `apps/api`: API Express 5 et logique métier.
-- `apps/web`: application Vue 3, PWA, vue admin, vue publique et espace participant.
+- `apps/web`: application Vue 3, PWA, vue organisateur, vue publique et espace participant.
 - `packages/shared`: types, DTO et schémas partagés entre front et back.
 
 ## Terminologie
 
 - Échange: l'entité principale avec configuration, participants, exclusions et statut.
 - Pige: l'opération d'assignation des cadeaux.
-- Vue admin: interface protégée par session pour gérer un échange.
+- Organisateur: personne responsable de la pige et de la gestion de son échange.
+- Administrateur: personne qui déploie et maintient Kado sur un serveur.
+- Vue organisateur: interface protégée par session pour gérer un échange.
 - Vue publique: page en lecture seule accessible sans authentification.
 - Espace participant: accès individuel via `/p/:token` avec code lisible de type `XXXX-XXXX-XXXX`.
+
+Les noms techniques existants (`admin`, `adminPassword`, `adminSessionToken` et les routes `/admin/...`) sont conservés ; ils désignent toujours l’accès organisateur d’un échange.
 
 ## Fonctionnalités couvertes
 
 - Gestion complète des échanges avec statuts `draft`, `ready`, `drawn` et `archived`.
-- Options d'échange incluant budget, date, organisateur, mot de passe admin et anti-réciprocité via `noMutualAssignments`.
+- Options d'échange incluant budget, date, organisateur, mot de passe de l’organisateur et anti-réciprocité via `noMutualAssignments`.
 - Gestion des participants avec régénération de lien d'accès.
-- Gestion des exclusions entre participants depuis l'interface admin.
+- Gestion des exclusions entre participants depuis l'interface organisateur.
 - Pige aléatoire et bornée avec contraintes et message d'erreur structuré quand aucune solution n'est possible.
 - Espace participant public pour consulter et mettre à jour son profil, puis voir le destinataire après la pige.
-- Vue publique d'un échange sur une route distincte de la vue admin.
-- Session administrateur par échange avec connexion, déconnexion et changement de mot de passe.
+- Vue publique d'un échange sur une route distincte de la vue organisateur.
+- Session organisateur par échange avec connexion, déconnexion et changement de mot de passe.
 
 ## Évolutions récentes déjà intégrées
 
 - Ajout de l'option `noMutualAssignments` jusqu'au solveur de pige.
 - Détails d'erreur de pige enrichis avec `DRAW_IMPOSSIBLE`, `hasExclusionRules` et `noMutualAssignments`.
-- Gestion des exclusions directement dans la page de détail admin.
+- Gestion des exclusions directement dans la page de détail organisateur.
 - Liens participant au format lisible avec normalisation côté API.
 - Protection anti-énumération sur `GET /api/p/:token` et `PUT /api/p/:token`.
 - Construction des URLs participant côté frontend à partir de l'origine navigateur, au lieu d'une URL absolue renvoyée par l'API.
@@ -123,7 +127,7 @@ Depuis la racine:
 - `pnpm db:ping:api`: teste la connexion PostgreSQL.
 - `pnpm db:migrate:api`: applique les migrations SQL.
 - `pnpm db:reset-db:api`: supprime et recrée le schéma `public`, puis rejoue toutes les migrations.
-- `pnpm db:reset-example-passwords:api`: réinitialise les mots de passe admin des échanges d'exemple.
+- `pnpm db:reset-example-passwords:api`: réinitialise les mots de passe des organisateurs des échanges d'exemple.
 - `pnpm db:reset-exchanges:api`: supprime toutes les données métier d'échange après confirmation explicite.
 
 Note: `pnpm preview:api` existe à la racine mais le script `preview` n'est pas défini dans `apps/api` pour l'instant.
@@ -165,7 +169,7 @@ Fichier d'exemple: `apps/web/.env.example`
 
 - Santé
   - `GET /health`
-- Échanges admin
+- Échanges — accès organisateur
   - `GET /api/exchanges` (outil local désactivé par défaut, indisponible en production)
   - `POST /api/exchanges`
   - `GET /api/exchanges/:exchangeId`
@@ -173,7 +177,7 @@ Fichier d'exemple: `apps/web/.env.example`
   - `DELETE /api/exchanges/:exchangeId`
   - `POST /api/exchanges/:exchangeId/draw`
   - `POST /api/exchanges/:exchangeId/draw/cancel`
-- Participants admin
+- Participants — accès organisateur
   - `GET /api/exchanges/:exchangeId/participants`
   - `POST /api/exchanges/:exchangeId/participants`
   - `PUT /api/exchanges/:exchangeId/participants/:participantId`
@@ -183,7 +187,7 @@ Fichier d'exemple: `apps/web/.env.example`
   - `GET /api/exchanges/:exchangeId/exclusions`
   - `POST /api/exchanges/:exchangeId/exclusions`
   - `DELETE /api/exchanges/:exchangeId/exclusions/:ruleId`
-- Auth admin
+- Authentification de l’organisateur
   - `POST /api/exchanges/:exchangeId/admin/sessions`
   - `DELETE /api/exchanges/:exchangeId/admin/sessions/current`
   - `PUT /api/exchanges/:exchangeId/admin/password`
@@ -195,7 +199,7 @@ Fichier d'exemple: `apps/web/.env.example`
 
 ## Scripts de maintenance API
 
-Réinitialiser les mots de passe admin des échanges listés dans `apps/api/src/test-data.json`:
+Réinitialiser les mots de passe des organisateurs des échanges listés dans `apps/api/src/test-data.json`:
 
 ```bash
 pnpm db:reset-example-passwords:api
@@ -227,7 +231,7 @@ Elle ne modifie pas le schéma existant.
 
 ## Confidentialité et intégrité (P0)
 
-Les sessions admin sont limitées à un échange. Chaque opération individuelle sur un participant filtre simultanément son identifiant et celui de l’échange autorisé. Un participant absent ou extérieur à l’échange produit le même `PARTICIPANT_NOT_FOUND` (404). La vue publique expose uniquement un contrat explicite, sans profils participants ni champs d’administration.
+Les sessions organisateur sont limitées à un échange. Chaque opération individuelle sur un participant filtre simultanément son identifiant et celui de l’échange autorisé. Un participant absent ou extérieur à l’échange produit le même `PARTICIPANT_NOT_FOUND` (404). La vue publique expose uniquement un contrat explicite, sans profils participants ni champs de gestion de l’échange.
 
 Les mutations utilisent une transaction et verrouillent d’abord la ligne de l’échange. Créations et rotations de liens sont atomiques ; un accès participant est revalidé après acquisition du verrou. Une seconde pige concurrente renvoie la pige déjà réalisée. Avec `revokeExisting=true`, seule la dernière rotation validée reste active ; `false` conserve les accès précédents.
 
@@ -237,7 +241,7 @@ Les mutations utilisent une transaction et verrouillent d’abord la ligne de l�
 | Tiré, non archivé | Titre, description, budget, date ; souhaits et notes si `lockSuggestionsAfterDraw=false` ; rotation, annulation et suppression complète |
 | Archivé | Consultation, rotation des liens et suppression complète |
 
-Après pige, noms et emails, ajout/suppression de participants, organisateur, exclusions et options de pige sont figés. Les mêmes règles de souhaits/notes s’appliquent à l’admin et au participant. Les champs figés envoyés avec leur valeur actuelle sont acceptés. Les refus métier utilisent HTTP 400 avec des codes traduits dans l’interface.
+Après pige, noms et emails, ajout/suppression de participants, organisateur, exclusions et options de pige sont figés. Les mêmes règles de souhaits/notes s’appliquent à l’organisateur et au participant. Les champs figés envoyés avec leur valeur actuelle sont acceptés. Les refus métier utilisent HTTP 400 avec des codes traduits dans l’interface.
 
 Les dates d’échange sont des dates civiles `YYYY-MM-DD`, validées et affichées sans décalage de fuseau navigateur. Les horodatages sont ISO UTC. L’archivage commence à minuit, dans `EXCHANGE_TIME_ZONE`, 31 jours calendaires après la date d’échange. Sans date, aucun archivage automatique. Modifier la date peut archiver immédiatement un échange ; une archive ne peut pas être réouverte par édition.
 
@@ -274,7 +278,7 @@ Vous pouvez l'utiliser, le modifier et le redistribuer, mais toute version modif
 - Limite de 50 participants actifs (`MAX_ACTIVE_PARTICIPANTS`), organisateur non participant sans profil ni accès personnel.
 - Pige mélangée avec le générateur cryptographique de Node, sans promesse d’uniformité. Un seul worker ; budget 200 000 nœuds / 2 secondes. Une recherche interrompue est distinguée d’une pige impossible.
 - Changer le mot de passe révoque toutes les anciennes sessions. `PUT /api/exchanges/:exchangeId/admin/password` retourne désormais 200 `{ adminSessionToken }` : l’appareil courant stocke ce remplacement.
-- Les écritures admin revalident la session sous verrou. Les hashes scrypt existants restent compatibles. Deux calculs de mot de passe simultanés maximum.
+- Les écritures de l’organisateur revalident la session sous verrou. Les hashes scrypt existants restent compatibles. Deux calculs de mot de passe simultanés maximum.
 - `GET /api/config` expose uniquement `maxActiveParticipants` pour l’interface. `/health` retourne 503 quand la base est indisponible ; `/health/live` vérifie uniquement le processus.
 - JSON limité à 256 Kio ; URLs de souhaits HTTP/HTTPS et 2 048 caractères maximum. Les anciennes URLs dangereuses ne sont pas affichées ; images HTTPS uniquement en production.
 - CORS explicite en production, absence de cache API, CSP sur le frontend servi par Caddy et aucune transmission du lien participant par Referer.
@@ -288,7 +292,7 @@ La CI teste et prépare une archive d’images ; aucune mise à jour automatique
 
 ## P2 — parcours, accessibilité et maintenance
 
-Les vues admin s’actualisent toutes les 5 secondes lorsqu’elles sont visibles, sans écriture ni formulaire ouvert. Une panne espace les tentatives à 10, 20, 40 puis 60 secondes et respecte `Retry-After`. Les vues participant et publique se mettent à jour au retour sur l’onglet et avec **Actualiser**, sans polling permanent. Les appels API sont bornés à 15 secondes ; aucune écriture n’est répétée automatiquement. Après une interruption d’écriture, son résultat peut être incertain et doit être vérifié avant une nouvelle tentative.
+Les vues organisateur s’actualisent toutes les 5 secondes lorsqu’elles sont visibles, sans écriture ni formulaire ouvert. Une panne espace les tentatives à 10, 20, 40 puis 60 secondes et respecte `Retry-After`. Les vues participant et publique se mettent à jour au retour sur l’onglet et avec **Actualiser**, sans polling permanent. Les appels API sont bornés à 15 secondes ; aucune écriture n’est répétée automatiquement. Après une interruption d’écriture, son résultat peut être incertain et doit être vérifié avant une nouvelle tentative.
 
 Les brouillons restent en mémoire pendant les erreurs, conflits et réauthentifications du même échange. Aucun profil ou souhait n’est enregistré comme brouillon sur l’appareil. Une fermeture ou navigation demande confirmation si la saisie n’est pas enregistrée ; après rechargement, elle ne peut pas être récupérée. Un stockage navigateur bloqué conserve les sessions uniquement en mémoire.
 

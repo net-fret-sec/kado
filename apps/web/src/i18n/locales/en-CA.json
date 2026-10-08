@@ -113,7 +113,7 @@
     "footer": {
       "tagline": "Open, transparent, and self-hostable."
     },
-    "adminLink": "Administrator access (development)"
+    "adminLink": "Local administration tools (development)"
   },
   "iconPicker": {
     "unknownIcon": "Unknown icon, please check the name (e.g. gift, heart-fill)."
@@ -159,21 +159,21 @@
       "suggestionsLockModeFreeze": "Freeze at draw",
       "suggestionsLockModeNoFreeze": "No freeze (optional suggestions deadline)",
       "noMutualAssignments": "Disallow mutual assignments",
-      "adminPassword": "Admin Password",
-      "adminPasswordRulesTitle": "Admin password requirements:",
+      "adminPassword": "Organizer password",
+      "adminPasswordRulesTitle": "Organizer password requirements:",
       "adminPasswordRuleLength": "10 to 256 characters.",
       "adminPasswordRuleUnique": "Use a unique password that is hard to guess.",
       "adminPasswordRuleStoredSafely": "This password cannot be recovered later.",
       "whatHappensTitle": "What happens after creation",
       "whatHappensCreated": "Your draw is created and you are redirected to its management page.",
-      "whatHappensAdminSession": "An administrator session is automatically opened on this device.",
-      "whatHappensPassword": "The <strong>admin password cannot be recovered</strong> because it is stored securely (hashed), not in plain text.",
+      "whatHappensAdminSession": "An organizer session is automatically opened on this device.",
+      "whatHappensPassword": "The <strong>organizer password cannot be recovered</strong> because it is stored securely (hashed), not in plain text.",
       "whatHappensEditable": "All draw details remain editable after creation.",
       "submit": "Create draw",
       "successTitle": "Draw created",
-      "successWarningTitle": "Keep your admin access URL safe",
+      "successWarningTitle": "Keep your organizer access URL safe",
       "successWarningText": "This is the only time you will see this URL. Participant links can be regenerated at any time, but not this one.",
-      "adminLinkLabel": "Admin access URL",
+      "adminLinkLabel": "Organizer access URL",
       "adminLinkHint": "You will need this URL to manage your draw.",
       "copyButton": "Copy",
       "continueButton": "Go to draw"
@@ -270,26 +270,26 @@
     "confirmTriggerDraw": "Run the draw for this exchange?",
     "confirmCancelDraw": "Cancel the draw for this exchange?",
     "adminAuth": {
-      "title": "Administrator access required",
-      "description": "Enter the administrator password for this exchange to continue.",
-      "passwordLabel": "Administrator password",
+      "title": "Organizer access required",
+      "description": "Enter the organizer password for this exchange to continue.",
+      "passwordLabel": "Organizer password",
       "login": "Sign in",
       "loggingIn": "Signing in...",
       "logout": "Sign out",
       "loggingOut": "Signing out...",
-      "loggedOut": "Administrator session closed.",
-      "required": "Administrator session required.",
-      "loginFailed": "Unable to sign in as administrator.",
-      "changePasswordTitle": "Change administrator password",
-      "changePasswordDescription": "Use this form to update the administrator password for this exchange.",
+      "loggedOut": "Organizer session closed.",
+      "required": "Organizer session required.",
+      "loginFailed": "Unable to sign in as organizer.",
+      "changePasswordTitle": "Change organizer password",
+      "changePasswordDescription": "Use this form to update the organizer password for this exchange.",
       "currentPasswordLabel": "Current password",
       "newPasswordLabel": "New password",
       "confirmPasswordLabel": "Confirm new password",
       "changePassword": "Change password",
       "changingPassword": "Changing...",
-      "passwordUpdated": "Administrator password has been updated.",
+      "passwordUpdated": "Organizer password has been updated.",
       "passwordMismatch": "New password and confirmation do not match.",
-      "passwordChangeFailed": "Unable to change the administrator password.",
+      "passwordChangeFailed": "Unable to change the organizer password.",
       "publicLinkLabel": "Public link"
     },
     "viewMode": {
@@ -300,7 +300,7 @@
   },
   "exchangePublic": {
     "loading": "Loading public view...",
-    "openAdmin": "Admin access",
+    "openAdmin": "Organizer access",
     "updatedAt": "Updated"
   },
   "participant": {
@@ -362,8 +362,8 @@
     "EXCLUSION_RULE_ALREADY_EXISTS": "This exclusion rule already exists.",
     "EXCLUSION_RULE_NOT_FOUND": "The requested exclusion rule was not found.",
     "RESOURCE_MODIFIED_CONCURRENTLY": "This resource was modified elsewhere. Refresh and try again.",
-    "ADMIN_CREDENTIALS_INVALID": "Invalid administrator password.",
-    "ADMIN_SESSION_INVALID_OR_EXPIRED": "Your administrator session is invalid or expired.",
+    "ADMIN_CREDENTIALS_INVALID": "Invalid organizer password.",
+    "ADMIN_SESSION_INVALID_OR_EXPIRED": "Your organizer session is invalid or expired.",
     "API_UNAVAILABLE": "The server is temporarily unavailable. Verify that the API and PostgreSQL are running.",
     "INVALID_REQUEST_BODY": "The request body is invalid.",
     "INVALID_ROUTE_PARAMETERS": "The route parameters are invalid.",
@@ -412,7 +412,7 @@
     "waitForAction": "Wait for the current operation to finish.",
     "confirmReplaceLink": "Replace this link? All previous links for this participant will be revoked.",
     "retryConfig": "Retry configuration",
-    "adminActions": "Administration actions",
+    "adminActions": "Exchange management actions",
     "notFoundTitle": "Page not found",
     "notFoundHelp": "This address does not match a Kado page.",
     "fields": {
