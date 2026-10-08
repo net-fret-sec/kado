@@ -14,7 +14,8 @@ export function useDraftGuard(dirty: Readonly<Ref<boolean>>) {
   }
   const allow = () => !dirty.value || confirmDiscard()
   onBeforeRouteLeave(allow)
-  onBeforeRouteUpdate(allow)
+  // Updating an anchor/query on the same page keeps the form and its draft.
+  onBeforeRouteUpdate((to, from) => to.path === from.path || allow())
   onMounted(() => window.addEventListener('beforeunload', beforeUnload))
   onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload))
   return allow

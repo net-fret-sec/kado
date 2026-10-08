@@ -93,6 +93,7 @@ function startCountdown() {
 
 const dirty = draftComputed(
   () =>
+    props.modelValue &&
     modalState.value === ModalState.FORM &&
     Boolean(name.value || organizerName.value || adminPassword.value),
 )
