@@ -1,7 +1,12 @@
 const sharp = require("sharp");
 sharp.cache(false);
 sharp.concurrency(1);
-process.once("message", async ({ content, limits }) => {
+process.on("message", function onMessage(message) {
+  if (message?.type !== "kado:image:transform") return;
+  process.off("message", onMessage);
+  void transform(message);
+});
+async function transform({ content, limits }) {
   try {
     const input = Buffer.from(content);
     const jpeg = input[0] === 0xff && input[1] === 0xd8 && input[2] === 0xff;
@@ -49,17 +54,23 @@ process.once("message", async ({ content, limits }) => {
     if (data.length > limits.outputBytes)
       throw { code: "IMAGE_TOO_LARGE", status: 413 };
     process.send(
-      { content: data, width: info.width, height: info.height },
+      {
+        type: "kado:image:result",
+        content: data,
+        width: info.width,
+        height: info.height,
+      },
       () => process.exit(0),
     );
   } catch (e) {
     const large = /pixel limit/.test(e.message || "");
     process.send(
       {
+        type: "kado:image:result",
         error: e.code || (large ? "IMAGE_TOO_LARGE" : "IMAGE_INVALID_FILE"),
         status: e.status || (large ? 413 : 400),
       },
       () => process.exit(0),
     );
   }
-});
+}

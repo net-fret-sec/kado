@@ -24,49 +24,93 @@ export async function transformImage(
   active = child;
   try {
     return await new Promise((resolve, reject) => {
-      const fail = (code = "IMAGE_PROCESSING_INTERRUPTED") =>
-        reject(new HttpError(503, "Image processing interrupted.", { code }));
-      const abort = () => fail();
-      const timer = setTimeout(() => fail(), limits.transformMs);
-      signal?.addEventListener("abort", abort, { once: true });
+      let settled = false;
       const clear = () => {
         clearTimeout(timer);
         signal?.removeEventListener("abort", abort);
+        child.off("message", onMessage);
       };
-      child.once("exit", () => {
+      const fail = () => {
+        if (settled) return;
+        settled = true;
         clear();
-        fail();
-      });
-      child.once("error", () => {
-        clear();
-        fail();
-      });
-      child.once(
-        "message",
-        (message: {
-          error?: string;
-          status?: number;
-          content: Buffer;
-          width: number;
-          height: number;
-        }) => {
+        reject(
+          new HttpError(503, "Image processing interrupted.", {
+            code: "IMAGE_PROCESSING_INTERRUPTED",
+          }),
+        );
+      };
+      const abort = () => fail();
+      const onMessage = (message: unknown) => {
+        // Node --watch also uses this IPC channel for dependency notifications.
+        // Only a tagged conversion result can complete the request or its deadline.
+        if (
+          !message ||
+          typeof message !== "object" ||
+          !("type" in message) ||
+          message.type !== "kado:image:result"
+        )
+          return;
+        const result = message as Record<string, unknown>;
+        if ("error" in result) {
+          const statuses: Record<string, number> = {
+            IMAGE_INVALID_FILE: 400,
+            IMAGE_FORMAT_UNSUPPORTED: 415,
+            IMAGE_TOO_LARGE: 413,
+          };
+          if (
+            typeof result.error !== "string" ||
+            !Object.hasOwn(statuses, result.error) ||
+            result.status !== statuses[result.error]
+          )
+            return fail();
+          settled = true;
           clear();
-          if (message.error)
-            reject(
-              new HttpError(message.status ?? 400, "Invalid image.", {
-                code: message.error,
-              }),
-            );
-          else resolve({ ...message, content: Buffer.from(message.content) });
-        },
-      );
-      if (signal?.aborted) return fail();
-      child.send({ content, limits }, (error) => {
-        if (error) {
-          clear();
-          fail();
+          reject(
+            new HttpError(result.status as number, "Invalid image.", {
+              code: result.error,
+            }),
+          );
+          return;
         }
-      });
+        if (
+          !Buffer.isBuffer(result.content) ||
+          !result.content.length ||
+          result.content.length > limits.outputBytes ||
+          typeof result.width !== "number" ||
+          !Number.isSafeInteger(result.width) ||
+          result.width < 1 ||
+          result.width > limits.dimension ||
+          typeof result.height !== "number" ||
+          !Number.isSafeInteger(result.height) ||
+          result.height < 1 ||
+          result.height > limits.dimension
+        )
+          return fail();
+        settled = true;
+        clear();
+        resolve({
+          content: result.content,
+          width: result.width,
+          height: result.height,
+        });
+      };
+      const timer = setTimeout(fail, limits.transformMs);
+      signal?.addEventListener("abort", abort, { once: true });
+      child.once("exit", fail);
+      child.once("error", fail);
+      child.on("message", onMessage);
+      if (signal?.aborted) return fail();
+      try {
+        child.send(
+          { type: "kado:image:transform", content, limits },
+          (error) => {
+            if (error) fail();
+          },
+        );
+      } catch {
+        fail();
+      }
     });
   } finally {
     await stopImageWorker();
