@@ -40,6 +40,8 @@ async function request<T = unknown, B = unknown>(
   path: string,
   body?: B,
   init?: RequestInit,
+  timeout = REQUEST_TIMEOUT_MS,
+  binary = false,
 ): Promise<T> {
   const controller = new AbortController()
   let timedOut = false
@@ -49,7 +51,7 @@ async function request<T = unknown, B = unknown>(
   const timer = setTimeout(() => {
     timedOut = true
     controller.abort()
-  }, REQUEST_TIMEOUT_MS)
+  }, timeout)
   const headers = new Headers(init?.headers)
   headers.set('Accept', 'application/json')
   const opts: RequestInit = {
@@ -66,6 +68,7 @@ async function request<T = unknown, B = unknown>(
   }
   try {
     const response = await fetch(buildUrl(path), opts)
+    if (response.ok && binary) return (await response.blob()) as T
     const text = await response.text()
     let data: unknown = null
     try {
@@ -102,6 +105,10 @@ async function request<T = unknown, B = unknown>(
 
 export function useApi() {
   return {
+    blob: (path: string, init?: RequestInit) =>
+      request<Blob>('GET', path, undefined, init, REQUEST_TIMEOUT_MS, true),
+    upload: <T>(path: string, body: FormData, init?: RequestInit) =>
+      request<T, FormData>('POST', path, body, init, 30_000),
     get: <T = unknown>(path: string, init?: RequestInit) =>
       request<T>('GET', path, undefined, init),
     post: <T = unknown, B = unknown>(path: string, body?: B, init?: RequestInit) =>

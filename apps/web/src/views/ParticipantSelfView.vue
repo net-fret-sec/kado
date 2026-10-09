@@ -8,13 +8,14 @@ import {
   type UpdateParticipantInputDto,
 } from '@kado/shared'
 import { useApi, HttpError, isRequestAborted } from '@/composables/useApi'
-import { useWishlist, serializeWishlist } from '@/composables/useWishlist'
+import { useWishlist, serializeWishlist, draftWishlist } from '@/composables/useWishlist'
 import { clone, equal, useConflict, type FormValues } from '@/composables/useConflict'
 import { useDraftGuard } from '@/composables/useDraftGuard'
 import { useRefresh } from '@/composables/useRefresh'
 import { useFormErrors } from '@/composables/useFormErrors'
 import { useToastsStore } from '@/stores/toasts'
 import WishlistEditor from '@/components/WishlistEditor.vue'
+import { provideImageAccess } from '@/composables/useImageAccess'
 import WishlistSuggestionItem from '@/components/WishlistSuggestionItem.vue'
 import ConflictReview from '@/components/ConflictReview.vue'
 
@@ -26,7 +27,24 @@ const view = ref<ParticipantSelfViewDto | null>(null)
 const name = ref(''),
   email = ref(''),
   note = ref('')
-const { wishlist, hydrate } = useWishlist()
+const { wishlist, hydrate, uploadImages, cancelUploads } = useWishlist()
+const imageValidating = ref(false)
+provideImageAccess(() =>
+  view.value
+    ? {
+        base: `/api/p/${encodeURIComponent(String(route.params.token))}`,
+        scope: String(route.params.token),
+        onError: (cause) => {
+          if (cause instanceof HttpError && cause.code === 'PARTICIPANT_LINK_INVALID_OR_EXPIRED') {
+            view.value = null
+            setValues({})
+            remote.value = null
+            form.capture(cause)
+          }
+        },
+      }
+    : null,
+)
 const isLoading = ref(true),
   isSaving = ref(false)
 const baselineVersion = ref('')
@@ -39,7 +57,7 @@ function values(): FormValues {
     name: name.value,
     email: email.value,
     note: note.value,
-    wishlist: serializeWishlist(wishlist.value),
+    wishlist: draftWishlist(wishlist.value),
   }
 }
 function serverValues(current: ParticipantSelfViewDto): FormValues {
@@ -69,7 +87,7 @@ function payload(): UpdateParticipantInputDto {
     name: name.value.trim(),
     email: email.value.trim() || undefined,
     note: note.value.trim() || undefined,
-    wishlist: wishlist.value.length ? serializeWishlist(wishlist.value) : undefined,
+    wishlist: serializeWishlist(wishlist.value),
     expectedUpdatedAt: baselineVersion.value,
   }
 }
@@ -144,12 +162,22 @@ function applyConflict() {
   form.clear()
 }
 async function saveSelf() {
-  if (isSaving.value || isRefreshing.value || !canEdit.value || !valid.value || remote.value) return
+  if (
+    imageValidating.value ||
+    isSaving.value ||
+    isRefreshing.value ||
+    !canEdit.value ||
+    !valid.value ||
+    remote.value
+  )
+    return
   isSaving.value = true
   form.clear()
   refreshState.cancel()
   const token = String(route.params.token)
   try {
+    await uploadImages(`/api/p/${encodeURIComponent(token)}`)
+    if (token !== route.params.token) return
     const current = await api.put<ParticipantSelfViewDto>(
       `/api/p/${encodeURIComponent(token)}`,
       payload(),
@@ -159,6 +187,7 @@ async function saveSelf() {
     initialize(current)
     toasts.success(t('participant.saveSuccess'))
   } catch (cause) {
+    if (token !== route.params.token) return
     form.capture(cause)
     if (
       cause instanceof HttpError &&
@@ -189,6 +218,7 @@ watch(
   () => route.params.token,
   () => {
     refreshState.cancel(true)
+    cancelUploads()
     view.value = null
     conflict.baseline.value = {}
     remote.value = null
@@ -281,7 +311,12 @@ watch(
               <p v-if="requiredMinSuggestions > 0" class="small">
                 {{ t('participant.minWishlistSuggestionsHint', { count: requiredMinSuggestions }) }}
               </p>
-              <WishlistEditor v-model="wishlist" :locked="suggestionsLocked" :busy="isSaving || !!remote" />
+              <WishlistEditor
+                @validating="imageValidating = $event"
+                v-model="wishlist"
+                :locked="suggestionsLocked"
+                :busy="isSaving || !!remote"
+              />
               <p v-if="fieldErrors.wishlist" class="text-danger">{{ t('p2.invalidField') }}</p>
               <p v-if="wishlist.length < requiredMinSuggestions" class="text-danger small">
                 {{
@@ -292,7 +327,7 @@ watch(
                 v-if="canEdit"
                 type="submit"
                 class="btn btn-primary mt-3"
-                :disabled="!valid || isSaving || isRefreshing || !!remote"
+                :disabled="!valid || imageValidating || isSaving || isRefreshing || !!remote"
               >
                 {{ isSaving ? t('participant.saving') : t('participant.save') }}
               </button>

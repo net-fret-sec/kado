@@ -8,14 +8,6 @@ const emptyStringToUndefined = <T extends z.ZodTypeAny>(schema: T) =>
     return value;
   }, schema);
 
-const emptyArrayToUndefined = <T extends z.ZodTypeAny>(schema: T) =>
-  z.preprocess((value) => {
-    if (Array.isArray(value) && value.length === 0) {
-      return undefined;
-    }
-    return value;
-  }, schema);
-
 const optionalText = (max: number) =>
   emptyStringToUndefined(z.string().trim().min(1).max(max).optional());
 
@@ -32,18 +24,21 @@ const optionalUrl = () =>
       .optional(),
   );
 
-export const giftSuggestionSchema = z.object({
-  title: z.string().trim().min(1).max(200),
-  imageUrl: optionalUrl(),
-  icon: emptyStringToUndefined(z.string().trim().min(1).max(50).optional()),
-  linkUrl: optionalUrl(),
-});
+export const giftSuggestionSchema = z
+  .object({
+    title: z.string().trim().min(1).max(200),
+    imageId: z
+      .string()
+      .regex(/^img_[a-f0-9-]{36}$/)
+      .optional(),
+    linkUrl: optionalUrl(),
+  })
+  .strict();
 
-const optionalGiftSuggestionList = emptyStringToUndefined(
-  emptyArrayToUndefined(
-    z.array(giftSuggestionSchema).min(1).max(100).optional(),
-  ),
-);
+const optionalGiftSuggestionList = z
+  .array(giftSuggestionSchema)
+  .max(100)
+  .optional();
 
 export const createParticipantInputSchema = z.object({
   name: z.string().trim().min(1).max(150),

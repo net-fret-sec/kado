@@ -13,7 +13,7 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     const created = await api('POST', '/api/exchanges', { name, organizerName: 'Hôte P2', organizerParticipates: false, adminPassword: 'p2password123', ...options }, undefined, 201);
     const id = created.exchange.id, token = created.adminSessionToken;
     const members = [];
-    for (const member of ['Alex', 'Blair', 'Casey']) members.push(await api('POST', `/api/exchanges/${id}/participants`, { name: member, wishlist: [{ title: 'Livre', icon: 'book', linkUrl: 'https://example.com/book' }, { title: 'Cadeau', icon: 'gift' }], note: 'Note initiale' }, token, 201));
+    for (const member of ['Alex', 'Blair', 'Casey']) members.push(await api('POST', `/api/exchanges/${id}/participants`, { name: member, wishlist: [{ title: 'Livre', linkUrl: 'https://example.com/book' }, { title: 'Cadeau' }], note: 'Note initiale' }, token, 201));
     const context = await browser.newContext({ ignoreHTTPSErrors: true, reducedMotion: 'reduce' });
     await context.addInitScript(({ id, token }) => { try { localStorage.setItem('locale', 'fr-CA'); localStorage.setItem('kado.adminSessions', JSON.stringify({ [id]: token })); } catch { /* Simulated blocked storage starts without persisted sessions. */ } }, { id, token });
     const page = await context.newPage();
@@ -30,7 +30,7 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
   }
   async function finish(f) {
     assert.deepEqual(f.errors, [], 'No browser exceptions');
-    assert.equal(f.violations.filter(v => (v.directive.startsWith('script-src') || v.directive.startsWith('connect-src'))).length, 0, 'Production CSP preserved: ' + JSON.stringify(f.violations));
+    assert.equal(f.violations.filter(v => (v.directive.startsWith('script-src') || v.directive.startsWith('connect-src') || v.directive.startsWith('img-src'))).length, 0, 'Production CSP preserved: ' + JSON.stringify(f.violations));
     await f.context.close();
   }
   async function self(f, index = 0) {
@@ -49,10 +49,16 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await f.page.getByRole('button', { name: fr.p2.moveDown, exact: true }).first().focus();
     await f.page.keyboard.press('Enter');
     await expect(f.page.locator('[role=status]').filter({ hasText: 'position 2' })).toBeVisible();
+    const file = { name:'gift.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEklEQVQImWP4z8CAFWEXHbQSACj/P8FTKqelAAAAAElFTkSuQmCC','base64') };
+    let uploads=0;f.page.on('request',request=>{if(request.method()==='POST'&&request.url().endsWith('/images'))uploads++});
+    await f.page.locator('input[type=file]').first().setInputFiles(file);
+    await expect(f.page.locator('img[src^="blob:"]').first()).toBeVisible();assert.equal(uploads,0,'Preview is local');
     const response = f.page.waitForResponse(r => r.request().method() === 'PUT' && r.url().includes('/api/p/'));
     await save(f.page).click(); await response;
     const current = await api('GET', '/api' + f.members[0].accessLink);
-    assert.deepEqual(current.participant.wishlist.map(s => [s.title, s.icon]), [['Cadeau', 'gift'], ['Livre', 'book']]);
+    assert.deepEqual(current.participant.wishlist.map(s => s.title), ['Cadeau', 'Livre']);
+    assert.equal(uploads,1);assert.match(current.participant.wishlist[0].imageId,/^img_/);
+    await expect(f.page.locator('img[src^="blob:"]').first()).toBeVisible();
     await expect(f.page.getByText(fr.participant.saveSuccess, { exact: true })).not.toBeVisible({ timeout: 10000 });
     for (const width of [360, 768, 1440]) {
       await f.page.setViewportSize({ width, height: 900 });
@@ -72,11 +78,33 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await f.page.locator('#locale-select').selectOption('en-CA');
     await expect(f.page.getByRole('button', { name: 'Refresh', exact: true })).toBeVisible();
     await expect(f.page.getByRole('button', { name: 'Move up', exact: true }).first()).toBeVisible();
+    await f.page.locator('input[type=file]').first().setInputFiles({...file,name:'replacement.png'});
+    const en=JSON.parse(await readFile(path.join(root,'apps/web/src/i18n/locales/en-CA.json'),'utf8'));
+    const replacement=f.page.waitForResponse(r=>r.request().method()==='PUT'&&r.url().includes('/api/p/'));
+    await f.page.getByRole('button',{name:en.participant.save,exact:true}).click();assert.equal((await replacement).status(),200);
+    await expect(f.page.locator('img[src^="blob:"]').first()).toBeVisible();
+    await f.page.screenshot({path:path.join(output,'participant-images-en.png'),fullPage:true});
+    // Organizer uses authenticated reads and uploads in the edit form as well.
+    await f.page.goto(`${base}/exchanges/${f.id}`);
+    await f.page.locator('#locale-select').selectOption('en-CA');
+    await f.page.locator('button:has(.bi-pencil)').first().click();
+    await expect(f.page.getByRole('dialog',{name:en.exchangeDetail.editModal.title})).toBeVisible();
+    await f.page.setViewportSize({width:360,height:900});
+    await expect(f.page.locator('#editParticipantForm img[src^="blob:"]').first()).toBeVisible();
+    await f.page.locator('#editParticipantForm input[type=file]').first().setInputFiles(file);
+    await expect(f.page.locator('#editParticipantForm img[src^="blob:"]').first()).toBeVisible();
+    assert.deepEqual((await audit(f.page)).violations.map(v=>v.id),[],'Organizer image form accessibility in English/mobile');
+    await f.page.screenshot({path:path.join(output,'organizer-images-360-en.png'),fullPage:true});
+    const updated = f.page.waitForResponse(r=>r.request().method()==='PUT'&&r.url().includes('/participants/'));
+    await f.page.locator('button[form=editParticipantForm]').click();assert.equal((await updated).status(),200);
     await finish(f);
   }
   console.log('P2 browser: conflicts, independent merge, repeated conflict, draft guard');
   {
     const f = await fixture('P2 conflits'); await self(f);
+    let uploads=0;f.page.on('request',request=>{if(request.method()==='POST'&&request.url().endsWith('/images'))uploads++});
+    await f.page.locator('input[type=file]').first().setInputFiles({name:'conflict.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEklEQVQImWP4z8CAFWEXHbQSACj/P8FTKqelAAAAAElFTkSuQmCC','base64')});
+    await expect(f.page.locator('img[src^="blob:"]').first()).toBeVisible();
     await f.page.locator('#participant-note').fill('Brouillon local');
     const p = f.members[0].participant;
     await api('PUT', `/api/exchanges/${f.id}/participants/${p.id}`, { name: 'Alex serveur' }, f.token);
@@ -92,7 +120,9 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await f.page.getByRole('button', { name: fr.p2.prepareDraft }).click();
     await save(f.page).click();
     await expect(f.page.getByText(fr.participant.saveSuccess, { exact: true })).toBeVisible();
-    assert.equal((await api('GET', '/api' + f.members[0].accessLink)).participant.note, 'Brouillon local');
+    const saved=await api('GET', '/api' + f.members[0].accessLink);
+    assert.equal(saved.participant.note,'Brouillon local');assert.match(saved.participant.wishlist[0].imageId,/^img_/);
+    assert.equal(uploads,1,'Repeated conflicts preserve a successful upload without sending it again');
     await f.page.locator('#participant-note').fill('À garder');
     f.page.once('dialog', dialog => dialog.dismiss());
     await f.page.locator('.navbar-brand').click();

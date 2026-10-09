@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { useAdminAuthStore } from '@/stores/useAdminAuthStore'
+import { provideImageAccess } from '@/composables/useImageAccess'
 import { formatCivilDate } from '@/composables/useCivilDate'
 import { useExchangeAdmin } from '@/composables/useExchangeAdmin'
 import { useI18n } from 'vue-i18n'
@@ -6,6 +10,21 @@ import EditExchangeModal from '@/components/EditExchangeModal.vue'
 import EditParticipantModal from '@/components/EditParticipantModal.vue'
 import ParticipantAccessLinkModal from '@/components/ParticipantAccessLinkModal.vue'
 const { t } = useI18n()
+const route = useRoute(),
+  auth = useAdminAuthStore()
+const imageUploading = ref(false)
+provideImageAccess((participantId) => {
+  const id = String(route.params.id),
+    token = auth.getSessionToken(id)
+  return !requiresAdminAuth.value && token && participantId
+    ? {
+        base: `/api/exchanges/${encodeURIComponent(id)}/participants/${encodeURIComponent(participantId)}`,
+        headers: { Authorization: `Bearer ${token}` },
+        scope: id + ':' + token,
+        onError: handleParticipantUploadError,
+      }
+    : null
+})
 const {
   exchange,
   participants,
@@ -83,7 +102,11 @@ const {
   editExchangeFieldErrors,
   editParticipantFieldErrors,
   participantDirty,
+  handleParticipantUploadError,
 } = useExchangeAdmin()
+watch(imageUploading, (value) => {
+  participantDirty.value = value || showEditParticipantModal.value
+})
 </script>
 
 <template>
@@ -148,7 +171,11 @@ const {
       {{ error }} <router-link to="/">{{ t('p2.home') }}</router-link>
     </div>
     <div v-else-if="exchange && !requiresAdminAuth" class="row g-4 align-items-start">
-      <fieldset :disabled="mutationBusy" class="admin-actions-contents" style="display: contents">
+      <fieldset
+        :disabled="mutationBusy || imageUploading"
+        class="admin-actions-contents"
+        style="display: contents"
+      >
         <legend class="visually-hidden">{{ t('p2.adminActions') }}</legend>
         <!-- Détails de l'échange -->
         <section id="detail" class="col-12 col-xl-7">
@@ -613,6 +640,8 @@ const {
 
     <EditParticipantModal
       v-if="exchange"
+      @uploading="imageUploading = $event"
+      @upload-error="handleParticipantUploadError"
       :is-submitting="mutationBusy"
       :suspended="requiresAdminAuth"
       :save-error="editParticipantError"

@@ -70,12 +70,10 @@
       "wishlist": [
         {
           "title": "Kindle Paperwhite",
-          "icon": "book",
           "linkUrl": "https://www.amazon.com/Kindle-Paperwhite"
         },
         {
-          "title": "Bon d'achat Librairie",
-          "imageUrl": "https://via.placeholder.com/80x80.png?text=Librairie"
+          "title": "Bon d'achat Librairie"
         }
       ],
       "note": "Aime les surprises",

@@ -4,8 +4,7 @@ import type { ExchangeDto } from "../exchange/exchange.dto";
 
 export interface GiftSuggestionDto {
   title: string;
-  imageUrl?: string;
-  icon?: string; // bootstrap-icons name, optional
+  imageId?: string;
   linkUrl?: string;
 }
 

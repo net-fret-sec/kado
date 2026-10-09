@@ -166,7 +166,6 @@ try {
           wishlist: [
             {
               title: "Gift",
-              imageUrl: "https://example.com/gift.png",
               linkUrl: "https://example.com/gift",
             },
           ],
@@ -175,6 +174,17 @@ try {
         201,
       ),
     );
+  // Actual production Sharp pipeline + private bytea restored by the normal dump scripts.
+  const imageSource = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEklEQVQImWP4z8CAFWEXHbQSACj/P8FTKqelAAAAAElFTkSuQmCC','base64');
+  const imageBase = `/api/exchanges/${id}/participants/${members[0].participant.id}/images`;
+  const boundary = 'kado-test-' + randomUUID();
+  const multipart = Buffer.concat([Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="image"; filename="gift.png"\r\nContent-Type: image/png\r\n\r\n`),imageSource,Buffer.from(`\r\n--${boundary}--\r\n`)]);
+  const uploadResponse = await localFetch(base+imageBase,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'multipart/form-data; boundary='+boundary},body:multipart});
+  assert.equal(uploadResponse.status,201);const image = await uploadResponse.json();
+  await api('PUT',`/api/exchanges/${id}/participants/${members[0].participant.id}`,{wishlist:[{title:'Gift',imageId:image.imageId,linkUrl:'https://example.com/gift'}]},token);
+  const originalImage = Buffer.from(await (await localFetch(base+imageBase+'/'+image.imageId,{headers:{Authorization:'Bearer '+token}})).arrayBuffer());
+  assert(originalImage.length>0);assert.equal(originalImage.toString('ascii',8,12),'WEBP');
+  assert(csp.includes("img-src 'self' blob:"));
   await api("POST", `/api/exchanges/${id}/draw`, undefined, token);
   const self = await api("GET", "/api" + members[0].accessLink);
   assert(self.assignment);
@@ -259,6 +269,8 @@ try {
   const { readdir } = await import("node:fs/promises");
   const dump = (await readdir(backups)).find((n) => n.endsWith(".dump"));
   await api("PUT", `/api/exchanges/${id}`, { name: "After backup" }, token);
+  assert.match(image.imageId,/^img_[a-f0-9-]+$/);
+  compose('exec','-T','db','psql','-U','kado_test','-d',db,'-c',`DELETE FROM suggestion_images WHERE id='${image.imageId}'`);
   run(
     ["bash", "deploy/scripts/restore-db.sh", envFile, path.join(backups, dump)],
     { env: opsEnv, input: "RESTORE_KADO\n" },
@@ -267,6 +279,8 @@ try {
     (await api("GET", `/api/exchanges/${id}`, undefined, token)).name,
     "Smoke",
   );
+  const restoredImage = Buffer.from(await (await localFetch(base+imageBase+'/'+image.imageId,{headers:{Authorization:'Bearer '+token}})).arrayBuffer());
+  assert.deepEqual(restoredImage,originalImage,'Backup restores the exact optimized image bytes');
   const corrupt = path.join(scratch, "corrupt.dump");
   await writeFile(corrupt, "invalid");
   assert.throws(() =>

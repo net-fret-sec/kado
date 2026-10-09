@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useSuggestionFiles } from '@/composables/useWishlist'
 import { useI18n } from 'vue-i18n'
 import type { ConflictField, FormValues } from '@/composables/useConflict'
 const props = defineProps<{
@@ -9,6 +10,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ choice: [key: string, value: 'local' | 'remote']; apply: [] }>()
 const { t } = useI18n()
+const files = useSuggestionFiles()
 function display(value: unknown): string {
   if (value == null || value === '') return t('p2.empty')
   if (typeof value === 'boolean') return t(value ? 'p2.yes' : 'p2.no')
@@ -18,8 +20,11 @@ function display(value: unknown): string {
         .map((s) =>
           typeof s === 'object' && s
             ? Object.entries(s)
-                .filter(([k]) => k !== '_clientId')
-                .map(([k, v]) => `${t(`p2.fields.${k}`)}: ${display(v)}`)
+                .filter(([k, v]) => k !== '_clientId' && v !== undefined)
+                .map(
+                  ([k, v]) =>
+                    `${t(`p2.fields.${k}`)}: ${k === 'imageId' ? t('images.saved') : k === 'pendingImage' ? files.get(String(v))?.name || t('images.selected') : display(v)}`,
+                )
                 .join(' · ')
             : display(s),
         )

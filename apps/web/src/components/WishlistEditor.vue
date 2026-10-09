@@ -4,9 +4,23 @@ import { useI18n } from 'vue-i18n'
 import Draggable from 'vuedraggable'
 import WishlistSuggestionItem from './WishlistSuggestionItem.vue'
 import type { EditableSuggestion } from '@/composables/useWishlist'
-const props = defineProps<{ modelValue: EditableSuggestion[]; locked?: boolean; busy?: boolean }>()
-const emit = defineEmits<{ 'update:modelValue': [value: EditableSuggestion[]] }>()
+const props = defineProps<{
+  modelValue: EditableSuggestion[]
+  locked?: boolean
+  busy?: boolean
+  participantId?: string
+}>()
+const emit = defineEmits<{
+  validating: [value: boolean]
+  'update:modelValue': [value: EditableSuggestion[]]
+}>()
 const { t } = useI18n()
+const validatingItems = new Set<string>()
+function validating(key: string, value: boolean) {
+  if (value) validatingItems.add(key)
+  else validatingItems.delete(key)
+  emit('validating', validatingItems.size > 0)
+}
 const announcement = ref('')
 const motionPreference = window.matchMedia?.('(prefers-reduced-motion: reduce)')
 const reducedMotion = ref(motionPreference?.matches ?? false)
@@ -100,8 +114,10 @@ function add() {
           </div>
           <WishlistSuggestionItem
             :model-value="element"
+            :participant-id="participantId"
+            @validating="validating(element._clientId, $event)"
             :mode="locked ? 'detail' : 'edit'"
-            :disabled="busy"
+            :disabled="locked || busy"
             @update:model-value="change(index, $event)"
           />
         </article>

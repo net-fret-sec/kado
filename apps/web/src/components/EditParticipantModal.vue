@@ -6,10 +6,12 @@ import {
   type ParticipantDto,
   type UpdateParticipantInputDto,
 } from '@kado/shared'
+import { useImageAccess } from '@/composables/useImageAccess'
+import { getApiErrorMessage } from '@/composables/useApiErrorMessage'
 import BaseModal from './BaseModal.vue'
 import WishlistEditor from './WishlistEditor.vue'
 import ConflictReview from './ConflictReview.vue'
-import { useWishlist, serializeWishlist } from '@/composables/useWishlist'
+import { useWishlist, serializeWishlist, draftWishlist } from '@/composables/useWishlist'
 import { clone, equal, useConflict, type FormValues } from '@/composables/useConflict'
 import { confirmDiscard, useDraftGuard } from '@/composables/useDraftGuard'
 const props = defineProps<{
@@ -24,6 +26,8 @@ const props = defineProps<{
   fieldErrors?: Record<string, string[]>
 }>()
 const emit = defineEmits<{
+  uploading: [value: boolean]
+  'upload-error': [cause: unknown]
   'update:modelValue': [value: boolean]
   submit: [payload: UpdateParticipantInputDto]
   dirty: [value: boolean]
@@ -32,7 +36,12 @@ const { t } = useI18n()
 const name = ref(''),
   email = ref(''),
   note = ref('')
-const { wishlist, hydrate } = useWishlist()
+const { wishlist, hydrate, uploadImages, cancelUploads } = useWishlist()
+const imageValidating = ref(false),
+  uploading = ref(false),
+  uploadError = ref('')
+const imageAccess = useImageAccess()
+const imagesBusy = computed(() => imageValidating.value || uploading.value)
 const baselineVersion = ref('')
 const conflict = useConflict()
 const { remote, fields, choices, ready } = conflict
@@ -41,7 +50,7 @@ function values(): FormValues {
     name: name.value,
     email: email.value,
     note: note.value,
-    wishlist: serializeWishlist(wishlist.value),
+    wishlist: draftWishlist(wishlist.value),
   }
 }
 function participantValues(p: ParticipantDto): FormValues {
@@ -57,14 +66,17 @@ const dirty = computed(() => props.modelValue && !equal(values(), conflict.basel
 useDraftGuard(dirty)
 watch(dirty, (value) => emit('dirty', value))
 function beforeClose() {
-  return props.suspended || (!props.isSubmitting && (!dirty.value || confirmDiscard()))
+  return (
+    props.suspended ||
+    (!props.isSubmitting && !imagesBusy.value && (!dirty.value || confirmDiscard()))
+  )
 }
 function payload(): UpdateParticipantInputDto {
   return {
     name: name.value,
     email: email.value || undefined,
     note: note.value || undefined,
-    wishlist: wishlist.value.length ? serializeWishlist(wishlist.value) : undefined,
+    wishlist: serializeWishlist(wishlist.value),
     expectedUpdatedAt: baselineVersion.value,
   }
 }
@@ -96,13 +108,49 @@ function applyConflict() {
     baselineVersion.value = props.conflictVersion.updatedAt
   }
 }
-function submit() {
-  if (!props.isSubmitting && !props.suggestionsLocked && valid.value && !remote.value)
-    emit('submit', payload())
+async function submit() {
+  if (
+    props.isSubmitting ||
+    imagesBusy.value ||
+    props.suggestionsLocked ||
+    !valid.value ||
+    remote.value ||
+    !props.participant
+  )
+    return
+  uploading.value = true
+  uploadError.value = ''
+  emit('uploading', true)
+  try {
+    const access = imageAccess(props.participant.id)
+    if (wishlist.value.some((s) => s.pendingImage)) {
+      if (!access) throw new Error('Session unavailable')
+      await uploadImages(access.base, { headers: access.headers })
+    }
+    if (props.modelValue && !props.suspended) emit('submit', payload())
+  } catch (cause) {
+    if (props.modelValue) {
+      uploadError.value = getApiErrorMessage(cause)
+      emit('upload-error', cause)
+    }
+  } finally {
+    uploading.value = false
+    emit('uploading', false)
+  }
 }
 function visibility(value: boolean) {
   if (!props.suspended) emit('update:modelValue', value)
 }
+watch(
+  () => props.modelValue,
+  (open) => {
+    if (!open) {
+      cancelUploads()
+      hydrate([])
+      uploadError.value = ''
+    }
+  },
+)
 </script>
 <template>
   <BaseModal
@@ -112,6 +160,9 @@ function visibility(value: boolean) {
     size="lg"
     @update:model-value="visibility"
   >
+    <p v-if="uploadError && !saveError" class="alert alert-danger" role="alert">
+      {{ uploadError }}
+    </p>
     <p v-if="saveError" class="alert alert-danger" role="alert">{{ saveError }}</p>
     <p v-if="dirty" class="small text-body-secondary">{{ t('p2.unsaved') }}</p>
     <ConflictReview
@@ -134,7 +185,7 @@ function visibility(value: boolean) {
           class="form-control"
           maxlength="150"
           :readonly="identityLocked"
-          :disabled="isSubmitting || !!remote"
+          :disabled="isSubmitting || uploading || !!remote"
           :aria-invalid="!!fieldErrors?.name || undefined"
           :aria-describedby="fieldErrors?.name ? 'edit-name-error' : undefined"
           required
@@ -153,7 +204,7 @@ function visibility(value: boolean) {
           class="form-control"
           maxlength="2000"
           :readonly="suggestionsLocked"
-          :disabled="isSubmitting || !!remote"
+          :disabled="isSubmitting || uploading || !!remote"
           :aria-invalid="!!fieldErrors?.note || undefined"
           :aria-describedby="fieldErrors?.note ? 'edit-note-error' : undefined"
         ></textarea>
@@ -165,7 +216,9 @@ function visibility(value: boolean) {
       <WishlistEditor
         v-model="wishlist"
         :locked="suggestionsLocked"
-        :busy="isSubmitting || !!remote"
+        :participant-id="participant?.id"
+        @validating="imageValidating = $event"
+        :busy="isSubmitting || uploading || !!remote"
       />
       <p v-if="fieldErrors?.wishlist" class="text-danger">{{ t('p2.invalidField') }}</p>
     </form>
@@ -174,7 +227,7 @@ function visibility(value: boolean) {
         type="submit"
         class="btn btn-primary order-2"
         form="editParticipantForm"
-        :disabled="suggestionsLocked || !valid || isSubmitting || !!remote"
+        :disabled="suggestionsLocked || !valid || isSubmitting || imagesBusy || !!remote"
       >
         {{ t('exchangeDetail.editModal.submit') }}
       </button>
@@ -182,7 +235,7 @@ function visibility(value: boolean) {
         type="button"
         class="btn btn-link order-1"
         data-bs-dismiss="modal"
-        :disabled="isSubmitting"
+        :disabled="isSubmitting || imagesBusy"
       >
         {{ t('actions.cancel') }}
       </button>

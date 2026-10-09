@@ -1,3 +1,4 @@
+import imageRoutes from "./routes/images.routes";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -69,18 +70,26 @@ export function createApp() {
   app.use(express.json({ limit: "256kb" }));
   app.use("/health", healthRoutes);
   app.get("/api/config", (_req, res) =>
-    res.json({ maxActiveParticipants: config.maxParticipants }),
+    res.json({
+      maxActiveParticipants: config.maxParticipants,
+      images: {
+        sourceBytes: config.images.sourceBytes,
+        pixels: config.images.pixels,
+        dimension: config.images.dimension,
+        outputBytes: config.images.outputBytes,
+        formats: ["image/jpeg", "image/png", "image/webp"],
+      },
+    }),
   );
+  app.use("/api", imageRoutes());
   app.use("/api", publicRoutes);
   app.use("/api/exchanges", exchangesRoutes);
   app.use("/api/exchanges", participantsRoutes);
   app.use("/api/exchanges", adminAuthRoutes);
   app.use((_req, res) =>
-    res
-      .status(404)
-      .json({
-        error: { message: "Not found.", details: { code: "ROUTE_NOT_FOUND" } },
-      }),
+    res.status(404).json({
+      error: { message: "Not found.", details: { code: "ROUTE_NOT_FOUND" } },
+    }),
   );
   app.use(errorHandler);
   return app;

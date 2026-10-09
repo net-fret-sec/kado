@@ -115,9 +115,6 @@
     },
     "adminLink": "Local administration tools (development)"
   },
-  "iconPicker": {
-    "unknownIcon": "Unknown icon, please check the name (e.g. gift, heart-fill)."
-  },
   "exchanges": {
     "title": "Exchanges",
     "createExchange": "Create an exchange",
@@ -293,15 +290,9 @@
     "wishlistItem": {
       "reorder": "Reorder",
       "titleLabel": "Title",
-      "iconLabel": "Icon",
-      "iconPlaceholder": "e.g. gift, heart",
-      "iconOrImageHint": "Tip: use an icon or an image.",
-      "imageUrlLabel": "Image URL",
-      "imageUrlPlaceholder": "https://example.com/image.png",
       "linkLabel": "Link",
       "linkPlaceholder": "https://example.com/product",
       "titleRequired": "Title is required.",
-      "imageUrlInvalid": "Invalid image URL (http/https required).",
       "linkUrlInvalid": "Invalid link URL (http/https required)."
     }
   },
@@ -342,7 +333,15 @@
     "REQUEST_BODY_TOO_LARGE": "The request content is too large.",
     "ORGANIZER_NAME_REQUIRES_NON_PARTICIPANT": "Edit the organizer profile instead.",
     "API_TIMEOUT": "The request timed out. Try loading again.",
-    "REQUEST_ABORTED": "Request cancelled."
+    "REQUEST_ABORTED": "Request cancelled.",
+    "IMAGE_INVALID_FILE": "The file is not a valid image.",
+    "IMAGE_FORMAT_UNSUPPORTED": "Accepted formats: still JPEG, PNG and WebP.",
+    "IMAGE_TOO_LARGE": "The image exceeds size or dimension limits.",
+    "IMAGE_QUOTA_EXCEEDED": "The image storage limit has been reached.",
+    "IMAGE_UPLOAD_BUSY": "An image upload is in progress. Try again shortly.",
+    "IMAGE_PROCESSING_INTERRUPTED": "Image processing was interrupted. Your draft has been kept.",
+    "IMAGE_REFERENCE_INVALID": "An image has expired or is unavailable. Select it again.",
+    "IMAGE_NOT_FOUND": "Image unavailable."
   },
   "common": {
     "close": "close"
@@ -359,7 +358,6 @@
     "prepareDraft": "Prepare draft",
     "outcomeUncertain": "The request was interrupted. The operation may have completed: check its result before repeating it. Retrying creation may create a duplicate.",
     "storageUnavailable": "Storage on this device is unavailable. Your session stays in memory and will not survive closing or reloading the page.",
-    "clearIcon": "Delete icon",
     "skipContent": "Skip to content",
     "moveUp": "Move up",
     "moveDown": "Move down",
@@ -389,10 +387,20 @@
       "lockSuggestionsAfterDraw": "Disable changes to suggestions after the draw",
       "noMutualAssignments": "Mutual assignments prohibited",
       "title": "Title",
-      "imageUrl": "Image",
       "linkUrl": "Link",
-      "icon": "Icon"
+      "imageId": "Saved image",
+      "pendingImage": "Selected image"
     },
     "initialVersion": "Initial reference"
+  },
+  "images": {
+    "label": "Gift image",
+    "help": "Still JPEG, PNG or WebP: up to {size} MiB and {pixels} megapixels. Resized to {dimension} pixels, optimized image up to {output} KiB. Uploaded when you save.",
+    "remove": "Delete image",
+    "unavailable": "Image unavailable.",
+    "loadingConfig": "Loading image limits…",
+    "validating": "Checking image…",
+    "saved": "Saved image",
+    "selected": "Selected image"
   }
 }

@@ -95,6 +95,7 @@ export function createRateLimits() {
         true,
       ),
     ],
+    imageUpload: make(c.images.uploadLimit, 60000),
     participant: make(c.participantLimit, c.participantWindow),
     draw: make(c.drawLimit, c.drawWindow, (req) =>
       String(req.params.exchangeId),

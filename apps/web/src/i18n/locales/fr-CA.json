@@ -157,9 +157,6 @@
       "continueButton": "Continuer vers l’échange"
     }
   },
-  "iconPicker": {
-    "unknownIcon": "Icône inconnue, vérifiez le nom (ex: gift, heart-fill)."
-  },
   "exchangeDetail": {
     "loading": "Chargement...",
     "name": "Nom",
@@ -293,15 +290,9 @@
     "wishlistItem": {
       "reorder": "Réordonner",
       "titleLabel": "Titre",
-      "iconLabel": "Icône",
-      "iconPlaceholder": "ex: gift, heart",
-      "iconOrImageHint": "Astuce: utilisez une icône ou une image.",
-      "imageUrlLabel": "URL de l'image",
-      "imageUrlPlaceholder": "https://exemple.com/image.png",
       "linkLabel": "Lien",
       "linkPlaceholder": "https://exemple.com/produit",
       "titleRequired": "Le titre est requis.",
-      "imageUrlInvalid": "URL d'image invalide (http/https requis).",
       "linkUrlInvalid": "URL de lien invalide (http/https requis)."
     }
   },
@@ -342,7 +333,15 @@
     "REQUEST_BODY_TOO_LARGE": "Le contenu envoyé est trop volumineux.",
     "ORGANIZER_NAME_REQUIRES_NON_PARTICIPANT": "Modifiez le profil de l’organisateur.",
     "API_TIMEOUT": "Le délai de réponse est dépassé. Réessayez la consultation.",
-    "REQUEST_ABORTED": "Requête annulée."
+    "REQUEST_ABORTED": "Requête annulée.",
+    "IMAGE_INVALID_FILE": "Le fichier n’est pas une image valide.",
+    "IMAGE_FORMAT_UNSUPPORTED": "Formats acceptés : JPEG, PNG et WebP fixes.",
+    "IMAGE_TOO_LARGE": "L’image dépasse les limites de taille ou de dimensions.",
+    "IMAGE_QUOTA_EXCEEDED": "La limite de stockage des images est atteinte.",
+    "IMAGE_UPLOAD_BUSY": "Un envoi d’image est en cours. Réessayez dans un instant.",
+    "IMAGE_PROCESSING_INTERRUPTED": "Le traitement de l’image a été interrompu. Votre saisie est conservée.",
+    "IMAGE_REFERENCE_INVALID": "Une image est périmée ou indisponible. Sélectionnez-la à nouveau.",
+    "IMAGE_NOT_FOUND": "Image indisponible."
   },
   "common": {
     "close": "fermer"
@@ -359,7 +358,6 @@
     "prepareDraft": "Préparer le brouillon",
     "outcomeUncertain": "La requête a été interrompue. L’opération a peut-être été effectuée : vérifiez son résultat avant de la répéter. Une nouvelle tentative de création peut créer un doublon.",
     "storageUnavailable": "Le stockage de cet appareil est indisponible. La session reste en mémoire et ne sera pas conservée après fermeture ou rechargement.",
-    "clearIcon": "Supprimer l’icône",
     "skipContent": "Aller au contenu",
     "moveUp": "Monter",
     "moveDown": "Descendre",
@@ -389,10 +387,20 @@
       "lockSuggestionsAfterDraw": "Désactiver les modifications des suggestions après la pige",
       "noMutualAssignments": "Piges mutuelles interdites",
       "title": "Titre",
-      "imageUrl": "Image",
       "linkUrl": "Lien",
-      "icon": "Icône"
+      "imageId": "Image enregistrée",
+      "pendingImage": "Image sélectionnée"
     },
     "initialVersion": "Référence initiale"
+  },
+  "images": {
+    "label": "Image du cadeau",
+    "help": "JPEG, PNG ou WebP fixe : {size} Mio et {pixels} mégapixels maximum. Image réduite à {dimension} pixels, version optimisée limitée à {output} Kio. Envoi lors d’Enregistrer.",
+    "remove": "Supprimer l’image",
+    "unavailable": "Image indisponible.",
+    "loadingConfig": "Chargement des limites d’image…",
+    "validating": "Vérification de l’image…",
+    "saved": "Image enregistrée",
+    "selected": "Image sélectionnée"
   }
 }

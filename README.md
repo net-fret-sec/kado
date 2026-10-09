@@ -282,14 +282,14 @@ Vous pouvez l'utiliser, le modifier et le redistribuer, mais toute version modif
 - Pige mélangée avec le générateur cryptographique de Node, sans promesse d’uniformité. Un seul worker ; budget 200 000 nœuds / 2 secondes. Une recherche interrompue est distinguée d’une pige impossible.
 - Changer le mot de passe révoque toutes les anciennes sessions. `PUT /api/exchanges/:exchangeId/admin/password` retourne désormais 200 `{ adminSessionToken }` : l’appareil courant stocke ce remplacement.
 - Les écritures de l’organisateur revalident la session sous verrou. Les hashes scrypt existants restent compatibles. Deux calculs de mot de passe simultanés maximum.
-- `GET /api/config` expose uniquement `maxActiveParticipants` pour l’interface. `/health` retourne 503 quand la base est indisponible ; `/health/live` vérifie uniquement le processus.
-- JSON limité à 256 Kio ; URLs de suggestions HTTP/HTTPS et 2 048 caractères maximum. Les anciennes URLs dangereuses ne sont pas affichées ; images HTTPS uniquement en production.
+- `GET /api/config` expose `maxActiveParticipants` et les limites publiques des images pour l’interface. `/health` retourne 503 quand la base est indisponible ; `/health/live` vérifie uniquement le processus.
+- JSON limité à 256 Kio ; URLs de suggestions HTTP/HTTPS et 2 048 caractères maximum. Les URLs dangereuses ne sont pas affichées ; les images des suggestions sont téléversées et privées (voir le lot images ci-dessous).
 - CORS explicite en production, absence de cache API, CSP sur le frontend servi par Caddy et aucune transmission du lien participant par Referer.
 - La migration additive `002_organizer_name.sql` conserve les anciens échanges. Aucun reset requis.
 
 Démarrage local, après configuration de PostgreSQL et application volontaire des migrations : `pnpm dev`. Outils locaux : `ENABLE_LOCAL_ADMIN_TOOLS=true VITE_ENABLE_LOCAL_ADMIN_TOOLS=true pnpm dev`, puis `/exchanges`. Les deux serveurs écoutent alors sur loopback ; la liste est absente en production.
 
-Les builds API produisent `apps/api/dist/server.cjs`, la migration compilée et le worker. `pnpm --dir apps/api start` utilise Node sans transpilation. En local, `DATABASE_URL` reste supportée ; Compose fournit PGHOST/PGPORT/PGDATABASE/PGUSER/PGPASSWORD.
+Les builds API produisent `apps/api/dist/server.cjs`, la migration compilée et les workers de pige et de conversion d’image. `pnpm --dir apps/api start` utilise Node sans transpilation. En local, `DATABASE_URL` reste supportée ; Compose fournit PGHOST/PGPORT/PGDATABASE/PGUSER/PGPASSWORD.
 
 La CI teste et prépare une archive d’images ; aucune mise à jour automatique ni déploiement. Voir [le guide d’exploitation](deploy/README.md) pour installer une version précise et sauvegarder/restaurer. La copie hors VPS et les contrôles du serveur réel restent nécessaires avant publication.
 
@@ -319,6 +319,12 @@ La CI exécute ces vérifications frontend et les scénarios navigateur pendant 
 
 ### Compléments reportés
 
-L’effacement explicite des champs facultatifs (description, date, budget, commentaires, liste complète de suggestions de cadeaux) n’a pas été normalisé dans cette P2. Les contrats actuels restent inchangés : selon le champ et sa sérialisation, une valeur vidée peut être omise et laisser la valeur existante intacte. Cette limitation demande un lot séparé, sans migration ou réécriture de données dans la P2.
+L’effacement explicite des champs facultatifs (description, date, budget, commentaires) n’a pas été normalisé dans cette P2. Les contrats actuels restent inchangés : selon le champ et sa sérialisation, une valeur vidée peut être omise et laisser la valeur existante intacte. Cette limitation demande un lot séparé, sans migration ou réécriture de données dans la P2.
 
 Les sauvegardes hors VPS et la validation du serveur réel restent nécessaires avant ouverture publique.
+
+## Images téléversées pour les suggestions
+
+Une suggestion contient un titre, un lien cadeau facultatif et une image facultative téléversée. JPEG/PNG/WebP fixes, aperçu local, envoi à l’enregistrement et stockage WebP privé dans PostgreSQL. Les icônes de suggestions et les URLs d’images externes sont supprimées ; les icônes générales et les thèmes/polices restent disponibles. `wishlist: []` enregistre la suppression de la dernière suggestion.
+
+La migration `003_suggestion_images.sql` purge les deux anciens champs et actualise les versions des profils concernés. **Sauvegarde préalable obligatoire avant application volontaire ; aucune récupération des images externes.** Aucun reset requis. Voir [le guide images](deploy/IMAGES.md) pour les routes, limites, quotas, nettoyage, sauvegarde/restauration et instructions de migration.

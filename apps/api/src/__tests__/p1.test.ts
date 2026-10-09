@@ -418,7 +418,7 @@ it("validates new URL schemes and lengths", () => {
   expect(
     createParticipantInputSchema.safeParse({
       name: "Test",
-      wishlist: [{ title: "Gift", imageUrl: "https://example.com/a.jpg" }],
+      wishlist: [{ title: "Gift", linkUrl: "https://example.com/a.jpg" }],
     }).success,
   ).toBe(true);
 });

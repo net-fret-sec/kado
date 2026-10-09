@@ -7,8 +7,7 @@ export interface Participant {
 
   wishlist?: {
     title: string
-    imageUrl?: string
-    icon?: string
+    imageId?: string
     linkUrl?: string
   }[]
   note?: string

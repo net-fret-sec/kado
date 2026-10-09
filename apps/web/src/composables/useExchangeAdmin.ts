@@ -607,6 +607,10 @@ export function useExchangeAdmin() {
   }
 
   // Fonctions pour les participants
+  function handleParticipantUploadError(cause: unknown) {
+    participantForm.capture(cause)
+    if (isAdminAuthError(cause)) setAdminAuthRequired()
+  }
   function openEditParticipantModal(participant: ParticipantDto) {
     if (isParticipantSuggestionsLocked.value) return
     participantForm.clear()
@@ -1104,6 +1108,7 @@ export function useExchangeAdmin() {
     getReceiverCandidates,
     startEdit,
     openEditParticipantModal,
+    handleParticipantUploadError,
     setEditParticipantModalVisibility,
     setAccessLinkModalVisibility,
     handleAddNewParticipant,

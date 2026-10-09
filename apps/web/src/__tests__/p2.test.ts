@@ -108,7 +108,7 @@ describe('API interruptions and backpressure', () => {
 describe('three-way conflict resolution', () => {
   it('ignores PostgreSQL JSON object key order while preserving wish order', () => {
     expect(
-      equal([{ icon: 'gift', title: 'A' }], [{ title: 'A', icon: 'gift', linkUrl: undefined }]),
+      equal([{ imageId: 'img_00000000-0000-4000-8000-000000000002', title: 'A' }], [{ title: 'A', imageId: 'img_00000000-0000-4000-8000-000000000002', linkUrl: undefined }]),
     ).toBe(true)
     expect(equal(['A', 'B'], ['B', 'A'])).toBe(false)
   })
@@ -154,21 +154,19 @@ describe('wishlist parity and accessibility', () => {
     const items = [
       {
         title: 'Second',
-        icon: 'gift',
-        imageUrl: 'https://image.test/a',
-        linkUrl: 'https://shop.test/a',
+        imageId: 'img_00000000-0000-4000-8000-000000000002',
+                linkUrl: 'https://shop.test/a',
         _clientId: '2',
       },
-      { title: 'First', icon: 'book', _clientId: '1' },
+      { title: 'First', imageId: 'img_00000000-0000-4000-8000-000000000001', _clientId: '1' },
     ]
     expect(serializeWishlist(items)).toEqual([
       {
         title: 'Second',
-        icon: 'gift',
-        imageUrl: 'https://image.test/a',
-        linkUrl: 'https://shop.test/a',
+        imageId: 'img_00000000-0000-4000-8000-000000000002',
+                linkUrl: 'https://shop.test/a',
       },
-      { title: 'First', icon: 'book', imageUrl: undefined, linkUrl: undefined },
+      { title: 'First', imageId: 'img_00000000-0000-4000-8000-000000000001', linkUrl: undefined },
     ])
   })
   it.each([
@@ -184,8 +182,7 @@ describe('wishlist parity and accessibility', () => {
     expect(
       isValidSuggestion({
         title: 'Book',
-        imageUrl: 'http://image.test/a',
-        linkUrl: 'https://shop.test',
+                linkUrl: 'https://shop.test',
       }),
     ).toBe(true)
   })
@@ -193,8 +190,8 @@ describe('wishlist parity and accessibility', () => {
     const wrapper = mount(WishlistEditor, {
       props: {
         modelValue: [
-          { title: 'A', icon: 'book', _clientId: 'a' },
-          { title: 'B', icon: 'gift', _clientId: 'b' },
+          { title: 'A', imageId: 'img_00000000-0000-4000-8000-000000000001', _clientId: 'a' },
+          { title: 'B', imageId: 'img_00000000-0000-4000-8000-000000000002', _clientId: 'b' },
         ],
       },
       global: { plugins: [i18n] },
@@ -225,7 +222,7 @@ describe('wishlist parity and accessibility', () => {
       expect(wrapper.find(`label[for="${input.attributes('id')}"]`).exists()).toBe(true)
     wrapper.unmount()
     const locked = mount(WishlistEditor, {
-      props: { locked: true, modelValue: [{ title: 'A', icon: 'book', _clientId: 'a' }] },
+      props: { locked: true, modelValue: [{ title: 'A', imageId: 'img_00000000-0000-4000-8000-000000000001', _clientId: 'a' }] },
       global: { plugins: [i18n] },
     })
     expect(locked.findAll('input, button')).toHaveLength(0)

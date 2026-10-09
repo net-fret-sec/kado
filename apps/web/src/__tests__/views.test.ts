@@ -25,7 +25,7 @@ function personal(): ParticipantSelfViewDto {
       name: 'Alex',
       note: 'Initial',
       updatedAt: startVersion,
-      wishlist: [{ icon: 'book', title: 'Livre' }],
+      wishlist: [{ imageId: 'img_00000000-0000-4000-8000-000000000001', title: 'Livre' }],
     },
   }
 }
@@ -70,7 +70,7 @@ afterEach(() => {
 })
 
 describe('participant form regressions', () => {
-  it('keeps the icon and sends one write for rapid submit events', async () => {
+  it('keeps the image reference and sends one write for rapid submit events', async () => {
     const view = personal()
     let writes = 0
     let saved: Record<string, unknown> | undefined
@@ -91,7 +91,7 @@ describe('participant form regressions', () => {
     const second = wrapper.get('form').trigger('submit')
     await Promise.all([first, second])
     expect(writes).toBe(1)
-    expect(saved?.wishlist).toEqual([{ title: 'Livre', icon: 'book' }])
+    expect(saved?.wishlist).toEqual([{ title: 'Livre', imageId: 'img_00000000-0000-4000-8000-000000000001' }])
     expect(saved?.expectedUpdatedAt).toBe(startVersion)
     await new Promise((resolve) => setTimeout(resolve, 20))
     await flushPromises()

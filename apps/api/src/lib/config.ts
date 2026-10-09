@@ -40,6 +40,37 @@ export function getConfig() {
   if (!IANAZone.isValidZone(zone))
     throw new Error("Invalid EXCHANGE_TIME_ZONE.");
   return {
+    images: {
+      sourceBytes: integer(
+        "IMAGE_SOURCE_MAX_BYTES",
+        5 * 1024 * 1024,
+        1,
+        10 * 1024 * 1024,
+      ),
+      pixels: integer("IMAGE_MAX_PIXELS", 20000000, 1, 40000000),
+      dimension: integer("IMAGE_MAX_DIMENSION", 1600, 1, 3200),
+      outputBytes: integer(
+        "IMAGE_OUTPUT_MAX_BYTES",
+        512 * 1024,
+        1,
+        1024 * 1024,
+      ),
+      participantBytes: integer(
+        "IMAGE_PARTICIPANT_QUOTA_BYTES",
+        10 * 1024 * 1024,
+      ),
+      exchangeBytes: integer("IMAGE_EXCHANGE_QUOTA_BYTES", 100 * 1024 * 1024),
+      totalBytes: integer(
+        "IMAGE_TOTAL_QUOTA_BYTES",
+        2 * 1024 * 1024 * 1024,
+        1,
+        Number.MAX_SAFE_INTEGER,
+      ),
+      ttlMs: integer("IMAGE_TEMP_TTL_MS", 86400000, 1000, 7 * 86400000),
+      transformMs: integer("IMAGE_TRANSFORM_TIMEOUT_MS", 5000, 1, 10000),
+      receiveMs: integer("IMAGE_RECEIVE_TIMEOUT_MS", 10000, 1, 20000),
+      uploadLimit: integer("IMAGE_UPLOAD_RATE_LIMIT", 20),
+    },
     port: integer("SERVER_PORT", 3000, 1, 65535),
     trustProxy: integer("TRUST_PROXY_HOPS", 0, 0, 1),
     origins: new Set(

@@ -1,3 +1,4 @@
+import { syncSuggestionImages } from "../repositories/image.repository";
 import { getConfig } from "../lib/config";
 import type {
   CreateParticipantInputDto,
@@ -39,7 +40,7 @@ function participantNotFound(): never {
   });
 }
 
-async function requireParticipant(
+export async function requireParticipant(
   exchangeId: string,
   participantId: string,
   db?: DbExecutor,
@@ -103,6 +104,7 @@ export async function createParticipantInTransaction(
     updatedAt: now,
   };
   await participantRepository.create(participant, db);
+  if (input.wishlist) await syncSuggestionImages(participant.id, input.wishlist, db);
   const accessLink = await createAccess(exchange.id, participant.id, db);
   return { participant, accessLink };
 }
@@ -176,6 +178,7 @@ async function applyParticipantUpdate(
       });
     participantNotFound();
   }
+  if (input.wishlist !== undefined) await syncSuggestionImages(participant.id, input.wishlist, db);
   return updated;
 }
 
@@ -234,7 +237,7 @@ function invalidLink(): never {
   });
 }
 
-async function withParticipantAccess<T>(
+export async function withParticipantAccess<T>(
   rawToken: string,
   operation: (
     context: {

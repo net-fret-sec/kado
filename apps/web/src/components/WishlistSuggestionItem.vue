@@ -1,186 +1,273 @@
-<template>
-  <div :class="wrapperClass">
-    <!-- Edit mode -->
-    <template v-if="mode === 'edit'">
-      <div class="row g-2 align-items-end">
-        <div v-if="showHandle" class="col-auto d-flex align-items-center">
-          <button
-            type="button"
-            class="drag-handle btn btn-link text-body-secondary p-0 me-2"
-            :title="t('participant.wishlistItem.reorder')"
-            tabindex="-1"
-          >
-            <i class="bi bi-grip-vertical"></i>
-          </button>
-        </div>
-        <div class="col-12 col-md-5">
-          <label :for="`${uniqueId}-title`" class="form-label">{{ t('participant.wishlistItem.titleLabel') }}</label>
-          <input
-            :id="`${uniqueId}-title`"
-            :disabled="disabled"
-            maxlength="200"
-            :value="modelValue?.title || ''"
-            @input="(e) => onChange('title', (e.target as HTMLInputElement).value)"
-            type="text"
-            class="form-control"
-            :class="{ 'is-invalid': !!titleError }"
-            :aria-describedby="titleError ? `${uniqueId}-title-error` : undefined"
-            :aria-invalid="!!titleError || undefined"
-            required
-          />
-          <div :id="`${uniqueId}-title-error`" v-if="titleError" class="invalid-feedback">{{ titleError }}</div>
-        </div>
-        <div class="col-12 col-md-3">
-          <label :for="`${uniqueId}-icon`" class="form-label">{{ t('participant.wishlistItem.iconLabel') }}</label>
-          <IconPicker
-            :id="`${uniqueId}-icon`"
-            :disabled="disabled"
-            :modelValue="modelValue?.icon"
-            @update:modelValue="(v) => onChange('icon', v)"
-            :placeholder="t('participant.wishlistItem.iconPlaceholder')"
-          />
-          <div v-if="iconAndImageBoth" class="form-text text-warning">
-            {{ t('participant.wishlistItem.iconOrImageHint') }}
-          </div>
-        </div>
-        <div class="col-12 col-md-4">
-          <label :for="`${uniqueId}-imageUrl`" class="form-label">{{ t('participant.wishlistItem.imageUrlLabel') }}</label>
-          <input
-            :id="`${uniqueId}-imageUrl`"
-            :disabled="disabled"
-            maxlength="2048"
-            :aria-describedby="imageUrlError ? `${uniqueId}-imageUrl-error` : undefined"
-            :value="modelValue?.imageUrl || ''"
-            @input="(e) => onChange('imageUrl', (e.target as HTMLInputElement).value)"
-            type="url"
-            class="form-control"
-            :class="{ 'is-invalid': !!imageUrlError }"
-            :placeholder="t('participant.wishlistItem.imageUrlPlaceholder')"
-            :aria-invalid="!!imageUrlError || undefined"
-          />
-          <div :id="`${uniqueId}-imageUrl-error`" v-if="imageUrlError" class="invalid-feedback">{{ imageUrlError }}</div>
-        </div>
-        <div class="col-12">
-          <label :for="`${uniqueId}-linkUrl`" class="form-label">{{ t('participant.wishlistItem.linkLabel') }}</label>
-          <input
-            :id="`${uniqueId}-linkUrl`"
-            :disabled="disabled"
-            maxlength="2048"
-            :aria-describedby="linkUrlError ? `${uniqueId}-linkUrl-error` : undefined"
-            :value="modelValue?.linkUrl || ''"
-            @input="(e) => onChange('linkUrl', (e.target as HTMLInputElement).value)"
-            type="url"
-            class="form-control"
-            :class="{ 'is-invalid': !!linkUrlError }"
-            :placeholder="t('participant.wishlistItem.linkPlaceholder')"
-            :aria-invalid="!!linkUrlError || undefined"
-          />
-          <div :id="`${uniqueId}-linkUrl-error`" v-if="linkUrlError" class="invalid-feedback">{{ linkUrlError }}</div>
-        </div>
-        <div class="col-12 d-flex justify-content-end mt-2" v-if="removable">
-          <button type="button" :disabled="disabled" :aria-label="t('exchangeDetail.delete')" class="btn btn-sm btn-outline-danger" @click="$emit('remove')">
-            <i class="bi bi-trash"></i>
-          </button>
-        </div>
-      </div>
-    </template>
-
-    <!-- Detail/List mode -->
-    <template v-else>
-      <div class="d-flex align-items-center">
-        <img
-          v-if="safeUrl(modelValue?.imageUrl, true)"
-          class="rounded object-fit-cover me-2 flex-shrink-0"
-          :src="safeUrl(modelValue.imageUrl, true)"
-          referrerpolicy="no-referrer"
-          :alt="modelValue.title"
-          width="40"
-          height="40"
-        />
-        <i
-          v-else-if="modelValue?.icon"
-          class="me-2 bi"
-          :class="`bi-${modelValue.icon}`"
-          aria-hidden="true"
-        ></i>
-        <span class="flex-grow-1">
-          <a
-            v-if="safeUrl(modelValue?.linkUrl)"
-            :href="safeUrl(modelValue.linkUrl)"
-            target="_blank"
-            rel="noopener noreferrer"
-            >{{ modelValue?.title }}</a
-          >
-          <span v-else>{{ modelValue?.title }}</span>
-        </span>
-      </div>
-    </template>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { safeUrl } from '@/composables/useSafeUrl'
-import { computed, useId } from 'vue'
+import { computed, ref, watch, onBeforeUnmount, onMounted, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { giftSuggestionSchema } from '@kado/shared'
-import IconPicker from '@/components/IconPicker.vue'
-
+import { safeUrl } from '@/composables/useSafeUrl'
+import { useApi, isRequestAborted } from '@/composables/useApi'
+import { useImageAccess, useImageLimits } from '@/composables/useImageAccess'
+import { useSuggestionFiles, type SuggestionDraft } from '@/composables/useWishlist'
 export type Mode = 'edit' | 'detail' | 'list'
-
-interface Suggestion {
-  title: string
-  imageUrl?: string
-  icon?: string
-  linkUrl?: string
-}
-
 const props = defineProps<{
-  modelValue: Suggestion
+  modelValue: SuggestionDraft
   mode?: Mode
   removable?: boolean
   showHandle?: boolean
   asListItem?: boolean
   disabled?: boolean
+  participantId?: string
 }>()
-
 const emit = defineEmits<{
-  (e: 'update:modelValue', v: Suggestion): void
-  (e: 'remove'): void
+  'update:modelValue': [value: SuggestionDraft]
+  remove: []
+  validating: [value: boolean]
 }>()
-
 const { t } = useI18n()
-
 const uniqueId = `suggestion-${useId()}`
-const wrapperClass = computed(() => (props.asListItem ? 'list-group-item' : ''))
-
-function onChange<K extends keyof Suggestion>(key: K, value: Suggestion[K] | undefined) {
-  const v = value as Suggestion[K] | undefined
-  const next: Suggestion = {
-    ...props.modelValue,
-    [key]: (v === '' ? undefined : v) as unknown,
+const files = useSuggestionFiles(),
+  access = useImageAccess(),
+  api = useApi()
+const { limits, error: configError, refresh } = useImageLimits()
+const container = ref<HTMLElement | null>(null),
+  near = ref(typeof IntersectionObserver === 'undefined')
+let observer: IntersectionObserver | undefined
+onMounted(() => {
+  if (typeof IntersectionObserver !== 'undefined' && container.value) {
+    observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          near.value = true
+          observer?.disconnect()
+        }
+      },
+      { rootMargin: '200px' },
+    )
+    observer.observe(container.value)
   }
-  emit('update:modelValue', next)
-}
-
-function fieldValid(field: 'imageUrl' | 'linkUrl') {
-  return giftSuggestionSchema.shape[field].safeParse(props.modelValue[field]).success
-}
-const titleError = computed(() => {
-  const title = props.modelValue?.title?.trim() || ''
-  return !giftSuggestionSchema.shape.title.safeParse(title).success ? t('participant.wishlistItem.titleRequired') : ''
 })
-
-const imageUrlError = computed(() =>
-  props.modelValue?.imageUrl && !fieldValid('imageUrl')
-    ? t('participant.wishlistItem.imageUrlInvalid')
-    : '',
+const imageError = ref(''),
+  imageUrl = ref(''),
+  validating = ref(false)
+let controller: AbortController | undefined,
+  selection = 0
+const titleError = computed(() =>
+  giftSuggestionSchema.shape.title.safeParse(props.modelValue.title?.trim()).success
+    ? ''
+    : t('participant.wishlistItem.titleRequired'),
 )
-
-const linkUrlError = computed(() =>
-  props.modelValue?.linkUrl && !fieldValid('linkUrl')
-    ? t('participant.wishlistItem.linkUrlInvalid')
-    : '',
+const linkError = computed(() =>
+  giftSuggestionSchema.shape.linkUrl.safeParse(props.modelValue.linkUrl).success
+    ? ''
+    : t('participant.wishlistItem.linkUrlInvalid'),
 )
-
-const iconAndImageBoth = computed(() => !!(props.modelValue?.icon && props.modelValue?.imageUrl))
+function change(key: 'title' | 'linkUrl', value: string) {
+  emit('update:modelValue', { ...props.modelValue, [key]: value || undefined })
+}
+function clearPreview() {
+  controller?.abort()
+  controller = undefined
+  if (imageUrl.value) URL.revokeObjectURL(imageUrl.value)
+  imageUrl.value = ''
+}
+watch(
+  () => [
+    near.value,
+    props.modelValue.imageId,
+    props.modelValue.pendingImage,
+    access(props.participantId)?.scope,
+  ],
+  async () => {
+    clearPreview()
+    imageError.value = ''
+    const file = props.modelValue.pendingImage
+      ? files.get(props.modelValue.pendingImage)
+      : undefined
+    const authorization = access(props.participantId)
+    if (file && authorization) {
+      imageUrl.value = URL.createObjectURL(file)
+      return
+    }
+    if (!near.value || !props.modelValue.imageId || !authorization) return
+    const current = new AbortController()
+    controller = current
+    try {
+      const blob = await api.blob(
+        authorization.base + '/images/' + encodeURIComponent(props.modelValue.imageId),
+        { headers: authorization.headers, signal: current.signal },
+      )
+      if (!current.signal.aborted) imageUrl.value = URL.createObjectURL(blob)
+    } catch (cause) {
+      if (!current.signal.aborted && !isRequestAborted(cause)) {
+        imageError.value = t('images.unavailable')
+        authorization.onError?.(cause)
+      }
+    }
+  },
+  { immediate: true },
+)
+async function selectFile(event: Event) {
+  const input = event.target as HTMLInputElement,
+    file = input.files?.[0]
+  input.value = ''
+  if (!file || props.disabled || !limits.value) return
+  const id = ++selection
+  validating.value = true
+  emit('validating', true)
+  imageError.value = ''
+  try {
+    if (file.type && !limits.value.formats.includes(file.type)) throw new Error('format')
+    if (file.size > limits.value.sourceBytes) throw new Error('size')
+    if (typeof createImageBitmap === 'function') {
+      const bitmap = await createImageBitmap(file)
+      const pixels = bitmap.width * bitmap.height
+      bitmap.close()
+      if (pixels > limits.value.pixels) throw new Error('size')
+    }
+    if (id !== selection || props.disabled) return
+    emit('update:modelValue', { ...props.modelValue, pendingImage: files.select(file) })
+  } catch (cause) {
+    if (id === selection)
+      imageError.value = t(
+        cause instanceof Error && cause.message === 'size'
+          ? 'apiErrors.IMAGE_TOO_LARGE'
+          : 'apiErrors.IMAGE_INVALID_FILE',
+      )
+  } finally {
+    if (id === selection) {
+      validating.value = false
+      emit('validating', false)
+    }
+  }
+}
+function removeImage() {
+  selection++
+  emit('update:modelValue', { ...props.modelValue, imageId: undefined, pendingImage: undefined })
+  imageError.value = ''
+}
+onBeforeUnmount(() => {
+  selection++
+  observer?.disconnect()
+  clearPreview()
+  emit('validating', false)
+})
 </script>
+<template>
+  <div ref="container" :class="asListItem ? 'list-group-item' : ''">
+    <div v-if="mode === 'edit'" class="row g-2">
+      <div class="col-12">
+        <label :for="`${uniqueId}-title`" class="form-label">{{
+          t('participant.wishlistItem.titleLabel')
+        }}</label>
+        <input
+          :id="`${uniqueId}-title`"
+          :value="modelValue.title"
+          @input="change('title', ($event.target as HTMLInputElement).value)"
+          :disabled="disabled"
+          maxlength="200"
+          required
+          class="form-control"
+          :aria-invalid="!!titleError"
+          :aria-describedby="titleError ? `${uniqueId}-title-error` : undefined"
+        />
+        <p v-if="titleError" :id="`${uniqueId}-title-error`" class="text-danger">
+          {{ titleError }}
+        </p>
+      </div>
+      <div class="col-12">
+        <label :for="`${uniqueId}-image`" class="form-label">{{ t('images.label') }}</label>
+        <input
+          :id="`${uniqueId}-image`"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          :disabled="disabled || validating || !limits"
+          @change="selectFile"
+          class="form-control"
+          :aria-invalid="!!imageError"
+          :aria-describedby="`${uniqueId}-image-help ${uniqueId}-image-error`"
+        />
+        <p :id="`${uniqueId}-image-help`" class="form-text">
+          {{
+            limits
+              ? t('images.help', {
+                  size: (limits.sourceBytes / 1048576).toFixed(1),
+                  dimension: limits.dimension,
+                  pixels: limits.pixels / 1000000,
+                  output: Math.floor(limits.outputBytes / 1024),
+                })
+              : t('images.loadingConfig')
+          }}
+        </p>
+        <button v-if="configError" type="button" class="btn btn-link" @click="refresh">
+          {{ t('p2.retryConfig') }}
+        </button>
+        <p v-if="validating" role="status">{{ t('images.validating') }}</p>
+        <p :id="`${uniqueId}-image-error`" class="text-danger" role="alert">{{ imageError }}</p>
+        <img
+          v-if="imageUrl"
+          :src="imageUrl"
+          :alt="modelValue.title"
+          class="rounded object-fit-contain"
+          width="120"
+          height="120"
+        />
+        <button
+          v-if="modelValue.imageId || modelValue.pendingImage"
+          type="button"
+          :disabled="disabled || validating"
+          class="btn btn-sm btn-outline-secondary ms-2"
+          @click="removeImage"
+        >
+          {{ t('images.remove') }}
+        </button>
+      </div>
+      <div class="col-12">
+        <label :for="`${uniqueId}-linkUrl`" class="form-label">{{
+          t('participant.wishlistItem.linkLabel')
+        }}</label>
+        <input
+          :id="`${uniqueId}-linkUrl`"
+          :value="modelValue.linkUrl || ''"
+          @input="change('linkUrl', ($event.target as HTMLInputElement).value)"
+          :disabled="disabled"
+          maxlength="2048"
+          type="url"
+          class="form-control"
+          :placeholder="t('participant.wishlistItem.linkPlaceholder')"
+          :aria-invalid="!!linkError"
+          :aria-describedby="linkError ? `${uniqueId}-link-error` : undefined"
+        />
+        <p v-if="linkError" :id="`${uniqueId}-link-error`" class="text-danger">{{ linkError }}</p>
+      </div>
+      <button
+        v-if="removable"
+        type="button"
+        :disabled="disabled"
+        class="btn btn-outline-danger"
+        @click="$emit('remove')"
+      >
+        {{ t('exchangeDetail.delete') }}
+      </button>
+    </div>
+    <div v-else class="d-flex align-items-center">
+      <img
+        v-if="imageUrl"
+        :src="imageUrl"
+        :alt="modelValue.title"
+        width="40"
+        height="40"
+        class="rounded object-fit-cover me-2 flex-shrink-0"
+      />
+      <span class="flex-grow-1"
+        ><a
+          v-if="safeUrl(modelValue.linkUrl)"
+          :href="safeUrl(modelValue.linkUrl)"
+          target="_blank"
+          rel="noopener noreferrer"
+          >{{ modelValue.title }}</a
+        ><span v-else>{{ modelValue.title }}</span></span
+      >
+      <span v-if="imageError" class="small text-body-secondary" role="status">{{
+        imageError
+      }}</span>
+    </div>
+  </div>
+</template>
