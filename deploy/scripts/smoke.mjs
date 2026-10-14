@@ -370,6 +370,7 @@ try {
     .getByRole("button", { name: fr.exchangeDetail.cancelDraw, exact: true })
     .click();
   assert.equal((await cancelResponse).status(), 200);
+  await page.locator("#participants details summary").first().click();
   const rotateResponse = page.waitForResponse((r) =>
     r.url().endsWith("/access/regenerate"),
   );

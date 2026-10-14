@@ -39,7 +39,7 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
   }
   async function admin(f) {
     await f.page.goto(`${base}/exchanges/${f.id}`);
-    await expect(f.page.getByRole('button', { name: fr.exchangeDetail.edit, exact: true }).first()).toBeVisible();
+    await expect(f.page.getByRole('button', { name: fr.exchangeDetail.dashboard.editSettings, exact: true }).first()).toBeVisible();
   }
   const save = page => page.getByRole('button', { name: fr.participant.save, exact: true });
   const refresh = page => page.getByRole('button', { name: fr.p2.refresh, exact: true });
@@ -87,7 +87,8 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     // Organizer uses authenticated reads and uploads in the edit form as well.
     await f.page.goto(`${base}/exchanges/${f.id}`);
     await f.page.locator('#locale-select').selectOption('en-CA');
-    await f.page.locator('button:has(.bi-pencil)').first().click();
+    await f.page.locator('#participants details summary').first().click();
+    await f.page.locator('#participants').getByRole('button', { name: en.exchangeDetail.edit, exact: true }).first().click();
     await expect(f.page.getByRole('dialog',{name:en.exchangeDetail.editModal.title})).toBeVisible();
     await f.page.setViewportSize({width:360,height:900});
     await expect(f.page.locator('#editParticipantForm img[src^="blob:"]').first()).toBeVisible();
@@ -185,9 +186,10 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await dialog.getByRole('button', { name: fr.exchangeDetail.linkModal.close }).click();
     await expect(dialog).not.toBeVisible();
     f.page.once('dialog', dialog => dialog.dismiss());
+    await f.page.locator('#participants details summary').first().click();
     await f.page.getByRole('button', { name: fr.exchangeDetail.generateLink, exact: true }).first().click();
     assert.equal((await api('GET', '/api' + f.members[0].accessLink)).participant.name, 'Alex');
-    const editButton = f.page.getByRole('button', { name: fr.exchangeDetail.edit, exact: true }).first();
+    const editButton = f.page.getByRole('button', { name: fr.exchangeDetail.dashboard.editSettings, exact: true }).first();
     await editButton.click();
     const editor = f.page.getByRole('dialog', { name: fr.exchangeDetail.editExchangeModal.title });
     await expect(editor).toBeVisible(); await expect(f.page.locator('#editOrganizerName')).toBeFocused();
@@ -213,7 +215,7 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
   console.log('P2 browser: admin session expiry, reauthentication with draft and logout failure');
   {
     const f = await fixture('P2 sessions'); await admin(f);
-    await f.page.getByRole('button', { name: fr.exchangeDetail.edit, exact: true }).first().click();
+    await f.page.getByRole('button', { name: fr.exchangeDetail.dashboard.editSettings, exact: true }).first().click();
     await f.page.locator('#editExchangeName').fill('Brouillon réauth');
     await api('DELETE', `/api/exchanges/${f.id}/admin/sessions/current`, undefined, f.token, 204);
     await f.page.locator('button[form=editExchangeForm]').click();
@@ -228,6 +230,7 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await expect(f.page.getByRole('dialog', { name: fr.exchangeDetail.editExchangeModal.title })).not.toBeVisible();
     await expect(f.page.getByRole('heading', { name: 'Brouillon réauth', exact: true })).toBeVisible();
     await f.page.route('**/admin/sessions/current', route => route.abort('failed'));
+    await f.page.locator('section > details.card > summary').click();
     await f.page.getByRole('button', { name: fr.exchangeDetail.adminAuth.logout, exact: true }).click();
     await expect(f.page.getByText(fr.p2.logoutUnconfirmed, { exact: true })).toBeVisible();
     await expect(f.page.locator('#exchange-admin-password')).toBeVisible();

@@ -61,7 +61,6 @@
       "title": "Organize your gift exchanges without the hassle.",
       "description": "Create an exchange in minutes, share participant links, and let Kado handle the draw constraints. No required account, no ads, no tracking.",
       "primaryAction": "Create an exchange",
-      "secondaryAction": "I received a link",
       "micro": "Open. Free. Privacy-respecting.",
       "audience": "Built for exchanges among friends, family, or coworkers."
     },
@@ -81,13 +80,9 @@
     },
     "cta": {
       "primaryLabel": "Primary action",
-      "secondaryLabel": "Participant access",
       "organizerTitle": "I want to organize an exchange",
       "organizerDesc": "Create an exchange, add participants, define draw exclusions if needed, then perform the draw. Each person receives their participant link, which you can share through your preferred channel.",
-      "organizerAction": "Create an exchange",
-      "participantTitle": "I received a link",
-      "participantDesc": "You received your participant link from the organizer. Open it directly to access your participation. No account and no password required.",
-      "participantHint": "Didn’t receive your participant link? Contact the person organizing the draw."
+      "organizerAction": "Create an exchange"
     },
     "why": {
       "title": "Why trust Kado?",
@@ -184,8 +179,6 @@
     "wishlistSuggestions": "{count} suggestion | {count} suggestions",
     "note": "Comment",
     "generateLink": "Regenerate participant link",
-    "share": "Share",
-    "openPublicView": "Open public view",
     "triggerDraw": "Perform draw",
     "cancelDraw": "Cancel draw",
     "drawSuccess": "The draw has been completed.",
@@ -254,19 +247,25 @@
       "changePassword": "Change password",
       "changingPassword": "Changing...",
       "passwordUpdated": "Organizer password has been updated.",
-      "passwordMismatch": "New password and confirmation do not match.",
-      "publicLinkLabel": "Public view link"
+      "passwordMismatch": "New password and confirmation do not match."
     },
-    "viewMode": {
-      "label": "View mode",
-      "summary": "Summary",
-      "detail": "Detail"
+    "dashboard": {
+      "settings": "Exchange settings",
+      "editSettings": "Edit settings",
+      "suggestions": "Gift suggestions",
+      "rules": "Draw rules",
+      "manageExclusions": "View and manage exclusions",
+      "directional": "Each exclusion is directional: Dave cannot draw Stéphane does not prevent Stéphane from drawing Dave.",
+      "exclusionCount": "No exclusions | One exclusion | {count} exclusions",
+      "giver": "Person drawing",
+      "selectGiver": "Select a person",
+      "receiver": "Cannot draw",
+      "removeExclusion": "Remove exclusion: {giver} cannot draw {receiver}",
+      "participantDetails": "Details and actions for {name}",
+      "administration": "Access management and deletion",
+      "deleteExchange": "Delete exchange",
+      "minimumParticipants": "Add at least two participants to perform the draw."
     }
-  },
-  "exchangePublic": {
-    "loading": "Loading public view...",
-    "openAdmin": "Organizer access",
-    "updatedAt": "Updated"
   },
   "participant": {
     "loading": "Loading...",

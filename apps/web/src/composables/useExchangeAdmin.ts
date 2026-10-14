@@ -29,7 +29,11 @@ export function useExchangeAdmin() {
   const exchange = ref<ExchangeDto | null>(null)
   const participants = ref<ParticipantDto[]>([])
   const exclusionRules = ref<ExclusionRule[]>([])
-  const selectedExceptionReceiverByParticipant = ref<Record<string, string>>({})
+  const selectedExclusionGiver = ref('')
+  const selectedExclusionReceiver = ref('')
+  watch(selectedExclusionGiver, () => {
+    selectedExclusionReceiver.value = ''
+  })
   const isLoading = ref(true)
   const error = ref<string | null>(null)
   const requiresAdminAuth = ref(false)
@@ -90,6 +94,8 @@ export function useExchangeAdmin() {
   const isAddingParticipant = ref(false)
   const inlineDirty = computed(() =>
     Boolean(
+      selectedExclusionGiver.value ||
+      selectedExclusionReceiver.value ||
       newParticipantName.value ||
       newParticipantEmail.value ||
       currentAdminPassword.value ||
@@ -113,16 +119,6 @@ export function useExchangeAdmin() {
       acc[participant.id] = participant.name
       return acc
     }, {})
-  })
-
-  const detailMode = ref<'summary' | 'detail'>('summary')
-
-  const isSummaryMode = computed(() => detailMode.value === 'summary')
-  const isDetailMode = computed({
-    get: () => detailMode.value === 'detail',
-    set: (value: boolean) => {
-      detailMode.value = value ? 'detail' : 'summary'
-    },
   })
 
   const canTriggerDraw = computed(() => {
@@ -155,14 +151,6 @@ export function useExchangeAdmin() {
       (exchange.value.isDrawn && (exchange.value.lockSuggestionsAfterDraw ?? true)),
   )
   const participantCountLabel = computed(() => String(participants.value.length))
-
-  const publicExchangeLink = computed(() => {
-    if (!exchange.value) return ''
-    return router.resolve({
-      name: 'exchange-public',
-      params: { id: exchange.value.id },
-    }).href
-  })
 
   const statusBadgeClass = computed(() => {
     if (!exchange.value) return 'text-bg-light'
@@ -319,6 +307,8 @@ export function useExchangeAdmin() {
       exchange.value = null
       participants.value = []
       exclusionRules.value = []
+      selectedExclusionGiver.value = ''
+      selectedExclusionReceiver.value = ''
       showEditExchangeModal.value = false
       showEditParticipantModal.value = false
       showAccessLinkModal.value = false
@@ -356,7 +346,7 @@ export function useExchangeAdmin() {
   async function perform_addParticipantExclusion(giverParticipantId: string) {
     if (!exchange.value || isExclusionEditingLocked.value) return
 
-    const receiverParticipantId = selectedExceptionReceiverByParticipant.value[giverParticipantId]
+    const receiverParticipantId = selectedExclusionReceiver.value
     if (!receiverParticipantId) return
 
     try {
@@ -380,7 +370,8 @@ export function useExchangeAdmin() {
       )
 
       exclusionRules.value.push(createdRule)
-      selectedExceptionReceiverByParticipant.value[giverParticipantId] = ''
+      selectedExclusionReceiver.value = ''
+      selectedExclusionGiver.value = ''
       toasts.success(t('exchangeDetail.exceptions.added'))
     } catch (err) {
       if (isAdminAuthError(err)) {
@@ -1025,7 +1016,8 @@ export function useExchangeAdmin() {
     exchange,
     participants,
     exclusionRules,
-    selectedExceptionReceiverByParticipant,
+    selectedExclusionGiver,
+    selectedExclusionReceiver,
     isLoading,
     error,
     requiresAdminAuth,
@@ -1065,16 +1057,12 @@ export function useExchangeAdmin() {
     isExclusionEditingLocked,
     activeParticipants,
     participantNameById,
-    detailMode,
-    isSummaryMode,
-    isDetailMode,
     canTriggerDraw,
     canCancelDraw,
     isParticipantCreationLocked,
     isParticipantIdentityLocked,
     isParticipantSuggestionsLocked,
     participantCountLabel,
-    publicExchangeLink,
     statusBadgeClass,
     statusLabel,
     refreshEnabled,

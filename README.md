@@ -1,6 +1,6 @@
 # Kado
 
-Kado est une application web libre pour organiser des échanges de cadeaux sans compte utilisateur, avec une interface de gestion pour l’organisateur, une vue publique d'échange et un espace participant par lien magique.
+Kado est une application web libre pour organiser des échanges de cadeaux sans compte utilisateur, avec une interface de gestion pour l’organisateur et un espace participant par lien magique.
 
 L'objectif du projet est de réduire la friction d'organisation tout en gardant des règles explicites, une pige fiable et un hébergement simple.
 
@@ -9,7 +9,7 @@ L'objectif du projet est de réduire la friction d'organisation tout en gardant 
 Le monorepo PNPM contient trois briques:
 
 - `apps/api`: API Express 5 et logique métier.
-- `apps/web`: application Vue 3, PWA, vue organisateur, vue publique et espace participant.
+- `apps/web`: application Vue 3, PWA, vue organisateur et espace participant.
 - `packages/shared`: types, DTO et schémas partagés entre front et back.
 
 ## Terminologie
@@ -22,7 +22,6 @@ Le monorepo PNPM contient trois briques:
 - Organisateur: personne responsable de la pige et de la gestion de son échange.
 - Administrateur: personne qui déploie et maintient Kado sur un serveur.
 - Vue organisateur: interface protégée par session pour gérer un échange.
-- Vue publique: page en lecture seule accessible sans authentification.
 - Espace participant: accès individuel via `/p/:token` avec code lisible de type `XXXX-XXXX-XXXX`.
 
 Les noms techniques existants (`admin`, `adminPassword`, `adminSessionToken` et les routes `/admin/...`) sont conservés ; ils désignent toujours l’accès organisateur d’un échange.
@@ -35,7 +34,6 @@ Les noms techniques existants (`admin`, `adminPassword`, `adminSessionToken` et 
 - Gestion des exclusions entre participants depuis l'interface organisateur.
 - Pige aléatoire et bornée avec contraintes et message d'erreur structuré quand aucune solution n'est possible.
 - Espace participant public pour consulter et mettre à jour son profil, puis voir le destinataire après la pige.
-- Vue publique d'un échange sur une route distincte de la vue organisateur.
 - Session organisateur par échange avec connexion, déconnexion et changement de mot de passe.
 
 ## Évolutions récentes déjà intégrées
@@ -194,7 +192,7 @@ Fichier d'exemple: `apps/web/.env.example`
   - `POST /api/exchanges/:exchangeId/admin/sessions`
   - `DELETE /api/exchanges/:exchangeId/admin/sessions/current`
   - `PUT /api/exchanges/:exchangeId/admin/password`
-- Vue publique
+- Métadonnées publiques (API conservée, sans vue frontend)
   - `GET /api/public/exchanges/:exchangeId`
 - Participant public
   - `GET /api/p/:token`
@@ -234,7 +232,7 @@ Elle ne modifie pas le schéma existant.
 
 ## Confidentialité et intégrité (P0)
 
-Les sessions organisateur sont limitées à un échange. Chaque opération individuelle sur un participant filtre simultanément son identifiant et celui de l’échange autorisé. Un participant absent ou extérieur à l’échange produit le même `PARTICIPANT_NOT_FOUND` (404). La vue publique expose uniquement un contrat explicite, sans profils participants ni champs de gestion de l’échange.
+Les sessions organisateur sont limitées à un échange. Chaque opération individuelle sur un participant filtre simultanément son identifiant et celui de l’échange autorisé. Un participant absent ou extérieur à l’échange produit le même `PARTICIPANT_NOT_FOUND` (404). L’endpoint de métadonnées publiques expose uniquement un contrat explicite, sans profils participants ni champs de gestion de l’échange.
 
 Les mutations utilisent une transaction et verrouillent d’abord la ligne de l’échange. Créations et rotations de liens sont atomiques ; un accès participant est revalidé après acquisition du verrou. Une seconde pige concurrente renvoie la pige déjà réalisée. Avec `revokeExisting=true`, seule la dernière rotation validée reste active ; `false` conserve les accès précédents.
 
@@ -295,7 +293,7 @@ La CI teste et prépare une archive d’images ; aucune mise à jour automatique
 
 ## P2 — parcours, accessibilité et maintenance
 
-Les vues organisateur s’actualisent toutes les 5 secondes lorsqu’elles sont visibles, sans écriture ni formulaire ouvert. Une panne espace les tentatives à 10, 20, 40 puis 60 secondes et respecte `Retry-After`. Les vues participant et publique se mettent à jour au retour sur l’onglet et avec **Actualiser**, sans polling permanent. Les appels API sont bornés à 15 secondes ; aucune écriture n’est répétée automatiquement. Après une interruption d’écriture, son résultat peut être incertain et doit être vérifié avant une nouvelle tentative.
+Les vues organisateur s’actualisent toutes les 5 secondes lorsqu’elles sont visibles, sans écriture ni formulaire ouvert. Une panne espace les tentatives à 10, 20, 40 puis 60 secondes et respecte `Retry-After`. Les vues participant se mettent à jour au retour sur l’onglet et avec **Actualiser**, sans polling permanent. Les appels API sont bornés à 15 secondes ; aucune écriture n’est répétée automatiquement. Après une interruption d’écriture, son résultat peut être incertain et doit être vérifié avant une nouvelle tentative.
 
 Les brouillons restent en mémoire pendant les erreurs, conflits et réauthentifications du même échange. Les profils et suggestions ne sont pas enregistrés comme brouillons sur l’appareil. Une fermeture ou navigation demande confirmation si la saisie n’est pas enregistrée ; après rechargement, elle ne peut pas être récupérée. Un stockage navigateur bloqué conserve les sessions uniquement en mémoire.
 
@@ -328,3 +326,15 @@ Les sauvegardes hors VPS et la validation du serveur réel restent nécessaires 
 Une suggestion contient un titre, un lien cadeau facultatif et une image facultative téléversée. JPEG/PNG/WebP fixes, aperçu local, envoi à l’enregistrement et stockage WebP privé dans PostgreSQL. Les icônes de suggestions et les URLs d’images externes sont supprimées ; les icônes générales et les thèmes/polices restent disponibles. `wishlist: []` enregistre la suppression de la dernière suggestion.
 
 La migration `003_suggestion_images.sql` purge les deux anciens champs et actualise les versions des profils concernés. **Sauvegarde préalable obligatoire avant application volontaire ; aucune récupération des images externes.** Aucun reset requis. Voir [le guide images](deploy/IMAGES.md) pour les routes, limites, quotas, nettoyage, sauvegarde/restauration et instructions de migration.
+
+## Tableau de bord organisateur
+
+La gestion affiche une liste compacte de participants, leurs détails et actions à la demande, et les paramètres regroupés. Les exclusions directionnelles sont centralisées dans **Paramètres de l’échange → Règles de la pige** ; leur résumé reste visible. La route publique `/x/:id` est retirée du frontend. Les liens individuels `/p/:token` et les contrats API existants sont conservés.
+
+Vérification UX isolée, après `pnpm build:web` et lancement de `pnpm --dir apps/web preview --host 127.0.0.1 --port 5179` :
+
+```bash
+node deploy/scripts/browser-ux.mjs
+```
+
+Ce contrôle intercepte tous les appels API avec des données synthétiques (50 participants), vérifie le clavier, les exclusions directionnelles, les restrictions après pige, la route retirée, le responsive et axe. Il ne lit ni ne modifie les données réelles. Les captures sont dans `/tmp/kado-ux` ; `KADO_UX_BASE` et `KADO_UX_OUTPUT` permettent de changer le serveur et le dossier de sortie. Il complète, sans remplacer, la suite intégrée `pnpm test:e2e`, qui requiert Docker Compose.

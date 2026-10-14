@@ -42,7 +42,6 @@ async function open(
     routes: [
       { path: '/p/:token', name: 'participant-self', component },
       { path: '/exchanges/:id', name: 'exchange-detail', component },
-      { path: '/x/:id', name: 'exchange-public', component: { render: () => h('div') } },
       { path: '/', name: 'home', component: { render: () => h('div') } },
     ],
   })
@@ -91,7 +90,9 @@ describe('participant form regressions', () => {
     const second = wrapper.get('form').trigger('submit')
     await Promise.all([first, second])
     expect(writes).toBe(1)
-    expect(saved?.wishlist).toEqual([{ title: 'Livre', imageId: 'img_00000000-0000-4000-8000-000000000001' }])
+    expect(saved?.wishlist).toEqual([
+      { title: 'Livre', imageId: 'img_00000000-0000-4000-8000-000000000001' },
+    ])
     expect(saved?.expectedUpdatedAt).toBe(startVersion)
     await new Promise((resolve) => setTimeout(resolve, 20))
     await flushPromises()
@@ -231,6 +232,83 @@ describe('admin authorization and configuration regressions', () => {
   function seed() {
     localStorage.setItem('kado.adminSessions', JSON.stringify({ exchange: 'old-token' }))
   }
+  it('centralizes directional exclusions without creating a reverse rule', async () => {
+    seed()
+    const data = {
+      ...adminResponse(),
+      participants: [
+        { id: 'dave', name: 'Dave', status: 'active', wishlist: [] },
+        { id: 'stephane', name: 'Stéphane', status: 'active', wishlist: [] },
+        { id: 'alex', name: 'Alex', status: 'active', wishlist: [] },
+      ],
+    }
+    const rules = [{ id: 'rule', giverParticipantId: 'dave', receiverParticipantId: 'stephane' }]
+    const writes: unknown[] = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((path, init) => {
+        if (init?.method === 'POST') {
+          writes.push(JSON.parse(init.body))
+          return Promise.resolve(json({ id: 'new-rule', ...JSON.parse(init.body) }))
+        }
+        return Promise.resolve(
+          json(
+            String(path).endsWith('/config')
+              ? { maxActiveParticipants: 50 }
+              : String(path).endsWith('/exclusions')
+                ? rules
+                : data,
+          ),
+        )
+      }),
+    )
+    const { wrapper } = await open(ExchangeDetailView, '/exchanges/exchange')
+    expect(wrapper.find('#exchange-view-mode-switch').exists()).toBe(false)
+    expect(wrapper.find('a[href^="/x/"]').exists()).toBe(false)
+    expect(wrapper.findAll('#participants select')).toHaveLength(0)
+    expect(wrapper.findAll('#settings select')).toHaveLength(2)
+    expect(
+      wrapper.findAll('#participants details').every((detail) => !detail.attributes('open')),
+    ).toBe(true)
+    await wrapper.get('#exclusion-giver').setValue('dave')
+    expect(
+      wrapper
+        .get('#exclusion-receiver')
+        .findAll('option')
+        .map((option) => option.attributes('value')),
+    ).toEqual(['', 'alex'])
+    await wrapper.get('#exclusion-giver').setValue('stephane')
+    await wrapper.get('#exclusion-receiver').setValue('dave')
+    await wrapper.get('#settings form').trigger('submit')
+    await flushPromises()
+    expect(writes).toEqual([{ giverParticipantId: 'stephane', receiverParticipantId: 'dave' }])
+    expect(wrapper.get('#exclusion-giver').element).toHaveProperty('value', '')
+  })
+  it.each([
+    { drawn: true, archived: false },
+    { drawn: true, archived: true },
+  ])('locks centralized rules for %j', async ({ drawn, archived }) => {
+    seed()
+    const data = { ...adminResponse(), isDrawn: drawn, isArchived: archived }
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((path) =>
+        Promise.resolve(
+          json(
+            String(path).endsWith('/config')
+              ? { maxActiveParticipants: 50 }
+              : String(path).endsWith('/exclusions')
+                ? [{ id: 'rule', giverParticipantId: 'a', receiverParticipantId: 'b' }]
+                : data,
+          ),
+        ),
+      ),
+    )
+    const { wrapper } = await open(ExchangeDetailView, '/exchanges/exchange')
+    expect(wrapper.find('#exclusion-giver').exists()).toBe(false)
+    expect(wrapper.get('#settings li button').attributes()).toHaveProperty('disabled')
+    expect(wrapper.text()).toContain('La pige a été effectuée')
+  })
   it('blocks participant addition until failed configuration is recovered', async () => {
     seed()
     let failed = true
@@ -350,7 +428,10 @@ describe('admin authorization and configuration regressions', () => {
     const unload = new Event('beforeunload', { cancelable: true })
     window.dispatchEvent(unload)
     expect(unload.defaultPrevented).toBe(true)
-    await wrapper.findAll('form').find(form => form.find('#new-participant-name').exists())!.trigger('submit')
+    await wrapper
+      .findAll('form')
+      .find((form) => form.find('#new-participant-name').exists())!
+      .trigger('submit')
     await flushPromises()
     expect((wrapper.get('#new-participant-name').element as HTMLInputElement).value).toBe(
       'Draft participant',
@@ -380,7 +461,7 @@ describe('admin authorization and configuration regressions', () => {
     await wrapper.get('#current-admin-password').setValue('currentpassword')
     await wrapper.get('#new-admin-password').setValue('newpassword123')
     await wrapper.get('#confirm-admin-password').setValue('newpassword123')
-    await wrapper.findAll('form')[0]!.trigger('submit')
+    await wrapper.get('#admin-password-form').trigger('submit')
     await flushPromises()
     expect(wrapper.get('#admin-password-error').exists()).toBe(true)
     expect((wrapper.get('#new-admin-password').element as HTMLInputElement).value).toBe(

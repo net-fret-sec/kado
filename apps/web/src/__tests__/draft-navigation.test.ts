@@ -8,19 +8,32 @@ import { i18n, setLocale } from '../i18n'
 import HomeView from '../views/HomeView.vue'
 
 let wrapper: VueWrapper | undefined
-beforeEach(async () => { await setLocale('fr-CA') })
+beforeEach(async () => {
+  await setLocale('fr-CA')
+})
 const emptyPage = defineComponent({ render: () => h('div') })
-afterEach(() => { wrapper?.unmount(); wrapper = undefined; vi.restoreAllMocks() })
+afterEach(() => {
+  wrapper?.unmount()
+  wrapper = undefined
+  vi.restoreAllMocks()
+})
 
 async function open(component: ReturnType<typeof defineComponent>, path = '/') {
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: [{ path: '/', component }, { path: '/p/:token', component }, { path: '/other', component: emptyPage }],
+    routes: [
+      { path: '/', component },
+      { path: '/p/:token', component },
+      { path: '/other', component: emptyPage },
+    ],
   })
   await router.push(path)
   await router.isReady()
   wrapper = mount(defineComponent({ setup: () => () => h(RouterView) }), {
-    global: { plugins: [router, createPinia(), i18n], stubs: { BaseModal: { template: '<div><slot /></div>' } } },
+    global: {
+      plugins: [router, createPinia(), i18n],
+      stubs: { BaseModal: { template: '<div><slot /></div>' } },
+    },
   })
   await flushPromises()
   return router
@@ -29,22 +42,39 @@ async function open(component: ReturnType<typeof defineComponent>, path = '/') {
 describe('draft guards and in-page navigation', () => {
   it('keeps a draft without prompting when navigating to an anchor on the same page', async () => {
     const dirty = ref(true)
-    const page = defineComponent({ setup() { useDraftGuard(dirty); return () => h('div') } })
+    const page = defineComponent({
+      setup() {
+        useDraftGuard(dirty)
+        return () => h('div')
+      },
+    })
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
     const router = await open(page)
-    await router.push('/#received-link')
-    expect(router.currentRoute.value.hash).toBe('#received-link')
+    await router.push('/#section')
+    expect(router.currentRoute.value.hash).toBe('#section')
     expect(dirty.value).toBe(true)
     expect(confirm).not.toHaveBeenCalled()
   })
 
   it('still prompts and cancels when changing a participant link with an active draft', async () => {
-    const page = defineComponent({ setup() { useDraftGuard(ref(true)); return () => h('div') } })
+    const page = defineComponent({
+      setup() {
+        useDraftGuard(ref(true))
+        return () => h('div')
+      },
+    })
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
     const router = await open(page, '/p/first')
     await router.push('/p/second')
     expect(router.currentRoute.value.path).toBe('/p/first')
     expect(confirm).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps creation accessible without a received-link section', async () => {
+    await open(HomeView)
+    expect(wrapper!.find('#received-link').exists()).toBe(false)
+    expect(wrapper!.find('a[href="#received-link"]').exists()).toBe(false)
+    expect(wrapper!.findAll('button').some((button) => button.text().includes('Créer'))).toBe(true)
   })
 
   it('ignores autofilled creation fields while the home modal is closed', async () => {

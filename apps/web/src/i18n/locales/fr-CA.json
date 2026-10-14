@@ -61,7 +61,6 @@
       "title": "Organisez vos échanges de cadeaux, sans complications.",
       "description": "Créez un échange en quelques minutes, partagez les liens des participants et laissez Kado gérer les contraintes de la pige. Sans compte obligatoire, sans publicité, sans traçage.",
       "primaryAction": "Créer un échange",
-      "secondaryAction": "J'ai reçu un lien",
       "micro": "Libre. Gratuit. Respectueux de la vie privée.",
       "audience": "Pensé pour les échanges entre amis, en famille ou entre collègues."
     },
@@ -81,13 +80,9 @@
     },
     "cta": {
       "primaryLabel": "Lancez-vous!",
-      "secondaryLabel": "Accès participant",
       "organizerTitle": "Je veux organiser un échange",
       "organizerDesc": "Créez un échange, ajoutez les participants, définissez les exclusions de pige au besoin, puis effectuez la pige. Partagez le lien de chaque participant par le moyen de votre choix.",
-      "organizerAction": "Créer un échange",
-      "participantTitle": "J'ai reçu un lien",
-      "participantDesc": "L’organisateur vous a transmis un lien du participant. Ouvrez-le directement pour accéder à votre participation. Aucun compte ni mot de passe à créer.",
-      "participantHint": "Vous n’avez pas reçu de lien du participant ? Contactez la personne qui organise la pige."
+      "organizerAction": "Créer un échange"
     },
     "why": {
       "title": "Pourquoi faire confiance à Kado ?",
@@ -135,10 +130,10 @@
     "createModal": {
       "title": "Création d’un échange",
       "name": "Donnez un nom à l’échange",
-      "organizerName": "Nom de l'organisateur(trice)",
-      "organizerParticipates": "L’organisateur participe à l’échange",
-      "adminPassword": "Mot de passe de l’organisateur",
-      "adminPasswordRulesTitle": "Contraintes du mot de passe de l’organisateur :",
+      "organizerName": "Quel est votre nom?",
+      "organizerParticipates": "Je participe à l’échange",
+      "adminPassword": "Mot de passe",
+      "adminPasswordRulesTitle": "Contraintes du mot de passe :",
       "adminPasswordRuleLength": "10 à 256 caractères.",
       "adminPasswordRuleUnique": "Choisissez un mot de passe unique et difficile à deviner.",
       "adminPasswordRuleStoredSafely": "Ce mot de passe ne pourra pas être récupéré ensuite.",
@@ -184,8 +179,6 @@
     "wishlistSuggestions": "{count} suggestion | {count} suggestions",
     "note": "Commentaire",
     "generateLink": "Régénérer le lien du participant",
-    "share": "Partager",
-    "openPublicView": "Voir la vue publique",
     "triggerDraw": "Effectuer la pige",
     "cancelDraw": "Annuler la pige",
     "drawSuccess": "La pige a été effectuée.",
@@ -254,19 +247,25 @@
       "changePassword": "Changer le mot de passe",
       "changingPassword": "Changement...",
       "passwordUpdated": "Le mot de passe de l’organisateur a été mis à jour.",
-      "passwordMismatch": "Le nouveau mot de passe et sa confirmation ne correspondent pas.",
-      "publicLinkLabel": "Lien de la vue publique"
+      "passwordMismatch": "Le nouveau mot de passe et sa confirmation ne correspondent pas."
     },
-    "viewMode": {
-      "label": "Mode d'affichage",
-      "summary": "Résumé",
-      "detail": "Détail"
+    "dashboard": {
+      "settings": "Paramètres de l’échange",
+      "editSettings": "Modifier les paramètres",
+      "suggestions": "Suggestions de cadeaux",
+      "rules": "Règles de la pige",
+      "manageExclusions": "Consulter et gérer les exclusions",
+      "directional": "Chaque exclusion est directionnelle : Dave ne peut pas piger Stéphane n’empêche pas Stéphane de piger Dave.",
+      "exclusionCount": "Aucune exclusion | Une exclusion | {count} exclusions",
+      "giver": "Personne qui pige",
+      "selectGiver": "Sélectionner une personne",
+      "receiver": "Ne peut pas piger",
+      "removeExclusion": "Retirer l’exclusion : {giver} ne peut pas piger {receiver}",
+      "participantDetails": "Détails et actions pour {name}",
+      "administration": "Gestion de l’accès et suppression",
+      "deleteExchange": "Supprimer l’échange",
+      "minimumParticipants": "Ajoutez au moins deux participants pour effectuer la pige."
     }
-  },
-  "exchangePublic": {
-    "loading": "Chargement de la vue publique...",
-    "openAdmin": "Accès organisateur",
-    "updatedAt": "Mis à jour"
   },
   "participant": {
     "loading": "Chargement...",

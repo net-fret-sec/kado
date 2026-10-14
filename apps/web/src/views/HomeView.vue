@@ -34,10 +34,6 @@ const donationUrl = ((import.meta.env.VITE_DONATION_URL as string | undefined) ?
             >
               {{ t('home.hero.primaryAction') }}
             </button>
-
-            <a href="#received-link" class="btn btn-outline-light btn-lg px-4">
-              {{ t('home.hero.secondaryAction') }}
-            </a>
           </div>
 
           <p class="small fw-semibold text-white mb-2">{{ t('home.hero.micro') }}</p>
@@ -100,7 +96,7 @@ const donationUrl = ((import.meta.env.VITE_DONATION_URL as string | undefined) ?
     </section>
 
     <section class="row g-4 home-actions align-items-stretch">
-      <div class="col-lg-7">
+      <div class="col-12">
         <div class="card h-100 border border-primary home-action-card home-action-card--primary">
           <div class="card-body p-4 p-lg-5 d-flex flex-column">
             <p class="text-uppercase small fw-semibold text-primary mb-2">
@@ -117,23 +113,6 @@ const donationUrl = ((import.meta.env.VITE_DONATION_URL as string | undefined) ?
             >
               {{ t('home.cta.organizerAction') }}
             </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-lg-5" id="received-link">
-        <div class="card h-100 border home-action-card home-action-card--secondary">
-          <div class="card-body p-4 p-lg-5 d-flex flex-column">
-            <p class="text-uppercase small fw-semibold text-body-secondary mb-2">
-              {{ t('home.cta.secondaryLabel') }}
-            </p>
-            <h2 class="card-title h3">{{ t('home.cta.participantTitle') }}</h2>
-            <p class="card-text text-body-secondary flex-grow-1 mb-4">
-              {{ t('home.cta.participantDesc') }}
-            </p>
-            <p class="small text-body-secondary fst-italic mt-auto mb-0">
-              {{ t('home.cta.participantHint') }}
-            </p>
           </div>
         </div>
       </div>
