@@ -26,6 +26,7 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: 'autoUpdate',
         workbox: {
+          globPatterns: ['**/*.{js,css,html}', 'assets/kado-gifts-*.png'],
           navigateFallbackDenylist: [/^\/api(?:\/|$)/, /^\/health(?:\/|$)/],
           runtimeCaching: [],
         },
@@ -34,8 +35,8 @@ export default defineConfig(({ mode }) => {
           name: 'Kado',
           short_name: 'kado',
           description: 'Gestion de piges de cadeaux',
-          theme_color: '#4F46E5',
-          background_color: '#ffffff',
+          theme_color: '#263243',
+          background_color: '#1b2430',
           display: 'standalone',
           start_url: '/',
           icons: [

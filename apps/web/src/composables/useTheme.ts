@@ -6,7 +6,7 @@ export const SUPPORTED_THEMES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j
 export type AppTheme = (typeof SUPPORTED_THEMES)[number]
 
 const configuredTheme = import.meta.env.VITE_FONT_THEME?.trim() ?? ''
-export const defaultTheme: AppTheme = isSupportedTheme(configuredTheme) ? configuredTheme : 'e'
+export const defaultTheme: AppTheme = isSupportedTheme(configuredTheme) ? configuredTheme : 'j'
 
 function isSupportedTheme(value: string): value is AppTheme {
   return SUPPORTED_THEMES.includes(value as AppTheme)

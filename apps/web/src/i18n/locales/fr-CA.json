@@ -59,7 +59,7 @@
     "hero": {
       "eyebrow": "Échanges de cadeaux sans friction",
       "title": "Organisez vos échanges de cadeaux, sans complications.",
-      "description": "Créez un échange en quelques minutes, partagez les liens des participants et laissez Kado gérer les contraintes de la pige. Sans compte obligatoire, sans publicité, sans traçage.",
+      "description": "Créez un échange en quelques minutes, partagez les liens des participants et laissez Kado gérer les contraintes de la pige.",
       "primaryAction": "Créer un échange",
       "micro": "Libre. Gratuit. Respectueux de la vie privée.",
       "audience": "Pensé pour les échanges entre amis, en famille ou entre collègues."
@@ -102,7 +102,7 @@
     },
     "support": {
       "title": "Kado est gratuit et le restera.",
-      "subtext": "Si l'application vous est utile et que vous souhaitez aider à couvrir l'hébergement et le développement du projet, vous pouvez donner un petit coup de pouce.",
+      "subtext": "Si l'application vous a été utile, un petit coup de pouce pour l’hébergement et le développement du projet est toujours apprécié.",
       "button": "Soutenir le projet"
     },
     "footer": {
@@ -288,10 +288,10 @@
     "suggestionsSectionTitle": "Mes suggestions de cadeaux",
     "wishlistItem": {
       "reorder": "Réordonner",
-      "titleLabel": "Titre",
-      "linkLabel": "Lien",
+      "titleLabel": "Nom ou description",
+      "linkLabel": "Lien (facultatif)",
       "linkPlaceholder": "https://exemple.com/produit",
-      "titleRequired": "Le titre est requis.",
+      "titleRequired": "Nom ou description manquant(e)",
       "linkUrlInvalid": "URL de lien invalide (http/https requis)."
     }
   },
@@ -376,7 +376,7 @@
     "fields": {
       "name": "Nom",
       "email": "Courriel",
-      "note": "Commentaire",
+      "note": "Commentaire (facultatif)",
       "wishlist": "Liste de suggestions de cadeaux",
       "organizerName": "Organisateur",
       "description": "Description",
@@ -393,7 +393,7 @@
     "initialVersion": "Référence initiale"
   },
   "images": {
-    "label": "Image du cadeau",
+    "label": "Image (facultative)",
     "help": "JPEG, PNG ou WebP fixe : {size} Mio et {pixels} mégapixels maximum. Image réduite à {dimension} pixels, version optimisée limitée à {output} Kio. Envoi lors d’Enregistrer.",
     "remove": "Supprimer l’image",
     "unavailable": "Image indisponible.",

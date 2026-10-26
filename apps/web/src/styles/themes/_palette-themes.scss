@@ -185,9 +185,9 @@ html[data-palette-theme="i"] {
   --surface-border: #3f536d;
   --text-primary: #e6eef9;
   --text-secondary: #aec1da;
-  --text-heading: #f6fbff;
-  --primary: #67a0ff;
-  --primary-hover: #4c8bf3;
+  --text-heading: #f5f1e8;
+  --primary: #ffc164;
+  --primary-hover: #f0ac3d;
   --cta: #ffc164;
   --cta-hover: #f0ac3d;
   --secondary: #8ca5c7;
@@ -196,11 +196,15 @@ html[data-palette-theme="i"] {
   --warning: #ffc164;
   --danger: #ff8a8a;
   --focus-ring-inner: rgba(27, 36, 48, .9);
-  --focus-ring-outer: rgba(103, 160, 255, .58);
-  --bs-focus-ring-color: rgba(103, 160, 255, var(--bs-focus-ring-opacity));
+  --focus-ring-outer: #78c6b0;
+  --bs-focus-ring-color: #78c6b0;
   --topbar-shadow: 0 1px 8px rgba(0, 0, 0, .25);
   --hero-bg: #1b2430;
   --hero-color: var(--text-heading);
+  --on-primary: #1b2430;
+  --link: #78c6b0;
+  --control-border: #8095ae;
+  --illustration-rose: #db8495;
 }
 
 /* Palette J - Citrus pop */

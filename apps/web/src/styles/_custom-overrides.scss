@@ -50,42 +50,11 @@
   transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease;
 
   &:hover {
-    border-color: transparent;
     transform: translateY(-1px);
   }
 
   &:focus-visible {
     box-shadow: var(--focus-ring-shadow);
-  }
-
-  &.btn-primary {
-    color: #fff;
-    background-color: vars.$primary;
-    border-color: vars.$primary;
-    box-shadow: none;
-
-    @if vars.$enable-shadows {
-      box-shadow: 0 .25rem .75rem rgba(37, 102, 101, .18);
-    }
-
-    &:hover {
-      background-color: vars.$primary-dark;
-      border-color: vars.$primary-dark;
-      color: #fff;
-    }
-
-    &:focus,
-    &:focus-visible {
-      background-color: vars.$primary;
-      border-color: vars.$primary;
-      color: #fff;
-      box-shadow: var(--focus-ring-shadow);
-    }
-  }
-
-  &.btn-outline-primary:hover,
-  &.btn-outline-secondary:hover {
-    color: #fff;
   }
 
   &.btn-success {
@@ -152,12 +121,10 @@
   }
 }
 
-.modal-header.bg-dark {
-  background: vars.$gray-700 !important;
-
-  @if vars.$enable-gradients {
-    background: linear-gradient(135deg, #514a43 0%, #3b352f 100%) !important;
-  }
+.modal-header {
+  background: var(--surface-soft);
+  color: var(--text-heading);
+  border-color: var(--surface-border);
 }
 
 .modal-header .modal-title,
@@ -389,57 +356,24 @@
 }
 
 #home-view {
-  .home-hero__glow {
-    position: absolute;
-    border-radius: 999px;
-    filter: blur(20px);
-    opacity: .72;
+  .home-hero__eyebrow { color: var(--link, var(--primary)); }
+  .home-hero__title {
+    font-size: clamp(1.9rem, 3.2vw, 2.5rem);
+    line-height: 1.2;
+    letter-spacing: -.035em;
+    max-width: 38rem;
   }
-
-  .home-hero__glow--warm {
-    inset: auto 8% 10% auto;
-    width: 9rem;
-    height: 9rem;
-    background: color-mix(in srgb, var(--cta) 16%, transparent);
-  }
-
-  .home-hero__glow--cool {
-    inset: 12% auto auto 6%;
-    width: 7rem;
-    height: 7rem;
-    background: color-mix(in srgb, var(--info) 14%, transparent);
-  }
-
-  .home-icon-badge {
-    background: color-mix(in srgb, var(--cta) 14%, var(--surface));
-    color: var(--primary);
-    font-size: 1.25rem;
-
-    @if vars.$enable-gradients {
-      background: linear-gradient(135deg, rgba(201, 122, 43, .14), rgba(224, 169, 59, .12));
-    }
-  }
-
-  .home-action-card--primary {
-    background: rgba(255, 255, 255, .92);
-
-    @if vars.$enable-gradients {
-      background: linear-gradient(180deg, rgba(255, 255, 255, .88), rgba(249, 244, 236, .96));
-    }
-  }
-
-  .home-action-card--secondary {
-    background: rgba(255, 255, 255, .9);
-  }
-
-  .home-why {
-    border: 1px solid rgba(221, 212, 197, .7);
-    background: rgba(255, 255, 255, .6);
-  }
-
-  .home-support {
-    background: rgba(255, 255, 255, .72);
-    border-color: rgba(221, 212, 197, .7);
+  .home-hero__micro { color: var(--text-primary); }
+  .home-hero__illustration { width: min(100%, 19.375rem); }
+  .home-trust-card__illustration { width: 10.375rem; max-width: 100%; margin-block: -.875rem -.375rem; }
+  .home-trust-card h3 { font-family: var(--font-heading); font-size: 1.0625rem; line-height: 1.35; font-weight: 500; }
+  .home-trust-card p { font-size: .875rem; line-height: 1.65; }
+  .home-support { background: var(--surface-soft); }
+  .home-support h2 { font-family: var(--font-heading); font-size: 1.125rem; }
+  .home-support p { max-width: 48rem; }
+  @media (max-width: 767.98px) {
+    .home-hero__illustration { width: 12rem; }
+    .home-trust-card__illustration { width: 8.5rem; }
   }
 }
 

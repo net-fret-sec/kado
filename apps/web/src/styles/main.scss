@@ -91,6 +91,7 @@
 @use "./_custom-overrides";
 @use "./themes/_font-themes";
 @use "./themes/_palette-themes";
+@use "./themes/_night-components";
 
 :root {
   --font-body: "Open Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
@@ -309,26 +310,28 @@ main > * + * {
 .btn-primary {
   --bs-btn-bg: var(--primary);
   --bs-btn-border-color: var(--primary);
-  --bs-btn-color: #fff;
+  --bs-btn-color: var(--on-primary, #fff);
   --bs-btn-hover-bg: var(--primary-hover);
   --bs-btn-hover-border-color: var(--primary-hover);
-  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-color: var(--on-primary, #fff);
   --bs-btn-active-bg: var(--primary-hover);
   --bs-btn-active-border-color: var(--primary-hover);
-  --bs-btn-active-color: #fff;
+  --bs-btn-active-color: var(--on-primary, #fff);
+  --bs-btn-disabled-bg: var(--primary);
+  --bs-btn-disabled-border-color: var(--primary);
+  --bs-btn-disabled-color: var(--on-primary, #fff);
 }
 
-/* CTA principal (ocre, à utiliser uniquement pour l'action principale) */
 .btn-cta {
   --bs-btn-bg: var(--cta);
   --bs-btn-border-color: var(--cta);
-  --bs-btn-color: var(--text-heading);
+  --bs-btn-color: var(--on-primary, var(--text-heading));
   --bs-btn-hover-bg: var(--cta-hover);
   --bs-btn-hover-border-color: var(--cta-hover);
-  --bs-btn-hover-color: var(--text-heading);
+  --bs-btn-hover-color: var(--on-primary, var(--text-heading));
   --bs-btn-active-bg: var(--cta-hover);
   --bs-btn-active-border-color: var(--cta-hover);
-  --bs-btn-active-color: var(--text-heading);
+  --bs-btn-active-color: var(--on-primary, var(--text-heading));
   font-weight: 600;
 }
 
@@ -337,9 +340,10 @@ main > * + * {
   --bs-btn-border-color: var(--primary);
   --bs-btn-hover-bg: var(--primary);
   --bs-btn-hover-border-color: var(--primary);
-  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-color: var(--on-primary, #fff);
   --bs-btn-active-bg: var(--primary-hover);
   --bs-btn-active-border-color: var(--primary-hover);
+  --bs-btn-active-color: var(--on-primary, #fff);
 }
 
 .alert-light {
