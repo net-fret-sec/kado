@@ -20,8 +20,8 @@ const donationUrl = ((import.meta.env.VITE_DONATION_URL as string | undefined) ?
         <div class="col-lg-8 col-xl-7">
           <p class="kado-ui-label text-white-50 mb-3">{{ t('home.hero.eyebrow') }}</p>
           <h2 class="display-4 fw-semibold mb-3 text-light">{{ t('home.hero.title') }}</h2>
-          <div class="row">
-            <img src="/gift-packages-vectorportal.svg" alt="" class="col">
+          <div class="">
+            <img src="/gift-packages-vectorportal.svg" alt="" class="">
             <p class="col lead text-white-50 mb-4">{{ t('home.hero.description') }}</p>
           </div>
 
