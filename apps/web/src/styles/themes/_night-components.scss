@@ -29,6 +29,19 @@ html[data-palette-theme='i'] {
     --bs-btn-disabled-border-color: var(--link);
   }
 
+  .btn-outline-secondary {
+    --bs-btn-color: var(--text-secondary);
+    --bs-btn-border-color: var(--text-secondary);
+    --bs-btn-hover-bg: var(--text-secondary);
+    --bs-btn-hover-border-color: var(--text-secondary);
+    --bs-btn-hover-color: var(--bg);
+    --bs-btn-active-bg: var(--text-secondary);
+    --bs-btn-active-border-color: var(--text-secondary);
+    --bs-btn-active-color: var(--bg);
+    --bs-btn-disabled-color: var(--text-secondary);
+    --bs-btn-disabled-border-color: var(--text-secondary);
+  }
+
   .btn-link {
     --bs-btn-color: var(--link);
     --bs-btn-hover-color: #b8e8da;
