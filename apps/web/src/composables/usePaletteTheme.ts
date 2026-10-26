@@ -22,7 +22,10 @@ export const SUPPORTED_PALETTE_THEMES = [
 ] as const
 export type AppPaletteTheme = (typeof SUPPORTED_PALETTE_THEMES)[number]
 
-const defaultPaletteTheme: AppPaletteTheme = 'a'
+const configuredTheme = import.meta.env.VITE_PALETTE_THEME?.trim() ?? ''
+export const defaultPaletteTheme: AppPaletteTheme = isSupportedPaletteTheme(configuredTheme)
+  ? configuredTheme
+  : 'e'
 
 function isSupportedPaletteTheme(value: string): value is AppPaletteTheme {
   return SUPPORTED_PALETTE_THEMES.includes(value as AppPaletteTheme)

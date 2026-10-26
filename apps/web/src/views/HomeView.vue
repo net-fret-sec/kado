@@ -12,26 +12,21 @@ const donationUrl = ((import.meta.env.VITE_DONATION_URL as string | undefined) ?
 
 <template>
   <section id="home-view" class="d-grid gap-5">
-    <section
-      class="home-hero hero-surface position-relative overflow-hidden rounded-4 px-4 px-lg-5 py-5 py-lg-6"
-    >
+    <section class="home-hero hero-surface position-relative overflow-hidden rounded-4 px-4 px-lg-5 py-5 py-lg-6">
       <div class="home-hero__glow home-hero__glow--warm"></div>
       <div class="home-hero__glow home-hero__glow--cool"></div>
 
-      <div
-        class="position-relative row justify-content-center text-center text-lg-start align-items-center g-4"
-      >
+      <div class="position-relative row justify-content-center text-center text-lg-start align-items-center g-4">
         <div class="col-lg-8 col-xl-7">
           <p class="kado-ui-label text-white-50 mb-3">{{ t('home.hero.eyebrow') }}</p>
           <h2 class="display-4 fw-semibold mb-3 text-light">{{ t('home.hero.title') }}</h2>
-          <p class="lead text-white-50 mb-4">{{ t('home.hero.description') }}</p>
+          <div class="row">
+            <img src="/gift-packages-vectorportal.svg" alt="" class="col">
+            <p class="col lead text-white-50 mb-4">{{ t('home.hero.description') }}</p>
+          </div>
 
           <div class="d-grid d-sm-flex justify-content-center justify-content-lg-start gap-3 mb-3">
-            <button
-              type="button"
-              class="btn btn-primary btn-lg px-4"
-              @click="isCreateModalOpen = true"
-            >
+            <button type="button" class="btn btn-primary btn-lg px-4" @click="isCreateModalOpen = true">
               {{ t('home.hero.primaryAction') }}
             </button>
           </div>
@@ -47,10 +42,8 @@ const donationUrl = ((import.meta.env.VITE_DONATION_URL as string | undefined) ?
         <div class="col-md-4">
           <div class="card h-100 shadow-sm border-0">
             <div class="card-body p-4">
-              <div
-                class="home-icon-badge d-inline-flex align-items-center justify-content-center rounded-4 mb-3"
-                style="width: 3rem; height: 3rem"
-              >
+              <div class="home-icon-badge d-inline-flex align-items-center justify-content-center rounded-4 mb-3"
+                style="width: 3rem; height: 3rem">
                 <i class="bi bi-shield-lock" aria-hidden="true"></i>
               </div>
               <h3 class="h5">{{ t('home.trustStrip.privacy.title') }}</h3>
@@ -62,10 +55,8 @@ const donationUrl = ((import.meta.env.VITE_DONATION_URL as string | undefined) ?
         <div class="col-md-4">
           <div class="card h-100 shadow-sm border-0">
             <div class="card-body p-4">
-              <div
-                class="home-icon-badge d-inline-flex align-items-center justify-content-center rounded-4 mb-3"
-                style="width: 3rem; height: 3rem"
-              >
+              <div class="home-icon-badge d-inline-flex align-items-center justify-content-center rounded-4 mb-3"
+                style="width: 3rem; height: 3rem">
                 <i class="bi bi-badge-ad" aria-hidden="true"></i>
               </div>
               <h3 class="h5">{{ t('home.trustStrip.noMonetization.title') }}</h3>
@@ -79,10 +70,8 @@ const donationUrl = ((import.meta.env.VITE_DONATION_URL as string | undefined) ?
         <div class="col-md-4">
           <div class="card h-100 shadow-sm border-0">
             <div class="card-body p-4">
-              <div
-                class="home-icon-badge d-inline-flex align-items-center justify-content-center rounded-4 mb-3"
-                style="width: 3rem; height: 3rem"
-              >
+              <div class="home-icon-badge d-inline-flex align-items-center justify-content-center rounded-4 mb-3"
+                style="width: 3rem; height: 3rem">
                 <i class="bi bi-code-slash" aria-hidden="true"></i>
               </div>
               <h3 class="h5">{{ t('home.trustStrip.openSource.title') }}</h3>
@@ -106,11 +95,7 @@ const donationUrl = ((import.meta.env.VITE_DONATION_URL as string | undefined) ?
             <p class="card-text text-body-secondary flex-grow-1 mb-4">
               {{ t('home.cta.organizerDesc') }}
             </p>
-            <button
-              type="button"
-              class="btn btn-primary btn-lg align-self-start"
-              @click="isCreateModalOpen = true"
-            >
+            <button type="button" class="btn btn-primary btn-lg align-self-start" @click="isCreateModalOpen = true">
               {{ t('home.cta.organizerAction') }}
             </button>
           </div>
@@ -155,12 +140,7 @@ const donationUrl = ((import.meta.env.VITE_DONATION_URL as string | undefined) ?
       <p class="text-body-secondary mx-auto mb-4" style="max-width: 42rem">
         {{ t('home.support.subtext') }}
       </p>
-      <a
-        :href="donationUrl"
-        class="btn btn-outline-primary"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
+      <a :href="donationUrl" class="btn btn-outline-primary" target="_blank" rel="noopener noreferrer">
         {{ t('home.support.button') }}
       </a>
     </section>
@@ -168,13 +148,12 @@ const donationUrl = ((import.meta.env.VITE_DONATION_URL as string | undefined) ?
     <footer class="home-footer text-center text-body-secondary small">
       <p class="mb-2 d-none">{{ t('home.footer.tagline') }}</p>
 
-      <router-link
-        v-if="showAdminLink"
-        to="/exchanges"
-        class="text-body-secondary home-footer__admin-link"
-      >
+      <router-link v-if="showAdminLink" to="/exchanges" class="text-body-secondary home-footer__admin-link">
         {{ t('home.adminLink') }}
       </router-link>
+
+      Image by <a href=" https://www.vectorportal.com">Vectorportal.com</a>, <a class="external text"
+        href="https://creativecommons.org/licenses/by/4.0/">CC BY</a>
     </footer>
 
     <CreateExchangeModal v-model="isCreateModalOpen" />

@@ -2,6 +2,8 @@
 /// <reference types="vite-plugin-pwa/client" />
 
 interface ImportMetaEnv {
+  readonly VITE_FONT_THEME?: string
+  readonly VITE_PALETTE_THEME?: string
   readonly VITE_API_BASE?: string
   readonly VITE_DONATION_URL?: string
   readonly VITE_ADMIN_LINK_CONTINUE_COUNTDOWN_SECONDS?: string

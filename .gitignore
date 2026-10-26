@@ -60,3 +60,4 @@ dev-dist/
 sw.js
 workbox-*.js
 api.env
+.secret

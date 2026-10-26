@@ -5,6 +5,8 @@ import { registerSW } from 'virtual:pwa-register'
 import App from './App.vue'
 import router from './router'
 import { i18n, setupI18n } from './i18n'
+import { defaultTheme, setTheme } from './composables/useTheme'
+import { defaultPaletteTheme, setPaletteTheme } from './composables/usePaletteTheme'
 
 import '@fontsource/source-sans-3/latin-ext-400.css'
 import '@fontsource/source-sans-3/latin-ext-600.css'
@@ -14,6 +16,9 @@ import 'bootstrap'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
 async function bootstrap() {
+  setTheme(defaultTheme)
+  setPaletteTheme(defaultPaletteTheme)
+
   if (import.meta.env.DEV && 'serviceWorker' in navigator) {
     const registrations = await navigator.serviceWorker.getRegistrations()
     await Promise.all(registrations.map((registration) => registration.unregister()))
