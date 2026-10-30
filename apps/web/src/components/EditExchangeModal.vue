@@ -209,7 +209,7 @@ function visibility(value: boolean) {
       <fieldset :disabled="contentLocked || isSubmitting || !!remote">
         <div v-if="organizerEditable" class="mb-3 form-field">
           <label for="editOrganizerName" class="form-label">{{
-            t('exchangeDetail.organizer')
+            t('fields.organizerName')
           }}</label>
           <input
             id="editOrganizerName"
@@ -226,7 +226,7 @@ function visibility(value: boolean) {
           </p>
         </div>
         <div class="mb-3 form-field">
-          <label for="editExchangeName" class="form-label">{{ t('exchangeDetail.name') }}</label>
+          <label for="editExchangeName" class="form-label">{{ t('fields.name') }}</label>
           <input
             v-model="editName"
             type="text"
@@ -243,7 +243,7 @@ function visibility(value: boolean) {
         </div>
         <div class="mb-3 form-field">
           <label for="editExchangeDescription" class="form-label">{{
-            t('exchangeDetail.description')
+            t('fields.description')
           }}</label>
           <textarea
             v-model="editDescription"
@@ -261,7 +261,7 @@ function visibility(value: boolean) {
         </div>
         <div class="form-field mb-3">
           <label for="editPlannedDrawDate" class="form-label">{{
-            t('review.plannedDrawDate')
+            t('fields.plannedDrawDate')
           }}</label>
           <input
             id="editPlannedDrawDate"
@@ -276,7 +276,7 @@ function visibility(value: boolean) {
         <div class="row g-3 mb-3">
           <div class="col-12 form-field">
             <label for="editExchangeEventDate" class="form-label">{{
-              t('exchangeDetail.exchangeMoment')
+              t('fields.eventDate')
             }}</label>
             <input
               v-model="editEventDate"
@@ -294,7 +294,7 @@ function visibility(value: boolean) {
         <div class="row g-3 mb-3">
           <div class="col-12 form-field">
             <label for="editExchangeBudget" class="form-label"
-              >{{ t('exchangeDetail.budget') }} ({{ currencySymbol }})</label
+              >{{ t('fields.budget') }} ({{ currencySymbol }})</label
             >
             <input
               v-model.number="editBudget"
@@ -312,7 +312,7 @@ function visibility(value: boolean) {
           </div>
           <div class="col-12 form-field">
             <label for="editExchangeMinSuggestions" class="form-label">{{
-              t('exchangeDetail.minWishlistSuggestions')
+              t('fields.minWishlistSuggestions')
             }}</label>
             <input
               v-model.number="editMinWishlistSuggestions"
@@ -346,7 +346,7 @@ function visibility(value: boolean) {
             class="form-check-input"
           />
           <label class="form-check-label" for="editLockSuggestionsAfterDraw">
-            {{ t('exchangeDetail.lockSuggestionsAfterDraw') }}
+            {{ t('fields.lockSuggestionsAfterDraw') }}
           </label>
         </div>
         <div class="mb-3 form-check">
@@ -358,7 +358,7 @@ function visibility(value: boolean) {
             class="form-check-input"
           />
           <label class="form-check-label" for="editNoMutualAssignments">
-            {{ t('exchangeDetail.noMutualAssignments') }}
+            {{ t('fields.noMutualAssignments') }}
           </label>
           <p v-if="editNoMutualAssignments" class="form-text mb-0">
             {{ t('review.reciprocalExclusions') }}
@@ -374,7 +374,7 @@ function visibility(value: boolean) {
         form="editExchangeForm"
         :disabled="contentLocked || !dirty || !isValid || !!props.isSubmitting || !!remote"
       >
-        {{ t('exchangeDetail.editExchangeModal.submit') }}
+        {{ t('actions.save') }}
       </button>
       <button
         type="button"

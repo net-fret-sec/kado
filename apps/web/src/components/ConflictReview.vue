@@ -13,7 +13,7 @@ const { t } = useI18n()
 const files = useSuggestionFiles()
 function display(value: unknown): string {
   if (value == null || value === '') return t('p2.empty')
-  if (typeof value === 'boolean') return t(value ? 'p2.yes' : 'p2.no')
+  if (typeof value === 'boolean') return t(value ? 'common.yes' : 'common.no')
   if (Array.isArray(value))
     return (
       value
@@ -23,7 +23,7 @@ function display(value: unknown): string {
                 .filter(([k, v]) => k !== '_clientId' && v !== undefined)
                 .map(
                   ([k, v]) =>
-                    `${t(`p2.fields.${k}`)}: ${k === 'imageId' ? t('images.saved') : k === 'pendingImage' ? files.get(String(v))?.name || t('images.selected') : display(v)}`,
+                    `${t(`fields.${k}`)}: ${k === 'imageId' ? t('fields.imageId') : k === 'pendingImage' ? files.get(String(v))?.name || t('fields.pendingImage') : display(v)}`,
                 )
                 .join(' · ')
             : display(s),
@@ -41,13 +41,13 @@ function display(value: unknown): string {
       <summary>{{ t('p2.currentVersion') }}</summary>
       <dl class="mt-2">
         <template v-for="(value, key) in props.current" :key="key"
-          ><dt>{{ t(`p2.fields.${key}`) }}</dt>
+          ><dt>{{ t(`fields.${key}`) }}</dt>
           <dd class="conflict-value">{{ display(value) }}</dd></template
         >
       </dl>
     </details>
     <fieldset v-for="field in fields" :key="field.key" class="mb-3">
-      <legend class="fs-6 fw-bold">{{ t(`p2.fields.${field.key}`) }}</legend>
+      <legend class="fs-6 fw-bold">{{ t(`fields.${field.key}`) }}</legend>
       <p>
         {{ t('p2.initialVersion') }}:
         <span class="conflict-value">{{ display(field.initial) }}</span>

@@ -168,9 +168,9 @@ export function useExchangeAdmin() {
 
   const statusLabel = computed(() => {
     if (!exchange.value) return '-'
-    if (exchange.value.isArchived) return t('exchangeDetail.statusValues.archived')
-    if (exchange.value.isDrawn) return t('exchangeDetail.statusValues.drawn')
-    return t('exchangeDetail.statusValues.undrawn')
+    if (exchange.value.isArchived) return t('exchangeStatus.archived')
+    if (exchange.value.isDrawn) return t('exchangeStatus.drawn')
+    return t('exchangeStatus.undrawn')
   })
 
   function resolveParticipantAccessLink(link: string) {

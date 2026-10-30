@@ -178,7 +178,7 @@ watch(
     <form id="editParticipantForm" @submit.prevent="submit">
       <div class="mb-3 form-field">
         <label for="editParticipantName" class="form-label">{{
-          t('exchangeDetail.addModal.name')
+          t('fields.name')
         }}</label
         ><input
           id="editParticipantName"
@@ -197,7 +197,7 @@ watch(
       </div>
       <div class="mb-3 form-field">
         <label for="editParticipantNote" class="form-label">{{
-          t('exchangeDetail.addModal.note')
+          t('common.comment')
         }}</label
         ><textarea
           id="editParticipantNote"
@@ -213,7 +213,7 @@ watch(
           {{ t('p2.invalidField') }}
         </p>
       </div>
-      <h3 class="h6">{{ t('exchangeDetail.addModal.wishlist') }}</h3>
+      <h3 class="h6">{{ t('fields.wishlist') }}</h3>
       <WishlistEditor
         v-model="wishlist"
         :locked="suggestionsLocked"
@@ -231,7 +231,7 @@ watch(
         form="editParticipantForm"
         :disabled="suggestionsLocked || !dirty || !valid || isSubmitting || imagesBusy || !!remote"
       >
-        {{ t('exchangeDetail.editModal.submit') }}
+        {{ t('actions.save') }}
       </button>
       <button
         type="button"
@@ -239,7 +239,7 @@ watch(
         data-bs-dismiss="modal"
         :disabled="isSubmitting || imagesBusy"
       >
-        {{ dirty ? t('actions.cancel') : t('review.close') }}
+        {{ dirty ? t('actions.cancel') : t('actions.close') }}
       </button>
     </template>
   </BaseModal>

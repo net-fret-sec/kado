@@ -74,10 +74,10 @@ const summary = computed(() => {
       <p v-if="exchange.description" class="details-description">{{ exchange.description }}</p>
       <ul class="ps-3 details-rules">
         <li v-if="exchange.plannedDrawDate">
-          {{ t('review.plannedDrawDate') }} : {{ formatCivilDate(exchange.plannedDrawDate) }}
+          {{ t('fields.plannedDrawDate') }} : {{ formatCivilDate(exchange.plannedDrawDate) }}
         </li>
         <li v-if="exchange.eventDate">
-          {{ t('exchangeDetail.exchangeMoment') }} : {{ formatCivilDate(exchange.eventDate) }}
+          {{ t('fields.eventDate') }} : {{ formatCivilDate(exchange.eventDate) }}
         </li>
         <li v-if="exchange.budget != null">
           {{ t('review.detailsBudget', { amount: formatMoney(exchange.budget) }) }}

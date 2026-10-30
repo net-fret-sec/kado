@@ -175,7 +175,7 @@ onBeforeUnmount(() => {
               type="button"
               class="btn-close"
               data-bs-dismiss="modal"
-              :aria-label="t('common.close')"
+              :aria-label="t('actions.close')"
             ></button>
           </slot>
         </div>

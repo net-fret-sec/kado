@@ -52,7 +52,7 @@ const accessLinkInput = ref<HTMLInputElement | null>(null)
 
     <template #footer>
       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-        {{ t('exchangeDetail.linkModal.close') }}
+        {{ t('actions.close') }}
       </button>
     </template>
   </BaseModal>

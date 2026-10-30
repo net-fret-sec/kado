@@ -55,7 +55,7 @@ function handleSubmit() {
     <form id="addParticipantForm" @submit.prevent="handleSubmit">
       <div class="mb-3 form-field">
         <label for="participantName" class="form-label">{{
-          t('exchangeDetail.addModal.name')
+          t('fields.name')
         }}</label>
         <input v-model="name" type="text" class="form-control" id="participantName" required />
       </div>
@@ -68,7 +68,7 @@ function handleSubmit() {
         form="addParticipantForm"
         :disabled="!isFormValid"
       >
-        {{ t('exchangeDetail.addModal.submit') }}
+        {{ t('actions.add') }}
       </button>
       <button type="button" class="btn btn-link order-1" data-bs-dismiss="modal">
         {{ t('actions.cancel') }}

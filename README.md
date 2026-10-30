@@ -26,6 +26,24 @@ Le monorepo PNPM contient trois briques:
 
 Les noms techniques existants (`admin`, `adminPassword`, `adminSessionToken` et les routes `/admin/...`) sont conservés ; ils désignent toujours l’accès organisateur d’un échange.
 
+## Traductions
+
+`apps/web/src/i18n/locales/fr-CA.json` est la source de vérité. Toute évolution des
+textes part du français, puis est reportée dans `en-CA.json` avec les mêmes clés,
+variables et formes plurielles. Les noms de marques et les mots communs aux deux
+langues peuvent rester identiques; ils sont explicitement contrôlés dans les tests.
+
+Réutiliser les libellés partagés de `actions`, `common`, `fields` et `exchangeStatus`.
+Éviter les copies de texte dans les sections propres à une page. Pour un code d’erreur
+qui doit conserver sa clé, un lien Vue I18n comme `@:images.unavailable` permet de
+réutiliser un message. Les clés sans usage doivent être retirées des deux catalogues;
+les clés composées dynamiquement (erreurs, conflits et listes) restent à prendre en compte.
+
+`pnpm test:web` inclut le contrôle de parité des catalogues, des doublons, des
+références, des variables, du balisage, des pluriels et du rendu de chaque message
+dans les deux langues. `pnpm test:review` complète ces contrôles par les parcours
+réels et le changement de langue dans le navigateur.
+
 ## Fonctionnalités couvertes
 
 - Gestion complète des échanges avec statuts `draft`, `ready`, `drawn` et `archived`.

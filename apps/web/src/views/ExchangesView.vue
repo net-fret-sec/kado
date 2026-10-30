@@ -7,24 +7,24 @@ import { useI18n } from 'vue-i18n'
 import type { ExchangeDto } from '@kado/shared'
 import CreateExchangeModal from '@/components/CreateExchangeModal.vue'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const exchangesStore = useExchangesStore()
 
 const isCreateModalOpen = ref(false)
 const paletteSwatches = [
-  { name: 'Fond global', value: '#F8FAF9', note: 'neutre froid' },
-  { name: 'Carte / Surface', value: '#FFFFFF', note: 'blanc pur' },
-  { name: 'Surface douce', value: '#F0F2F1', note: 'survols, zébrage' },
-  { name: 'Encart beige', value: '#F3EAD8', note: 'zones explicatives' },
-  { name: 'Titre / Logo', value: '#1F4E4F', note: 'teal foncé — ancrage' },
-  { name: 'Primary', value: '#256665', note: 'actions, liens, focus' },
-  { name: 'Sous-texte', value: '#866C5A', note: 'labels, meta' },
-  { name: 'Succès', value: '#4C7A5A', note: 'tirage effectué' },
-  { name: 'CTA ocre', value: '#D4A94F', note: 'action principale unique' },
-  { name: 'CTA hover', value: '#C6922F', note: '' },
-  { name: 'Bordure', value: '#E5E7E6', note: 'cartes, séparateurs' },
-  { name: 'Bordure beige', value: '#D6CFC4', note: 'encarts beige' },
-]
+  { key: 'background', value: '#F8FAF9', hasNote: true },
+  { key: 'surface', value: '#FFFFFF', hasNote: true },
+  { key: 'soft', value: '#F0F2F1', hasNote: true },
+  { key: 'beige', value: '#F3EAD8', hasNote: true },
+  { key: 'heading', value: '#1F4E4F', hasNote: true },
+  { key: 'primary', value: '#256665', hasNote: true },
+  { key: 'secondary', value: '#866C5A', hasNote: true },
+  { key: 'success', value: '#4C7A5A', hasNote: true },
+  { key: 'cta', value: '#D4A94F', hasNote: true },
+  { key: 'ctaHover', value: '#C6922F', hasNote: false },
+  { key: 'border', value: '#E5E7E6', hasNote: true },
+  { key: 'beigeBorder', value: '#D6CFC4', hasNote: true },
+] as const
 
 const sortedExchanges = computed(() => {
   return [...exchangesStore.exchanges].sort((a, b) => {
@@ -39,15 +39,15 @@ function statusBadgeClass(exchange: ExchangeDto) {
 }
 
 function statusLabel(exchange: ExchangeDto) {
-  if (exchange.isArchived) return t('exchanges.statusValues.archived')
-  if (exchange.isDrawn) return t('exchanges.statusValues.drawn')
-  return t('exchanges.statusValues.undrawn')
+  if (exchange.isArchived) return t('exchangeStatus.archived')
+  if (exchange.isDrawn) return t('exchangeStatus.drawn')
+  return t('exchangeStatus.undrawn')
 }
 
 function formatDate(value?: string) {
   if (!value) return '-'
   const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString()
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString(locale.value)
 }
 
 function formatBudget(exchange: ExchangeDto) {
@@ -69,16 +69,16 @@ onMounted(() => {
     <h1>{{ t('exchanges.title') }}</h1>
 
     <button type="button" class="btn btn-primary mb-3" @click="isCreateModalOpen = true">
-      {{ t('exchanges.createExchange') }}
+      {{ t('actions.createExchange') }}
     </button>
 
-    <section class="card border shadow-sm mb-4" aria-label="Palette visuelle">
+    <section class="card border shadow-sm mb-4" :aria-label="t('development.paletteTitle')">
       <div class="card-body">
         <p class="text-uppercase small fw-semibold text-body-secondary mb-2">
-          Palette visuelle (brouillon)
+          {{ t('development.paletteDraft') }}
         </p>
         <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-2">
-          <div v-for="swatch in paletteSwatches" :key="swatch.name" class="col">
+          <div v-for="swatch in paletteSwatches" :key="swatch.key" class="col">
             <div class="border rounded-4 bg-white h-100 p-2 d-flex align-items-start gap-2">
               <span
                 class="rounded-circle border flex-shrink-0"
@@ -91,12 +91,14 @@ onMounted(() => {
                 aria-hidden="true"
               ></span>
               <span class="d-flex flex-column gap-1">
-                <span class="small fw-semibold text-primary-emphasis lh-sm">{{ swatch.name }}</span>
+                <span class="small fw-semibold text-primary-emphasis lh-sm">{{
+                  t(`development.palette.${swatch.key}.name`)
+                }}</span>
                 <span class="small font-monospace text-body-secondary lh-sm">{{
                   swatch.value
                 }}</span>
-                <span v-if="swatch.note" class="small fst-italic text-body-secondary lh-sm">{{
-                  swatch.note
+                <span v-if="swatch.hasNote" class="small fst-italic text-body-secondary lh-sm">{{
+                  t(`development.palette.${swatch.key}.note`)
                 }}</span>
               </span>
             </div>
@@ -105,7 +107,7 @@ onMounted(() => {
       </div>
     </section>
 
-    <div v-if="exchangesStore.isLoading">{{ t('exchanges.loading') }}</div>
+    <div v-if="exchangesStore.isLoading">{{ t('common.loading') }}</div>
     <div v-else-if="exchangesStore.error">{{ exchangesStore.error }}</div>
     <div v-else-if="!sortedExchanges.length" class="alert alert-light border">
       {{ t('exchanges.empty') }}
@@ -132,25 +134,25 @@ onMounted(() => {
 
                 <dl class="row mb-0 small">
                   <dt class="col-5 text-body-secondary fw-semibold">
-                    {{ t('exchanges.organizer') }}
+                    {{ t('fields.organizerName') }}
                   </dt>
                   <dd class="col-7 mb-2">{{ exchange.organizerName || '-' }}</dd>
 
                   <dt class="col-5 text-body-secondary fw-semibold">
-                    {{ t('exchanges.participantsCount') }}
+                    {{ t('common.participants') }}
                   </dt>
                   <dd class="col-7 mb-2">{{ participantsCount(exchange) }}</dd>
 
                   <dt class="col-5 text-body-secondary fw-semibold">
-                    {{ t('exchanges.exchangeMoment') }}
+                    {{ t('fields.eventDate') }}
                   </dt>
                   <dd class="col-7 mb-2">{{ formatCivilDate(exchange.eventDate) }}</dd>
 
-                  <dt class="col-5 text-body-secondary fw-semibold">{{ t('exchanges.budget') }}</dt>
+                  <dt class="col-5 text-body-secondary fw-semibold">{{ t('fields.budget') }}</dt>
                   <dd class="col-7 mb-2">{{ formatBudget(exchange) }}</dd>
 
                   <dt class="col-5 text-body-secondary fw-semibold">
-                    {{ t('exchanges.minWishlistSuggestions') }}
+                    {{ t('fields.minWishlistSuggestions') }}
                   </dt>
                   <dd class="col-7 mb-2">{{ exchange.minWishlistSuggestions ?? 0 }}</dd>
 

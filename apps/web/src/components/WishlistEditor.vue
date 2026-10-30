@@ -98,7 +98,7 @@ function add() {
               type="button"
               class="btn btn-sm btn-outline-danger"
               :disabled="busy"
-              :aria-label="t('exchangeDetail.delete')"
+              :aria-label="t('actions.delete')"
               @click="remove(index)"
             >
               <i class="bi bi-trash" aria-hidden="true"></i>

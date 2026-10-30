@@ -78,9 +78,5 @@ export function getApiErrorMessage(error: unknown, options: ApiErrorMessageOptio
     return options.fallbackMessage
   }
 
-  if (i18n.global.te('apiErrors.UNKNOWN')) {
-    return i18n.global.t('apiErrors.UNKNOWN')
-  }
-
-  return 'Unknown error'
+  return i18n.global.t('apiErrors.UNKNOWN')
 }

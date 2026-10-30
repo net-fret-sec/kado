@@ -4,10 +4,17 @@
   },
   "actions": {
     "changeLanguage": "Changer la langue",
-    "changeTheme": "Changer le thème",
     "changeFontTheme": "Police",
     "changePaletteTheme": "Palette",
-    "cancel": "Abandonner les modifications"
+    "cancel": "Abandonner les modifications",
+    "createExchange": "Créer un échange",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "add": "Ajouter",
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "saveChanges": "Enregistrer les modifications",
+    "copy": "Copier"
   },
   "languages": {
     "fr": "Français",
@@ -43,26 +50,12 @@
     "o": "Noir phosphore",
     "p": "Canopée humide"
   },
-  "themes": {
-    "a": "Lagune claire (Open Sans + Manrope)",
-    "b": "Sandstone éditorial (Cal Sans + Manrope)",
-    "c": "Produit électrique (Space Grotesk + Inter)",
-    "d": "Patrimoine serif (Fraunces + Manrope)",
-    "e": "Nordique frais (Sora + Noto Sans)",
-    "f": "Atlas structuré (Archivo + Work Sans)",
-    "g": "Contraste prestige (DM Serif Display + DM Sans)",
-    "h": "Circuit menthe (Cal Sans + Inter)",
-    "i": "Nuit douce (Space Grotesk + Noto Sans)",
-    "j": "Citrus pop (Sora + Open Sans)"
-  },
   "home": {
     "hero": {
       "eyebrow": "Échanges de cadeaux sans friction",
       "title": "Organisez vos échanges de cadeaux, sans complications.",
       "description": "Créez un échange en quelques minutes, partagez les liens des participants et laissez Kado gérer les contraintes de la pige.",
-      "primaryAction": "Créer un échange",
-      "micro": "Libre. Gratuit. Respectueux de la vie privée.",
-      "audience": "Pensé pour les échanges entre amis, en famille ou entre collègues."
+      "micro": "Libre. Gratuit. Respectueux de la vie privée."
     },
     "trustStrip": {
       "openSource": {
@@ -78,65 +71,23 @@
         "description": "Pas de publicité, pas de revente de données, pas de cookies de traçage."
       }
     },
-    "cta": {
-      "primaryLabel": "Lancez-vous!",
-      "organizerTitle": "Je veux organiser un échange",
-      "organizerDesc": "Créez un échange, ajoutez les participants, définissez les exclusions de pige au besoin, puis effectuez la pige. Partagez le lien de chaque participant par le moyen de votre choix.",
-      "organizerAction": "Créer un échange"
-    },
-    "why": {
-      "title": "Pourquoi faire confiance à Kado ?",
-      "description": "Un outil simple, transparent et indépendant pour organiser des échanges sans friction inutile.",
-      "simple": {
-        "title": "Simple par conception",
-        "description": "Kado fait une chose précise : organiser des échanges de cadeaux sans détour ni complexité inutile."
-      },
-      "transparent": {
-        "title": "Transparent",
-        "description": "Le projet est libre et son fonctionnement est public. Rien n'est enfermé dans une boîte noire."
-      },
-      "independent": {
-        "title": "Indépendant",
-        "description": "Kado est maintenu comme un outil utile avant d'être un produit à rentabiliser."
-      }
-    },
     "support": {
       "title": "Kado est gratuit et le restera.",
       "subtext": "Si Kado vous a été utile, un petit coup de pouce pour l’hébergement et le développement est toujours apprécié.",
       "button": "Soutenir le projet"
     },
-    "footer": {
-      "tagline": "Projet libre, transparent et auto-hébergeable."
-    },
     "adminLink": "Outils d’administration locale (développement)"
   },
   "exchanges": {
     "title": "Échanges",
-    "createExchange": "Créer un échange",
-    "loading": "Chargement...",
-    "statusValues": {
-      "undrawn": "Non pigée",
-      "drawn": "Pigée",
-      "archived": "Archivée"
-    },
     "empty": "Aucun échange pour le moment.",
     "noDescription": "Aucune description.",
-    "organizer": "Organisateur",
-    "participantsCount": "Participants",
-    "exchangeMoment": "Date de l’échange de cadeaux",
-    "budget": "Budget",
-    "minWishlistSuggestions": "Nombre de suggestions minimal",
     "updatedAt": "Mis à jour",
     "createModal": {
       "title": "Création d’un échange",
       "name": "Donnez un nom à l’échange",
       "organizerName": "Quel est votre nom?",
-      "organizerParticipates": "Je participe à l’échange",
       "adminPassword": "Mot de passe",
-      "adminPasswordRulesTitle": "Contraintes du mot de passe :",
-      "adminPasswordRuleLength": "Au moins 8 caractères. Les majuscules et minuscules sont équivalentes.",
-      "adminPasswordRuleUnique": "Choisissez un mot de passe unique et difficile à deviner.",
-      "adminPasswordRuleStoredSafely": "Ce mot de passe ne pourra pas être récupéré ensuite.",
       "whatHappensTitle": "Ce qui va se passer après la création",
       "whatHappensCreated": "Votre échange est créé et vous êtes redirigé vers sa page de gestion.",
       "whatHappensAdminSession": "Une session organisateur est ouverte automatiquement sur cet appareil.",
@@ -145,39 +96,45 @@
       "submit": "Créer l’échange",
       "successTitle": "Échange créé",
       "successWarningTitle": "Conservez votre lien d’accès organisateur",
-      "successWarningText": "C’est le seul moment où vous verrez ce lien. Les liens des participants peuvent être régénérés en tout temps, mais pas celui-ci.",
+      "successWarningText": "Conservez ce lien dans vos signets pour retrouver la gestion de votre échange. Vous aurez aussi besoin de votre mot de passe après une déconnexion.",
       "adminLinkLabel": "Lien d’accès organisateur",
       "adminLinkHint": "Vous aurez besoin de ce lien pour gérer votre échange.",
-      "copyButton": "Copier",
       "continueButton": "Continuer vers l’échange"
     }
   },
-  "exchangeDetail": {
+  "common": {
     "loading": "Chargement...",
-    "name": "Nom",
-    "description": "Description",
-    "status": "Statut",
-    "statusValues": {
-      "undrawn": "Non pigée",
-      "drawn": "Pigée",
-      "archived": "Archivée"
-    },
-    "organizer": "Organisateur",
-    "exchangeMoment": "Date de l’échange de cadeaux",
+    "participants": "Participants",
+    "comment": "Commentaire",
+    "yes": "Oui",
+    "no": "Non"
+  },
+  "exchangeStatus": {
+    "undrawn": "Non pigée",
+    "drawn": "Pigée",
+    "archived": "Archivée"
+  },
+  "fields": {
+    "organizerName": "Organisateur",
+    "eventDate": "Date de l’échange de cadeaux",
     "budget": "Budget",
     "minWishlistSuggestions": "Nombre de suggestions minimal",
+    "name": "Nom",
+    "description": "Description",
     "lockSuggestionsAfterDraw": "Désactiver les modifications des suggestions après la pige",
     "noMutualAssignments": "Piges mutuelles interdites",
-    "enabled": "Oui",
-    "disabled": "Non",
-    "createdAt": "Créé le",
-    "edit": "Modifier",
-    "delete": "Supprimer",
-    "participants": "Participants",
-    "addParticipant": "Ajouter",
+    "wishlist": "Liste de suggestions de cadeaux",
+    "title": "Nom ou description",
+    "email": "Courriel",
+    "note": "Commentaire (facultatif)",
+    "linkUrl": "Lien",
+    "imageId": "Image enregistrée",
+    "pendingImage": "Image sélectionnée",
+    "plannedDrawDate": "Date prévue de la pige"
+  },
+  "exchangeDetail": {
     "noParticipants": "Aucun participant pour cet échange.",
     "wishlistSuggestions": "{count} suggestion | {count} suggestions",
-    "note": "Commentaire",
     "generateLink": "Régénérer le lien du participant",
     "triggerDraw": "Effectuer la pige",
     "cancelDraw": "Annuler la pige",
@@ -190,41 +147,29 @@
     "linkModal": {
       "title": "Lien du participant",
       "description": "Partagez ce lien avec le participant.",
-      "close": "Fermer",
       "infoTitle": "Important",
       "infoNotRecoverable": "Les liens des participants générés ne sont pas récupérables.",
       "infoNewLinksAllowed": "Le lien du participant peut être régénéré en cas de perte.",
       "infoPreviousExpired": "À chaque régénération, tous les anciens liens du participant deviennent définitivement périmés."
     },
     "addModal": {
-      "title": "Ajouter un participant",
-      "name": "Nom",
-      "wishlist": "Liste de suggestions de cadeaux",
-      "note": "Commentaire",
-      "submit": "Ajouter"
+      "title": "Ajouter un participant"
     },
     "editModal": {
-      "title": "Modifier le participant",
-      "submit": "Enregistrer"
+      "title": "Modifier le participant"
     },
     "editExchangeModal": {
-      "title": "Modifier l’échange",
-      "submit": "Enregistrer"
+      "title": "Modifier l’échange"
     },
     "exceptions": {
-      "title": "Exclusions de pige",
-      "cannotDraw": "Ne peut pas piger",
       "none": "Aucune exclusion de pige.",
       "selectReceiver": "Choisir un participant",
-      "add": "Ajouter",
-      "remove": "Supprimer",
       "added": "Exclusion de pige ajoutée.",
       "removed": "Exclusion de pige supprimée.",
       "addFailed": "Échec de l’ajout de l’exclusion de pige.",
       "removeFailed": "Échec de la suppression de l’exclusion de pige.",
       "locked": "Les modifications des exclusions de pige sont désactivées après la pige."
     },
-    "confirmDeleteExchange": "Supprimer cet échange ?",
     "confirmDeleteParticipant": "Supprimer ce participant ?",
     "confirmTriggerDraw": "Effectuer la pige pour cet échange ?",
     "confirmCancelDraw": "Annuler la pige pour cet échange ?",
@@ -235,42 +180,23 @@
       "login": "Se connecter",
       "loggingIn": "Connexion...",
       "logout": "Se déconnecter",
-      "loggingOut": "Déconnexion...",
       "loggedOut": "Session organisateur fermée.",
       "required": "Session organisateur requise.",
       "loginFailed": "Impossible de se connecter comme organisateur.",
-      "changePasswordTitle": "Changer le mot de passe de l’organisateur",
-      "changePasswordDescription": "Utilisez ce formulaire pour modifier le mot de passe de l’organisateur de cet échange.",
-      "currentPasswordLabel": "Mot de passe actuel",
-      "newPasswordLabel": "Nouveau mot de passe",
-      "confirmPasswordLabel": "Confirmer le nouveau mot de passe",
-      "changePassword": "Changer le mot de passe",
-      "changingPassword": "Changement...",
       "passwordUpdated": "Le mot de passe de l’organisateur a été mis à jour.",
       "passwordMismatch": "Le nouveau mot de passe et sa confirmation ne correspondent pas."
     },
     "dashboard": {
       "settings": "Détails de l’échange",
       "editSettings": "Modifier les détails",
-      "suggestions": "Suggestions de cadeaux",
-      "rules": "Règles de la pige",
-      "manageExclusions": "Consulter et gérer les exclusions",
-      "directional": "Participant A ne peut pas piger participant B n’empêche pas participant B de piger participant A.",
       "exclusionCount": "Aucune exclusion | Une exclusion | {count} exclusions",
-      "giver": "Personne qui pige",
-      "selectGiver": "Sélectionner une personne",
       "receiver": "Ne peut pas piger",
-      "removeExclusion": "Retirer l’exclusion : {giver} ne peut pas piger {receiver}",
-      "participantDetails": "Détails et actions pour {name}",
-      "administration": "Gestion de l’accès et suppression",
       "deleteExchange": "Supprimer l’échange",
-      "minimumParticipants": "Ajoutez au moins deux participants pour effectuer la pige."
+      "minimumParticipants": "Ajoutez au moins trois participants pour effectuer la pige."
     }
   },
   "participant": {
-    "loading": "Chargement...",
     "profileSectionTitle": "Mon profil",
-    "name": "Nom",
     "wishlist": "Liste de suggestions",
     "addSuggestion": "Ajouter une suggestion",
     "noSuggestions": "Aucune suggestion pour le moment.",
@@ -279,16 +205,12 @@
     "note": "Commentaire pour la personne qui m’a pigé (optionnel)",
     "editingOpen": "Vous pouvez modifier vos informations et vos suggestions pour cet échange.",
     "editingClosed": "Les modifications des suggestions et du commentaire sont désactivées pour cet échange.",
-    "save": "Enregistrer les modifications",
     "saving": "Enregistrement...",
     "saveSuccess": "Vos informations ont été mises à jour.",
     "recipientSectionTitle": "Personne pigée",
-    "recipientName": "Nom",
-    "recipientNote": "Commentaire",
     "suggestionsSectionTitle": "Mes suggestions de cadeaux",
     "wishlistItem": {
       "reorder": "Réordonner",
-      "titleLabel": "Nom ou description",
       "linkLabel": "Lien (facultatif)",
       "linkPlaceholder": "https://exemple.com/produit",
       "titleRequired": "Nom ou description manquant(e)",
@@ -340,16 +262,13 @@
     "IMAGE_UPLOAD_BUSY": "Un envoi d’image est en cours. Réessayez dans un instant.",
     "IMAGE_PROCESSING_INTERRUPTED": "Le traitement de l’image a été interrompu. Votre saisie est conservée.",
     "IMAGE_REFERENCE_INVALID": "Une image est périmée ou indisponible. Sélectionnez-la à nouveau.",
-    "IMAGE_NOT_FOUND": "Image indisponible."
-  },
-  "common": {
-    "close": "fermer"
+    "IMAGE_NOT_FOUND": "@:images.unavailable",
+    "INTERNAL_SERVER_ERROR": "@:apiErrors.UNKNOWN",
+    "ROUTE_NOT_FOUND": "La ressource demandée est introuvable."
   },
   "p2": {
     "discardDraft": "Abandonner les modifications non enregistrées ?",
     "empty": "Vide",
-    "yes": "Oui",
-    "no": "Non",
     "conflictTitle": "Des modifications ont été faites ailleurs",
     "conflictHelp": "Votre saisie est conservée. Choisissez les valeurs à garder lorsqu’un même champ a changé. Préparer le brouillon ne l’enregistre pas.",
     "yourVersion": "Votre saisie",
@@ -358,8 +277,6 @@
     "outcomeUncertain": "La requête a été interrompue. L’opération a peut-être été effectuée : vérifiez son résultat avant de la répéter. Une nouvelle tentative de création peut créer un doublon.",
     "storageUnavailable": "Le stockage de cet appareil est indisponible. La session reste en mémoire et ne sera pas conservée après fermeture ou rechargement.",
     "skipContent": "Aller au contenu",
-    "moveUp": "Monter",
-    "moveDown": "Descendre",
     "moved": "{title} : position {position}.",
     "invalidField": "Vérifiez ce champ et les limites indiquées.",
     "refresh": "Actualiser",
@@ -373,35 +290,13 @@
     "adminActions": "Actions de gestion de l’échange",
     "notFoundTitle": "Page introuvable",
     "notFoundHelp": "Cette adresse ne correspond à aucune page de Kado.",
-    "fields": {
-      "name": "Nom",
-      "email": "Courriel",
-      "note": "Commentaire (facultatif)",
-      "wishlist": "Liste de suggestions de cadeaux",
-      "organizerName": "Organisateur",
-      "description": "Description",
-      "eventDate": "Date de l’échange de cadeaux",
-      "budget": "Budget",
-      "minWishlistSuggestions": "Nombre de suggestions minimal",
-      "lockSuggestionsAfterDraw": "Désactiver les modifications des suggestions après la pige",
-      "noMutualAssignments": "Piges mutuelles interdites",
-      "title": "Titre",
-      "linkUrl": "Lien",
-      "imageId": "Image enregistrée",
-      "pendingImage": "Image sélectionnée",
-      "plannedDrawDate": "Date prévue de la pige"
-    },
     "initialVersion": "Référence initiale"
   },
   "images": {
     "label": "Image (facultative)",
-    "help": "JPEG, PNG ou WebP fixe : {size} Mio et {pixels} mégapixels maximum. Image réduite à {dimension} pixels, version optimisée limitée à {output} Kio. Envoi lors d’Enregistrer.",
     "remove": "Supprimer l’image",
     "unavailable": "Image indisponible.",
-    "loadingConfig": "Chargement des limites d’image…",
-    "validating": "Vérification de l’image…",
-    "saved": "Image enregistrée",
-    "selected": "Image sélectionnée"
+    "validating": "Vérification de l’image…"
   },
   "review": {
     "keepAccess": "Conservez vos accès",
@@ -412,14 +307,12 @@
     "show": "Afficher",
     "passwordHelp": "Au moins 8 caractères. Les majuscules et minuscules sont équivalentes.",
     "requiredNames": "Le nom de l’échange et votre nom sont obligatoires (150 caractères maximum).",
-    "plannedDrawDate": "Date prévue de la pige",
-    "datesHelp": "Dates facultatives et informatives. La pige reste déclenchée par l’organisateur.",
+    "datesHelp": "Dates facultatives. La date prévue de la pige ne la déclenche pas automatiquement. L’échange est archivé 31 jours après la date de remise des cadeaux.",
     "addImage": "Ajouter une image",
     "replaceImage": "Remplacer l’image",
     "imageHint": "Cliquer ou déposer une image. JPEG, PNG ou WebP. Envoi lors de l’enregistrement.",
     "imageLimit": "Maximum : {size} Mio et {pixels} mégapixels.",
     "reorderHelp": "Sur la poignée, utilisez les flèches haut et bas pour déplacer la suggestion.",
-    "saveAll": "Enregistrer les modifications",
     "saveHelp": "Enregistre le profil et toutes les suggestions.",
     "invalidHelp": "Complétez les champs obligatoires et corrigez les erreurs avant d’enregistrer.",
     "participantList": "Participants à l’échange",
@@ -429,9 +322,8 @@
     "mutual": "{a} et {b} ne peuvent pas se piger.",
     "directional": "{name} ne peut pas piger {others}.",
     "editExclusions": "Exclusions de cette personne",
-    "exclusionsHelp": "Les boutons Ajouter et Retirer enregistrent immédiatement les exclusions. Le bouton Enregistrer concerne uniquement le profil et les suggestions.",
+    "exclusionsHelp": "Les boutons Ajouter et Supprimer enregistrent immédiatement les exclusions. Le bouton Enregistrer concerne uniquement le profil et les suggestions.",
     "linkFor": "Partagez ce lien personnel avec {name}.",
-    "connectionLost": "La connexion au serveur est interrompue. Vos modifications non enregistrées sont conservées.",
     "confirmDeleteSuggestion": "Supprimer cette suggestion cadeau? Cette modification prendra effet après l’enregistrement.",
     "detailsOrganizer": "Organisé par {name}",
     "detailsBudget": "Le budget de cadeau est de {amount}.",
@@ -443,7 +335,59 @@
     "detailsMutual": "Les piges mutuelles sont permises. Même si A pige B, B peut tout de même piger A.",
     "detailsExclusions": "Exclusions",
     "reciprocalExclusions": "Dans ce mode, chaque exclusion s’applique dans les deux sens.",
-    "close": "Fermer",
     "participantActions": "Actions pour {name}"
+  },
+  "development": {
+    "paletteTitle": "Palette visuelle",
+    "paletteDraft": "Palette visuelle (brouillon)",
+    "palette": {
+      "background": {
+        "name": "Fond global",
+        "note": "neutre froid"
+      },
+      "surface": {
+        "name": "Carte / Surface",
+        "note": "blanc pur"
+      },
+      "soft": {
+        "name": "Surface douce",
+        "note": "survols, zébrage"
+      },
+      "beige": {
+        "name": "Encart beige",
+        "note": "zones explicatives"
+      },
+      "heading": {
+        "name": "Titre / Logo",
+        "note": "bleu-vert foncé — ancrage"
+      },
+      "primary": {
+        "name": "Couleur principale",
+        "note": "actions, liens, focus"
+      },
+      "secondary": {
+        "name": "Sous-texte",
+        "note": "libellés, métadonnées"
+      },
+      "success": {
+        "name": "Succès",
+        "note": "tirage effectué"
+      },
+      "cta": {
+        "name": "Action principale ocre",
+        "note": "action principale unique"
+      },
+      "ctaHover": {
+        "name": "Survol de l’action"
+      },
+      "border": {
+        "name": "Bordure",
+        "note": "cartes, séparateurs"
+      },
+      "beigeBorder": {
+        "name": "Bordure beige",
+        "note": "encarts beige"
+      }
+    }
   }
 }

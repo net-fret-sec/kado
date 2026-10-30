@@ -4,10 +4,17 @@
   },
   "actions": {
     "changeLanguage": "Change language",
-    "changeTheme": "Change theme",
     "changeFontTheme": "Font",
     "changePaletteTheme": "Palette",
-    "cancel": "Discard changes"
+    "cancel": "Discard changes",
+    "createExchange": "Create an exchange",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "close": "Close",
+    "save": "Save",
+    "saveChanges": "Save changes",
+    "copy": "Copy"
   },
   "languages": {
     "fr": "Français",
@@ -40,29 +47,15 @@
     "l": "Acid Frost",
     "m": "Solar Archive",
     "n": "Glacial Dawn",
-    "o": "Phosphor Noir",
+    "o": "Phosphor Black",
     "p": "Humid Canopy"
-  },
-  "themes": {
-    "a": "Clear Lagoon (Open Sans + Manrope)",
-    "b": "Sandstone Editorial (Cal Sans + Manrope)",
-    "c": "Electric Product (Space Grotesk + Inter)",
-    "d": "Heritage Serif (Fraunces + Manrope)",
-    "e": "Fresh Nordic (Sora + Noto Sans)",
-    "f": "Structured Atlas (Archivo + Work Sans)",
-    "g": "Prestige Contrast (DM Serif Display + DM Sans)",
-    "h": "Mint Circuit (Cal Sans + Inter)",
-    "i": "Soft Night (Space Grotesk + Noto Sans)",
-    "j": "Citrus Pop (Sora + Open Sans)"
   },
   "home": {
     "hero": {
       "eyebrow": "Gift exchanges without friction",
       "title": "Organize your gift exchanges without the hassle.",
       "description": "Create an exchange in minutes, share participant links, and let Kado handle the draw constraints.",
-      "primaryAction": "Create an exchange",
-      "micro": "Open. Free. Privacy-respecting.",
-      "audience": "Built for exchanges among friends, family, or coworkers."
+      "micro": "Open source. Free. Privacy-respecting."
     },
     "trustStrip": {
       "openSource": {
@@ -78,65 +71,23 @@
         "description": "No ads, no data resale, and no tracking cookies."
       }
     },
-    "cta": {
-      "primaryLabel": "Primary action",
-      "organizerTitle": "I want to organize an exchange",
-      "organizerDesc": "Create an exchange, add participants, define draw exclusions if needed, then perform the draw. Each person receives their participant link, which you can share through your preferred channel.",
-      "organizerAction": "Create an exchange"
-    },
-    "why": {
-      "title": "Why trust Kado?",
-      "description": "A simple, transparent, and independent tool for running exchanges without unnecessary friction.",
-      "simple": {
-        "title": "Simple by design",
-        "description": "Kado does one thing well: organize gift exchanges without detours or unnecessary complexity."
-      },
-      "transparent": {
-        "title": "Transparent",
-        "description": "The project is open and its behavior is public. Nothing is hidden inside a black box."
-      },
-      "independent": {
-        "title": "Independent",
-        "description": "Kado is maintained as a useful tool first, not as a product designed to extract attention."
-      }
-    },
     "support": {
       "title": "Kado is free and will stay that way.",
-      "subtext": "If the app is useful to you and you'd like to help cover hosting and development costs, you can give the project a small boost.",
+      "subtext": "If Kado has been useful to you, a small contribution towards hosting and development is always appreciated.",
       "button": "Support the project"
-    },
-    "footer": {
-      "tagline": "Open, transparent, and self-hostable."
     },
     "adminLink": "Local administration tools (development)"
   },
   "exchanges": {
     "title": "Exchanges",
-    "createExchange": "Create an exchange",
-    "loading": "Loading...",
-    "statusValues": {
-      "undrawn": "Not drawn",
-      "drawn": "Drawn",
-      "archived": "Archived"
-    },
     "empty": "No exchanges yet.",
     "noDescription": "No description.",
-    "organizer": "Organizer",
-    "participantsCount": "Participants",
-    "exchangeMoment": "Gift exchange date",
-    "budget": "Budget",
-    "minWishlistSuggestions": "Minimum number of suggestions",
     "updatedAt": "Updated",
     "createModal": {
       "title": "Create an exchange",
-      "name": "Exchange name",
-      "organizerName": "Organizer Name",
-      "organizerParticipates": "Organizer participates in the exchange",
-      "adminPassword": "Organizer password",
-      "adminPasswordRulesTitle": "Organizer password requirements:",
-      "adminPasswordRuleLength": "At least 8 characters. Uppercase and lowercase letters are equivalent.",
-      "adminPasswordRuleUnique": "Use a unique password that is hard to guess.",
-      "adminPasswordRuleStoredSafely": "This password cannot be recovered later.",
+      "name": "Give your exchange a name",
+      "organizerName": "What is your name?",
+      "adminPassword": "Password",
       "whatHappensTitle": "What happens after creation",
       "whatHappensCreated": "Your exchange is created and you are redirected to its management page.",
       "whatHappensAdminSession": "An organizer session is automatically opened on this device.",
@@ -145,39 +96,45 @@
       "submit": "Create exchange",
       "successTitle": "Exchange created",
       "successWarningTitle": "Keep your organizer access link safe",
-      "successWarningText": "This is the only time you will see this link. Participant links can be regenerated at any time, but this link cannot.",
+      "successWarningText": "Bookmark this link to return to your exchange’s management page. You will also need your password after signing out.",
       "adminLinkLabel": "Organizer access link",
       "adminLinkHint": "You will need this link to manage your exchange.",
-      "copyButton": "Copy",
       "continueButton": "Go to exchange"
     }
   },
-  "exchangeDetail": {
+  "common": {
     "loading": "Loading...",
-    "name": "Name",
-    "description": "Description",
-    "status": "Status",
-    "statusValues": {
-      "undrawn": "Not drawn",
-      "drawn": "Drawn",
-      "archived": "Archived"
-    },
-    "organizer": "Organizer",
-    "exchangeMoment": "Gift exchange date",
+    "participants": "Participants",
+    "comment": "Comment",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "exchangeStatus": {
+    "undrawn": "Not drawn",
+    "drawn": "Drawn",
+    "archived": "Archived"
+  },
+  "fields": {
+    "organizerName": "Organizer",
+    "eventDate": "Gift exchange date",
     "budget": "Budget",
     "minWishlistSuggestions": "Minimum number of suggestions",
+    "name": "Name",
+    "description": "Description",
     "lockSuggestionsAfterDraw": "Disable changes to suggestions after the draw",
-    "noMutualAssignments": "Mutual assignments prohibited",
-    "enabled": "Yes",
-    "disabled": "No",
-    "createdAt": "Created on",
-    "edit": "Edit",
-    "delete": "Delete",
-    "participants": "Participants",
-    "addParticipant": "Add",
+    "noMutualAssignments": "Mutual draws prohibited",
+    "wishlist": "Gift suggestion list",
+    "title": "Name or description",
+    "email": "Email",
+    "note": "Comment (optional)",
+    "linkUrl": "Link",
+    "imageId": "Saved image",
+    "pendingImage": "Selected image",
+    "plannedDrawDate": "Planned draw date"
+  },
+  "exchangeDetail": {
     "noParticipants": "No participants for this exchange.",
     "wishlistSuggestions": "{count} suggestion | {count} suggestions",
-    "note": "Comment",
     "generateLink": "Regenerate participant link",
     "triggerDraw": "Perform draw",
     "cancelDraw": "Cancel draw",
@@ -190,41 +147,29 @@
     "linkModal": {
       "title": "Participant link",
       "description": "Share this link with the participant.",
-      "close": "Close",
       "infoTitle": "Important",
       "infoNotRecoverable": "Generated participant links cannot be recovered.",
       "infoNewLinksAllowed": "The participant link can be regenerated if it is lost.",
       "infoPreviousExpired": "Whenever the participant link is regenerated, all previous links become permanently invalid."
     },
     "addModal": {
-      "title": "Add Participant",
-      "name": "Name",
-      "wishlist": "Gift suggestion list",
-      "note": "Comment",
-      "submit": "Add"
+      "title": "Add a participant"
     },
     "editModal": {
-      "title": "Edit Participant",
-      "submit": "Save"
+      "title": "Edit participant"
     },
     "editExchangeModal": {
-      "title": "Edit exchange",
-      "submit": "Save"
+      "title": "Edit exchange"
     },
     "exceptions": {
-      "title": "Draw exclusions",
-      "cannotDraw": "Cannot draw",
       "none": "No draw exclusions.",
       "selectReceiver": "Select a participant",
-      "add": "Add",
-      "remove": "Delete",
       "added": "Draw exclusion added.",
       "removed": "Draw exclusion deleted.",
       "addFailed": "Failed to add the draw exclusion.",
       "removeFailed": "Failed to delete the draw exclusion.",
       "locked": "Changes to draw exclusions are disabled after the draw."
     },
-    "confirmDeleteExchange": "Delete this exchange?",
     "confirmDeleteParticipant": "Delete this participant?",
     "confirmTriggerDraw": "Perform the draw for this exchange?",
     "confirmCancelDraw": "Cancel the draw for this exchange?",
@@ -235,42 +180,23 @@
       "login": "Sign in",
       "loggingIn": "Signing in...",
       "logout": "Sign out",
-      "loggingOut": "Signing out...",
       "loggedOut": "Organizer session closed.",
       "required": "Organizer session required.",
       "loginFailed": "Unable to sign in as organizer.",
-      "changePasswordTitle": "Change organizer password",
-      "changePasswordDescription": "Use this form to update the organizer password for this exchange.",
-      "currentPasswordLabel": "Current password",
-      "newPasswordLabel": "New password",
-      "confirmPasswordLabel": "Confirm new password",
-      "changePassword": "Change password",
-      "changingPassword": "Changing...",
       "passwordUpdated": "Organizer password has been updated.",
       "passwordMismatch": "New password and confirmation do not match."
     },
     "dashboard": {
       "settings": "Exchange details",
       "editSettings": "Edit details",
-      "suggestions": "Gift suggestions",
-      "rules": "Draw rules",
-      "manageExclusions": "View and manage exclusions",
-      "directional": "Participant A cannot draw participant B does not prevent participant B from drawing participant A.",
       "exclusionCount": "No exclusions | One exclusion | {count} exclusions",
-      "giver": "Person drawing",
-      "selectGiver": "Select a person",
       "receiver": "Cannot draw",
-      "removeExclusion": "Remove exclusion: {giver} cannot draw {receiver}",
-      "participantDetails": "Details and actions for {name}",
-      "administration": "Access management and deletion",
       "deleteExchange": "Delete exchange",
-      "minimumParticipants": "Add at least two participants to perform the draw."
+      "minimumParticipants": "Add at least three participants to perform the draw."
     }
   },
   "participant": {
-    "loading": "Loading...",
     "profileSectionTitle": "My profile",
-    "name": "Name",
     "wishlist": "Suggestion list",
     "addSuggestion": "Add suggestion",
     "noSuggestions": "No suggestions yet.",
@@ -279,19 +205,15 @@
     "note": "Comment for the person who drew my name (optional)",
     "editingOpen": "You can edit your information and suggestions for this exchange.",
     "editingClosed": "Changes to suggestions and the comment are disabled for this exchange.",
-    "save": "Save changes",
     "saving": "Saving...",
     "saveSuccess": "Your information was updated.",
-    "recipientSectionTitle": "Drawn recipient",
-    "recipientName": "Name",
-    "recipientNote": "Comment",
+    "recipientSectionTitle": "Your gift recipient",
     "suggestionsSectionTitle": "My gift suggestions",
     "wishlistItem": {
       "reorder": "Reorder",
-      "titleLabel": "Title",
-      "linkLabel": "Link",
+      "linkLabel": "Link (optional)",
       "linkPlaceholder": "https://example.com/product",
-      "titleRequired": "Title is required.",
+      "titleRequired": "Name or description is required.",
       "linkUrlInvalid": "Invalid link URL (http/https required)."
     }
   },
@@ -340,16 +262,13 @@
     "IMAGE_UPLOAD_BUSY": "An image upload is in progress. Try again shortly.",
     "IMAGE_PROCESSING_INTERRUPTED": "Image processing was interrupted. Your draft has been kept.",
     "IMAGE_REFERENCE_INVALID": "An image has expired or is unavailable. Select it again.",
-    "IMAGE_NOT_FOUND": "Image unavailable."
-  },
-  "common": {
-    "close": "close"
+    "IMAGE_NOT_FOUND": "@:images.unavailable",
+    "INTERNAL_SERVER_ERROR": "@:apiErrors.UNKNOWN",
+    "ROUTE_NOT_FOUND": "The requested resource was not found."
   },
   "p2": {
     "discardDraft": "Discard unsaved changes?",
     "empty": "Empty",
-    "yes": "Yes",
-    "no": "No",
     "conflictTitle": "Changes were made elsewhere",
     "conflictHelp": "Your draft has been kept. Choose which values to keep when the same field changed. Preparing the draft does not save it.",
     "yourVersion": "Your draft",
@@ -358,8 +277,6 @@
     "outcomeUncertain": "The request was interrupted. The operation may have completed: check its result before repeating it. Retrying creation may create a duplicate.",
     "storageUnavailable": "Storage on this device is unavailable. Your session stays in memory and will not survive closing or reloading the page.",
     "skipContent": "Skip to content",
-    "moveUp": "Move up",
-    "moveDown": "Move down",
     "moved": "{title}: position {position}.",
     "invalidField": "Check this field and its stated limits.",
     "refresh": "Refresh",
@@ -373,35 +290,13 @@
     "adminActions": "Exchange management actions",
     "notFoundTitle": "Page not found",
     "notFoundHelp": "This address does not match a Kado page.",
-    "fields": {
-      "name": "Name",
-      "email": "Email",
-      "note": "Comment",
-      "wishlist": "Gift suggestion list",
-      "organizerName": "Organizer",
-      "description": "Description",
-      "eventDate": "Gift exchange date",
-      "budget": "Budget",
-      "minWishlistSuggestions": "Minimum number of suggestions",
-      "lockSuggestionsAfterDraw": "Disable changes to suggestions after the draw",
-      "noMutualAssignments": "Mutual assignments prohibited",
-      "title": "Title",
-      "linkUrl": "Link",
-      "imageId": "Saved image",
-      "pendingImage": "Selected image",
-      "plannedDrawDate": "Planned draw date"
-    },
     "initialVersion": "Initial reference"
   },
   "images": {
-    "label": "Gift image",
-    "help": "Still JPEG, PNG or WebP: up to {size} MiB and {pixels} megapixels. Resized to {dimension} pixels, optimized image up to {output} KiB. Uploaded when you save.",
+    "label": "Image (optional)",
     "remove": "Delete image",
     "unavailable": "Image unavailable.",
-    "loadingConfig": "Loading image limits…",
-    "validating": "Checking image…",
-    "saved": "Saved image",
-    "selected": "Selected image"
+    "validating": "Checking image…"
   },
   "review": {
     "keepAccess": "Keep your access details",
@@ -412,14 +307,12 @@
     "show": "Show",
     "passwordHelp": "At least 8 characters. Uppercase and lowercase letters are equivalent.",
     "requiredNames": "The exchange name and your name are required (maximum 150 characters).",
-    "plannedDrawDate": "Planned draw date",
-    "datesHelp": "Optional dates for information only. The organizer still starts the draw.",
+    "datesHelp": "Optional dates. The planned draw date does not start the draw automatically. The exchange is archived 31 days after the gift exchange date.",
     "addImage": "Add an image",
     "replaceImage": "Replace image",
     "imageHint": "Click or drop an image. JPEG, PNG or WebP. Uploaded when you save.",
     "imageLimit": "Maximum: {size} MiB and {pixels} megapixels.",
     "reorderHelp": "On the handle, use the up and down arrow keys to move the suggestion.",
-    "saveAll": "Save changes",
     "saveHelp": "Saves your profile and all suggestions.",
     "invalidHelp": "Complete the required fields and correct errors before saving.",
     "participantList": "Exchange participants",
@@ -429,9 +322,8 @@
     "mutual": "{a} and {b} cannot draw each other.",
     "directional": "{name} cannot draw {others}.",
     "editExclusions": "Exclusions for this person",
-    "exclusionsHelp": "Add and Remove save exclusions immediately. The Save button only saves the profile and suggestions.",
+    "exclusionsHelp": "Add and Delete save exclusions immediately. The Save button only saves the profile and suggestions.",
     "linkFor": "Share this personal link with {name}.",
-    "connectionLost": "The connection to the server was interrupted. Your unsaved changes are preserved.",
     "confirmDeleteSuggestion": "Delete this gift suggestion? This change will take effect when you save.",
     "detailsOrganizer": "Organized by {name}",
     "detailsBudget": "The gift budget is {amount}.",
@@ -443,7 +335,59 @@
     "detailsMutual": "Mutual draws are allowed. If A draws B, B can still draw A.",
     "detailsExclusions": "Exclusions",
     "reciprocalExclusions": "In this mode, each exclusion applies in both directions.",
-    "close": "Close",
     "participantActions": "Actions for {name}"
+  },
+  "development": {
+    "paletteTitle": "Visual palette",
+    "paletteDraft": "Visual palette (draft)",
+    "palette": {
+      "background": {
+        "name": "Page background",
+        "note": "cool neutral"
+      },
+      "surface": {
+        "name": "Card / Surface",
+        "note": "pure white"
+      },
+      "soft": {
+        "name": "Soft surface",
+        "note": "hover states, alternating rows"
+      },
+      "beige": {
+        "name": "Beige panel",
+        "note": "explanatory areas"
+      },
+      "heading": {
+        "name": "Heading / Logo",
+        "note": "dark teal — anchor"
+      },
+      "primary": {
+        "name": "Primary",
+        "note": "actions, links, focus"
+      },
+      "secondary": {
+        "name": "Secondary text",
+        "note": "labels, metadata"
+      },
+      "success": {
+        "name": "Success",
+        "note": "draw completed"
+      },
+      "cta": {
+        "name": "Ochre call to action",
+        "note": "single primary action"
+      },
+      "ctaHover": {
+        "name": "Call-to-action hover"
+      },
+      "border": {
+        "name": "Border",
+        "note": "cards, separators"
+      },
+      "beigeBorder": {
+        "name": "Beige border",
+        "note": "beige panels"
+      }
+    }
   }
 }

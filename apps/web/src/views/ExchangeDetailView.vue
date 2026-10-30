@@ -195,7 +195,7 @@ watch(requiresAdminAuth, (value) => {
     >
       {{ t('p2.refresh') }}
     </button>
-    <div v-if="isLoading" role="status">{{ t('exchangeDetail.loading') }}</div>
+    <div v-if="isLoading" role="status">{{ t('common.loading') }}</div>
     <div v-else-if="error && !exchange" class="alert alert-danger" role="alert">
       {{ error }} <router-link to="/">{{ t('p2.home') }}</router-link>
     </div>
@@ -220,7 +220,7 @@ watch(requiresAdminAuth, (value) => {
                 <button
                   v-if="canTriggerDraw"
                   class="btn btn-primary"
-                  :disabled="isDrawActionLoading || activeParticipants.length < 2"
+                  :disabled="isDrawActionLoading || activeParticipants.length < 3"
                   @click="triggerDraw"
                 >
                   {{ t('exchangeDetail.triggerDraw') }}
@@ -255,7 +255,7 @@ watch(requiresAdminAuth, (value) => {
                 {{ t('exchangeDetail.drawSuccess') }}
               </p>
               <p
-                v-else-if="!exchange.isArchived && activeParticipants.length < 2"
+                v-else-if="!exchange.isArchived && activeParticipants.length < 3"
                 class="small text-body-secondary mt-3 mb-0"
               >
                 {{ t('exchangeDetail.dashboard.minimumParticipants') }}
@@ -277,7 +277,7 @@ watch(requiresAdminAuth, (value) => {
             <div class="card-body">
               <div class="d-flex">
                 <h2 class="d-inline-flex align-items-center gap-2 mb-3">
-                  <span>{{ t('exchangeDetail.participants') }}</span>
+                  <span>{{ t('common.participants') }}</span>
                   <span class="badge fs-6 text-bg-light">{{ participants.length }}</span>
                 </h2>
               </div>
@@ -293,7 +293,7 @@ watch(requiresAdminAuth, (value) => {
                   {{ addParticipantError }}
                 </p>
                 <label for="new-participant-name" class="visually-hidden">{{
-                  t('exchangeDetail.addModal.name')
+                  t('fields.name')
                 }}</label>
                 <div class="input-group mb-3">
                   <input
@@ -301,12 +301,12 @@ watch(requiresAdminAuth, (value) => {
                     :aria-invalid="!!addParticipantFieldErrors.name || undefined"
                     :aria-describedby="addParticipantError ? 'add-participant-error' : undefined"
                     ref="newParticipantNameInput"
-                    :aria-label="t('exchangeDetail.addModal.name')"
+                    :aria-label="t('fields.name')"
                     maxlength="150"
                     v-model="newParticipantName"
                     type="text"
                     class="form-control"
-                    :placeholder="t('exchangeDetail.addModal.name')"
+                    :placeholder="t('fields.name')"
                     :disabled="isAddingParticipant"
                     required
                   />
@@ -315,14 +315,14 @@ watch(requiresAdminAuth, (value) => {
                     class="btn btn-outline-secondary rounded-end"
                     :disabled="!newParticipantName.trim() || isAddingParticipant"
                   >
-                    {{ t('exchangeDetail.addParticipant') }}
+                    {{ t('actions.add') }}
                   </button>
                 </div>
               </form>
               <ul
                 v-if="participants.length"
                 class="list-group mb-3 participant-list"
-                :aria-label="t('exchangeDetail.participants')"
+                :aria-label="t('common.participants')"
               >
                 <li
                   v-for="participant in participants"
@@ -362,11 +362,11 @@ watch(requiresAdminAuth, (value) => {
                       type="button"
                       class="btn btn-outline-primary"
                       :disabled="isParticipantSuggestionsLocked"
-                      :title="t('exchangeDetail.edit')"
+                      :title="t('actions.edit')"
                       @click="openEditParticipantModal(participant)"
                     >
                       <i class="bi bi-pencil" aria-hidden="true"></i
-                      ><span class="visually-hidden">{{ t('exchangeDetail.edit') }}</span>
+                      ><span class="visually-hidden">{{ t('actions.edit') }}</span>
                     </button>
                     <button
                       type="button"
@@ -381,11 +381,11 @@ watch(requiresAdminAuth, (value) => {
                       type="button"
                       class="btn btn-outline-danger"
                       :disabled="isParticipantIdentityLocked"
-                      :title="t('exchangeDetail.delete')"
+                      :title="t('actions.delete')"
                       @click="deleteParticipant(participant.id)"
                     >
                       <i class="bi bi-trash" aria-hidden="true"></i
-                      ><span class="visually-hidden">{{ t('exchangeDetail.delete') }}</span>
+                      ><span class="visually-hidden">{{ t('actions.delete') }}</span>
                     </button>
                   </div>
                 </li>
@@ -468,7 +468,7 @@ watch(requiresAdminAuth, (value) => {
                 :disabled="isExclusionEditingLocked || mutationBusy || imageUploading"
                 @click="removeParticipantExclusion(rule.id)"
               >
-                {{ t('exchangeDetail.exceptions.remove') }}
+                {{ t('actions.delete') }}
               </button>
             </li>
           </ul>
@@ -506,7 +506,7 @@ watch(requiresAdminAuth, (value) => {
               class="btn btn-sm btn-outline-primary"
               :disabled="!selectedExclusionReceiver || mutationBusy || imageUploading"
             >
-              {{ t('exchangeDetail.exceptions.add') }}
+              {{ t('actions.add') }}
             </button>
           </form>
         </section>
@@ -545,7 +545,7 @@ watch(requiresAdminAuth, (value) => {
           class="btn btn-danger"
           :disabled="deleteName !== exchange.name || mutationBusy"
         >
-          {{ t('exchangeDetail.delete') }}
+          {{ t('actions.delete') }}
         </button>
       </template>
     </BaseModal>

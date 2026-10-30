@@ -255,7 +255,7 @@ watch(
         {{ t('p2.refresh') }}
       </button>
     </div>
-    <p v-if="isLoading" role="status">{{ t('participant.loading') }}</p>
+    <p v-if="isLoading" role="status">{{ t('common.loading') }}</p>
     <p v-if="error" class="alert alert-danger" role="alert">{{ error }}</p>
     <p v-if="paused && view" class="text-body-secondary" role="status">
       {{ t('p2.refreshPaused') }}
@@ -299,9 +299,7 @@ watch(
               <div class="card-body">
                 <h2 class="h5">{{ t('participant.profileSectionTitle') }}</h2>
                 <div class="form-field mb-3">
-                  <label for="participant-name" class="form-label">{{
-                    t('participant.name')
-                  }}</label
+                  <label for="participant-name" class="form-label">{{ t('fields.name') }}</label
                   ><input
                     id="participant-name"
                     v-model="name"
@@ -344,7 +342,7 @@ watch(
                     !dirty || !valid || imageValidating || isSaving || isRefreshing || !!remote
                   "
                 >
-                  {{ isSaving ? t('participant.saving') : t('participant.save') }}
+                  {{ isSaving ? t('participant.saving') : t('actions.saveChanges') }}
                 </button>
                 <p v-if="canEdit" class="form-text">{{ t('review.saveHelp') }}</p>
                 <p v-if="canEdit && dirty && !valid" class="text-danger small" role="status">
@@ -357,7 +355,11 @@ watch(
                 <h2 class="h5">{{ t('participant.suggestionsSectionTitle') }}</h2>
                 <p v-if="requiredMinSuggestions > 0" class="small">
                   {{
-                    t('participant.minWishlistSuggestionsHint', { count: requiredMinSuggestions })
+                    t(
+                      'participant.minWishlistSuggestionsHint',
+                      { count: requiredMinSuggestions },
+                      requiredMinSuggestions,
+                    )
                   }}
                 </p>
                 <WishlistEditor
@@ -369,7 +371,11 @@ watch(
                 <p v-if="fieldErrors.wishlist" class="text-danger">{{ t('p2.invalidField') }}</p>
                 <p v-if="wishlist.length < requiredMinSuggestions" class="text-danger small">
                   {{
-                    t('participant.minWishlistSuggestionsError', { count: requiredMinSuggestions })
+                    t(
+                      'participant.minWishlistSuggestionsError',
+                      { count: requiredMinSuggestions },
+                      requiredMinSuggestions,
+                    )
                   }}
                 </p>
               </div>
@@ -381,7 +387,7 @@ watch(
               <div class="card-body">
                 <h2 class="h5">{{ t('participant.recipientSectionTitle') }}</h2>
                 <p>
-                  <strong>{{ t('participant.recipientName') }}:</strong>
+                  <strong>{{ t('fields.name') }}:</strong>
                   {{ view.assignment.receiverName }}
                 </p>
                 <ol
@@ -397,7 +403,7 @@ watch(
                   </li>
                 </ol>
                 <p v-if="view.assignment.receiverNote">
-                  <strong>{{ t('participant.recipientNote') }}:</strong>
+                  <strong>{{ t('common.comment') }}:</strong>
                   {{ view.assignment.receiverNote }}
                 </p>
               </div>

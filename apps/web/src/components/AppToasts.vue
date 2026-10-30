@@ -22,7 +22,7 @@ const { items } = storeToRefs(toasts)
         <button
           type="button"
           class="btn-close"
-          :aria-label="translate('common.close')"
+          :aria-label="translate('actions.close')"
           @click="toasts.remove(t.id)"
         ></button>
       </div>

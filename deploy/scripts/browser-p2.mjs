@@ -41,7 +41,7 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await f.page.goto(`${base}/exchanges/${f.id}`);
     await expect(f.page.getByRole('button', { name: fr.exchangeDetail.dashboard.editSettings, exact: true }).first()).toBeVisible();
   }
-  const save = page => page.getByRole('button', { name: fr.participant.save, exact: true });
+  const save = page => page.getByRole('button', { name: fr.actions.saveChanges, exact: true });
   const refresh = page => ({ click: () => page.evaluate(() => document.dispatchEvent(new Event('visibilitychange'))) });
   console.log('P2 browser: wishlist payload, keyboard, mobile, languages and accessibility');
   {
@@ -81,14 +81,14 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await f.page.locator('input[type=file]').first().setInputFiles({...file,name:'replacement.png'});
     const en=JSON.parse(await readFile(path.join(root,'apps/web/src/i18n/locales/en-CA.json'),'utf8'));
     const replacement=f.page.waitForResponse(r=>r.request().method()==='PUT'&&r.url().includes('/api/p/'));
-    await f.page.getByRole('button',{name:en.participant.save,exact:true}).click();assert.equal((await replacement).status(),200);
+    await f.page.getByRole('button',{name:en.actions.saveChanges,exact:true}).click();assert.equal((await replacement).status(),200);
     await expect(f.page.locator('img[src^="blob:"]').first()).toBeVisible();
     await f.page.screenshot({path:path.join(output,'participant-images-en.png'),fullPage:true});
     // Organizer uses authenticated reads and uploads in the edit form as well.
     await f.page.goto(`${base}/exchanges/${f.id}`);
     await f.page.locator('#locale-select').selectOption('en-CA');
     await f.page.locator('#participants li').first().hover();
-    await f.page.locator('#participants').getByRole('button', { name: en.exchangeDetail.edit, exact: true }).first().click();
+    await f.page.locator('#participants').getByRole('button', { name: en.actions.edit, exact: true }).first().click();
     await expect(f.page.getByRole('dialog',{name:en.exchangeDetail.editModal.title})).toBeVisible();
     await f.page.setViewportSize({width:360,height:900});
     await expect(f.page.locator('#editParticipantForm img[src^="blob:"]').first()).toBeVisible();
@@ -174,16 +174,16 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await admin(f);
     await expect(f.page.locator('[ref=newParticipantNameInput]')).toHaveCount(0);
     await expect(f.page.getByRole('button', { name: fr.p2.retryConfig })).toBeVisible();
-    await expect(f.page.getByRole('button', { name: new RegExp(fr.exchangeDetail.addParticipant) })).toHaveCount(0);
+    await expect(f.page.getByRole('button', { name: new RegExp(fr.actions.add) })).toHaveCount(0);
     await f.page.unroute('**/api/config'); await f.page.getByRole('button', { name: fr.p2.retryConfig }).click();
-    const add = f.page.getByRole('button', { name: new RegExp(fr.exchangeDetail.addParticipant) });
+    const add = f.page.getByRole('button', { name: new RegExp(fr.actions.add) });
     await expect(add).toBeVisible();
-    await f.page.getByRole('textbox', { name: fr.exchangeDetail.addModal.name, exact: true }).fill('Dana');
+    await f.page.getByRole('textbox', { name: fr.fields.name, exact: true }).fill('Dana');
     const addedResponse = f.page.waitForResponse(r => r.request().method() === 'POST' && r.url().endsWith('/participants'));
     await add.click(); const added = await (await addedResponse).json();
     const dialog = f.page.getByRole('dialog', { name: fr.exchangeDetail.linkModal.title });
     await expect(dialog).toBeVisible(); await expect(dialog.getByRole('textbox')).toHaveValue(base + added.accessLink);
-    await dialog.getByRole('button', { name: fr.exchangeDetail.linkModal.close }).click();
+    await dialog.getByRole('button', { name: fr.actions.close }).click();
     await expect(dialog).not.toBeVisible();
     f.page.once('dialog', dialog => dialog.dismiss());
     await f.page.locator('#participants li').first().hover();
@@ -243,7 +243,7 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await expect(f.page.getByRole('heading', { name: fr.p2.notFoundTitle })).toBeVisible();
     await expect(f.page.getByText(fr.p2.storageUnavailable)).toBeVisible();
     await f.page.getByRole('link', { name: fr.p2.home }).click();
-    await expect(f.page.getByRole('button', { name: fr.home.hero.primaryAction }).first()).toBeVisible();
+    await expect(f.page.getByRole('button', { name: fr.actions.createExchange }).first()).toBeVisible();
     await finish(f);
   }
   console.log('P2 browser scenarios passed; screenshots: ' + output);

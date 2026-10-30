@@ -24,7 +24,7 @@ const commitments = [
           <h2 class="home-hero__title fw-semibold mb-4">{{ t('home.hero.title') }}</h2>
           <p class="text-body-secondary mb-4">{{ t('home.hero.description') }}</p>
           <button type="button" class="btn btn-primary px-4" @click="isCreateModalOpen = true">
-            {{ t('home.hero.primaryAction') }}
+            {{ t('actions.createExchange') }}
           </button>
           <p class="home-hero__micro small mt-3 mb-0">{{ t('home.hero.micro') }}</p>
         </div>

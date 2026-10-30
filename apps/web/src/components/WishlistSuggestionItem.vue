@@ -215,7 +215,7 @@ onBeforeUnmount(() => {
       <template v-if="mode === 'edit'">
         <div class="form-field mb-2">
           <label :for="`${uniqueId}-title`" class="form-label">{{
-            t('participant.wishlistItem.titleLabel')
+            t('fields.title')
           }}</label>
           <input
             :id="`${uniqueId}-title`"

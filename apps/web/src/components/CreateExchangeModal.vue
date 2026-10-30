@@ -208,7 +208,7 @@ async function handleHidden() {
         <input id="organizerName" v-model="organizerName" class="form-control" maxlength="150" required
           aria-describedby="creation-required" :aria-invalid="!!fieldErrors.organizerName || undefined" />
       </div>
-      <!-- <p id="creation-required" class="form-text">{{ t('review.requiredNames') }}</p> -->
+      <p id="creation-required" class="visually-hidden">{{ t('review.requiredNames') }}</p>
       <div class="form-field mb-3">
         <label for="adminPassword" class="form-label">{{
           t('exchanges.createModal.adminPassword')
@@ -262,7 +262,7 @@ async function handleHidden() {
         <div class="input-group">
           <input :value="adminLink" type="text" class="form-control font-monospace small" readonly />
           <button type="button" class="btn btn-primary rounded-end" @click="copyAdminLink">
-            {{ t('exchanges.createModal.copyButton') }}
+            {{ t('actions.copy') }}
           </button>
         </div>
         <small class="text-body-secondary d-block mt-2">
