@@ -61,3 +61,4 @@ sw.js
 workbox-*.js
 api.env
 .secret
+notes/*
