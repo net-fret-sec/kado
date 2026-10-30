@@ -7,7 +7,7 @@ TAG="$(git rev-parse HEAD)"
 OUT="${1:-release-artifacts/$TAG}"
 mkdir -p "$OUT"
 docker build --pull -f deploy/docker/api.Dockerfile -t "kado-api:$TAG" .
-docker build --pull -f deploy/docker/caddy.Dockerfile --build-arg "VITE_DONATION_URL=${VITE_DONATION_URL:-}" -t "kado-web:$TAG" .
+docker build --pull -f deploy/docker/caddy.Dockerfile --build-arg "VITE_CURRENCY_SYMBOL=${VITE_CURRENCY_SYMBOL:-$}" --build-arg "VITE_DONATION_URL=${VITE_DONATION_URL:-}" -t "kado-web:$TAG" .
 KADO_IMAGE_TAG="$TAG" pnpm release:smoke
 docker save "kado-api:$TAG" "kado-web:$TAG" | gzip > "$OUT/images.tar.gz"
 printf '%s\n' "$TAG" > "$OUT/version"

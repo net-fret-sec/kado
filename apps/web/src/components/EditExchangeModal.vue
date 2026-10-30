@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { currencySymbol } from '@/composables/useCurrency'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -25,6 +26,7 @@ const props = defineProps<{
   organizerName?: string
   organizerEditable?: boolean
   description?: string
+  plannedDrawDate?: string
   eventDate?: string
   budget?: number
   minWishlistSuggestions?: number
@@ -44,6 +46,7 @@ const editName = ref('')
 const editOrganizerName = ref('')
 const editDescription = ref('')
 const editEventDate = ref('')
+const editPlannedDrawDate = ref('')
 const editBudget = ref<number | null>(null)
 const editMinWishlistSuggestions = ref(0)
 const editLockSuggestionsAfterDraw = ref(true)
@@ -58,6 +61,7 @@ function values(): FormValues {
     ...(props.organizerEditable ? { organizerName: editOrganizerName.value } : {}),
     description: editDescription.value,
     eventDate: editEventDate.value,
+    plannedDrawDate: editPlannedDrawDate.value,
     budget: editBudget.value,
     minWishlistSuggestions: editMinWishlistSuggestions.value,
     lockSuggestionsAfterDraw: editLockSuggestionsAfterDraw.value,
@@ -69,6 +73,7 @@ function setValues(value: FormValues) {
   editOrganizerName.value = String(value.organizerName ?? '')
   editDescription.value = String(value.description ?? '')
   editEventDate.value = String(value.eventDate ?? '')
+  editPlannedDrawDate.value = String(value.plannedDrawDate ?? '')
   editBudget.value = value.budget == null ? null : Number(value.budget)
   editMinWishlistSuggestions.value = Number(value.minWishlistSuggestions ?? 0)
   editLockSuggestionsAfterDraw.value = Boolean(value.lockSuggestionsAfterDraw)
@@ -80,6 +85,7 @@ function serverValues(current: ExchangeDto): FormValues {
     ...(!current.organizerId ? { organizerName: current.organizerName ?? '' } : {}),
     description: current.description ?? '',
     eventDate: current.eventDate ?? '',
+    plannedDrawDate: current.plannedDrawDate ?? '',
     budget: current.budget ?? null,
     minWishlistSuggestions: current.minWishlistSuggestions ?? 0,
     lockSuggestionsAfterDraw: current.lockSuggestionsAfterDraw ?? true,
@@ -97,7 +103,8 @@ function payload(): UpdateExchangeInputDto {
     name: editName.value,
     ...(props.organizerEditable ? { organizerName: editOrganizerName.value } : {}),
     description: editDescription.value || undefined,
-    eventDate: toDateInput(editEventDate.value) || undefined,
+    eventDate: toDateInput(editEventDate.value) || null,
+    plannedDrawDate: toDateInput(editPlannedDrawDate.value) || null,
     budget: editBudget.value ?? undefined,
     minWishlistSuggestions: editMinWishlistSuggestions.value,
     lockSuggestionsAfterDraw: editLockSuggestionsAfterDraw.value,
@@ -105,13 +112,16 @@ function payload(): UpdateExchangeInputDto {
     expectedUpdatedAt: baselineVersion.value,
   }
 }
-const isValid = computed(() => updateExchangeInputSchema.safeParse(payload()).success)
+const isValid = computed(
+  () => !!editName.value.trim() && updateExchangeInputSchema.safeParse(payload()).success,
+)
 
 function syncFromProps() {
   editName.value = props.name || ''
   editOrganizerName.value = props.organizerName || ''
   editDescription.value = props.description || ''
   editEventDate.value = toDateInput(props.eventDate)
+  editPlannedDrawDate.value = toDateInput(props.plannedDrawDate)
   editBudget.value = props.budget ?? null
   editMinWishlistSuggestions.value = props.minWishlistSuggestions ?? 0
   editLockSuggestionsAfterDraw.value = props.lockSuggestionsAfterDraw ?? true
@@ -167,7 +177,8 @@ function applyConflict() {
   }
 }
 function handleSubmit() {
-  if (props.isSubmitting || props.contentLocked || !isValid.value || remote.value) return
+  if (props.isSubmitting || props.contentLocked || !dirty.value || !isValid.value || remote.value)
+    return
   emit('submit', payload())
 }
 function visibility(value: boolean) {
@@ -196,7 +207,7 @@ function visibility(value: boolean) {
     />
     <form id="editExchangeForm" @submit.prevent="handleSubmit">
       <fieldset :disabled="contentLocked || isSubmitting || !!remote">
-        <div v-if="organizerEditable" class="mb-3">
+        <div v-if="organizerEditable" class="mb-3 form-field">
           <label for="editOrganizerName" class="form-label">{{
             t('exchangeDetail.organizer')
           }}</label>
@@ -214,13 +225,14 @@ function visibility(value: boolean) {
             {{ t('p2.invalidField') }}
           </p>
         </div>
-        <div class="mb-3">
+        <div class="mb-3 form-field">
           <label for="editExchangeName" class="form-label">{{ t('exchangeDetail.name') }}</label>
           <input
             v-model="editName"
             type="text"
             class="form-control"
             id="editExchangeName"
+            maxlength="150"
             :aria-invalid="!!fieldErrors?.name || undefined"
             :aria-describedby="fieldErrors?.name ? 'editExchangeName-error' : undefined"
             required
@@ -229,7 +241,7 @@ function visibility(value: boolean) {
             {{ t('p2.invalidField') }}
           </p>
         </div>
-        <div class="mb-3">
+        <div class="mb-3 form-field">
           <label for="editExchangeDescription" class="form-label">{{
             t('exchangeDetail.description')
           }}</label>
@@ -237,6 +249,7 @@ function visibility(value: boolean) {
             v-model="editDescription"
             class="form-control"
             id="editExchangeDescription"
+            maxlength="2000"
             :aria-invalid="!!fieldErrors?.description || undefined"
             :aria-describedby="
               fieldErrors?.description ? 'editExchangeDescription-error' : undefined
@@ -246,8 +259,22 @@ function visibility(value: boolean) {
             {{ t('p2.invalidField') }}
           </p>
         </div>
+        <div class="form-field mb-3">
+          <label for="editPlannedDrawDate" class="form-label">{{
+            t('review.plannedDrawDate')
+          }}</label>
+          <input
+            id="editPlannedDrawDate"
+            v-model="editPlannedDrawDate"
+            class="form-control"
+            type="date"
+            aria-describedby="dates-help"
+            :aria-invalid="!!fieldErrors?.plannedDrawDate || undefined"
+          />
+          <p id="dates-help" class="form-text">{{ t('review.datesHelp') }}</p>
+        </div>
         <div class="row g-3 mb-3">
-          <div class="col-12">
+          <div class="col-12 form-field">
             <label for="editExchangeEventDate" class="form-label">{{
               t('exchangeDetail.exchangeMoment')
             }}</label>
@@ -265,10 +292,10 @@ function visibility(value: boolean) {
           </div>
         </div>
         <div class="row g-3 mb-3">
-          <div class="col-12 col-md-6">
-            <label for="editExchangeBudget" class="form-label">{{
-              t('exchangeDetail.budget')
-            }}</label>
+          <div class="col-12 form-field">
+            <label for="editExchangeBudget" class="form-label"
+              >{{ t('exchangeDetail.budget') }} ({{ currencySymbol }})</label
+            >
             <input
               v-model.number="editBudget"
               type="number"
@@ -283,7 +310,7 @@ function visibility(value: boolean) {
               {{ t('p2.invalidField') }}
             </p>
           </div>
-          <div class="col-12 col-md-6">
+          <div class="col-12 form-field">
             <label for="editExchangeMinSuggestions" class="form-label">{{
               t('exchangeDetail.minWishlistSuggestions')
             }}</label>
@@ -342,11 +369,16 @@ function visibility(value: boolean) {
         type="submit"
         class="btn btn-primary order-2"
         form="editExchangeForm"
-        :disabled="contentLocked || !isValid || !!props.isSubmitting || !!remote"
+        :disabled="contentLocked || !dirty || !isValid || !!props.isSubmitting || !!remote"
       >
         {{ t('exchangeDetail.editExchangeModal.submit') }}
       </button>
-      <button type="button" class="btn btn-link order-1" data-bs-dismiss="modal" :disabled="isSubmitting">
+      <button
+        type="button"
+        class="btn btn-link order-1"
+        data-bs-dismiss="modal"
+        :disabled="isSubmitting"
+      >
         {{ t('actions.cancel') }}
       </button>
     </template>

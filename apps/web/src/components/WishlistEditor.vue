@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onBeforeUnmount } from 'vue'
+import { ref, onBeforeUnmount, nextTick, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Draggable from 'vuedraggable'
 import WishlistSuggestionItem from './WishlistSuggestionItem.vue'
@@ -22,6 +22,8 @@ function validating(key: string, value: boolean) {
   emit('validating', validatingItems.size > 0)
 }
 const announcement = ref('')
+const helpId = `reorder-${useId()}`
+const listElement = ref<HTMLElement | null>(null)
 const motionPreference = window.matchMedia?.('(prefers-reduced-motion: reduce)')
 const reducedMotion = ref(motionPreference?.matches ?? false)
 const updateMotion = (event: MediaQueryListEvent) => {
@@ -46,7 +48,7 @@ function remove(index: number) {
       props.modelValue.filter((_, i) => i !== index),
     )
 }
-function move(index: number, delta: number) {
+async function move(index: number, delta: number) {
   const target = index + delta
   if (props.locked || props.busy || target < 0 || target >= props.modelValue.length) return
   const list = [...props.modelValue]
@@ -57,6 +59,8 @@ function move(index: number, delta: number) {
     title: item!.title || t('participant.wishlist'),
     position: target + 1,
   })
+  await nextTick()
+  listElement.value?.querySelectorAll<HTMLButtonElement>('.drag-handle')[target]?.focus()
 }
 function add() {
   if (props.locked || props.busy || props.modelValue.length >= 100) return
@@ -64,7 +68,8 @@ function add() {
 }
 </script>
 <template>
-  <div>
+  <div ref="listElement">
+    <p :id="helpId" class="visually-hidden">{{ t('review.reorderHelp') }}</p>
     <p class="visually-hidden" role="status">{{ announcement }}</p>
     <Draggable
       :model-value="modelValue"
@@ -76,35 +81,22 @@ function add() {
       class="d-grid gap-3 mb-2"
     >
       <template #item="{ element, index }">
-        <article class="border rounded p-3">
-          <div v-if="!locked" class="wishlist-controls d-flex flex-wrap gap-1 mb-2">
+        <article class="suggestion-shell" :class="{ 'suggestion-shell--locked': locked }">
+          <div v-if="!locked" class="suggestion-controls">
             <button
               type="button"
               class="btn btn-sm btn-outline-secondary drag-handle"
               :disabled="busy"
               :aria-label="t('participant.wishlistItem.reorder')"
+              :aria-describedby="helpId"
+              @keydown.up.prevent="move(index, -1)"
+              @keydown.down.prevent="move(index, 1)"
             >
               <i class="bi bi-grip-vertical" aria-hidden="true"></i>
             </button>
             <button
               type="button"
-              class="btn btn-sm btn-outline-secondary"
-              :disabled="busy || index === 0"
-              @click="move(index, -1)"
-            >
-              {{ t('p2.moveUp') }}
-            </button>
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-secondary"
-              :disabled="busy || index === modelValue.length - 1"
-              @click="move(index, 1)"
-            >
-              {{ t('p2.moveDown') }}
-            </button>
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-danger ms-auto"
+              class="btn btn-sm btn-outline-danger"
               :disabled="busy"
               :aria-label="t('exchangeDetail.delete')"
               @click="remove(index)"
@@ -112,14 +104,16 @@ function add() {
               <i class="bi bi-trash" aria-hidden="true"></i>
             </button>
           </div>
-          <WishlistSuggestionItem
-            :model-value="element"
-            :participant-id="participantId"
-            @validating="validating(element._clientId, $event)"
-            :mode="locked ? 'detail' : 'edit'"
-            :disabled="locked || busy"
-            @update:model-value="change(index, $event)"
-          />
+          <div class="suggestion-content">
+            <WishlistSuggestionItem
+              :model-value="element"
+              :participant-id="participantId"
+              @validating="validating(element._clientId, $event)"
+              :mode="locked ? 'detail' : 'edit'"
+              :disabled="locked || busy"
+              @update:model-value="change(index, $event)"
+            />
+          </div>
         </article>
       </template>
     </Draggable>

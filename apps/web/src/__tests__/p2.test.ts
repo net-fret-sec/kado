@@ -31,14 +31,12 @@ describe('API interruptions and backpressure', () => {
     expect(parseRetryAfter(' ')).toBeUndefined()
   })
   it.each([429, 503])('preserves status %s, code and Retry-After without retry', async (status) => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(
-        new Response(JSON.stringify({ error: { code: 'RATE_LIMITED' } }), {
-          status,
-          headers: { 'Retry-After': '10' },
-        }),
-      )
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ error: { code: 'RATE_LIMITED' } }), {
+        status,
+        headers: { 'Retry-After': '10' },
+      }),
+    )
     vi.stubGlobal('fetch', fetchMock)
     await expect(useApi().post('/api/example', {})).rejects.toMatchObject({
       status,
@@ -108,7 +106,10 @@ describe('API interruptions and backpressure', () => {
 describe('three-way conflict resolution', () => {
   it('ignores PostgreSQL JSON object key order while preserving wish order', () => {
     expect(
-      equal([{ imageId: 'img_00000000-0000-4000-8000-000000000002', title: 'A' }], [{ title: 'A', imageId: 'img_00000000-0000-4000-8000-000000000002', linkUrl: undefined }]),
+      equal(
+        [{ imageId: 'img_00000000-0000-4000-8000-000000000002', title: 'A' }],
+        [{ title: 'A', imageId: 'img_00000000-0000-4000-8000-000000000002', linkUrl: undefined }],
+      ),
     ).toBe(true)
     expect(equal(['A', 'B'], ['B', 'A'])).toBe(false)
   })
@@ -155,7 +156,7 @@ describe('wishlist parity and accessibility', () => {
       {
         title: 'Second',
         imageId: 'img_00000000-0000-4000-8000-000000000002',
-                linkUrl: 'https://shop.test/a',
+        linkUrl: 'https://shop.test/a',
         _clientId: '2',
       },
       { title: 'First', imageId: 'img_00000000-0000-4000-8000-000000000001', _clientId: '1' },
@@ -164,7 +165,7 @@ describe('wishlist parity and accessibility', () => {
       {
         title: 'Second',
         imageId: 'img_00000000-0000-4000-8000-000000000002',
-                linkUrl: 'https://shop.test/a',
+        linkUrl: 'https://shop.test/a',
       },
       { title: 'First', imageId: 'img_00000000-0000-4000-8000-000000000001', linkUrl: undefined },
     ])
@@ -182,7 +183,7 @@ describe('wishlist parity and accessibility', () => {
     expect(
       isValidSuggestion({
         title: 'Book',
-                linkUrl: 'https://shop.test',
+        linkUrl: 'https://shop.test',
       }),
     ).toBe(true)
   })
@@ -196,8 +197,8 @@ describe('wishlist parity and accessibility', () => {
       },
       global: { plugins: [i18n] },
     })
-    const button = wrapper.findAll('button').find((button) => button.text() === 'Descendre')!
-    await button.trigger('click')
+    const button = wrapper.get('.drag-handle')
+    await button.trigger('keydown', { key: 'ArrowDown' })
     expect(
       (wrapper.emitted('update:modelValue')![0]![0] as { title: string }[]).map(
         (item) => item.title,
@@ -219,10 +220,18 @@ describe('wishlist parity and accessibility', () => {
     const ids = wrapper.findAll('input[id]').map((input) => input.attributes('id'))
     expect(new Set(ids).size).toBe(ids.length)
     for (const input of wrapper.findAll('input[id]'))
-      expect(wrapper.find(`label[for="${input.attributes('id')}"]`).exists()).toBe(true)
+      expect(
+        !!input.attributes('aria-label') ||
+          wrapper.find(`label[for="${input.attributes('id')}"]`).exists(),
+      ).toBe(true)
     wrapper.unmount()
     const locked = mount(WishlistEditor, {
-      props: { locked: true, modelValue: [{ title: 'A', imageId: 'img_00000000-0000-4000-8000-000000000001', _clientId: 'a' }] },
+      props: {
+        locked: true,
+        modelValue: [
+          { title: 'A', imageId: 'img_00000000-0000-4000-8000-000000000001', _clientId: 'a' },
+        ],
+      },
       global: { plugins: [i18n] },
     })
     expect(locked.findAll('input, button')).toHaveLength(0)
@@ -337,12 +346,15 @@ describe('unavailable device facilities', () => {
   })
 })
 
-
 describe('modal close guards', () => {
   it('guards user dismissal but permits controlled closing after a save', async () => {
     vi.useFakeTimers()
     const guard = vi.fn(() => false)
-    const wrapper = mount(BaseModal, { props: { modelValue: false, beforeClose: guard, title: 'Editor' }, global: { plugins: [i18n] }, attachTo: document.body })
+    const wrapper = mount(BaseModal, {
+      props: { modelValue: false, beforeClose: guard, title: 'Editor' },
+      global: { plugins: [i18n] },
+      attachTo: document.body,
+    })
     await wrapper.setProps({ modelValue: true })
     await vi.runAllTimersAsync()
     const userDismissal = new Event('hide.bs.modal', { cancelable: true })

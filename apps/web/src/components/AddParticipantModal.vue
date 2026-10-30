@@ -53,7 +53,7 @@ function handleSubmit() {
     @update:model-value="(value) => emit('update:modelValue', value)"
   >
     <form id="addParticipantForm" @submit.prevent="handleSubmit">
-      <div class="mb-3">
+      <div class="mb-3 form-field">
         <label for="participantName" class="form-label">{{
           t('exchangeDetail.addModal.name')
         }}</label>

@@ -44,6 +44,7 @@ export function useExchangeAdmin() {
   const configError = ref<string | null>(null)
   const configLoading = ref(false)
   const mutationBusy = ref(false)
+  let deletionCompleted = false
   const actionError = ref<string | null>(null)
   const addForm = useFormErrors(),
     passwordForm = useFormErrors()
@@ -88,6 +89,7 @@ export function useExchangeAdmin() {
   const showAccessLinkModal = ref(false)
   const editingParticipant = ref<ParticipantDto | null>(null)
   const latestAccessLink = ref('')
+  const latestAccessName = ref('')
   const newParticipantName = ref('')
   const newParticipantEmail = ref('')
   const newParticipantNameInput = ref<HTMLInputElement | null>(null)
@@ -184,7 +186,8 @@ export function useExchangeAdmin() {
     )
   }
 
-  function openAccessLinkModal(link: string) {
+  function openAccessLinkModal(link: string, name = '') {
+    latestAccessName.value = name
     latestAccessLink.value = resolveParticipantAccessLink(link)
     showAccessLinkModal.value = true
   }
@@ -245,6 +248,7 @@ export function useExchangeAdmin() {
     error.value = null
     try {
       acceptData(await fetchExchangeData(initialController.signal))
+      connectionLost.value = false
       if (showEditExchangeModal.value) editExchangeCurrent.value = clone(exchange.value!)
       if (showEditParticipantModal.value)
         editParticipantCurrent.value = clone(
@@ -257,6 +261,8 @@ export function useExchangeAdmin() {
         setAdminAuthRequired()
         return
       }
+      connectionLost.value =
+        !(cause instanceof HttpError) || cause.status === 0 || cause.status >= 500
       error.value = getApiErrorMessage(cause)
     } finally {
       if (generation === loadGeneration) isLoading.value = false
@@ -286,6 +292,7 @@ export function useExchangeAdmin() {
     5000,
   )
   const refreshPaused = refreshState.paused
+  const connectionLost = refreshState.connectionLost
   async function manualRefresh() {
     try {
       await refreshState.refresh()
@@ -294,7 +301,7 @@ export function useExchangeAdmin() {
     }
   }
   function preventPendingNavigation() {
-    if (!mutationBusy.value) return true
+    if (deletionCompleted || !mutationBusy.value) return true
     toasts.info(t('p2.waitForAction'))
     return false
   }
@@ -581,11 +588,12 @@ export function useExchangeAdmin() {
     }
   }
 
-  async function perform_handleDelete() {
-    if (!exchange.value) return
-    if (!confirm(t('exchangeDetail.confirmDeleteExchange'))) return
+  async function perform_handleDelete(confirmedName: string) {
+    if (!exchange.value || confirmedName !== exchange.value.name) return
     try {
       await exchangesStore.deleteExchange(exchange.value.id)
+      deletionCompleted = true
+      adminAuthStore.clearSession(exchange.value.id)
       await router.push({ name: 'home' })
     } catch (err) {
       if (isAdminAuthError(err)) {
@@ -666,7 +674,7 @@ export function useExchangeAdmin() {
         participants.value = [...participants.value, result.participant]
       }
 
-      if (result.accessLink) openAccessLinkModal(result.accessLink)
+      if (result.accessLink) openAccessLinkModal(result.accessLink, result.participant.name)
       newParticipantName.value = ''
       newParticipantEmail.value = ''
     } catch (err) {
@@ -782,7 +790,7 @@ export function useExchangeAdmin() {
       if (result?.accessLink) {
         const resolvedAccessLink = resolveParticipantAccessLink(result.accessLink)
         await copyToClipboard(resolvedAccessLink)
-        openAccessLinkModal(resolvedAccessLink)
+        openAccessLinkModal(resolvedAccessLink, participantNameById.value[participantId] ?? '')
       }
     } catch (err) {
       if (isAdminAuthError(err)) {
@@ -1050,6 +1058,7 @@ export function useExchangeAdmin() {
     showAccessLinkModal,
     editingParticipant,
     latestAccessLink,
+    latestAccessName,
     newParticipantName,
     newParticipantEmail,
     newParticipantNameInput,
@@ -1068,6 +1077,7 @@ export function useExchangeAdmin() {
     refreshEnabled,
     refreshState,
     refreshPaused,
+    connectionLost,
     addParticipantExclusion,
     removeParticipantExclusion,
     authenticateAdmin,

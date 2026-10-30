@@ -13,6 +13,7 @@ export interface ExchangeDto {
   isArchived: boolean;
 
   eventDate?: string;
+  plannedDrawDate?: string;
   budget?: number;
   minWishlistSuggestions?: number;
   lockSuggestionsAfterDraw?: boolean;
@@ -32,6 +33,7 @@ export interface CreateExchangeInputDto {
   organizerParticipates?: boolean;
 
   eventDate?: string;
+  plannedDrawDate?: string;
   budget?: number;
   minWishlistSuggestions?: number;
   lockSuggestionsAfterDraw?: boolean;
@@ -52,7 +54,8 @@ export interface UpdateExchangeInputDto {
   organizerId?: string;
   organizerName?: string;
 
-  eventDate?: string;
+  eventDate?: string | null;
+  plannedDrawDate?: string | null;
   budget?: number;
   minWishlistSuggestions?: number;
   lockSuggestionsAfterDraw?: boolean;
@@ -74,6 +77,7 @@ export interface ExchangePublicViewDto {
   isDrawn: boolean;
   isArchived: boolean;
   eventDate?: string;
+  plannedDrawDate?: string;
   budget?: number;
   minWishlistSuggestions?: number;
   lockSuggestionsAfterDraw?: boolean;

@@ -1,6 +1,6 @@
 // main.scss - importer vos variables avant Bootstrap
-@use "./_bootstrap-variables" as vars;
-@use "bootstrap/scss/bootstrap" with (
+@use './_bootstrap-variables' as vars;
+@use 'bootstrap/scss/bootstrap' with (
   $theme-colors: vars.$theme-colors,
   $body-bg: vars.$body-bg,
   $body-color: vars.$body-color,
@@ -88,14 +88,14 @@
   $alert-border-radius: vars.$alert-border-radius,
   $enable-reduced-motion: vars.$enable-reduced-motion
 );
-@use "./_custom-overrides";
-@use "./themes/_font-themes";
-@use "./themes/_palette-themes";
-@use "./themes/_night-components";
+@use './_custom-overrides';
+@use './themes/_font-themes';
+@use './themes/_palette-themes';
+@use './themes/_night-components';
 
 :root {
-  --font-body: "Open Sans", "Manrope", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-heading: "Manrope", "Open Sans", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-body: 'Open Sans', 'Manrope', Roboto, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-heading: 'Manrope', 'Open Sans', Roboto, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   --font-heading-h3-h4: var(--font-body);
   --step--1: clamp(0.84rem, 0.8rem + 0.12vw, 0.9rem);
   --step-0: clamp(0.98rem, 0.94rem + 0.2vw, 1.05rem);
@@ -129,10 +129,10 @@
   --info: #5b8db8;
   --warning: #d4a94f;
   --danger: #c65a52;
-  --focus-ring-inner: rgba(255, 255, 255, .92);
-  --focus-ring-outer: rgba(37, 102, 101, .48);
+  --focus-ring-inner: rgba(255, 255, 255, 0.92);
+  --focus-ring-outer: rgba(37, 102, 101, 0.48);
   --focus-ring-shadow: 0 0 0 2px var(--focus-ring-inner), 0 0 0 4px var(--focus-ring-outer);
-  --topbar-shadow: 0 1px 4px rgba(31, 78, 79, .05);
+  --topbar-shadow: 0 1px 4px rgba(31, 78, 79, 0.05);
   --hero-bg: var(--text-heading);
   --hero-color: #fff;
   --bs-focus-ring-width: 0.25rem;
@@ -357,8 +357,8 @@ main > * + * {
   select,
   textarea,
   summary,
-  [role="button"],
-  [tabindex]:not([tabindex="-1"]),
+  [role='button'],
+  [tabindex]:not([tabindex='-1']),
   .btn,
   .btn-close,
   .dropdown-item,
@@ -379,8 +379,8 @@ main > * + * {
   select,
   textarea,
   summary,
-  [role="button"],
-  [tabindex]:not([tabindex="-1"]),
+  [role='button'],
+  [tabindex]:not([tabindex='-1']),
   .btn,
   .btn-close,
   .dropdown-item,
@@ -394,16 +394,49 @@ main > * + * {
   box-shadow: var(--focus-ring-shadow);
 }
 
-.skip-link { position: fixed; top: .5rem; left: .5rem; transform: translateY(-200%); z-index: 2000; padding: .75rem; background: white; color: #111; }
-.skip-link:focus { transform: translateY(0); }
-#main-content { scroll-margin-top: 5rem; }
-.card, .modal-content, .input-group { min-width: 0; }
-.card-body, .conflict-value { overflow-wrap: anywhere; }
-.wishlist-controls .btn { min-width: 2.75rem; min-height: 2.75rem; }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+.skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  transform: translateY(-200%);
+  z-index: 2000;
+  padding: 0.75rem;
+  background: white;
+  color: #111;
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+#main-content {
+  scroll-margin-top: 5rem;
+}
+.card,
+.modal-content,
+.input-group {
+  min-width: 0;
+}
+.card-body,
+.conflict-value {
+  overflow-wrap: anywhere;
+}
+.wishlist-controls .btn {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 
 // Keep the palette backgrounds, but use its legible text color for alert copy.
-.alert:not(.alert-dark) { --bs-alert-color: var(--text-primary); }
+.alert:not(.alert-dark) {
+  --bs-alert-color: var(--text-primary);
+}
 
 .btn.btn-warning {
   --bs-btn-color: #142f30;
@@ -414,6 +447,164 @@ main > * + * {
 
 // Restore Bootstrap row gutters across the shared disabled fieldset wrapper.
 .admin-actions-contents > section {
-  padding-inline: calc(var(--bs-gutter-x) * .5);
+  padding-inline: calc(var(--bs-gutter-x) * 0.5);
   margin-block-start: var(--bs-gutter-y);
+}
+
+/* UI review: shared form rhythm, compact suggestions and real column gutters. */
+.form-field {
+  container-type: inline-size;
+}
+.form-field > .form-text,
+.form-field > .text-danger {
+  margin: 0.35rem 0 0;
+}
+@media (min-width: 768px) {
+  .form-field {
+    display: grid;
+    grid-template-columns: minmax(8rem, 30%) minmax(0, 1fr);
+    column-gap: 1rem;
+    align-items: start;
+  }
+  .form-field > .form-label {
+    padding-top: 0.5rem;
+    margin-bottom: 0;
+  }
+  .form-field > .form-text,
+  .form-field > .text-danger {
+    grid-column: 2;
+  }
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  gap: 0.35rem;
+}
+.btn:not(.drag-handle) {
+  line-height: 1.4;
+}
+.participant-columns {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+.participant-columns > * {
+  min-width: 0;
+}
+@media (min-width: 992px) {
+  .participant-columns {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  }
+}
+.access-reminder > div {
+  flex-basis: 26rem;
+}
+.suggestion-shell {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.65rem;
+  overflow: hidden;
+}
+.suggestion-shell--locked {
+  grid-template-columns: minmax(0, 1fr);
+}
+.suggestion-controls {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--bs-border-color);
+}
+.suggestion-controls .drag-handle {
+  flex: 1;
+  cursor: grab;
+  min-height: 2.75rem;
+  touch-action: none;
+}
+.suggestion-controls .btn {
+  border-radius: 0;
+  padding: 0.5rem 0.25rem;
+}
+.suggestion-content {
+  padding: 0.75rem;
+  min-width: 0;
+}
+.suggestion-item {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+.suggestion-image {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: 0.5rem;
+}
+.suggestion-image-button {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0.35rem;
+  border: 1px dashed var(--bs-border-color);
+  border-radius: 0.5rem;
+  color: var(--bs-body-color);
+  background: var(--bs-tertiary-bg);
+}
+.suggestion-image-button:focus-visible {
+  outline: 3px solid var(--bs-primary);
+  outline-offset: 2px;
+}
+.suggestion-image-button.is-dragging {
+  outline: 3px solid var(--bs-primary);
+}
+.suggestion-placeholder {
+  font-size: 2rem;
+  color: var(--bs-link-color);
+}
+.suggestion-fields {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.suggestion-fields .form-field {
+  grid-template-columns: minmax(6rem, 25%) minmax(0, 1fr);
+}
+.suggestion-item .form-text,
+.suggestion-item .text-danger {
+  font-size: 0.8rem;
+}
+.suggestion-help {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+.suggestion-help:not(:has(.text-danger, button, [role='status'])) {
+  height: 0;
+  margin-top: -0.75rem;
+}
+.suggestion-image-button {
+  min-height: 0;
+  height: auto;
+  overflow: hidden;
+}
+.suggestion-image-button .small {
+  font-size: 0.7rem;
+  line-height: 1.15;
+}
+@media (min-width: 768px) {
+  .suggestion-item {
+    grid-template-columns: 6rem minmax(0, 1fr);
+  }
+}
+
+.home-support {
+  background: var(--surface-soft);
+}
+.home-support h2 {
+  font-family: var(--font-heading);
+  font-size: 1.125rem;
+}
+.home-support p {
+  max-width: 48rem;
 }

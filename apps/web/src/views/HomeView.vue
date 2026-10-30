@@ -8,7 +8,6 @@ import GiftIllustration from '@/components/GiftIllustration.vue'
 const { t } = useI18n()
 const isCreateModalOpen = ref(false)
 const showAdminLink = localAdminToolsEnabled
-const donationUrl = ((import.meta.env.VITE_DONATION_URL as string | undefined) ?? '').trim()
 const commitments = [
   { key: 'privacy', illustration: 'private' },
   { key: 'noMonetization', illustration: 'giving' },
@@ -50,24 +49,6 @@ const commitments = [
           </div>
         </article>
       </div>
-    </section>
-
-    <section
-      v-if="donationUrl"
-      class="home-support rounded-4 p-4 d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3"
-    >
-      <div>
-        <h2 class="h5 mb-2">{{ t('home.support.title') }}</h2>
-        <p class="text-body-secondary small mb-0">{{ t('home.support.subtext') }}</p>
-      </div>
-      <a
-        :href="donationUrl"
-        class="btn btn-outline-primary align-self-start align-self-lg-center flex-shrink-0"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {{ t('home.support.button') }}
-      </a>
     </section>
 
     <footer v-if="showAdminLink" class="text-center small">

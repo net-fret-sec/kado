@@ -8,6 +8,7 @@ export function useRefresh(
 ) {
   const busy = ref(false)
   const paused = ref(false)
+  const connectionLost = ref(false)
   const waitUntil = ref(0)
   const failures = ref(0)
   const remaining = computed(() => Math.max(0, waitUntil.value - Date.now()))
@@ -44,11 +45,14 @@ export function useRefresh(
       if (currentGeneration !== generation) return
       failures.value = 0
       paused.value = false
+      connectionLost.value = false
       waitUntil.value = 0
     } catch (error) {
       if (currentGeneration !== generation) return
       if (!isRequestAborted(error)) {
         paused.value = true
+        connectionLost.value =
+          !(error instanceof HttpError) || error.status === 0 || error.status >= 500
         failures.value += 1
         const backoff = Math.min(60_000, 5000 * 2 ** Math.min(failures.value, 4))
         waitUntil.value =
@@ -70,13 +74,21 @@ export function useRefresh(
       waitUntil.value = 0
       failures.value = 0
       paused.value = false
+      connectionLost.value = false
     }
   }
   function visibility() {
     if (document.hidden) cancel()
     else void refresh(false)
   }
+  function online() {
+    if (connectionLost.value) {
+      waitUntil.value = 0
+      void refresh(false)
+    }
+  }
   onMounted(() => {
+    window.addEventListener('online', online)
     document.addEventListener('visibilitychange', visibility)
     schedule()
   })
@@ -85,6 +97,7 @@ export function useRefresh(
     cancel()
     if (timer) clearTimeout(timer)
     document.removeEventListener('visibilitychange', visibility)
+    window.removeEventListener('online', online)
   })
-  return { refresh, cancel, busy, paused, remaining, waitUntil }
+  return { refresh, cancel, busy, paused, connectionLost, remaining, waitUntil }
 }

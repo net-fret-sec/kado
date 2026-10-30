@@ -24,7 +24,8 @@
     "test:operations": "node deploy/scripts/test-operations.mjs",
     "test:web": "pnpm --dir apps/web test",
     "test:e2e": "node deploy/scripts/e2e.mjs",
-    "lint:check": "pnpm --dir apps/web exec eslint . && pnpm --dir apps/web exec oxlint ."
+    "lint:check": "pnpm --dir apps/web exec eslint . && pnpm --dir apps/web exec oxlint .",
+    "test:review": "pnpm build:api && node deploy/scripts/browser-review.mjs"
   },
   "keywords": [],
   "author": "Dave Létourneau <daveletourneau@gmail.com>",

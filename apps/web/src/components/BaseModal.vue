@@ -53,7 +53,7 @@ function handleShown() {
   const first =
     modalRef.value?.querySelector<HTMLElement>('[autofocus]:not(:disabled)') ??
     modalRef.value?.querySelector<HTMLElement>(
-      'input:not([type=hidden]):not(:disabled), textarea:not(:disabled), select:not(:disabled)',
+      'input:not([type=hidden]):not([tabindex="-1"]):not(:disabled), textarea:not(:disabled), select:not(:disabled)',
     ) ??
     modalRef.value?.querySelector<HTMLElement>('button:not(:disabled)')
   first?.focus()
@@ -64,7 +64,7 @@ function handleKeydown(event: KeyboardEvent) {
   if (event.key !== 'Tab' || !modalRef.value) return
   const focusable = Array.from(
     modalRef.value.querySelectorAll<HTMLElement>(
-      'a[href], button:not(:disabled), input:not([type=hidden]):not(:disabled), textarea:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])',
+      'a[href], button:not(:disabled), input:not([type=hidden]):not([tabindex="-1"]):not(:disabled), textarea:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])',
     ),
   ).filter((element) => element.getClientRects().length && !element.closest('[inert]'))
   const first = focusable[0],
@@ -113,6 +113,7 @@ function handleHidden() {
 onMounted(() => {
   if (!modalRef.value) return
 
+  // Synchronous transitions keep route changes and disposal free of stale callbacks.
   modalInstance = new Modal(modalRef.value) as unknown as ModalController
   modalRef.value.addEventListener('keydown', handleKeydown)
   modalRef.value.addEventListener('shown.bs.modal', handleShown)
@@ -156,7 +157,7 @@ onBeforeUnmount(() => {
 <template>
   <section
     ref="modalRef"
-    class="modal fade"
+    class="modal"
     tabindex="-1"
     role="dialog"
     :aria-labelledby="titleId"

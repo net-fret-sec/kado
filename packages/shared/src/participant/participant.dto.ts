@@ -67,6 +67,7 @@ export interface ParticipantSelfViewDto {
     | "isDrawn"
     | "isArchived"
     | "eventDate"
+    | "plannedDrawDate"
     | "budget"
     | "minWishlistSuggestions"
     | "lockSuggestionsAfterDraw"
@@ -75,5 +76,6 @@ export interface ParticipantSelfViewDto {
     ParticipantDto,
     "id" | "name" | "email" | "wishlist" | "note" | "updatedAt"
   >;
+  participants?: { id: string; name: string }[];
   assignment?: ParticipantAssignmentDto;
 }

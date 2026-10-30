@@ -319,7 +319,6 @@ try {
     .click();
   await page.locator("#exchangeName").fill("Browser event");
   await page.locator("#organizerName").fill("Browser host");
-  await page.locator("#organizerParticipates").uncheck();
   await page.locator("#adminPassword").fill("browserpassword123");
   const creation = page.waitForResponse(
     (r) =>

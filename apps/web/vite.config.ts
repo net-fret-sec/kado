@@ -26,7 +26,11 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: 'autoUpdate',
         workbox: {
-          globPatterns: ['**/*.{js,css,html}', 'assets/kado-gifts-*.png'],
+          globPatterns: [
+            '**/*.{js,css,html}',
+            'assets/kado-gifts-*.png',
+            'assets/kado-benefits-*.png',
+          ],
           navigateFallbackDenylist: [/^\/api(?:\/|$)/, /^\/health(?:\/|$)/],
           runtimeCaching: [],
         },
@@ -69,10 +73,18 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: [
-        { find: /^zod$/, replacement: fileURLToPath(new URL('./src/lib/zod-browser.ts', import.meta.url)) },
+        {
+          find: /^zod$/,
+          replacement: fileURLToPath(new URL('./src/lib/zod-browser.ts', import.meta.url)),
+        },
         { find: '@', replacement: fileURLToPath(new URL('./src', import.meta.url)) },
         // Compile the ESM source: the UMD build probes eval and embeds Vue.
-        { find: 'vuedraggable', replacement: fileURLToPath(new URL('./node_modules/vuedraggable/src/vuedraggable.js', import.meta.url)) },
+        {
+          find: 'vuedraggable',
+          replacement: fileURLToPath(
+            new URL('./node_modules/vuedraggable/src/vuedraggable.js', import.meta.url),
+          ),
+        },
       ],
     },
   }

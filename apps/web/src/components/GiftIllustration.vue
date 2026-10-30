@@ -18,11 +18,16 @@ defineProps<{ kind: 'hero' | 'private' | 'giving' | 'open' }>()
 .gift-illustration--hero {
   background-position: 0% 50%;
 }
+.gift-illustration:not(.gift-illustration--hero) {
+  background-image: url('../assets/illustrations/kado-benefits.png');
+  background-size: 300% 100%;
+  aspect-ratio: 1;
+}
 .gift-illustration--private {
-  background-position: 33.333333% 50%;
+  background-position: 0% 50%;
 }
 .gift-illustration--giving {
-  background-position: 66.666667% 50%;
+  background-position: 50% 50%;
 }
 .gift-illustration--open {
   background-position: 100% 50%;

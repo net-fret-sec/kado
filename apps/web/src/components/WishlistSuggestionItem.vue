@@ -44,6 +44,8 @@ onMounted(() => {
     observer.observe(container.value)
   }
 })
+const fileInput = ref<HTMLInputElement | null>(null)
+const dragging = ref(false)
 const imageError = ref(''),
   imageUrl = ref(''),
   validating = ref(false)
@@ -108,7 +110,15 @@ async function selectFile(event: Event) {
   const input = event.target as HTMLInputElement,
     file = input.files?.[0]
   input.value = ''
-  if (!file || props.disabled || !limits.value) return
+  if (file) await acceptFile(file)
+}
+async function dropFile(event: DragEvent) {
+  dragging.value = false
+  const file = event.dataTransfer?.files?.[0]
+  if (file) await acceptFile(file)
+}
+async function acceptFile(file: File) {
+  if (props.mode !== 'edit' || props.disabled || !limits.value) return
   const id = ++selection
   validating.value = true
   emit('validating', true)
@@ -151,123 +161,129 @@ onBeforeUnmount(() => {
 })
 </script>
 <template>
-  <div ref="container" :class="asListItem ? 'list-group-item' : ''">
-    <div v-if="mode === 'edit'" class="row g-2">
-      <div class="col-12">
-        <label :for="`${uniqueId}-title`" class="form-label">{{
-          t('participant.wishlistItem.titleLabel')
-        }}</label>
+  <div ref="container" class="suggestion-item" :class="asListItem ? 'list-group-item' : ''">
+    <div>
+      <template v-if="mode === 'edit'">
         <input
-          :id="`${uniqueId}-title`"
-          :value="modelValue.title"
-          @input="change('title', ($event.target as HTMLInputElement).value)"
-          :disabled="disabled"
-          maxlength="200"
-          required
-          class="form-control"
-          :aria-invalid="!!titleError"
-          :aria-describedby="titleError ? `${uniqueId}-title-error` : undefined"
-        />
-        <p v-if="titleError" :id="`${uniqueId}-title-error`" class="text-danger">
-          {{ titleError }}
-        </p>
-      </div>
-      <div class="col-12">
-        <label :for="`${uniqueId}-image`" class="form-label">{{ t('images.label') }}</label>
-        <input
+          ref="fileInput"
           :id="`${uniqueId}-image`"
           type="file"
+          class="visually-hidden"
+          tabindex="-1"
           accept="image/jpeg,image/png,image/webp"
           :disabled="disabled || validating || !limits"
           @change="selectFile"
-          class="form-control"
-          :aria-invalid="!!imageError"
+          :aria-label="t('images.label')"
+        />
+        <button
+          type="button"
+          class="suggestion-image-button"
+          :class="{ 'is-dragging': dragging }"
+          :disabled="disabled || validating || !limits"
+          :title="t('review.imageHint')"
+          :aria-label="t(imageUrl ? 'review.replaceImage' : 'review.addImage')"
           :aria-describedby="`${uniqueId}-image-help ${uniqueId}-image-error`"
-        />
-        <p :id="`${uniqueId}-image-help`" class="form-text">
-          {{
-            limits
-              ? t('images.help', {
-                  size: (limits.sourceBytes / 1048576).toFixed(1),
-                  dimension: limits.dimension,
-                  pixels: limits.pixels / 1000000,
-                  output: Math.floor(limits.outputBytes / 1024),
-                })
-              : t('images.loadingConfig')
-          }}
-        </p>
-        <button v-if="configError" type="button" class="btn btn-link" @click="refresh">
-          {{ t('p2.retryConfig') }}
+          @click="fileInput?.click()"
+          @dragover.prevent="dragging = !disabled"
+          @dragleave.prevent="dragging = false"
+          @drop.prevent="dropFile"
+        >
+          <img v-if="imageUrl" :src="imageUrl" alt="" class="suggestion-image" />
+          <span v-else class="d-grid gap-1"
+            ><i class="bi bi-gift suggestion-placeholder" aria-hidden="true"></i
+            ><span class="small">{{ t('review.addImage') }}</span></span
+          >
         </button>
-        <p v-if="validating" role="status">{{ t('images.validating') }}</p>
-        <p :id="`${uniqueId}-image-error`" class="text-danger" role="alert">{{ imageError }}</p>
-        <img
-          v-if="imageUrl"
-          :src="imageUrl"
-          :alt="modelValue.title"
-          class="rounded object-fit-contain"
-          width="120"
-          height="120"
-        />
         <button
           v-if="modelValue.imageId || modelValue.pendingImage"
           type="button"
+          class="btn btn-sm btn-link p-0 mt-1"
           :disabled="disabled || validating"
-          class="btn btn-sm btn-outline-secondary ms-2"
           @click="removeImage"
         >
           {{ t('images.remove') }}
         </button>
-      </div>
-      <div class="col-12">
-        <label :for="`${uniqueId}-linkUrl`" class="form-label">{{
-          t('participant.wishlistItem.linkLabel')
-        }}</label>
-        <input
-          :id="`${uniqueId}-linkUrl`"
-          :value="modelValue.linkUrl || ''"
-          @input="change('linkUrl', ($event.target as HTMLInputElement).value)"
-          :disabled="disabled"
-          maxlength="2048"
-          type="url"
-          class="form-control"
-          :placeholder="t('participant.wishlistItem.linkPlaceholder')"
-          :aria-invalid="!!linkError"
-          :aria-describedby="linkError ? `${uniqueId}-link-error` : undefined"
-        />
-        <p v-if="linkError" :id="`${uniqueId}-link-error`" class="text-danger">{{ linkError }}</p>
-      </div>
-      <button
-        v-if="removable"
-        type="button"
-        :disabled="disabled"
-        class="btn btn-outline-danger"
-        @click="$emit('remove')"
-      >
-        {{ t('exchangeDetail.delete') }}
-      </button>
+      </template>
+      <template v-else>
+        <img v-if="imageUrl" :src="imageUrl" :alt="modelValue.title" class="suggestion-image" />
+        <div v-else class="suggestion-image-button" aria-hidden="true">
+          <i class="bi bi-gift suggestion-placeholder"></i>
+        </div>
+      </template>
     </div>
-    <div v-else class="d-flex align-items-center">
-      <img
-        v-if="imageUrl"
-        :src="imageUrl"
-        :alt="modelValue.title"
-        width="40"
-        height="40"
-        class="rounded object-fit-cover me-2 flex-shrink-0"
-      />
-      <span class="flex-grow-1"
-        ><a
+    <div class="suggestion-fields">
+      <template v-if="mode === 'edit'">
+        <div class="form-field mb-2">
+          <label :for="`${uniqueId}-title`" class="form-label">{{
+            t('participant.wishlistItem.titleLabel')
+          }}</label>
+          <input
+            :id="`${uniqueId}-title`"
+            :value="modelValue.title"
+            @input="change('title', ($event.target as HTMLInputElement).value)"
+            :disabled="disabled"
+            maxlength="200"
+            required
+            class="form-control"
+            :aria-invalid="!!titleError"
+            :aria-describedby="`${uniqueId}-title-error`"
+          />
+          <p v-if="titleError" :id="`${uniqueId}-title-error`" class="text-danger">
+            {{ titleError }}
+          </p>
+        </div>
+        <div class="form-field">
+          <label :for="`${uniqueId}-linkUrl`" class="form-label">{{
+            t('participant.wishlistItem.linkLabel')
+          }}</label>
+          <input
+            :id="`${uniqueId}-linkUrl`"
+            :value="modelValue.linkUrl || ''"
+            @input="change('linkUrl', ($event.target as HTMLInputElement).value)"
+            :disabled="disabled"
+            maxlength="2048"
+            type="url"
+            class="form-control"
+            :placeholder="t('participant.wishlistItem.linkPlaceholder')"
+            :aria-invalid="!!linkError"
+            :aria-describedby="`${uniqueId}-link-error`"
+          />
+          <p v-if="linkError" :id="`${uniqueId}-link-error`" class="text-danger">{{ linkError }}</p>
+        </div>
+      </template>
+      <template v-else>
+        <p class="fw-semibold mb-1">{{ modelValue.title }}</p>
+        <a
           v-if="safeUrl(modelValue.linkUrl)"
           :href="safeUrl(modelValue.linkUrl)"
           target="_blank"
           rel="noopener noreferrer"
-          >{{ modelValue.title }}</a
-        ><span v-else>{{ modelValue.title }}</span></span
+          >{{ modelValue.linkUrl }}</a
+        >
+      </template>
+    </div>
+    <div class="suggestion-help">
+      <p v-if="mode === 'edit'" :id="`${uniqueId}-image-help`" class="visually-hidden">
+        {{ t('review.imageHint') }}
+        <span v-if="limits">{{
+          t('review.imageLimit', {
+            size: (limits.sourceBytes / 1048576).toFixed(1),
+            pixels: limits.pixels / 1000000,
+          })
+        }}</span>
+      </p>
+      <button
+        v-if="mode === 'edit' && configError"
+        type="button"
+        class="btn btn-link"
+        @click="refresh"
       >
-      <span v-if="imageError" class="small text-body-secondary" role="status">{{
-        imageError
-      }}</span>
+        {{ t('p2.retryConfig') }}
+      </button>
+      <p v-if="validating" role="status" class="form-text">{{ t('images.validating') }}</p>
+      <p v-if="imageError" :id="`${uniqueId}-image-error`" class="text-danger mb-0" role="alert">
+        {{ imageError }}
+      </p>
     </div>
   </div>
 </template>

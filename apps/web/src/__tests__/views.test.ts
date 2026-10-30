@@ -139,10 +139,7 @@ describe('participant form regressions', () => {
       exchange: { ...personal().exchange, isDrawn: true },
       assignment: { receiverName: 'Blair' },
     }
-    await wrapper
-      .findAll('button')
-      .find((button) => button.text() === 'Actualiser')!
-      .trigger('click')
+    document.dispatchEvent(new Event('visibilitychange'))
     await flushPromises()
     expect((wrapper.get('#participant-note').element as HTMLTextAreaElement).value).toBe('Draft')
     expect(wrapper.text()).toContain('Blair')
@@ -167,10 +164,7 @@ describe('participant form regressions', () => {
     const { wrapper } = await open(ParticipantSelfView, '/p/TEST')
     expect(wrapper.text()).toContain('Private recipient')
     revoked = true
-    await wrapper
-      .findAll('button')
-      .find((button) => button.text() === 'Actualiser')!
-      .trigger('click')
+    document.dispatchEvent(new Event('visibilitychange'))
     await flushPromises()
     expect(wrapper.find('#participant-name').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('Private recipient')
@@ -266,23 +260,19 @@ describe('admin authorization and configuration regressions', () => {
     expect(wrapper.find('#exchange-view-mode-switch').exists()).toBe(false)
     expect(wrapper.find('a[href^="/x/"]').exists()).toBe(false)
     expect(wrapper.findAll('#participants select')).toHaveLength(0)
-    expect(wrapper.findAll('#settings select')).toHaveLength(2)
-    expect(
-      wrapper.findAll('#participants details').every((detail) => !detail.attributes('open')),
-    ).toBe(true)
-    await wrapper.get('#exclusion-giver').setValue('dave')
-    expect(
-      wrapper
-        .get('#exclusion-receiver')
-        .findAll('option')
-        .map((option) => option.attributes('value')),
-    ).toEqual(['', 'alex'])
-    await wrapper.get('#exclusion-giver').setValue('stephane')
-    await wrapper.get('#exclusion-receiver').setValue('dave')
-    await wrapper.get('#settings form').trigger('submit')
+    expect(wrapper.findAll('#exchange-details select')).toHaveLength(0)
+    const edit = wrapper.findAll('#participants button').find((b) => b.text() === 'Modifier')!
+    await edit.trigger('click')
     await flushPromises()
-    expect(writes).toEqual([{ giverParticipantId: 'stephane', receiverParticipantId: 'dave' }])
-    expect(wrapper.get('#exclusion-giver').element).toHaveProperty('value', '')
+    const select = document.querySelector<HTMLSelectElement>('#exclusion-receiver')!
+    expect([...select.options].map((o) => o.value)).toEqual(['', 'alex'])
+    select.value = 'alex'
+    select.dispatchEvent(new Event('change', { bubbles: true }))
+    await nextTick()
+    select.closest('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    await flushPromises()
+    expect(writes).toEqual([{ giverParticipantId: 'dave', receiverParticipantId: 'alex' }])
+    expect(wrapper.text()).toContain('Dave ne peut pas piger Stéphane et Alex.')
   })
   it.each([
     { drawn: true, archived: false },
@@ -306,7 +296,8 @@ describe('admin authorization and configuration regressions', () => {
     )
     const { wrapper } = await open(ExchangeDetailView, '/exchanges/exchange')
     expect(wrapper.find('#exclusion-giver').exists()).toBe(false)
-    expect(wrapper.get('#settings li button').attributes()).toHaveProperty('disabled')
+    expect(wrapper.findAll('#exchange-details li button')).toHaveLength(0)
+    expect(wrapper.find('#exclusion-receiver').exists()).toBe(false)
     expect(wrapper.text()).toContain('La pige a été effectuée')
   })
   it('blocks participant addition until failed configuration is recovered', async () => {
@@ -441,32 +432,53 @@ describe('admin authorization and configuration regressions', () => {
     )
     expect(wrapper.get('#new-participant-name').attributes('aria-invalid')).toBe('true')
   })
-  it('keeps password fields after a rejected password change and reports the error in its form', async () => {
+  it('requires the exact exchange name before deleting and hides password-change UI', async () => {
     seed()
+    const writes: string[] = []
     vi.stubGlobal(
       'fetch',
-      vi.fn((path, init) =>
-        Promise.resolve(
-          init.method === 'PUT'
-            ? json({ error: { code: 'ADMIN_PASSWORD_INVALID' } }, 400)
-            : String(path).endsWith('/config')
-              ? json({ maxActiveParticipants: 50 })
+      vi.fn((path, init) => {
+        if (init.method === 'DELETE') {
+          writes.push(String(path))
+          return Promise.resolve(new Response(null, { status: 204 }))
+        }
+        return Promise.resolve(
+          json(
+            String(path).endsWith('/config')
+              ? { maxActiveParticipants: 50 }
               : String(path).endsWith('/exclusions')
-                ? json([])
-                : json(adminResponse()),
-        ),
-      ),
+                ? []
+                : adminResponse(),
+          ),
+        )
+      }),
     )
-    const { wrapper } = await open(ExchangeDetailView, '/exchanges/exchange')
-    await wrapper.get('#current-admin-password').setValue('currentpassword')
-    await wrapper.get('#new-admin-password').setValue('newpassword123')
-    await wrapper.get('#confirm-admin-password').setValue('newpassword123')
-    await wrapper.get('#admin-password-form').trigger('submit')
+    const { wrapper, router } = await open(ExchangeDetailView, '/exchanges/exchange')
+    expect(wrapper.find('#admin-password-form').exists()).toBe(false)
+    expect(wrapper.findAll('button').some((b) => b.text() === 'Actualiser')).toBe(false)
+    await wrapper
+      .findAll('button')
+      .find((b) => b.text() === 'Supprimer l’échange')!
+      .trigger('click')
     await flushPromises()
-    expect(wrapper.get('#admin-password-error').exists()).toBe(true)
-    expect((wrapper.get('#new-admin-password').element as HTMLInputElement).value).toBe(
-      'newpassword123',
-    )
+    const input = document.querySelector<HTMLInputElement>('#delete-exchange-name')!
+    const form = input.closest('form')!
+    const submit = document.querySelector<HTMLButtonElement>('button[form="delete-exchange-form"]')!
+    expect(submit.disabled).toBe(true)
+    input.value = 'échange'
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+    await nextTick()
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    await flushPromises()
+    expect(writes).toEqual([])
+    input.value = 'Échange'
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+    await nextTick()
+    expect(submit.disabled).toBe(false)
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    await flushPromises()
+    expect(writes).toEqual(['/api/exchanges/exchange'])
+    expect(router.currentRoute.value.name).toBe('home')
   })
   it('keeps an admin session in memory if localStorage is blocked', () => {
     const pinia = createPinia()

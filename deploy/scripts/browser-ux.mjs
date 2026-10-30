@@ -77,22 +77,20 @@ try {
     .getByRole("heading", { name: "Échange des fêtes", exact: true })
     .waitFor();
   assert.equal(await page.locator("#participants select").count(), 0);
+  assert(await page.locator('.participant-list').evaluate(el => el.scrollHeight <= el.clientHeight + 1), 'Participant list has no internal scroll');
   assert.equal(await page.locator("#participants details[open]").count(), 0);
   await page.screenshot({
     path: path.join(output, "desktop.png"),
     fullPage: false,
   });
-  await page.locator("#settings details").last().locator("summary").click();
-  await page.locator("#exclusion-giver").selectOption("p1");
+  await page.locator("#participants details summary").nth(1).click();
+  await page.locator("#participants").getByRole("button", { name: "Modifier", exact: true }).first().click();
   await page.locator("#exclusion-receiver").selectOption("p0");
-  await page.locator("#settings form button").click();
+  await page.getByRole("dialog", { name: "Modifier le participant" }).getByRole("button", { name: "Ajouter", exact: true }).click();
   await page.waitForTimeout(150);
   assert.equal(writes.length, 1);
   assert.equal(writes[0].giverParticipantId, "p1");
   assert.equal(writes[0].receiverParticipantId, "p0");
-  await page.locator("#participants details summary").first().focus();
-  await page.keyboard.press("Enter");
-  assert.equal(await page.locator("#participants details[open]").count(), 1);
   let result = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
     .analyze();
@@ -128,10 +126,11 @@ try {
     })),
     [],
   );
-  await page.locator("#settings li button").last().click();
+  await page.getByRole("dialog", { name: "Modifier le participant" }).getByRole("button", { name: "Supprimer", exact: true }).last().click();
   await page.waitForTimeout(150);
   assert.deepEqual(removals, ["r2"]);
-  assert.equal(await page.locator("#settings li").count(), 1);
+  await page.getByRole("dialog", { name: "Modifier le participant" }).getByRole("button", { name: "Abandonner les modifications", exact: true }).click();
+  assert.equal(await page.locator("#exchange-details li").count(), 1);
   drawn = true;
   await page.reload();
   await page.getByText("La pige a été effectuée.", { exact: true }).waitFor();
@@ -142,7 +141,7 @@ try {
   assert.equal(await page.locator("#received-link").count(), 0);
   assert.deepEqual(errors, []);
   console.log(
-    "Validated: 50 participants, desktop/mobile, keyboard expansion, directional write/removal, drawn lock, removed public route, home, axe (0 violations).",
+    "Validated: 50 participants, desktop/mobile, keyboard expansion, per-participant directional write/removal, drawn lock, removed public route, home, axe (0 violations).",
   );
 } finally {
   await browser.close();

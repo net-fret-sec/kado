@@ -41,6 +41,7 @@ function toExchangeDto(
     organizerId: string;
     organizerName?: string;
     eventDate?: string;
+    plannedDrawDate?: string;
     budget?: number;
     minWishlistSuggestions?: number;
     lockSuggestionsAfterDraw?: boolean;
@@ -103,6 +104,7 @@ export async function createExchange(
       organizerName:
         input.organizerParticipates === false ? input.organizerName : undefined,
       eventDate: input.eventDate,
+      plannedDrawDate: input.plannedDrawDate,
       budget: input.budget,
       minWishlistSuggestions: input.minWishlistSuggestions ?? 0,
       lockSuggestionsAfterDraw: input.lockSuggestionsAfterDraw ?? true,
@@ -176,7 +178,9 @@ export async function getExchangeById(
   };
 }
 
-export async function getExchangePublicById(exchangeId: string): Promise<ExchangePublicViewDto> {
+export async function getExchangePublicById(
+  exchangeId: string,
+): Promise<ExchangePublicViewDto> {
   const exchange = await exchangeRepository.findById(exchangeId);
 
   if (!exchange) {
@@ -195,6 +199,7 @@ export async function getExchangePublicById(exchangeId: string): Promise<Exchang
     isDrawn: isExchangeDrawn(exchange),
     isArchived: isExchangeArchived(exchange),
     eventDate: exchange.eventDate,
+    plannedDrawDate: exchange.plannedDrawDate,
     budget: exchange.budget,
     minWishlistSuggestions: exchange.minWishlistSuggestions,
     lockSuggestionsAfterDraw: exchange.lockSuggestionsAfterDraw,
@@ -300,7 +305,16 @@ export async function updateExchange(
 ): Promise<ExchangeDto> {
   return withExchangeTransaction(exchangeId, async (exchange, db) => {
     assertNotArchived(exchange);
-    const { expectedUpdatedAt, ...updates } = input;
+    const { expectedUpdatedAt, eventDate, plannedDrawDate, ...fields } = input;
+    const updates = {
+      ...fields,
+      ...(Object.hasOwn(input, "eventDate")
+        ? { eventDate: eventDate ?? undefined }
+        : {}),
+      ...(Object.hasOwn(input, "plannedDrawDate")
+        ? { plannedDrawDate: plannedDrawDate ?? undefined }
+        : {}),
+    };
     if (isExchangeDrawn(exchange)) {
       assertUnchangedFields(
         exchange,

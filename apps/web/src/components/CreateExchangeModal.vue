@@ -2,7 +2,7 @@
 import { computed, ref, watch, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import type { ExchangeDto } from '@kado/shared'
+import { createExchangeInputSchema, type ExchangeDto } from '@kado/shared'
 import { copyText } from '@/composables/useClipboard'
 import { computed as draftComputed } from 'vue'
 import { useDraftGuard, confirmDiscard } from '@/composables/useDraftGuard'
@@ -46,7 +46,7 @@ const toasts = useToastsStore()
 
 const name = ref('')
 const organizerName = ref('')
-const organizerParticipates = ref(true)
+const passwordVisible = ref(true)
 const adminPassword = ref('')
 const pendingRedirectExchangeId = ref<string | null>(null)
 const modalState = ref<ModalState>(ModalState.FORM)
@@ -54,6 +54,15 @@ const adminLink = ref('')
 const countdownSeconds = ref(CONTINUE_COUNTDOWN_SECONDS)
 let countdownTimer: ReturnType<typeof setInterval> | null = null
 
+const valid = computed(
+  () =>
+    !!organizerName.value.trim() &&
+    createExchangeInputSchema.safeParse({
+      name: name.value,
+      organizerName: organizerName.value,
+      adminPassword: adminPassword.value,
+    }).success,
+)
 const fieldErrors = computed(() => exchangesStore.fieldErrors || {})
 const formErrors = computed(() => exchangesStore.formErrors || [])
 const isCountdownActive = computed(() => countdownSeconds.value > 0)
@@ -62,7 +71,7 @@ const isContinueDisabled = computed(() => isCountdownActive.value)
 function resetForm() {
   name.value = ''
   organizerName.value = ''
-  organizerParticipates.value = true
+  passwordVisible.value = true
   adminPassword.value = ''
   adminLink.value = ''
   modalState.value = ModalState.FORM
@@ -125,7 +134,7 @@ onUnmounted(() => {
 })
 
 async function handleCreate() {
-  if (exchangesStore.isLoading) return
+  if (exchangesStore.isLoading || !valid.value) return
   exchangesStore.fieldErrors = null
   exchangesStore.formErrors = null
 
@@ -137,7 +146,7 @@ async function handleCreate() {
     const result = await exchangesStore.createExchange({
       name: name.value.trim(),
       organizerName: organizerName.value.trim(),
-      organizerParticipates: organizerParticipates.value,
+      organizerParticipates: true,
       adminPassword: adminPassword.value,
     })
 
@@ -200,93 +209,62 @@ async function handleHidden() {
       id="createExchangeForm"
       @submit.prevent="handleCreate"
     >
-      <div class="mb-3">
-        <label for="exchangeName" class="form-label">
-          {{ t('exchanges.createModal.name') }}
-        </label>
+      <div class="form-field mb-3">
+        <label for="exchangeName" class="form-label">{{ t('exchanges.createModal.name') }}</label>
         <input
-          v-model="name"
-          type="text"
-          class="form-control"
           id="exchangeName"
-          :aria-invalid="!!fieldErrors.name || undefined"
-          :aria-describedby="fieldErrors.name ? 'create-name-error' : undefined"
+          v-model="name"
+          class="form-control"
+          maxlength="150"
           required
+          aria-describedby="creation-required"
+          :aria-invalid="!!fieldErrors.name || undefined"
         />
-        <div v-if="fieldErrors.name" id="create-name-error" class="text-danger small">
-          {{ t('p2.invalidField') }}
-        </div>
       </div>
-
-      <div class="row">
-        <div class="col-lg-6 mb-lg-0 mb-3">
-          <label for="organizerName" class="form-label">
-            {{ t('exchanges.createModal.organizerName') }}
-          </label>
-          <input
-            v-model="organizerName"
-            type="text"
-            class="form-control"
-            id="organizerName"
-            :aria-invalid="!!fieldErrors.organizerName || undefined"
-            :aria-describedby="fieldErrors.organizerName ? 'create-organizerName-error' : undefined"
-            required
-          />
-          <div
-            v-if="fieldErrors.organizerName"
-            id="create-organizerName-error"
-            class="text-danger small"
-          >
-            {{ t('p2.invalidField') }}
-          </div>
-        </div>
-        <div class="col-lg-6">
-          <div class="mb-3">
-            <label for="adminPassword" class="form-label">
-              {{ t('exchanges.createModal.adminPassword') }}
-            </label>
-            <input
-              v-model="adminPassword"
-              type="password"
-              class="form-control"
-              id="adminPassword"
-              :aria-invalid="!!fieldErrors.adminPassword || undefined"
-              :aria-describedby="
-                fieldErrors.adminPassword ? 'create-adminPassword-error' : undefined
-              "
-              required
-            />
-            <div class="d-none">
-              <p class="small text-body-secondary mt-2 mb-1">
-                {{ t('exchanges.createModal.adminPasswordRulesTitle') }}
-              </p>
-              <ul class="small text-body-secondary mb-2 ps-3">
-                <li>{{ t('exchanges.createModal.adminPasswordRuleLength') }}</li>
-                <li>{{ t('exchanges.createModal.adminPasswordRuleUnique') }}</li>
-                <li>{{ t('exchanges.createModal.adminPasswordRuleStoredSafely') }}</li>
-              </ul>
-            </div>
-            <div
-              v-if="fieldErrors.adminPassword"
-              id="create-adminPassword-error"
-              class="text-danger small"
-            >
-              {{ t('p2.invalidField') }}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col mb-3 form-check">
+      <div class="form-field mb-3">
+        <label for="organizerName" class="form-label">{{
+          t('exchanges.createModal.organizerName')
+        }}</label>
         <input
-          v-model="organizerParticipates"
-          type="checkbox"
-          class="form-check-input"
-          id="organizerParticipates"
+          id="organizerName"
+          v-model="organizerName"
+          class="form-control"
+          maxlength="150"
+          required
+          aria-describedby="creation-required"
+          :aria-invalid="!!fieldErrors.organizerName || undefined"
         />
-        <label class="form-check-label" for="organizerParticipates">
-          {{ t('exchanges.createModal.organizerParticipates') }}
-        </label>
+      </div>
+      <p id="creation-required" class="form-text">{{ t('review.requiredNames') }}</p>
+      <div class="form-field mb-3">
+        <label for="adminPassword" class="form-label">{{
+          t('exchanges.createModal.adminPassword')
+        }}</label>
+        <div class="input-group">
+          <input
+            id="adminPassword"
+            v-model="adminPassword"
+            :type="passwordVisible ? 'text' : 'password'"
+            class="form-control"
+            minlength="8"
+            maxlength="256"
+            autocomplete="new-password"
+            autocapitalize="off"
+            :spellcheck="false"
+            required
+            aria-describedby="password-help"
+            :aria-invalid="!!fieldErrors.adminPassword || undefined"
+          />
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            :aria-pressed="passwordVisible"
+            @click="passwordVisible = !passwordVisible"
+          >
+            {{ t(passwordVisible ? 'review.hide' : 'review.show') }}
+          </button>
+        </div>
+        <p id="password-help" class="form-text">{{ t('review.passwordHelp') }}</p>
       </div>
 
       <div class="alert alert-light border mb-0">
@@ -345,7 +323,7 @@ async function handleHidden() {
           type="submit"
           class="btn btn-primary order-2"
           form="createExchangeForm"
-          :disabled="exchangesStore.isLoading"
+          :disabled="exchangesStore.isLoading || !valid"
         >
           {{ t('exchanges.createModal.submit') }}
         </button>

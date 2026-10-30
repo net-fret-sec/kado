@@ -6,6 +6,7 @@ import BaseModal from '@/components/BaseModal.vue'
 defineProps<{
   modelValue: boolean
   link: string
+  participantName?: string
 }>()
 
 const emit = defineEmits<{
@@ -22,8 +23,21 @@ const accessLinkInput = ref<HTMLInputElement | null>(null)
     :title="t('exchangeDetail.linkModal.title')"
     @update:model-value="(value) => emit('update:modelValue', value)"
   >
-    <p class="mb-2">{{ t('exchangeDetail.linkModal.description') }}</p>
-    <input ref="accessLinkInput" :aria-label="t('exchangeDetail.linkModal.title')" :value="link" type="text" class="form-control" readonly />
+    <p class="mb-2">
+      {{
+        participantName
+          ? t('review.linkFor', { name: participantName })
+          : t('exchangeDetail.linkModal.description')
+      }}
+    </p>
+    <input
+      ref="accessLinkInput"
+      :aria-label="t('exchangeDetail.linkModal.title')"
+      :value="link"
+      type="text"
+      class="form-control"
+      readonly
+    />
 
     <div class="alert alert-info mt-3 mb-0 small">
       <p class="mb-2">

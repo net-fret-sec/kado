@@ -7,6 +7,7 @@ interface ExchangeRecord {
   organizerId: string;
   organizerName?: string;
   eventDate?: string;
+  plannedDrawDate?: string;
   budget?: number;
   minWishlistSuggestions?: number;
   lockSuggestionsAfterDraw?: boolean;
@@ -38,6 +39,7 @@ interface ExchangeRow {
   organizer_id: string;
   organizer_name: string | null;
   event_date: string | null;
+  planned_draw_date: string | null;
   budget: string | null;
   min_wishlist_suggestions: number;
   lock_suggestions_after_draw: boolean;
@@ -70,6 +72,7 @@ function mapExchangeRow(row: ExchangeRow): ExchangeRecord {
     organizerId: row.organizer_id,
     organizerName: row.organizer_name ?? undefined,
     eventDate: row.event_date ?? undefined,
+    plannedDrawDate: row.planned_draw_date ?? undefined,
     budget: row.budget === null ? undefined : Number(row.budget),
     minWishlistSuggestions: row.min_wishlist_suggestions,
     lockSuggestionsAfterDraw: row.lock_suggestions_after_draw,
@@ -105,6 +108,7 @@ const UPDATE_COLUMN_BY_FIELD: Record<string, string> = {
   organizerId: "organizer_id",
   organizerName: "organizer_name",
   eventDate: "event_date",
+  plannedDrawDate: "planned_draw_date",
   budget: "budget",
   minWishlistSuggestions: "min_wishlist_suggestions",
   lockSuggestionsAfterDraw: "lock_suggestions_after_draw",
@@ -134,13 +138,13 @@ export const exchangeRepository = {
           id, name, description, organizer_id,
           event_date, budget, min_wishlist_suggestions,
           lock_suggestions_after_draw, no_mutual_assignments,
-          draw_at, created_at, updated_at, organizer_name
+          draw_at, created_at, updated_at, organizer_name, planned_draw_date
         )
         VALUES (
           $1, $2, $3, $4,
           $5, $6, $7,
           $8, $9,
-          $10, $11, $12, $13
+          $10, $11, $12, $13, $14
         )
       `,
       [
@@ -157,6 +161,7 @@ export const exchangeRepository = {
         exchange.createdAt,
         exchange.updatedAt,
         exchange.organizerName ?? null,
+        exchange.plannedDrawDate ?? null,
       ],
       db,
     );
@@ -167,7 +172,7 @@ export const exchangeRepository = {
   async findById(exchangeId: string, db?: DbExecutor) {
     const result = await query<ExchangeRow>(
       `
-        SELECT *, event_date::text AS event_date
+        SELECT *, event_date::text AS event_date, planned_draw_date::text AS planned_draw_date
         FROM exchanges
         WHERE id = $1
       `,
@@ -181,7 +186,7 @@ export const exchangeRepository = {
 
   async findByIdForUpdate(exchangeId: string, db: DbExecutor) {
     const result = await query<ExchangeRow>(
-      "SELECT *, event_date::text AS event_date FROM exchanges WHERE id = $1 FOR UPDATE",
+      "SELECT *, event_date::text AS event_date, planned_draw_date::text AS planned_draw_date FROM exchanges WHERE id = $1 FOR UPDATE",
       [exchangeId],
       db,
     );
@@ -191,7 +196,7 @@ export const exchangeRepository = {
   async findAll(db?: DbExecutor) {
     const result = await query<ExchangeRow>(
       `
-        SELECT *, event_date::text AS event_date
+        SELECT *, event_date::text AS event_date, planned_draw_date::text AS planned_draw_date
         FROM exchanges
         ORDER BY created_at ASC
       `,
@@ -225,7 +230,7 @@ export const exchangeRepository = {
           ${setClauses.length > 0 ? `${setClauses.join(", ")},` : ""}
           updated_at = GREATEST(clock_timestamp(), updated_at + interval '1 millisecond')
         WHERE id = $1
-        RETURNING *, event_date::text AS event_date
+        RETURNING *, event_date::text AS event_date, planned_draw_date::text AS planned_draw_date
       `,
       [exchangeId, ...values],
       db,
@@ -260,7 +265,7 @@ export const exchangeRepository = {
           updated_at = GREATEST(clock_timestamp(), updated_at + interval '1 millisecond')
         WHERE id = $1
           AND date_trunc('milliseconds', updated_at) = date_trunc('milliseconds', $${values.length + 2}::timestamptz)
-        RETURNING *, event_date::text AS event_date
+        RETURNING *, event_date::text AS event_date, planned_draw_date::text AS planned_draw_date
       `,
       [exchangeId, ...values, expectedUpdatedAt],
       db,

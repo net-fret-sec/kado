@@ -113,6 +113,7 @@ async function submit() {
     props.isSubmitting ||
     imagesBusy.value ||
     props.suggestionsLocked ||
+    !dirty.value ||
     !valid.value ||
     remote.value ||
     !props.participant
@@ -175,7 +176,7 @@ watch(
       @apply="applyConflict"
     />
     <form id="editParticipantForm" @submit.prevent="submit">
-      <div class="mb-3">
+      <div class="mb-3 form-field">
         <label for="editParticipantName" class="form-label">{{
           t('exchangeDetail.addModal.name')
         }}</label
@@ -194,7 +195,7 @@ watch(
           {{ t('p2.invalidField') }}
         </p>
       </div>
-      <div class="mb-3">
+      <div class="mb-3 form-field">
         <label for="editParticipantNote" class="form-label">{{
           t('exchangeDetail.addModal.note')
         }}</label
@@ -222,12 +223,13 @@ watch(
       />
       <p v-if="fieldErrors?.wishlist" class="text-danger">{{ t('p2.invalidField') }}</p>
     </form>
+    <slot name="exclusions" />
     <template #footer>
       <button
         type="submit"
         class="btn btn-primary order-2"
         form="editParticipantForm"
-        :disabled="suggestionsLocked || !valid || isSubmitting || imagesBusy || !!remote"
+        :disabled="suggestionsLocked || !dirty || !valid || isSubmitting || imagesBusy || !!remote"
       >
         {{ t('exchangeDetail.editModal.submit') }}
       </button>

@@ -42,12 +42,12 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await expect(f.page.getByRole('button', { name: fr.exchangeDetail.dashboard.editSettings, exact: true }).first()).toBeVisible();
   }
   const save = page => page.getByRole('button', { name: fr.participant.save, exact: true });
-  const refresh = page => page.getByRole('button', { name: fr.p2.refresh, exact: true });
+  const refresh = page => ({ click: () => page.evaluate(() => document.dispatchEvent(new Event('visibilitychange'))) });
   console.log('P2 browser: wishlist payload, keyboard, mobile, languages and accessibility');
   {
     const f = await fixture('P2 souhaits'); await self(f);
-    await f.page.getByRole('button', { name: fr.p2.moveDown, exact: true }).first().focus();
-    await f.page.keyboard.press('Enter');
+    await f.page.locator('.drag-handle').first().focus();
+    await f.page.keyboard.press('ArrowDown');
     await expect(f.page.locator('[role=status]').filter({ hasText: 'position 2' })).toBeVisible();
     const file = { name:'gift.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEklEQVQImWP4z8CAFWEXHbQSACj/P8FTKqelAAAAAElFTkSuQmCC','base64') };
     let uploads=0;f.page.on('request',request=>{if(request.method()==='POST'&&request.url().endsWith('/images'))uploads++});
@@ -76,8 +76,8 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await f.page.locator('.skip-link').focus(); await f.page.keyboard.press('Enter');
     await expect(f.page.locator('#main-content')).toBeFocused();
     await f.page.locator('#locale-select').selectOption('en-CA');
-    await expect(f.page.getByRole('button', { name: 'Refresh', exact: true })).toBeVisible();
-    await expect(f.page.getByRole('button', { name: 'Move up', exact: true }).first()).toBeVisible();
+    await expect(f.page.getByRole('button', { name: 'Refresh', exact: true })).toHaveCount(0);
+    await expect(f.page.locator('.drag-handle').first()).toBeVisible();
     await f.page.locator('input[type=file]').first().setInputFiles({...file,name:'replacement.png'});
     const en=JSON.parse(await readFile(path.join(root,'apps/web/src/i18n/locales/en-CA.json'),'utf8'));
     const replacement=f.page.waitForResponse(r=>r.request().method()==='PUT'&&r.url().includes('/api/p/'));
@@ -230,7 +230,6 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await expect(f.page.getByRole('dialog', { name: fr.exchangeDetail.editExchangeModal.title })).not.toBeVisible();
     await expect(f.page.getByRole('heading', { name: 'Brouillon réauth', exact: true })).toBeVisible();
     await f.page.route('**/admin/sessions/current', route => route.abort('failed'));
-    await f.page.locator('section > details.card > summary').click();
     await f.page.getByRole('button', { name: fr.exchangeDetail.adminAuth.logout, exact: true }).click();
     await expect(f.page.getByText(fr.p2.logoutUnconfirmed, { exact: true })).toBeVisible();
     await expect(f.page.locator('#exchange-admin-password')).toBeVisible();

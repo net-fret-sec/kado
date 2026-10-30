@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { exchangeIdParamSchema } from "@kado/shared";
+import { adminPasswordSchema, exchangeIdParamSchema } from "@kado/shared";
 import { validateBody, validateParams } from "../middleware/validate";
 import { requireAdminSession } from "../middleware/require-admin-session";
 import {
@@ -10,12 +10,12 @@ import {
 } from "../services/exchange.service";
 
 const createAdminSessionInputSchema = z.object({
-  adminPassword: z.string().min(10).max(256),
+  adminPassword: adminPasswordSchema,
 });
 
 const changeAdminPasswordInputSchema = z.object({
-  currentPassword: z.string().min(10).max(256),
-  newPassword: z.string().min(10).max(256),
+  currentPassword: adminPasswordSchema,
+  newPassword: adminPasswordSchema,
 });
 
 const router = Router();

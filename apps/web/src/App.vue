@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import { storageUnavailable } from './composables/useStorage'
 import LanguageSwitcher from './components/LanguageSwitcher.vue'
+import SupportFooter from './components/SupportFooter.vue'
 import AppToasts from './components/AppToasts.vue'
 const { t } = useI18n()
 </script>
@@ -23,9 +24,12 @@ const { t } = useI18n()
   </header>
 
   <main id="main-content" tabindex="-1" class="app-main container-xl">
-    <p v-if="storageUnavailable" class="alert alert-warning" role="status">{{ t('p2.storageUnavailable') }}</p>
+    <p v-if="storageUnavailable" class="alert alert-warning" role="status">
+      {{ t('p2.storageUnavailable') }}
+    </p>
     <router-view />
   </main>
 
+  <SupportFooter />
   <AppToasts />
 </template>

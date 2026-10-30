@@ -1,3 +1,4 @@
+import { normalizeAdminPassword } from "@kado/shared";
 import crypto from "node:crypto";
 import { HttpError } from "./http-errors";
 
@@ -57,7 +58,7 @@ async function derive(password: string, salt: string): Promise<Buffer> {
   activeHashes++;
   try {
     return await new Promise<Buffer>((resolve, reject) =>
-      crypto.scrypt(password, salt, 64, (err, key) =>
+      crypto.scrypt(normalizeAdminPassword(password), salt, 64, (err, key) =>
         err ? reject(err) : resolve(key),
       ),
     );

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatMoney } from '@/composables/useCurrency'
 import { formatCivilDate } from '@/composables/useCivilDate'
 import { ref, onMounted, computed } from 'vue'
 import { useExchangesStore } from '@/stores/exchanges'
@@ -51,10 +52,7 @@ function formatDate(value?: string) {
 
 function formatBudget(exchange: ExchangeDto) {
   if (exchange.budget == null) return '-'
-  return new Intl.NumberFormat(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(exchange.budget)
+  return formatMoney(exchange.budget)
 }
 
 function participantsCount(exchange: ExchangeDto) {

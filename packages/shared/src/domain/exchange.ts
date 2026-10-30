@@ -5,6 +5,7 @@ export interface Exchange {
   description?: string;
 
   eventDate?: string;
+  plannedDrawDate?: string;
   budget?: number;
   minWishlistSuggestions?: number;
   lockSuggestionsAfterDraw?: boolean;

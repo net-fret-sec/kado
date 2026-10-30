@@ -104,7 +104,8 @@ export async function createParticipantInTransaction(
     updatedAt: now,
   };
   await participantRepository.create(participant, db);
-  if (input.wishlist) await syncSuggestionImages(participant.id, input.wishlist, db);
+  if (input.wishlist)
+    await syncSuggestionImages(participant.id, input.wishlist, db);
   const accessLink = await createAccess(exchange.id, participant.id, db);
   return { participant, accessLink };
 }
@@ -178,7 +179,8 @@ async function applyParticipantUpdate(
       });
     participantNotFound();
   }
-  if (input.wishlist !== undefined) await syncSuggestionImages(participant.id, input.wishlist, db);
+  if (input.wishlist !== undefined)
+    await syncSuggestionImages(participant.id, input.wishlist, db);
   return updated;
 }
 
@@ -314,6 +316,7 @@ async function selfView(
       isDrawn: isExchangeDrawn(exchange),
       isArchived: isExchangeArchived(exchange),
       eventDate: exchange.eventDate,
+      plannedDrawDate: exchange.plannedDrawDate,
       budget: exchange.budget,
       minWishlistSuggestions: exchange.minWishlistSuggestions,
       lockSuggestionsAfterDraw: exchange.lockSuggestionsAfterDraw,
@@ -326,6 +329,15 @@ async function selfView(
       note: participant.note,
       updatedAt: participant.updatedAt,
     },
+    ...(!isExchangeDrawn(exchange)
+      ? {
+          participants: (
+            await participantRepository.findByExchangeId(exchange.id, db)
+          )
+            .filter((p) => p.status === "active")
+            .map((p) => ({ id: p.id, name: p.name })),
+        }
+      : {}),
     assignment: receiver
       ? {
           receiverName: receiver.name,

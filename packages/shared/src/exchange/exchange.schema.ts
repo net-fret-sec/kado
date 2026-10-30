@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { adminPasswordSchema } from "../password";
 
 const emptyStringToUndefined = <T extends z.ZodTypeAny>(schema: T) =>
   z.preprocess((value) => {
@@ -28,7 +29,12 @@ export const createExchangeInputSchema = z.object({
   description: optionalText(2000),
   organizerName: optionalText(150),
   organizerParticipates: z.boolean().optional().default(true),
-  eventDate: emptyStringToUndefined(calendarDate.optional()),
+  eventDate: emptyStringToUndefined(
+    calendarDate.nullable().optional(),
+  ).transform((v) => v ?? undefined),
+  plannedDrawDate: emptyStringToUndefined(
+    calendarDate.nullable().optional(),
+  ).transform((v) => v ?? undefined),
   budget: z.number().nonnegative().optional(),
   minWishlistSuggestions: z
     .number()
@@ -39,7 +45,7 @@ export const createExchangeInputSchema = z.object({
     .default(0),
   lockSuggestionsAfterDraw: z.boolean().optional().default(true),
   noMutualAssignments: z.boolean().optional().default(false),
-  adminPassword: z.string().min(10).max(256),
+  adminPassword: adminPasswordSchema,
 });
 
 export const updateExchangeInputSchema = z.object({
@@ -50,7 +56,12 @@ export const updateExchangeInputSchema = z.object({
   description: optionalText(2000),
   organizerId: z.string().optional(),
   organizerName: optionalText(150),
-  eventDate: emptyStringToUndefined(calendarDate.optional()),
+  eventDate: emptyStringToUndefined(
+    calendarDate.nullable().optional(),
+  ).transform((v) => v ?? undefined),
+  plannedDrawDate: emptyStringToUndefined(
+    calendarDate.nullable().optional(),
+  ).transform((v) => v ?? undefined),
   budget: z.number().nonnegative().optional(),
   minWishlistSuggestions: z.number().int().min(0).max(100).optional(),
   lockSuggestionsAfterDraw: z.boolean().optional(),

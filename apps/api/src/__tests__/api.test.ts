@@ -945,3 +945,91 @@ describe("Organizer reference integrity", () => {
     ).toBe("");
   });
 });
+
+describe("UI review contracts", () => {
+  it("accepts eight characters without composition, ignores case, and keeps sessions after organizer removal", async () => {
+    await request(app)
+      .post("/api/exchanges")
+      .send({ name: "Short", organizerName: "A", adminPassword: "1234567" })
+      .expect(400);
+    const created = await request(app)
+      .post("/api/exchanges")
+      .send({
+        name: "Review",
+        organizerName: "Host",
+        adminPassword: "abcdefgh",
+      })
+      .expect(201);
+    const id = created.body.exchange.id;
+    const auth = { Authorization: `Bearer ${created.body.adminSessionToken}` };
+    const login = await request(app)
+      .post(`${path(id)}/admin/sessions`)
+      .send({ adminPassword: "AbCdEfGh" })
+      .expect(201);
+    expect(login.body.adminSessionToken).toBeTruthy();
+    await request(app)
+      .delete(`${path(id)}/participants/${created.body.exchange.organizerId}`)
+      .set(auth)
+      .expect(204);
+    await request(app).get(path(id)).set(auth).expect(200);
+    await request(app)
+      .put(`${path(id)}/admin/password`)
+      .set(auth)
+      .send({ currentPassword: "ABCDEFGH", newPassword: "ijklmnop" })
+      .expect(200);
+    await request(app)
+      .post(`${path(id)}/admin/sessions`)
+      .send({ adminPassword: "IJKLmnoP" })
+      .expect(201);
+    await request(app)
+      .post(`${path(id)}/admin/sessions`)
+      .send({ adminPassword: "abcdefgh" })
+      .expect(400);
+  });
+  it("persists independent civil dates, supports clearing, and leaves omitted dates untouched", async () => {
+    const f = await fixture({
+      plannedDrawDate: "2099-12-01",
+      eventDate: "2099-12-25",
+    });
+    const read = await request(app).get(path(f.id)).set(f.auth).expect(200);
+    expect(read.body.plannedDrawDate).toBe("2099-12-01");
+    const renamed = await request(app)
+      .put(path(f.id))
+      .set(f.auth)
+      .send({ name: "Renamed" })
+      .expect(200);
+    expect(renamed.body.plannedDrawDate).toBe("2099-12-01");
+    expect(renamed.body.eventDate).toBe("2099-12-25");
+    await request(app)
+      .put(path(f.id))
+      .set(f.auth)
+      .send({ plannedDrawDate: "2099-02-30" })
+      .expect(400);
+    const cleared = await request(app)
+      .put(path(f.id))
+      .set(f.auth)
+      .send({ eventDate: null, plannedDrawDate: "" })
+      .expect(200);
+    expect(cleared.body.eventDate).toBeUndefined();
+    expect(cleared.body.plannedDrawDate).toBeUndefined();
+    const fresh = await request(app).get(path(f.id)).set(f.auth).expect(200);
+    expect(fresh.body.eventDate).toBeUndefined();
+    expect(fresh.body.plannedDrawDate).toBeUndefined();
+  });
+  it("exposes only active names before a draw and only the assignment afterwards", async () => {
+    const f = await fixture();
+    const before = await request(app).get(`/api/p/${f.token}`).expect(200);
+    expect(before.body.participants).toHaveLength(3);
+    for (const p of before.body.participants)
+      expect(Object.keys(p).sort()).toEqual(["id", "name"]);
+    expect(before.body.assignment).toBeUndefined();
+    await drawExchange(f.id);
+    const after = await request(app).get(`/api/p/${f.token}`).expect(200);
+    expect(after.body.participants).toBeUndefined();
+    expect(after.body.assignment.receiverName).toBeTruthy();
+    await cancelExchangeDraw(f.id);
+    const again = await request(app).get(`/api/p/${f.token}`).expect(200);
+    expect(again.body.participants).toHaveLength(3);
+    expect(again.body.assignment).toBeUndefined();
+  });
+});

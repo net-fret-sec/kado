@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import BaseModal from '@/components/BaseModal.vue'
+import AccessReminder from '@/components/AccessReminder.vue'
+import { formatMoney } from '@/composables/useCurrency'
+import { groupExclusions } from '@/lib/exclusionSummary'
 import { useRoute } from 'vue-router'
 import { useAdminAuthStore } from '@/stores/useAdminAuthStore'
 import { provideImageAccess } from '@/composables/useImageAccess'
@@ -9,7 +13,9 @@ import { useI18n } from 'vue-i18n'
 import EditExchangeModal from '@/components/EditExchangeModal.vue'
 import EditParticipantModal from '@/components/EditParticipantModal.vue'
 import ParticipantAccessLinkModal from '@/components/ParticipantAccessLinkModal.vue'
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const showDelete = ref(false)
+const deleteName = ref('')
 const route = useRoute(),
   auth = useAdminAuthStore()
 const imageUploading = ref(false)
@@ -29,7 +35,6 @@ const {
   exchange,
   participants,
   exclusionRules,
-  selectedExclusionGiver,
   selectedExclusionReceiver,
   isLoading,
   error,
@@ -44,8 +49,6 @@ const {
   actionError,
   addParticipantError,
   addParticipantFieldErrors,
-  passwordError,
-  passwordFieldErrors,
   editExchangeError,
   editParticipantError,
   editExchangeCurrent,
@@ -54,14 +57,11 @@ const {
   isSavingExchange,
   isDrawActionLoading,
   isLoggingOutAdmin,
-  isChangingAdminPassword,
-  currentAdminPassword,
-  newAdminPassword,
-  confirmAdminPassword,
   showEditParticipantModal,
   showAccessLinkModal,
   editingParticipant,
   latestAccessLink,
+  latestAccessName,
   newParticipantName,
   newParticipantNameInput,
   isAddingParticipant,
@@ -77,10 +77,10 @@ const {
   statusBadgeClass,
   statusLabel,
   refreshPaused,
+  connectionLost,
   addParticipantExclusion,
   removeParticipantExclusion,
   authenticateAdmin,
-  changeAdminPassword,
   logoutAdmin,
   saveEdit,
   handleDelete,
@@ -106,6 +106,32 @@ const {
 watch(imageUploading, (value) => {
   participantDirty.value = value || showEditParticipantModal.value
 })
+const exclusionSummary = computed(() => {
+  const groups = groupExclusions(exclusionRules.value)
+  const name = (id: string) => participantNameById.value[id] ?? id
+  const joinNames = (names: string[]) =>
+    names.length < 2
+      ? names.join('')
+      : `${names.slice(0, -1).join(', ')} ${locale.value.startsWith('fr') ? 'et' : 'and'} ${names[names.length - 1]}`
+  return [
+    ...groups.mutual.map(({ a, b }) => t('review.mutual', { a: name(a), b: name(b) })),
+    ...groups.directional.map(({ giver, receivers }) =>
+      t('review.directional', { name: name(giver), others: joinNames(receivers.map(name)) }),
+    ),
+  ]
+})
+watch(showDelete, () => {
+  deleteName.value = ''
+})
+watch(
+  () => editingParticipant.value?.id,
+  () => {
+    selectedExclusionReceiver.value = ''
+  },
+)
+watch(requiresAdminAuth, (value) => {
+  if (value) showDelete.value = false
+})
 </script>
 
 <template>
@@ -114,8 +140,8 @@ watch(imageUploading, (value) => {
       <div class="card-body">
         <h3 class="h5 mb-2">{{ t('exchangeDetail.adminAuth.title') }}</h3>
         <p class="text-muted mb-3">{{ t('exchangeDetail.adminAuth.description') }}</p>
-        <form class="row g-2 align-items-end" @submit.prevent="authenticateAdmin">
-          <div class="col-12 col-md-8">
+        <form class="d-grid gap-3" @submit.prevent="authenticateAdmin">
+          <div class="form-field">
             <label for="exchange-admin-password" class="form-label mb-1">{{
               t('exchangeDetail.adminAuth.passwordLabel')
             }}</label>
@@ -125,11 +151,20 @@ watch(imageUploading, (value) => {
               class="form-control"
               type="password"
               autocomplete="current-password"
+              minlength="8"
+              maxlength="256"
+              aria-describedby="login-password-help"
               required
             />
           </div>
-          <div class="col-12 col-md-4 d-grid">
-            <button class="btn btn-primary" type="submit" :disabled="isAuthenticatingAdmin">
+          <div class="d-flex justify-content-end">
+            <button
+              class="btn btn-primary"
+              type="submit"
+              :disabled="
+                isAuthenticatingAdmin || adminPassword.length < 8 || adminPassword.length > 256
+              "
+            >
               {{
                 isAuthenticatingAdmin
                   ? t('exchangeDetail.adminAuth.loggingIn')
@@ -138,6 +173,7 @@ watch(imageUploading, (value) => {
             </button>
           </div>
         </form>
+        <p id="login-password-help" class="form-text">{{ t('review.passwordHelp') }}</p>
       </div>
     </div>
 
@@ -155,9 +191,12 @@ watch(imageUploading, (value) => {
     <p v-if="refreshPaused && !requiresAdminAuth" class="small text-body-secondary" role="status">
       {{ t('p2.refreshPaused') }}
     </p>
+    <p v-if="error && exchange && !requiresAdminAuth" class="alert alert-warning" role="alert">
+      {{ error }}
+    </p>
     <p v-if="actionError" class="alert alert-danger" role="alert">{{ actionError }}</p>
     <button
-      v-if="!requiresAdminAuth"
+      v-if="connectionLost && !requiresAdminAuth"
       type="button"
       class="btn btn-outline-secondary mb-3"
       :disabled="mutationBusy || isLoading || showEditExchangeModal || showEditParticipantModal"
@@ -166,7 +205,7 @@ watch(imageUploading, (value) => {
       {{ t('p2.refresh') }}
     </button>
     <div v-if="isLoading" role="status">{{ t('exchangeDetail.loading') }}</div>
-    <div v-else-if="error" class="alert alert-danger" role="alert">
+    <div v-else-if="error && !exchange" class="alert alert-danger" role="alert">
       {{ error }} <router-link to="/">{{ t('p2.home') }}</router-link>
     </div>
     <div v-else-if="exchange && !requiresAdminAuth" class="row g-4 align-items-start">
@@ -176,6 +215,7 @@ watch(imageUploading, (value) => {
         style="display: contents"
       >
         <legend class="visually-hidden">{{ t('p2.adminActions') }}</legend>
+        <div class="col-12"><AccessReminder :access-id="exchange.id" organizer /></div>
         <section id="detail" class="col-12">
           <div class="card border shadow-sm">
             <div class="card-body">
@@ -187,7 +227,7 @@ watch(imageUploading, (value) => {
                     <span>{{ participantCountLabel }} {{ t('exchangeDetail.participants') }}</span>
                     <span v-if="exchange.eventDate">{{ formatCivilDate(exchange.eventDate) }}</span>
                     <span v-if="exchange.budget != null"
-                      >{{ t('exchangeDetail.budget') }} : {{ exchange.budget }}</span
+                      >{{ t('exchangeDetail.budget') }} : {{ formatMoney(exchange.budget) }}</span
                     >
                   </div>
                 </div>
@@ -208,6 +248,23 @@ watch(imageUploading, (value) => {
                   {{ t('exchangeDetail.cancelDraw') }}
                 </button>
               </div>
+              <div class="d-flex flex-wrap justify-content-end gap-3 mt-3">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-link"
+                  :disabled="isLoggingOutAdmin"
+                  @click="logoutAdmin"
+                >
+                  {{ t('exchangeDetail.adminAuth.logout') }}
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-link text-danger"
+                  @click="showDelete = true"
+                >
+                  {{ t('exchangeDetail.dashboard.deleteExchange') }}
+                </button>
+              </div>
               <p v-if="exchange.isDrawn" class="text-success fw-semibold mt-3 mb-0" role="status">
                 {{ t('exchangeDetail.drawSuccess') }}
               </p>
@@ -217,6 +274,71 @@ watch(imageUploading, (value) => {
               >
                 {{ t('exchangeDetail.dashboard.minimumParticipants') }}
               </p>
+            </div>
+          </div>
+        </section>
+        <section id="exchange-details" class="col-12 col-xl-5">
+          <div class="card border shadow-sm">
+            <div class="card-body">
+              <h2 class="h4">{{ t('exchangeDetail.dashboard.settings') }}</h2>
+              <p class="small text-body-secondary">
+                {{ t('exchangeDetail.organizer') }} : {{ exchange.organizerName }}
+              </p>
+              <dl class="small">
+                <template v-if="exchange.plannedDrawDate"
+                  ><dt>{{ t('review.plannedDrawDate') }}</dt>
+                  <dd>{{ formatCivilDate(exchange.plannedDrawDate) }}</dd></template
+                >
+                <template v-if="exchange.eventDate"
+                  ><dt>{{ t('exchangeDetail.exchangeMoment') }}</dt>
+                  <dd>{{ formatCivilDate(exchange.eventDate) }}</dd></template
+                >
+              </dl>
+              <p v-if="exchange.description" class="dashboard-description">
+                {{ exchange.description }}
+              </p>
+              <button
+                class="btn btn-outline-primary mb-3"
+                :disabled="exchange.isArchived"
+                @click="startEdit"
+              >
+                {{ t('exchangeDetail.dashboard.editSettings') }}
+              </button>
+              <section class="border-top py-3">
+                <h3 class="h6">{{ t('exchangeDetail.dashboard.suggestions') }}</h3>
+                <dl class="mt-3 mb-0">
+                  <dt>{{ t('exchangeDetail.minWishlistSuggestions') }}</dt>
+                  <dd>{{ exchange.minWishlistSuggestions ?? 0 }}</dd>
+                  <dt>{{ t('exchangeDetail.lockSuggestionsAfterDraw') }}</dt>
+                  <dd>
+                    {{
+                      (exchange.lockSuggestionsAfterDraw ?? true)
+                        ? t('exchangeDetail.enabled')
+                        : t('exchangeDetail.disabled')
+                    }}
+                  </dd>
+                </dl>
+              </section>
+              <div class="border-top pt-3">
+                <h3 class="h6">{{ t('exchangeDetail.dashboard.rules') }}</h3>
+                <p class="small mb-1">
+                  {{ t('exchangeDetail.noMutualAssignments') }} :
+                  {{
+                    exchange.noMutualAssignments
+                      ? t('exchangeDetail.enabled')
+                      : t('exchangeDetail.disabled')
+                  }}
+                </p>
+                <p class="small">
+                  {{ t('exchangeDetail.dashboard.exclusionCount', exclusionRules.length) }}
+                </p>
+                <ul v-if="exclusionSummary.length" class="ps-3 small">
+                  <li v-for="line in exclusionSummary" :key="line">{{ line }}</li>
+                </ul>
+                <p v-else class="small text-body-secondary">
+                  {{ t('exchangeDetail.exceptions.none') }}
+                </p>
+              </div>
             </div>
           </div>
         </section>
@@ -273,7 +395,6 @@ watch(imageUploading, (value) => {
               <ul
                 v-if="participants.length"
                 class="list-group mb-3 participant-list"
-                tabindex="0"
                 :aria-label="t('exchangeDetail.participants')"
               >
                 <li
@@ -344,256 +465,6 @@ watch(imageUploading, (value) => {
             </div>
           </div>
         </section>
-        <section id="settings" class="col-12 col-xl-5">
-          <div class="card border shadow-sm">
-            <div class="card-body">
-              <h2 class="h4">{{ t('exchangeDetail.dashboard.settings') }}</h2>
-              <p class="small text-body-secondary">
-                {{ t('exchangeDetail.organizer') }} : {{ exchange.organizerName }}
-              </p>
-              <p v-if="exchange.description" class="dashboard-description">
-                {{ exchange.description }}
-              </p>
-              <button
-                class="btn btn-outline-primary mb-3"
-                :disabled="exchange.isArchived"
-                @click="startEdit"
-              >
-                {{ t('exchangeDetail.dashboard.editSettings') }}
-              </button>
-              <details class="border-top py-3">
-                <summary class="fw-semibold">
-                  {{ t('exchangeDetail.dashboard.suggestions') }}
-                </summary>
-                <dl class="mt-3 mb-0">
-                  <dt>{{ t('exchangeDetail.minWishlistSuggestions') }}</dt>
-                  <dd>{{ exchange.minWishlistSuggestions ?? 0 }}</dd>
-                  <dt>{{ t('exchangeDetail.lockSuggestionsAfterDraw') }}</dt>
-                  <dd>
-                    {{
-                      (exchange.lockSuggestionsAfterDraw ?? true)
-                        ? t('exchangeDetail.enabled')
-                        : t('exchangeDetail.disabled')
-                    }}
-                  </dd>
-                </dl>
-              </details>
-              <div class="border-top pt-3">
-                <h3 class="h6">{{ t('exchangeDetail.dashboard.rules') }}</h3>
-                <p class="small mb-1">
-                  {{ t('exchangeDetail.noMutualAssignments') }} :
-                  {{
-                    exchange.noMutualAssignments
-                      ? t('exchangeDetail.enabled')
-                      : t('exchangeDetail.disabled')
-                  }}
-                </p>
-                <p class="small">
-                  {{ t('exchangeDetail.dashboard.exclusionCount', exclusionRules.length) }}
-                </p>
-                <details>
-                  <summary class="fw-semibold">
-                    {{ t('exchangeDetail.dashboard.manageExclusions') }}
-                  </summary>
-                  <p class="small text-body-secondary mt-3">
-                    {{ t('exchangeDetail.dashboard.directional') }}
-                  </p>
-                  <p v-if="isExclusionEditingLocked" class="alert alert-info small">
-                    {{ t('exchangeDetail.exceptions.locked') }}
-                  </p>
-                  <ul v-if="exclusionRules.length" class="list-unstyled d-grid gap-2">
-                    <li
-                      v-for="rule in exclusionRules"
-                      :key="rule.id"
-                      class="border rounded p-2 d-flex flex-wrap align-items-center justify-content-between gap-2"
-                    >
-                      <span
-                        >{{
-                          participantNameById[rule.giverParticipantId] || rule.giverParticipantId
-                        }}
-                        {{ t('exchangeDetail.exceptions.cannotDraw') }}
-                        <strong>{{
-                          participantNameById[rule.receiverParticipantId] ||
-                          rule.receiverParticipantId
-                        }}</strong></span
-                      >
-                      <button
-                        type="button"
-                        class="btn btn-sm btn-outline-secondary"
-                        :disabled="isExclusionEditingLocked"
-                        :aria-label="
-                          t('exchangeDetail.dashboard.removeExclusion', {
-                            giver: participantNameById[rule.giverParticipantId],
-                            receiver: participantNameById[rule.receiverParticipantId],
-                          })
-                        "
-                        @click="removeParticipantExclusion(rule.id)"
-                      >
-                        {{ t('exchangeDetail.exceptions.remove') }}
-                      </button>
-                    </li>
-                  </ul>
-                  <p v-else class="small text-body-secondary">
-                    {{ t('exchangeDetail.exceptions.none') }}
-                  </p>
-                  <form
-                    v-if="!isExclusionEditingLocked"
-                    class="d-grid gap-2"
-                    @submit.prevent="addParticipantExclusion(selectedExclusionGiver)"
-                  >
-                    <label for="exclusion-giver">{{ t('exchangeDetail.dashboard.giver') }}</label>
-                    <select
-                      id="exclusion-giver"
-                      v-model="selectedExclusionGiver"
-                      class="form-select"
-                      required
-                    >
-                      <option value="">{{ t('exchangeDetail.dashboard.selectGiver') }}</option>
-                      <option
-                        v-for="participant in activeParticipants"
-                        :key="participant.id"
-                        :value="participant.id"
-                      >
-                        {{ participant.name }}
-                      </option>
-                    </select>
-                    <label for="exclusion-receiver">{{
-                      t('exchangeDetail.dashboard.receiver')
-                    }}</label>
-                    <select
-                      id="exclusion-receiver"
-                      v-model="selectedExclusionReceiver"
-                      class="form-select"
-                      :disabled="
-                        !selectedExclusionGiver ||
-                        !getReceiverCandidates(selectedExclusionGiver).length
-                      "
-                      required
-                    >
-                      <option value="">{{ t('exchangeDetail.exceptions.selectReceiver') }}</option>
-                      <option
-                        v-for="candidate in getReceiverCandidates(selectedExclusionGiver)"
-                        :key="candidate.id"
-                        :value="candidate.id"
-                      >
-                        {{ candidate.name }}
-                      </option>
-                    </select>
-                    <button
-                      class="btn btn-outline-primary"
-                      :disabled="!selectedExclusionGiver || !selectedExclusionReceiver"
-                    >
-                      {{ t('exchangeDetail.exceptions.add') }}
-                    </button>
-                  </form>
-                </details>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section class="col-12">
-          <details class="card border shadow-sm">
-            <summary class="p-3 fw-semibold">
-              {{ t('exchangeDetail.dashboard.administration') }}
-            </summary>
-            <div class="card-body pt-0">
-              <details class="mb-3">
-                <summary>{{ t('exchangeDetail.adminAuth.changePasswordTitle') }}</summary>
-                <p class="small text-body-secondary mt-3">
-                  {{ t('exchangeDetail.adminAuth.changePasswordDescription') }}
-                </p>
-                <form
-                  id="admin-password-form"
-                  class="row g-2"
-                  @submit.prevent="changeAdminPassword"
-                >
-                  <p
-                    v-if="passwordError"
-                    id="admin-password-error"
-                    class="alert alert-danger"
-                    role="alert"
-                  >
-                    {{ passwordError }}
-                  </p>
-                  <div class="col-12">
-                    <label for="current-admin-password" class="form-label">
-                      {{ t('exchangeDetail.adminAuth.currentPasswordLabel') }}
-                    </label>
-                    <input
-                      id="current-admin-password"
-                      :aria-invalid="!!passwordFieldErrors.currentPassword || undefined"
-                      :aria-describedby="passwordError ? 'admin-password-error' : undefined"
-                      v-model="currentAdminPassword"
-                      type="password"
-                      class="form-control"
-                      minlength="10"
-                      required
-                    />
-                  </div>
-                  <div class="col-12 col-md-6">
-                    <label for="new-admin-password" class="form-label">
-                      {{ t('exchangeDetail.adminAuth.newPasswordLabel') }}
-                    </label>
-                    <input
-                      id="new-admin-password"
-                      :aria-invalid="!!passwordFieldErrors.newPassword || undefined"
-                      :aria-describedby="passwordError ? 'admin-password-error' : undefined"
-                      v-model="newAdminPassword"
-                      type="password"
-                      class="form-control"
-                      minlength="10"
-                      required
-                    />
-                  </div>
-                  <div class="col-12 col-md-6">
-                    <label for="confirm-admin-password" class="form-label">
-                      {{ t('exchangeDetail.adminAuth.confirmPasswordLabel') }}
-                    </label>
-                    <input
-                      id="confirm-admin-password"
-                      :aria-invalid="!!passwordFieldErrors.confirmPassword || undefined"
-                      :aria-describedby="passwordError ? 'admin-password-error' : undefined"
-                      v-model="confirmAdminPassword"
-                      type="password"
-                      class="form-control"
-                      minlength="10"
-                      required
-                    />
-                  </div>
-                  <div class="col-12 d-grid d-md-flex justify-content-md-end">
-                    <button
-                      class="btn btn-outline-secondary"
-                      type="submit"
-                      :disabled="isChangingAdminPassword"
-                    >
-                      {{
-                        isChangingAdminPassword
-                          ? t('exchangeDetail.adminAuth.changingPassword')
-                          : t('exchangeDetail.adminAuth.changePassword')
-                      }}
-                    </button>
-                  </div>
-                </form>
-              </details>
-              <div class="d-flex flex-wrap gap-2">
-                <button
-                  class="btn btn-outline-secondary"
-                  :disabled="isLoggingOutAdmin"
-                  @click="logoutAdmin"
-                >
-                  {{
-                    isLoggingOutAdmin
-                      ? t('exchangeDetail.adminAuth.loggingOut')
-                      : t('exchangeDetail.adminAuth.logout')
-                  }}
-                </button>
-                <button class="btn btn-outline-secondary" @click="handleDelete">
-                  {{ t('exchangeDetail.dashboard.deleteExchange') }}
-                </button>
-              </div>
-            </div>
-          </details>
-        </section>
       </fieldset>
     </div>
     <EditExchangeModal
@@ -613,6 +484,7 @@ watch(imageUploading, (value) => {
       :organizer-editable="!exchange.organizerId"
       :description="exchange.description || ''"
       :event-date="exchange.eventDate"
+      :planned-draw-date="exchange.plannedDrawDate"
       :budget="exchange.budget"
       :min-wishlist-suggestions="exchange.minWishlistSuggestions"
       :lock-suggestions-after-draw="exchange.lockSuggestionsAfterDraw"
@@ -637,12 +509,113 @@ watch(imageUploading, (value) => {
       :suggestions-locked="isParticipantSuggestionsLocked"
       @update:model-value="setEditParticipantModalVisibility"
       @submit="updateParticipant"
-    />
+    >
+      <template #exclusions>
+        <section v-if="editingParticipant" class="border-top mt-3 pt-3">
+          <h3 class="h6">{{ t('review.editExclusions') }}</h3>
+          <p class="small text-body-secondary">{{ t('review.exclusionsHelp') }}</p>
+          <p v-if="isExclusionEditingLocked" class="small">
+            {{ t('exchangeDetail.exceptions.locked') }}
+          </p>
+          <ul class="list-unstyled">
+            <li
+              v-for="rule in getParticipantExclusions(editingParticipant.id)"
+              :key="rule.id"
+              class="d-flex justify-content-between align-items-center gap-2 mb-2"
+            >
+              <span>{{ participantNameById[rule.receiverParticipantId] }}</span>
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary"
+                :disabled="isExclusionEditingLocked || mutationBusy || imageUploading"
+                @click="removeParticipantExclusion(rule.id)"
+              >
+                {{ t('exchangeDetail.exceptions.remove') }}
+              </button>
+            </li>
+          </ul>
+          <form
+            v-if="!isExclusionEditingLocked"
+            @submit.prevent="addParticipantExclusion(editingParticipant.id)"
+          >
+            <div class="form-field mb-2">
+              <label for="exclusion-receiver" class="form-label">{{
+                t('exchangeDetail.dashboard.receiver')
+              }}</label>
+              <select
+                id="exclusion-receiver"
+                v-model="selectedExclusionReceiver"
+                class="form-select"
+                :disabled="
+                  mutationBusy ||
+                  imageUploading ||
+                  !getReceiverCandidates(editingParticipant.id).length
+                "
+                required
+              >
+                <option value="">{{ t('exchangeDetail.exceptions.selectReceiver') }}</option>
+                <option
+                  v-for="candidate in getReceiverCandidates(editingParticipant.id)"
+                  :key="candidate.id"
+                  :value="candidate.id"
+                >
+                  {{ candidate.name }}
+                </option>
+              </select>
+            </div>
+            <button
+              type="submit"
+              class="btn btn-sm btn-outline-primary"
+              :disabled="!selectedExclusionReceiver || mutationBusy || imageUploading"
+            >
+              {{ t('exchangeDetail.exceptions.add') }}
+            </button>
+          </form>
+        </section>
+      </template>
+    </EditParticipantModal>
 
+    <BaseModal
+      v-if="exchange && !requiresAdminAuth"
+      v-model="showDelete"
+      :title="t('review.deleteTitle')"
+      :before-close="() => !mutationBusy"
+    >
+      <p>{{ t('review.deleteHelp', { name: exchange.name }) }}</p>
+      <form class="form-field" id="delete-exchange-form" @submit.prevent="handleDelete(deleteName)">
+        <label for="delete-exchange-name" class="form-label">{{ t('review.confirmName') }}</label>
+        <input
+          id="delete-exchange-name"
+          v-model="deleteName"
+          class="form-control"
+          autocomplete="off"
+          :disabled="mutationBusy"
+          required
+        />
+        <p v-if="error && exchange && !requiresAdminAuth" class="alert alert-warning" role="alert">
+          {{ error }}
+        </p>
+        <p v-if="actionError" class="text-danger" role="alert">{{ actionError }}</p>
+      </form>
+      <template #footer>
+        <button type="button" class="btn btn-link" data-bs-dismiss="modal" :disabled="mutationBusy">
+          {{ t('actions.cancel') }}
+        </button>
+        <button
+          type="submit"
+          form="delete-exchange-form"
+          class="btn btn-danger"
+          :disabled="deleteName !== exchange.name || mutationBusy"
+        >
+          {{ t('exchangeDetail.delete') }}
+        </button>
+      </template>
+    </BaseModal>
     <ParticipantAccessLinkModal
       v-if="!requiresAdminAuth"
       :model-value="showAccessLinkModal"
       :link="latestAccessLink"
+      :participant-name="latestAccessName"
       @update:model-value="setAccessLinkModalVisibility"
     />
   </section>
@@ -663,8 +636,7 @@ summary:focus-visible,
   overflow-wrap: anywhere;
 }
 .participant-list {
-  max-height: 28rem;
-  overflow-y: auto;
+  overflow: visible;
 }
 .list-group-item {
   overflow-wrap: anywhere;
