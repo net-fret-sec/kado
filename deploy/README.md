@@ -25,6 +25,47 @@ Le script acquiert un verrou commun aux opérations de base, vérifie l’archiv
 
 La migration `002_organizer_name.sql` est additive : elle ne requalifie aucun ancien organisateur. Appliquer les migrations par le script de livraison ; ne pas rejouer les fichiers SQL manuellement.
 
+## Bilan des échanges en production
+
+Depuis le VPS, dans `/opt/kado` :
+
+```bash
+bash deploy/scripts/status.sh
+# Sortie structurée, facultative :
+bash deploy/scripts/status.sh --json
+```
+
+Depuis le dossier du projet sur ton ordinateur :
+
+```bash
+pnpm status:prod
+# Sortie structurée, facultative :
+pnpm status:prod --json
+```
+
+Cette commande utilise l’alias SSH `netfretsec` pour lancer le script installé
+sur le VPS. Pour obtenir du JSON sans les messages de pnpm :
+`pnpm --silent status:prod --json`.
+
+Le bilan donne les échanges présents, actifs avec ou sans pige, archivés,
+les actifs sans date de remise ou avec au moins trois participants, les nombres
+de participants et de suggestions des échanges actifs, puis les créations
+encore présentes sur les dernières 24 heures, 7 jours et 30 jours.
+
+« Actif » signifie **non archivé**, pas « récemment visité ». La règle est celle
+de l’application : archivage à minuit, 31 jours calendaires après la date de
+remise, dans `EXCHANGE_TIME_ZONE`. Un échange sans date de remise reste actif.
+Les participants retirés sont exclus des compteurs de participants/suggestions.
+Les échanges supprimés ne sont plus mesurables ; ce bilan n’est pas un historique.
+Les fenêtres de création sont glissantes (24, 168 et 720 heures).
+
+Le script utilise la configuration réelle du conteneur API, une transaction
+PostgreSQL en lecture seule et des délais limités. Il ne fournit aucun nom,
+lien d’accès, mot de passe ou contenu de suggestion. Il ne démarre ni ne redémarre
+aucun service et échoue explicitement si la base n’est pas accessible. Les
+services API et PostgreSQL doivent fonctionner. Un autre fichier de configuration
+Compose peut être passé en premier argument, comme pour les autres scripts.
+
 ## Sauvegarde et restauration
 
 Sauvegarde manuelle :
