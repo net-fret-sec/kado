@@ -282,7 +282,17 @@ main > * + * {
   border-color: var(--primary);
 }
 
+#app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+.support-footer {
+  margin-top: auto;
+}
 .app-main {
+  flex: 1;
   padding-block: var(--space-lg) var(--space-xl);
 }
 
@@ -599,7 +609,7 @@ main > * + * {
 }
 
 .home-support {
-  background: var(--surface-soft);
+  background: transparent;
 }
 .home-support h2 {
   font-family: var(--font-heading);

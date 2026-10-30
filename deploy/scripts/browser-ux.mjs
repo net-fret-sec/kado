@@ -83,8 +83,9 @@ try {
     path: path.join(output, "desktop.png"),
     fullPage: false,
   });
-  await page.locator("#participants details summary").nth(1).click();
-  await page.locator("#participants").getByRole("button", { name: "Modifier", exact: true }).first().click();
+  const stephane = page.locator("#participants li").filter({ has: page.locator("strong", { hasText: /^Stéphane$/ }) });
+  await stephane.locator("summary").click();
+  await stephane.getByRole("button", { name: "Modifier", exact: true }).click();
   await page.locator("#exclusion-receiver").selectOption("p0");
   await page.getByRole("dialog", { name: "Modifier le participant" }).getByRole("button", { name: "Ajouter", exact: true }).click();
   await page.waitForTimeout(150);
@@ -129,8 +130,8 @@ try {
   await page.getByRole("dialog", { name: "Modifier le participant" }).getByRole("button", { name: "Supprimer", exact: true }).last().click();
   await page.waitForTimeout(150);
   assert.deepEqual(removals, ["r2"]);
-  await page.getByRole("dialog", { name: "Modifier le participant" }).getByRole("button", { name: "Abandonner les modifications", exact: true }).click();
-  assert.equal(await page.locator("#exchange-details li").count(), 1);
+  await page.getByRole("dialog", { name: "Modifier le participant" }).getByRole("button", { name: "Fermer", exact: true }).click();
+  assert.equal(await page.locator("#exchange-details .exclusions-summary li").count(), 1);
   drawn = true;
   await page.reload();
   await page.getByText("La pige a été effectuée.", { exact: true }).waitFor();

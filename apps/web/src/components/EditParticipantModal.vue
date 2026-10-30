@@ -239,7 +239,7 @@ watch(
         data-bs-dismiss="modal"
         :disabled="isSubmitting || imagesBusy"
       >
-        {{ t('actions.cancel') }}
+        {{ dirty ? t('actions.cancel') : t('review.close') }}
       </button>
     </template>
   </BaseModal>

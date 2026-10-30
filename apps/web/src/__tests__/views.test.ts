@@ -261,7 +261,16 @@ describe('admin authorization and configuration regressions', () => {
     expect(wrapper.find('a[href^="/x/"]').exists()).toBe(false)
     expect(wrapper.findAll('#participants select')).toHaveLength(0)
     expect(wrapper.findAll('#exchange-details select')).toHaveLength(0)
-    const edit = wrapper.findAll('#participants button').find((b) => b.text() === 'Modifier')!
+    expect(wrapper.findAll('#participants li strong').map((p) => p.text())).toEqual([
+      'Alex',
+      'Dave',
+      'Stéphane',
+    ])
+    const edit = wrapper
+      .findAll('#participants li')
+      .find((p) => p.text().includes('Dave'))!
+      .findAll('button')
+      .find((b) => b.text() === 'Modifier')!
     await edit.trigger('click')
     await flushPromises()
     const select = document.querySelector<HTMLSelectElement>('#exclusion-receiver')!
@@ -272,7 +281,7 @@ describe('admin authorization and configuration regressions', () => {
     select.closest('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
     await flushPromises()
     expect(writes).toEqual([{ giverParticipantId: 'dave', receiverParticipantId: 'alex' }])
-    expect(wrapper.text()).toContain('Dave ne peut pas piger Stéphane et Alex.')
+    expect(wrapper.text()).toContain('Dave ne peut pas piger Alex et Stéphane.')
   })
   it.each([
     { drawn: true, archived: false },

@@ -429,8 +429,20 @@
     "mutual": "{a} et {b} ne peuvent pas se piger.",
     "directional": "{name} ne peut pas piger {others}.",
     "editExclusions": "Exclusions de cette personne",
-    "exclusionsHelp": "Les boutons Ajouter et Supprimer enregistrent immédiatement chaque exclusion.",
+    "exclusionsHelp": "Les boutons Ajouter et Retirer enregistrent immédiatement les exclusions. Le bouton Enregistrer concerne uniquement le profil et les suggestions.",
     "linkFor": "Partagez ce lien personnel avec {name}.",
-    "connectionLost": "La connexion au serveur est interrompue. Vos modifications non enregistrées sont conservées."
+    "connectionLost": "La connexion au serveur est interrompue. Vos modifications non enregistrées sont conservées.",
+    "confirmDeleteSuggestion": "Supprimer cette suggestion cadeau? Cette modification prendra effet après l’enregistrement.",
+    "detailsOrganizer": "Organisé par {name}",
+    "detailsBudget": "Le budget de cadeau est de {amount}.",
+    "detailsMinimumNone": "Il n’y a pas de minimum de suggestions à fournir pour les participants.",
+    "detailsMinimum": "Les participants doivent fournir au moins {count} suggestion pour effectuer la pige. | Les participants doivent fournir au moins {count} suggestions pour effectuer la pige.",
+    "detailsLocked": "Il ne sera pas possible de modifier les suggestions une fois la pige effectuée.",
+    "detailsOpen": "Les participants pourront modifier leurs suggestions une fois la pige effectuée.",
+    "detailsNoMutual": "Les piges mutuelles sont exclues. Si A pige B, alors B ne peut pas piger A.",
+    "detailsMutual": "Les piges mutuelles sont permises. Même si A pige B, B peut tout de même piger A.",
+    "detailsExclusions": "Exclusions",
+    "reciprocalExclusions": "Dans ce mode, chaque exclusion s’applique dans les deux sens.",
+    "close": "Fermer"
   }
 }

@@ -1,3 +1,4 @@
+import { effectiveExclusions } from "@kado/shared";
 import path from "node:path";
 import { Worker } from "node:worker_threads";
 import { getConfig } from "./lib/config";
@@ -17,6 +18,7 @@ export async function runDraw(
 ): Promise<Assignment[] | null> {
   if (active)
     throw new HttpError(503, "Draw service busy.", { code: "DRAW_BUSY" });
+  exclusions = effectiveExclusions(exclusions, noMutual);
   const c = getConfig();
   const workerPath = path.resolve(__dirname, "workers/draw.worker.cjs");
   const worker = new Worker(workerPath, {

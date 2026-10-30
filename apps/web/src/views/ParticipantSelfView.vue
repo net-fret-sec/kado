@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AccessReminder from '@/components/AccessReminder.vue'
-import { formatMoney } from '@/composables/useCurrency'
-import { formatCivilDate } from '@/composables/useCivilDate'
+import ExchangeDetails from '@/components/ExchangeDetails.vue'
+import { sortParticipants } from '@/lib/participantOrder'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -22,11 +22,14 @@ import { provideImageAccess } from '@/composables/useImageAccess'
 import WishlistSuggestionItem from '@/components/WishlistSuggestionItem.vue'
 import ConflictReview from '@/components/ConflictReview.vue'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
 const api = useApi()
 const toasts = useToastsStore()
 const view = ref<ParticipantSelfViewDto | null>(null)
+const sortedParticipants = computed(() =>
+  sortParticipants(view.value?.participants ?? [], locale.value),
+)
 const name = ref(''),
   email = ref(''),
   note = ref('')
@@ -265,20 +268,6 @@ watch(
         :key="String(route.params.token)"
         :access-id="`${view.exchange.id}:${view.participant.id}:${String(route.params.token).slice(-4)}`"
       />
-      <div class="d-flex flex-wrap gap-3 small mb-3">
-        <span v-if="view.exchange.plannedDrawDate"
-          >{{ t('review.plannedDrawDate') }} :
-          {{ formatCivilDate(view.exchange.plannedDrawDate) }}</span
-        >
-        <span v-if="view.exchange.eventDate"
-          >{{ t('exchangeDetail.exchangeMoment') }} :
-          {{ formatCivilDate(view.exchange.eventDate) }}</span
-        >
-        <span v-if="view.exchange.budget != null"
-          >{{ t('exchangeDetail.budget') }} : {{ formatMoney(view.exchange.budget) }}</span
-        >
-      </div>
-      <p v-if="view.exchange.description" class="text-muted">{{ view.exchange.description }}</p>
       <p class="alert" :class="canEdit ? 'alert-info' : 'alert-secondary'">
         {{ canEdit ? t('participant.editingOpen') : t('participant.editingClosed') }}
       </p>
@@ -294,117 +283,127 @@ watch(
       />
       <form class="participant-self-form" @submit.prevent="saveSelf">
         <div class="participant-columns">
-          <section class="card mb-3 participant-profile-card">
-            <div class="card-body">
-              <h2 class="h5">{{ t('participant.profileSectionTitle') }}</h2>
-              <div class="form-field mb-3">
-                <label for="participant-name" class="form-label">{{ t('participant.name') }}</label
-                ><input
-                  id="participant-name"
-                  v-model="name"
-                  class="form-control"
-                  maxlength="150"
-                  :readonly="identityLocked"
-                  :disabled="isSaving || !!remote"
-                  :aria-invalid="!!fieldErrors.name || undefined"
-                  :aria-describedby="fieldErrors.name ? 'participant-name-error' : undefined"
-                  required
-                />
-                <p v-if="fieldErrors.name" id="participant-name-error" class="text-danger">
-                  {{ t('p2.invalidField') }}
-                </p>
-              </div>
-              <div class="form-field">
-                <label for="participant-note" class="form-label">{{ t('participant.note') }}</label
-                ><textarea
-                  id="participant-note"
-                  v-model="note"
-                  class="form-control"
-                  rows="3"
-                  maxlength="2000"
-                  :readonly="suggestionsLocked"
-                  :disabled="isSaving || !!remote"
-                  :aria-invalid="!!fieldErrors.note || undefined"
-                  :aria-describedby="fieldErrors.note ? 'participant-note-error' : undefined"
-                ></textarea>
-                <p v-if="fieldErrors.note" id="participant-note-error" class="text-danger">
-                  {{ t('p2.invalidField') }}
-                </p>
-              </div>
-              <button
-                v-if="canEdit"
-                type="submit"
-                class="btn btn-primary mt-3"
-                :disabled="
-                  !dirty || !valid || imageValidating || isSaving || isRefreshing || !!remote
-                "
-              >
-                {{ isSaving ? t('participant.saving') : t('participant.save') }}
-              </button>
-              <p v-if="canEdit" class="form-text">{{ t('review.saveHelp') }}</p>
-              <p v-if="canEdit && dirty && !valid" class="text-danger small" role="status">
-                {{ t('review.invalidHelp') }}
-              </p>
-              <section
-                v-if="!view.exchange.isDrawn && view.participants?.length"
-                class="border-top pt-3 mt-3"
-              >
+          <aside class="participant-details-column">
+            <ExchangeDetails :exchange="view.exchange" :exclusions="view.exclusions" />
+            <section v-if="!view.exchange.isDrawn && view.participants?.length" class="card mt-3">
+              <div class="card-body">
                 <h2 class="h6">{{ t('review.participantList') }}</h2>
                 <ul class="mb-0">
-                  <li v-for="person in view.participants" :key="person.id">{{ person.name }}</li>
+                  <li v-for="person in sortedParticipants" :key="person.id">{{ person.name }}</li>
                 </ul>
-              </section>
-            </div>
-          </section>
-          <section class="card mb-3 participant-suggestions-card">
-            <div class="card-body">
-              <h2 class="h5">{{ t('participant.suggestionsSectionTitle') }}</h2>
-              <p v-if="requiredMinSuggestions > 0" class="small">
-                {{ t('participant.minWishlistSuggestionsHint', { count: requiredMinSuggestions }) }}
-              </p>
-              <WishlistEditor
-                @validating="imageValidating = $event"
-                v-model="wishlist"
-                :locked="suggestionsLocked"
-                :busy="isSaving || !!remote"
-              />
-              <p v-if="fieldErrors.wishlist" class="text-danger">{{ t('p2.invalidField') }}</p>
-              <p v-if="wishlist.length < requiredMinSuggestions" class="text-danger small">
-                {{
-                  t('participant.minWishlistSuggestionsError', { count: requiredMinSuggestions })
-                }}
-              </p>
-            </div>
-          </section>
-        </div>
-        <section
-          v-if="view.assignment && (view.exchange.isDrawn || view.exchange.isArchived)"
-          class="card mb-3"
-        >
-          <div class="card-body">
-            <h2 class="h5">{{ t('participant.recipientSectionTitle') }}</h2>
-            <p>
-              <strong>{{ t('participant.recipientName') }}:</strong>
-              {{ view.assignment.receiverName }}
-            </p>
-            <ol
-              v-if="view.assignment.receiverWishlist?.length"
-              class="list-group list-group-numbered"
+              </div>
+            </section>
+          </aside>
+          <div class="participant-content-column">
+            <section class="card mb-3 participant-profile-card">
+              <div class="card-body">
+                <h2 class="h5">{{ t('participant.profileSectionTitle') }}</h2>
+                <div class="form-field mb-3">
+                  <label for="participant-name" class="form-label">{{
+                    t('participant.name')
+                  }}</label
+                  ><input
+                    id="participant-name"
+                    v-model="name"
+                    class="form-control"
+                    maxlength="150"
+                    :readonly="identityLocked"
+                    :disabled="isSaving || !!remote"
+                    :aria-invalid="!!fieldErrors.name || undefined"
+                    :aria-describedby="fieldErrors.name ? 'participant-name-error' : undefined"
+                    required
+                  />
+                  <p v-if="fieldErrors.name" id="participant-name-error" class="text-danger">
+                    {{ t('p2.invalidField') }}
+                  </p>
+                </div>
+                <div class="form-field">
+                  <label for="participant-note" class="form-label">{{
+                    t('participant.note')
+                  }}</label
+                  ><textarea
+                    id="participant-note"
+                    v-model="note"
+                    class="form-control"
+                    rows="3"
+                    maxlength="2000"
+                    :readonly="suggestionsLocked"
+                    :disabled="isSaving || !!remote"
+                    :aria-invalid="!!fieldErrors.note || undefined"
+                    :aria-describedby="fieldErrors.note ? 'participant-note-error' : undefined"
+                  ></textarea>
+                  <p v-if="fieldErrors.note" id="participant-note-error" class="text-danger">
+                    {{ t('p2.invalidField') }}
+                  </p>
+                </div>
+                <button
+                  v-if="canEdit"
+                  type="submit"
+                  class="btn btn-primary mt-3"
+                  :disabled="
+                    !dirty || !valid || imageValidating || isSaving || isRefreshing || !!remote
+                  "
+                >
+                  {{ isSaving ? t('participant.saving') : t('participant.save') }}
+                </button>
+                <p v-if="canEdit" class="form-text">{{ t('review.saveHelp') }}</p>
+                <p v-if="canEdit && dirty && !valid" class="text-danger small" role="status">
+                  {{ t('review.invalidHelp') }}
+                </p>
+              </div>
+            </section>
+            <section class="card mb-3 participant-suggestions-card">
+              <div class="card-body">
+                <h2 class="h5">{{ t('participant.suggestionsSectionTitle') }}</h2>
+                <p v-if="requiredMinSuggestions > 0" class="small">
+                  {{
+                    t('participant.minWishlistSuggestionsHint', { count: requiredMinSuggestions })
+                  }}
+                </p>
+                <WishlistEditor
+                  @validating="imageValidating = $event"
+                  v-model="wishlist"
+                  :locked="suggestionsLocked"
+                  :busy="isSaving || !!remote"
+                />
+                <p v-if="fieldErrors.wishlist" class="text-danger">{{ t('p2.invalidField') }}</p>
+                <p v-if="wishlist.length < requiredMinSuggestions" class="text-danger small">
+                  {{
+                    t('participant.minWishlistSuggestionsError', { count: requiredMinSuggestions })
+                  }}
+                </p>
+              </div>
+            </section>
+            <section
+              v-if="view.assignment && (view.exchange.isDrawn || view.exchange.isArchived)"
+              class="card mb-3"
             >
-              <li
-                v-for="(suggestion, index) in view.assignment.receiverWishlist"
-                :key="index"
-                class="list-group-item"
-              >
-                <WishlistSuggestionItem :model-value="suggestion" mode="detail" />
-              </li>
-            </ol>
-            <p v-if="view.assignment.receiverNote">
-              <strong>{{ t('participant.recipientNote') }}:</strong>
-              {{ view.assignment.receiverNote }}
-            </p>
+              <div class="card-body">
+                <h2 class="h5">{{ t('participant.recipientSectionTitle') }}</h2>
+                <p>
+                  <strong>{{ t('participant.recipientName') }}:</strong>
+                  {{ view.assignment.receiverName }}
+                </p>
+                <ol
+                  v-if="view.assignment.receiverWishlist?.length"
+                  class="list-group list-group-numbered"
+                >
+                  <li
+                    v-for="(suggestion, index) in view.assignment.receiverWishlist"
+                    :key="index"
+                    class="list-group-item"
+                  >
+                    <WishlistSuggestionItem :model-value="suggestion" mode="detail" />
+                  </li>
+                </ol>
+                <p v-if="view.assignment.receiverNote">
+                  <strong>{{ t('participant.recipientNote') }}:</strong>
+                  {{ view.assignment.receiverNote }}
+                </p>
+              </div>
+            </section>
           </div>
-        </section>
+        </div>
       </form>
     </div>
   </section>

@@ -1,3 +1,4 @@
+import { sortParticipants } from '@/lib/participantOrder'
 import { computed, onMounted, onUnmounted, ref, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useExchangesStore } from '@/stores/exchanges'
@@ -22,7 +23,7 @@ export function useExchangeAdmin() {
   const toasts = useToastsStore()
   const adminAuthStore = useAdminAuthStore()
 
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const route = useRoute()
   const router = useRouter()
   const exchangesStore = useExchangesStore()
@@ -31,6 +32,7 @@ export function useExchangeAdmin() {
   const exclusionRules = ref<ExclusionRule[]>([])
   const selectedExclusionGiver = ref('')
   const selectedExclusionReceiver = ref('')
+  const exclusionFeedback = ref('')
   watch(selectedExclusionGiver, () => {
     selectedExclusionReceiver.value = ''
   })
@@ -113,7 +115,10 @@ export function useExchangeAdmin() {
   })
 
   const activeParticipants = computed(() =>
-    participants.value.filter((participant) => participant.status === 'active'),
+    sortParticipants(
+      participants.value.filter((participant) => participant.status === 'active'),
+      locale.value,
+    ),
   )
 
   const participantNameById = computed(() => {
@@ -337,7 +342,14 @@ export function useExchangeAdmin() {
   )
 
   function getParticipantExclusions(participantId: string) {
-    return exclusionRules.value.filter((rule) => rule.giverParticipantId === participantId)
+    return exclusionRules.value
+      .filter((rule) => rule.giverParticipantId === participantId)
+      .sort((a, b) =>
+        new Intl.Collator(locale.value, { sensitivity: 'base', numeric: true }).compare(
+          participantNameById.value[a.receiverParticipantId] ?? '',
+          participantNameById.value[b.receiverParticipantId] ?? '',
+        ),
+      )
   }
 
   function getReceiverCandidates(participantId: string) {
@@ -351,6 +363,7 @@ export function useExchangeAdmin() {
   }
 
   async function perform_addParticipantExclusion(giverParticipantId: string) {
+    exclusionFeedback.value = ''
     if (!exchange.value || isExclusionEditingLocked.value) return
 
     const receiverParticipantId = selectedExclusionReceiver.value
@@ -379,7 +392,8 @@ export function useExchangeAdmin() {
       exclusionRules.value.push(createdRule)
       selectedExclusionReceiver.value = ''
       selectedExclusionGiver.value = ''
-      toasts.success(t('exchangeDetail.exceptions.added'))
+      exclusionFeedback.value = t('exchangeDetail.exceptions.added')
+      toasts.success(exclusionFeedback.value)
     } catch (err) {
       if (isAdminAuthError(err)) {
         setAdminAuthRequired()
@@ -390,6 +404,7 @@ export function useExchangeAdmin() {
   }
 
   async function perform_removeParticipantExclusion(ruleId: string) {
+    exclusionFeedback.value = ''
     if (!exchange.value || isExclusionEditingLocked.value) return
 
     try {
@@ -405,7 +420,8 @@ export function useExchangeAdmin() {
 
       await api.delete(`/api/exchanges/${exchange.value.id}/exclusions/${ruleId}`, init)
       exclusionRules.value = exclusionRules.value.filter((rule) => rule.id !== ruleId)
-      toasts.success(t('exchangeDetail.exceptions.removed'))
+      exclusionFeedback.value = t('exchangeDetail.exceptions.removed')
+      toasts.success(exclusionFeedback.value)
     } catch (err) {
       if (isAdminAuthError(err)) {
         setAdminAuthRequired()
@@ -611,6 +627,7 @@ export function useExchangeAdmin() {
     if (isAdminAuthError(cause)) setAdminAuthRequired()
   }
   function openEditParticipantModal(participant: ParticipantDto) {
+    exclusionFeedback.value = ''
     if (isParticipantSuggestionsLocked.value) return
     participantForm.clear()
     editParticipantCurrent.value = null
@@ -1022,8 +1039,9 @@ export function useExchangeAdmin() {
     router,
     exchangesStore,
     exchange,
-    participants,
+    participants: computed(() => sortParticipants(participants.value, locale.value)),
     exclusionRules,
+    exclusionFeedback,
     selectedExclusionGiver,
     selectedExclusionReceiver,
     isLoading,

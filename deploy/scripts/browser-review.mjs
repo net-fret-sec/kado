@@ -86,6 +86,7 @@ try {
   }
   await page.goto(base);
   await expect(page.locator('footer .home-support')).toHaveCount(1);
+  await page.evaluate(() => { document.activeElement?.blur(); window.scrollTo(0, 0); });
   await page.screenshot({ path: path.join(output, 'review-home.png'), fullPage: true });
   await page.getByRole('button', { name: 'Créer un échange', exact: true }).click();
   await expect(page.locator('#adminPassword')).toHaveAttribute('type', 'text');
@@ -98,6 +99,7 @@ try {
   await page.getByRole('button', { name: 'Masquer', exact: true }).click();
   await expect(page.locator('#adminPassword')).toHaveAttribute('type', 'password');
   await audit('Creation form');
+  await page.evaluate(() => { document.activeElement?.blur(); window.scrollTo(0, 0); });
   await page.screenshot({ path: path.join(output, 'review-creation.png'), fullPage: true });
   const creation = page.waitForResponse(r => r.request().method() === 'POST' && r.url().endsWith('/api/exchanges'));
   await page.locator('button[form=createExchangeForm]').click();
@@ -110,7 +112,7 @@ try {
   await expect(page.locator('#detail')).toBeVisible();
   await expect(page.locator('.access-reminder')).toHaveCount(0);
   const members = [{ participant: created.exchange.organizerId, name: 'Alex' }];
-  for (const name of ['Blair', 'Casey']) {
+  for (const name of ['Casey', 'Blair']) {
     await page.locator('#new-participant-name').fill(name);
     const response = page.waitForResponse(r => r.request().method() === 'POST' && r.url().endsWith('/participants'));
     await page.locator('#participants button[type=submit]').click();
@@ -118,6 +120,7 @@ try {
     await expect(page.getByRole('dialog', { name: 'Lien du participant' })).toContainText(name);
     await page.getByRole('button', { name: 'Fermer', exact: true }).click();
   }
+  assert.deepEqual(await page.locator('#participants li strong').allTextContents(), ['Alex', 'Blair', 'Casey']);
   await page.getByRole('button', { name: 'Modifier les détails', exact: true }).click();
   await expect(page.locator('button[form=editExchangeForm]')).toBeDisabled();
   await page.locator('#editPlannedDrawDate').fill('2099-12-01');
@@ -133,18 +136,24 @@ try {
   assert.equal(fresh.plannedDrawDate, undefined); assert.equal(fresh.eventDate, '2099-12-25');
   await page.locator('#participants summary').first().click();
   await page.locator('#participants').getByRole('button', { name: 'Modifier', exact: true }).first().click();
-  await page.locator('#exclusion-receiver').selectOption(members[1].participant);
+  await page.locator('#exclusion-receiver').selectOption(members.find(m => m.name === 'Blair').participant);
   await page.getByRole('dialog', { name: 'Modifier le participant' }).getByRole('button', { name: 'Ajouter', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Modifier le participant' })).toContainText('Blair');
-  await page.getByRole('dialog', { name: 'Modifier le participant' }).getByRole('button', { name: 'Abandonner les modifications', exact: true }).click();
+  await expect(page.getByRole('dialog').locator('.text-success[role=status]')).toContainText('Exclusion');
+  await expect(page.locator('button[form=editParticipantForm]')).toBeDisabled();
+  await page.getByRole('dialog', { name: 'Modifier le participant' }).getByRole('button', { name: 'Fermer', exact: true }).click();
   await expect(page.locator('#exchange-details')).toContainText('Alex ne peut pas piger Blair.');
   const detailBox = await page.locator('#exchange-details').boundingBox(), participantBox = await page.locator('#participants').boundingBox();
   assert(detailBox.x < participantBox.x);
   await audit('Organizer');
+  await page.evaluate(() => { document.activeElement?.blur(); window.scrollTo(0, 0); });
   await page.screenshot({ path: path.join(output, 'review-organizer.png'), fullPage: true });
   const personal = await api('POST', `/api/exchanges/${id}/participants/${members[0].participant}/access/regenerate`, { revokeExisting: true }, token, 201);
   await page.goto(base + personal.accessLink);
   await expect(page.getByRole('heading', { name: 'Participants à l’échange' })).toBeVisible();
+  await expect(page.locator('.participant-details-column')).toContainText('Alex ne peut pas piger Blair.');
+  const left = await page.locator('.participant-details-column').boundingBox(), profile = await page.locator('.participant-profile-card').boundingBox(), wishes = await page.locator('.participant-suggestions-card').boundingBox();
+  assert(left.x < profile.x && profile.y < wishes.y, 'Shared details on left, profile above suggestions on right');
   await expect(page.getByRole('button', { name: 'Enregistrer les modifications', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Ajouter une suggestion', exact: true }).click();
   await page.locator('input[id$="-title"]').first().fill('Un livre');
@@ -162,9 +171,11 @@ try {
   const saved = await api('GET', '/api' + personal.accessLink);
   assert.equal(saved.participant.wishlist[1].title, 'Un livre'); assert(saved.participant.wishlist[1].imageId);
   await audit('Participant desktop');
+  await page.evaluate(() => { document.activeElement?.blur(); window.scrollTo(0, 0); });
   await page.screenshot({ path: path.join(output, 'review-participant.png'), fullPage: true });
   await page.setViewportSize({ width: 360, height: 900 });
   await audit('Participant mobile');
+  await page.evaluate(() => { document.activeElement?.blur(); window.scrollTo(0, 0); });
   await page.screenshot({ path: path.join(output, 'review-participant-mobile.png'), fullPage: true });
   await page.locator('#participant-note').fill('Brouillon conservé');
   await ctx.setOffline(true);
@@ -181,6 +192,7 @@ try {
   await expect(page.getByRole('heading', { name: 'Personne pigée', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Participants à l’échange' })).toHaveCount(0);
   await expect(page.locator('input[type=url]')).toHaveCount(0);
+  await page.evaluate(() => { document.activeElement?.blur(); window.scrollTo(0, 0); });
   await page.screenshot({ path: path.join(output, 'review-after-draw.png'), fullPage: true });
   await api('POST', `/api/exchanges/${id}/draw/cancel`, undefined, token);
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
@@ -197,6 +209,11 @@ try {
   await page.locator('button[form=delete-exchange-form]').click();
   await expect(page.locator('#home-view')).toBeVisible();
   await api('GET', '/api' + personal.accessLink, undefined, undefined, 404);
+  await page.goto(base + '/not-a-route');
+  await expect(page.locator('footer')).toBeVisible();
+  const footer = await page.locator('footer').boundingBox();
+  assert(Math.abs(footer.y + footer.height - page.viewportSize().height) < 2, 'Footer reaches viewport bottom on short page');
+  assert.equal(await page.locator('.home-support').evaluate(el => getComputedStyle(el).backgroundColor), 'rgba(0, 0, 0, 0)');
   assert.deepEqual(errors, []);
   await ctx.close();
   console.log('UI review: full real-server lifecycle, dates, currency, exclusions, drop upload, keyboard order, names privacy, reconnect, case-insensitive password and deletion passed; desktop/mobile axe: 0 violations.');

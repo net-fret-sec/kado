@@ -360,6 +360,9 @@ function visibility(value: boolean) {
           <label class="form-check-label" for="editNoMutualAssignments">
             {{ t('exchangeDetail.noMutualAssignments') }}
           </label>
+          <p v-if="editNoMutualAssignments" class="form-text mb-0">
+            {{ t('review.reciprocalExclusions') }}
+          </p>
         </div>
       </fieldset>
     </form>

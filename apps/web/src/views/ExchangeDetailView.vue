@@ -3,7 +3,7 @@ import { ref, watch, computed } from 'vue'
 import BaseModal from '@/components/BaseModal.vue'
 import AccessReminder from '@/components/AccessReminder.vue'
 import { formatMoney } from '@/composables/useCurrency'
-import { groupExclusions } from '@/lib/exclusionSummary'
+import ExchangeDetails from '@/components/ExchangeDetails.vue'
 import { useRoute } from 'vue-router'
 import { useAdminAuthStore } from '@/stores/useAdminAuthStore'
 import { provideImageAccess } from '@/composables/useImageAccess'
@@ -13,7 +13,7 @@ import { useI18n } from 'vue-i18n'
 import EditExchangeModal from '@/components/EditExchangeModal.vue'
 import EditParticipantModal from '@/components/EditParticipantModal.vue'
 import ParticipantAccessLinkModal from '@/components/ParticipantAccessLinkModal.vue'
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const showDelete = ref(false)
 const deleteName = ref('')
 const route = useRoute(),
@@ -35,6 +35,7 @@ const {
   exchange,
   participants,
   exclusionRules,
+  exclusionFeedback,
   selectedExclusionReceiver,
   isLoading,
   error,
@@ -106,20 +107,14 @@ const {
 watch(imageUploading, (value) => {
   participantDirty.value = value || showEditParticipantModal.value
 })
-const exclusionSummary = computed(() => {
-  const groups = groupExclusions(exclusionRules.value)
-  const name = (id: string) => participantNameById.value[id] ?? id
-  const joinNames = (names: string[]) =>
-    names.length < 2
-      ? names.join('')
-      : `${names.slice(0, -1).join(', ')} ${locale.value.startsWith('fr') ? 'et' : 'and'} ${names[names.length - 1]}`
-  return [
-    ...groups.mutual.map(({ a, b }) => t('review.mutual', { a: name(a), b: name(b) })),
-    ...groups.directional.map(({ giver, receivers }) =>
-      t('review.directional', { name: name(giver), others: joinNames(receivers.map(name)) }),
-    ),
-  ]
-})
+const namedExclusions = computed(() =>
+  exclusionRules.value.map((rule) => ({
+    ...rule,
+    giverName: participantNameById.value[rule.giverParticipantId] ?? rule.giverParticipantId,
+    receiverName:
+      participantNameById.value[rule.receiverParticipantId] ?? rule.receiverParticipantId,
+  })),
+)
 watch(showDelete, () => {
   deleteName.value = ''
 })
@@ -278,69 +273,12 @@ watch(requiresAdminAuth, (value) => {
           </div>
         </section>
         <section id="exchange-details" class="col-12 col-xl-5">
-          <div class="card border shadow-sm">
-            <div class="card-body">
-              <h2 class="h4">{{ t('exchangeDetail.dashboard.settings') }}</h2>
-              <p class="small text-body-secondary">
-                {{ t('exchangeDetail.organizer') }} : {{ exchange.organizerName }}
-              </p>
-              <dl class="small">
-                <template v-if="exchange.plannedDrawDate"
-                  ><dt>{{ t('review.plannedDrawDate') }}</dt>
-                  <dd>{{ formatCivilDate(exchange.plannedDrawDate) }}</dd></template
-                >
-                <template v-if="exchange.eventDate"
-                  ><dt>{{ t('exchangeDetail.exchangeMoment') }}</dt>
-                  <dd>{{ formatCivilDate(exchange.eventDate) }}</dd></template
-                >
-              </dl>
-              <p v-if="exchange.description" class="dashboard-description">
-                {{ exchange.description }}
-              </p>
-              <button
-                class="btn btn-outline-primary mb-3"
-                :disabled="exchange.isArchived"
-                @click="startEdit"
-              >
-                {{ t('exchangeDetail.dashboard.editSettings') }}
-              </button>
-              <section class="border-top py-3">
-                <h3 class="h6">{{ t('exchangeDetail.dashboard.suggestions') }}</h3>
-                <dl class="mt-3 mb-0">
-                  <dt>{{ t('exchangeDetail.minWishlistSuggestions') }}</dt>
-                  <dd>{{ exchange.minWishlistSuggestions ?? 0 }}</dd>
-                  <dt>{{ t('exchangeDetail.lockSuggestionsAfterDraw') }}</dt>
-                  <dd>
-                    {{
-                      (exchange.lockSuggestionsAfterDraw ?? true)
-                        ? t('exchangeDetail.enabled')
-                        : t('exchangeDetail.disabled')
-                    }}
-                  </dd>
-                </dl>
-              </section>
-              <div class="border-top pt-3">
-                <h3 class="h6">{{ t('exchangeDetail.dashboard.rules') }}</h3>
-                <p class="small mb-1">
-                  {{ t('exchangeDetail.noMutualAssignments') }} :
-                  {{
-                    exchange.noMutualAssignments
-                      ? t('exchangeDetail.enabled')
-                      : t('exchangeDetail.disabled')
-                  }}
-                </p>
-                <p class="small">
-                  {{ t('exchangeDetail.dashboard.exclusionCount', exclusionRules.length) }}
-                </p>
-                <ul v-if="exclusionSummary.length" class="ps-3 small">
-                  <li v-for="line in exclusionSummary" :key="line">{{ line }}</li>
-                </ul>
-                <p v-else class="small text-body-secondary">
-                  {{ t('exchangeDetail.exceptions.none') }}
-                </p>
-              </div>
-            </div>
-          </div>
+          <ExchangeDetails
+            :exchange="exchange"
+            :exclusions="namedExclusions"
+            editable
+            @edit="startEdit"
+          />
         </section>
         <!-- Participants -->
         <section id="participants" class="col-12 col-xl-7">
@@ -514,6 +452,12 @@ watch(requiresAdminAuth, (value) => {
         <section v-if="editingParticipant" class="border-top mt-3 pt-3">
           <h3 class="h6">{{ t('review.editExclusions') }}</h3>
           <p class="small text-body-secondary">{{ t('review.exclusionsHelp') }}</p>
+          <p v-if="exchange?.noMutualAssignments" class="small text-body-secondary">
+            {{ t('review.reciprocalExclusions') }}
+          </p>
+          <p v-if="exclusionFeedback" class="small text-success" role="status">
+            {{ exclusionFeedback }}
+          </p>
           <p v-if="isExclusionEditingLocked" class="small">
             {{ t('exchangeDetail.exceptions.locked') }}
           </p>

@@ -429,8 +429,20 @@
     "mutual": "{a} and {b} cannot draw each other.",
     "directional": "{name} cannot draw {others}.",
     "editExclusions": "Exclusions for this person",
-    "exclusionsHelp": "Add and Remove save each exclusion immediately.",
+    "exclusionsHelp": "Add and Remove save exclusions immediately. The Save button only saves the profile and suggestions.",
     "linkFor": "Share this personal link with {name}.",
-    "connectionLost": "The connection to the server was interrupted. Your unsaved changes are preserved."
+    "connectionLost": "The connection to the server was interrupted. Your unsaved changes are preserved.",
+    "confirmDeleteSuggestion": "Delete this gift suggestion? This change will take effect when you save.",
+    "detailsOrganizer": "Organized by {name}",
+    "detailsBudget": "The gift budget is {amount}.",
+    "detailsMinimumNone": "Participants are not required to provide a minimum number of suggestions.",
+    "detailsMinimum": "Participants must provide at least {count} suggestion before the draw. | Participants must provide at least {count} suggestions before the draw.",
+    "detailsLocked": "Suggestions cannot be edited after the draw.",
+    "detailsOpen": "Participants can edit their suggestions after the draw.",
+    "detailsNoMutual": "Mutual draws are excluded. If A draws B, B cannot draw A.",
+    "detailsMutual": "Mutual draws are allowed. If A draws B, B can still draw A.",
+    "detailsExclusions": "Exclusions",
+    "reciprocalExclusions": "In this mode, each exclusion applies in both directions.",
+    "close": "Close"
   }
 }

@@ -42,7 +42,7 @@ function change(index: number, value: Partial<EditableSuggestion>) {
   )
 }
 function remove(index: number) {
-  if (!props.locked && !props.busy)
+  if (!props.locked && !props.busy && window.confirm(t('review.confirmDeleteSuggestion')))
     emit(
       'update:modelValue',
       props.modelValue.filter((_, i) => i !== index),

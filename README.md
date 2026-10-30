@@ -329,7 +329,7 @@ La migration `003_suggestion_images.sql` purge les deux anciens champs et actual
 
 ## Tableau de bord organisateur
 
-La gestion affiche une liste compacte de participants, leurs détails et actions à la demande, et les paramètres regroupés. Les exclusions directionnelles sont centralisées dans **Paramètres de l’échange → Règles de la pige** ; leur résumé reste visible. La route publique `/x/:id` est retirée du frontend. Les liens individuels `/p/:token` et les contrats API existants sont conservés.
+La gestion affiche les participants par ordre alphabétique, leurs détails et actions à la demande, et un bloc de détails partagé avec la vue participant. Les exclusions se gèrent depuis la fiche du participant et sont enregistrées immédiatement; leur résumé reste visible dans les détails. Lorsque `noMutualAssignments` est activé, la pige interdit les paires mutuelles et applique chaque exclusion dans les deux sens. Sinon, les exclusions restent directionnelles. La route publique `/x/:id` est retirée du frontend. Les liens individuels `/p/:token` et les contrats API existants sont conservés.
 
 Vérification UX isolée, après `pnpm build:web` et lancement de `pnpm --dir apps/web preview --host 127.0.0.1 --port 5179` :
 

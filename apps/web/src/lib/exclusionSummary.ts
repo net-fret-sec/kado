@@ -1,5 +1,9 @@
-import type { ExclusionRule } from '@kado/shared'
-export function groupExclusions(rules: ExclusionRule[]) {
+import { effectiveExclusions, type ExclusionRule } from '@kado/shared'
+export function groupExclusions(
+  rules: Pick<ExclusionRule, 'giverParticipantId' | 'receiverParticipantId'>[],
+  reciprocal = false,
+) {
+  rules = effectiveExclusions(rules, reciprocal)
   const pairs = new Set(rules.map((r) => `${r.giverParticipantId}:${r.receiverParticipantId}`))
   const seen = new Set<string>()
   const mutual: { a: string; b: string }[] = []

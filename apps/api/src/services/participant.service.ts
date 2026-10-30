@@ -1,3 +1,4 @@
+import { exclusionRuleRepository } from "../repositories/exclusion-rule.repository";
 import { syncSuggestionImages } from "../repositories/image.repository";
 import { getConfig } from "../lib/config";
 import type {
@@ -308,8 +309,26 @@ async function selfView(
         db,
       )
     : undefined;
+  const participants = await participantRepository.findByExchangeId(
+    exchange.id,
+    db,
+  );
+  const names = new Map(
+    participants.filter((p) => p.status === "active").map((p) => [p.id, p.name]),
+  );
+  const rules = await exclusionRuleRepository.findByExchangeId(exchange.id, db);
   return {
+    exclusions: rules
+      .filter((r) => names.has(r.giverParticipantId) && names.has(r.receiverParticipantId))
+      .map((r) => ({
+        giverParticipantId: r.giverParticipantId,
+        receiverParticipantId: r.receiverParticipantId,
+        giverName: names.get(r.giverParticipantId)!,
+        receiverName: names.get(r.receiverParticipantId)!,
+      })),
     exchange: {
+      organizerName: names.get(exchange.organizerId) ?? exchange.organizerName,
+      noMutualAssignments: exchange.noMutualAssignments,
       id: exchange.id,
       name: exchange.name,
       description: exchange.description,
@@ -331,9 +350,7 @@ async function selfView(
     },
     ...(!isExchangeDrawn(exchange)
       ? {
-          participants: (
-            await participantRepository.findByExchangeId(exchange.id, db)
-          )
+          participants: participants
             .filter((p) => p.status === "active")
             .map((p) => ({ id: p.id, name: p.name })),
         }

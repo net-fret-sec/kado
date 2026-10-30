@@ -1032,4 +1032,26 @@ describe("UI review contracts", () => {
     expect(again.body.participants).toHaveLength(3);
     expect(again.body.assignment).toBeUndefined();
   });
+  it("makes exclusions reciprocal only in no-mutual mode and exposes readable details without private profiles", async () => {
+    const f = await fixture({ noMutualAssignments: true });
+    const [a, b] = f.members.map(m => m.participant);
+    await createExclusionRule(f.id, { giverParticipantId: a.id, receiverParticipantId: b.id });
+    const view = await request(app).get(`/api/p/${f.token}`).expect(200);
+    expect(view.body.exchange.noMutualAssignments).toBe(true);
+    expect(view.body.exclusions).toEqual([{
+      giverParticipantId: a.id, receiverParticipantId: b.id,
+      giverName: a.name, receiverName: b.name,
+    }]);
+    // With three participants, excluding A/B in both directions leaves no valid cycle.
+    await request(app).post(`${path(f.id)}/draw`).set(f.auth).expect(400);
+    // Switching the mode off restores the original directional exclusion.
+    await request(app).put(path(f.id)).set(f.auth).send({ noMutualAssignments: false }).expect(200);
+    await request(app).post(`${path(f.id)}/draw`).set(f.auth).expect(200);
+    const assignments = await assignmentRepository.findByExchangeId(f.id);
+    expect(assignments.some(r => r.giverParticipantId === b.id && r.receiverParticipantId === a.id)).toBe(true);
+    const after = await request(app).get(`/api/p/${f.token}`).expect(200);
+    expect(after.body.participants).toBeUndefined();
+    expect(after.body.exclusions).toEqual(view.body.exclusions);
+  });
+
 });

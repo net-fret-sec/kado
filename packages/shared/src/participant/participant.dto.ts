@@ -58,6 +58,13 @@ export interface ParticipantAssignmentDto {
   receiverNote?: string;
 }
 
+export interface ExchangeExclusionSummaryDto {
+  giverParticipantId: string;
+  receiverParticipantId: string;
+  giverName: string;
+  receiverName: string;
+}
+
 export interface ParticipantSelfViewDto {
   exchange: Pick<
     ExchangeDto,
@@ -71,11 +78,14 @@ export interface ParticipantSelfViewDto {
     | "budget"
     | "minWishlistSuggestions"
     | "lockSuggestionsAfterDraw"
+    | "organizerName"
+    | "noMutualAssignments"
   >;
   participant: Pick<
     ParticipantDto,
     "id" | "name" | "email" | "wishlist" | "note" | "updatedAt"
   >;
   participants?: { id: string; name: string }[];
+  exclusions?: ExchangeExclusionSummaryDto[];
   assignment?: ParticipantAssignmentDto;
 }

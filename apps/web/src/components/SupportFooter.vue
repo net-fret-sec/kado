@@ -4,10 +4,10 @@ const { t } = useI18n()
 const donationUrl = import.meta.env.VITE_DONATION_URL?.trim() || ''
 </script>
 <template>
-  <footer v-if="donationUrl" class="container-xl my-4">
+  <footer v-if="donationUrl" class="support-footer container-xl py-4">
     <section
       v-if="donationUrl"
-      class="home-support rounded-4 p-4 d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3"
+      class="home-support d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3"
     >
       <div>
         <h2 class="h5 mb-2">{{ t('home.support.title') }}</h2>
