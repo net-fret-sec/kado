@@ -7,7 +7,7 @@ defineProps<{ kind: 'hero' | 'private' | 'giving' | 'open' }>()
 </template>
 
 <style scoped>
-/* One shared sheet keeps the four approved illustrations together and loads once. */
+/* Keep the original hero and benefit sheets; privacy has its own revised artwork. */
 .gift-illustration {
   display: block;
   aspect-ratio: 3 / 4;
@@ -23,8 +23,10 @@ defineProps<{ kind: 'hero' | 'private' | 'giving' | 'open' }>()
   background-size: 300% 100%;
   aspect-ratio: 1;
 }
-.gift-illustration--private {
-  background-position: 0% 50%;
+.gift-illustration.gift-illustration--private {
+  background-image: url('../assets/illustrations/kado-privacy.png');
+  background-size: 90% auto;
+  background-position: center;
 }
 .gift-illustration--giving {
   background-position: 50% 50%;

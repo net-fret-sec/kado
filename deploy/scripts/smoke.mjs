@@ -369,11 +369,14 @@ try {
     .getByRole("button", { name: fr.exchangeDetail.cancelDraw, exact: true })
     .click();
   assert.equal((await cancelResponse).status(), 200);
-  await page.locator("#participants details summary").first().click();
+  const memberRow = page.locator("#participants .participant-row").filter({
+    has: page.locator("strong", { hasText: /^Member 0$/ }),
+  });
+  await memberRow.hover();
   const rotateResponse = page.waitForResponse((r) =>
     r.url().endsWith("/access/regenerate"),
   );
-  await page
+  await memberRow
     .getByRole("button", { name: fr.exchangeDetail.generateLink, exact: true })
     .first()
     .click();
