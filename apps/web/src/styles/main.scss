@@ -209,6 +209,11 @@ ol,
   margin-block-end: var(--space-md);
 }
 
+main ul:not(.list-group):not(.list-unstyled) {
+  line-height: 1.5;
+  margin-block-end: 0.75rem;
+}
+
 small,
 .small,
 .form-label,
@@ -613,8 +618,13 @@ main > * + * {
 }
 .home-support h2 {
   font-family: var(--font-heading);
-  font-size: 1.125rem;
+  font-size: 0.9375rem;
+}
+.home-support .btn {
+  font-size: 0.75rem;
 }
 .home-support p {
   max-width: 48rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
 }

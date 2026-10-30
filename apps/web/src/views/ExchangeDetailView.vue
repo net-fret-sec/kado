@@ -2,12 +2,10 @@
 import { ref, watch, computed } from 'vue'
 import BaseModal from '@/components/BaseModal.vue'
 import AccessReminder from '@/components/AccessReminder.vue'
-import { formatMoney } from '@/composables/useCurrency'
 import ExchangeDetails from '@/components/ExchangeDetails.vue'
 import { useRoute } from 'vue-router'
 import { useAdminAuthStore } from '@/stores/useAdminAuthStore'
 import { provideImageAccess } from '@/composables/useImageAccess'
-import { formatCivilDate } from '@/composables/useCivilDate'
 import { useExchangeAdmin } from '@/composables/useExchangeAdmin'
 import { useI18n } from 'vue-i18n'
 import EditExchangeModal from '@/components/EditExchangeModal.vue'
@@ -43,7 +41,6 @@ const {
   adminPassword,
   isAuthenticatingAdmin,
   showEditExchangeModal,
-  maxActiveParticipants,
   configError,
   configLoading,
   mutationBusy,
@@ -74,7 +71,6 @@ const {
   isParticipantCreationLocked,
   isParticipantIdentityLocked,
   isParticipantSuggestionsLocked,
-  participantCountLabel,
   statusBadgeClass,
   statusLabel,
   refreshPaused,
@@ -219,11 +215,6 @@ watch(requiresAdminAuth, (value) => {
                   <h1 class="h2 mb-2">{{ exchange.name }}</h1>
                   <div class="d-flex flex-wrap gap-3 align-items-center">
                     <span class="badge" :class="statusBadgeClass">{{ statusLabel }}</span>
-                    <span>{{ participantCountLabel }} {{ t('exchangeDetail.participants') }}</span>
-                    <span v-if="exchange.eventDate">{{ formatCivilDate(exchange.eventDate) }}</span>
-                    <span v-if="exchange.budget != null"
-                      >{{ t('exchangeDetail.budget') }} : {{ formatMoney(exchange.budget) }}</span
-                    >
                   </div>
                 </div>
                 <button
@@ -324,9 +315,7 @@ watch(requiresAdminAuth, (value) => {
                     class="btn btn-outline-secondary rounded-end"
                     :disabled="!newParticipantName.trim() || isAddingParticipant"
                   >
-                    {{ t('exchangeDetail.addParticipant') }} ({{ activeParticipants.length }}/{{
-                      maxActiveParticipants
-                    }})
+                    {{ t('exchangeDetail.addParticipant') }}
                   </button>
                 </div>
               </form>
@@ -338,61 +327,66 @@ watch(requiresAdminAuth, (value) => {
                 <li
                   v-for="participant in participants"
                   :key="participant.id"
-                  class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start gap-3"
+                  class="list-group-item participant-row d-flex align-items-center justify-content-between gap-2"
                 >
-                  <div class="flex-grow-1">
-                    <strong class="d-inline-block mb-0">{{ participant.name }}</strong>
-
-                    <div v-if="participant.wishlist?.length" class="small mt-1">
-                      <span class="badge text-bg-light">{{
+                  <div class="participant-info flex-grow-1">
+                    <div class="participant-identity d-flex flex-wrap align-items-center gap-2">
+                      <strong>{{ participant.name }}</strong>
+                      <span v-if="participant.wishlist?.length" class="badge text-bg-light">{{
                         t('exchangeDetail.wishlistSuggestions', participant.wishlist.length)
                       }}</span>
+                      <span
+                        v-if="getParticipantExclusions(participant.id).length"
+                        class="small text-body-secondary"
+                        >{{
+                          t(
+                            'exchangeDetail.dashboard.exclusionCount',
+                            getParticipantExclusions(participant.id).length,
+                          )
+                        }}</span
+                      >
                     </div>
-
-                    <span
-                      v-if="getParticipantExclusions(participant.id).length"
-                      class="small text-body-secondary ms-2"
-                      >{{
-                        t(
-                          'exchangeDetail.dashboard.exclusionCount',
-                          getParticipantExclusions(participant.id).length,
-                        )
-                      }}</span
+                    <p
+                      v-if="participant.note"
+                      class="participant-note small text-body-secondary mt-1 mb-0"
                     >
-                    <details class="mt-1">
-                      <summary class="small">
-                        {{
-                          t('exchangeDetail.dashboard.participantDetails', {
-                            name: participant.name,
-                          })
-                        }}
-                      </summary>
-                      <p v-if="participant.note" class="small mt-2 dashboard-description">
-                        {{ t('exchangeDetail.note') }} : {{ participant.note }}
-                      </p>
-                      <div class="d-flex flex-wrap gap-2 mt-2">
-                        <button
-                          class="btn btn-sm btn-outline-primary"
-                          :disabled="isParticipantSuggestionsLocked"
-                          @click="openEditParticipantModal(participant)"
-                        >
-                          {{ t('exchangeDetail.edit') }}
-                        </button>
-                        <button
-                          class="btn btn-sm btn-outline-secondary"
-                          @click="regenerateParticipantLink(participant.id)"
-                        >
-                          {{ t('exchangeDetail.generateLink') }}
-                        </button>
-                        <button
-                          class="btn btn-sm btn-outline-secondary"
-                          :disabled="isParticipantIdentityLocked"
-                          @click="deleteParticipant(participant.id)"
-                        >
-                          {{ t('exchangeDetail.delete') }}
-                        </button>
-                      </div>
-                    </details>
+                      {{ participant.note }}
+                    </p>
+                  </div>
+                  <div
+                    class="btn-group btn-group-sm participant-actions flex-shrink-0"
+                    role="group"
+                    :aria-label="t('review.participantActions', { name: participant.name })"
+                  >
+                    <button
+                      type="button"
+                      class="btn btn-outline-primary"
+                      :disabled="isParticipantSuggestionsLocked"
+                      :title="t('exchangeDetail.edit')"
+                      @click="openEditParticipantModal(participant)"
+                    >
+                      <i class="bi bi-pencil" aria-hidden="true"></i
+                      ><span class="visually-hidden">{{ t('exchangeDetail.edit') }}</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-outline-secondary"
+                      :title="t('exchangeDetail.generateLink')"
+                      @click="regenerateParticipantLink(participant.id)"
+                    >
+                      <i class="bi bi-link-45deg" aria-hidden="true"></i
+                      ><span class="visually-hidden">{{ t('exchangeDetail.generateLink') }}</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-outline-danger"
+                      :disabled="isParticipantIdentityLocked"
+                      :title="t('exchangeDetail.delete')"
+                      @click="deleteParticipant(participant.id)"
+                    >
+                      <i class="bi bi-trash" aria-hidden="true"></i
+                      ><span class="visually-hidden">{{ t('exchangeDetail.delete') }}</span>
+                    </button>
                   </div>
                 </li>
               </ul>
@@ -566,23 +560,36 @@ watch(requiresAdminAuth, (value) => {
 </template>
 
 <style scoped>
-summary {
-  cursor: pointer;
-}
-summary:focus-visible,
-.participant-list:focus-visible {
-  outline: 3px solid var(--bs-primary);
-  outline-offset: 4px;
-  border-radius: 0.25rem;
-}
-.dashboard-description {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
 .participant-list {
   overflow: visible;
 }
-.list-group-item {
+.participant-row {
+  padding-block: 0.65rem;
+}
+.participant-info {
+  min-width: 0;
+}
+.participant-note {
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+.participant-identity {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.participant-actions .btn {
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+}
+@media (hover: hover) and (pointer: fine) {
+  .participant-actions {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .participant-row:hover .participant-actions,
+  .participant-row:focus-within .participant-actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 </style>

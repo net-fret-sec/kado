@@ -106,7 +106,7 @@ const summary = computed(() => {
           {{ t(exchange.noMutualAssignments ? 'review.detailsNoMutual' : 'review.detailsMutual') }}
         </li>
       </ul>
-      <h3 class="h6">{{ t('review.detailsExclusions') }}</h3>
+      <h3 class="h5 fw-semibold mt-3">{{ t('review.detailsExclusions') }}</h3>
       <p v-if="exchange.noMutualAssignments" class="small text-body-secondary">
         {{ t('review.reciprocalExclusions') }}
       </p>
@@ -119,7 +119,7 @@ const summary = computed(() => {
 </template>
 <style scoped>
 .details-rules li + li {
-  margin-top: 0.65rem;
+  margin-top: 0.35rem;
 }
 .details-description {
   white-space: pre-wrap;

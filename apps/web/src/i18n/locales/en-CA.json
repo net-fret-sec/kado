@@ -443,6 +443,7 @@
     "detailsMutual": "Mutual draws are allowed. If A draws B, B can still draw A.",
     "detailsExclusions": "Exclusions",
     "reciprocalExclusions": "In this mode, each exclusion applies in both directions.",
-    "close": "Close"
+    "close": "Close",
+    "participantActions": "Actions for {name}"
   }
 }

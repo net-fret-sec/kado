@@ -78,13 +78,22 @@ try {
     .waitFor();
   assert.equal(await page.locator("#participants select").count(), 0);
   assert(await page.locator('.participant-list').evaluate(el => el.scrollHeight <= el.clientHeight + 1), 'Participant list has no internal scroll');
-  assert.equal(await page.locator("#participants details[open]").count(), 0);
+  assert.equal(await page.locator("#participants details").count(), 0);
   await page.screenshot({
     path: path.join(output, "desktop.png"),
     fullPage: false,
   });
   const stephane = page.locator("#participants li").filter({ has: page.locator("strong", { hasText: /^Stéphane$/ }) });
-  await stephane.locator("summary").click();
+  await page.getByRole("button", { name: "Modifier les détails", exact: true }).focus();
+  await page.mouse.move(0, 0);
+  assert.equal(await stephane.locator('.participant-actions').evaluate(el => getComputedStyle(el).opacity), '0');
+  await stephane.getByRole('button', { name: 'Modifier', exact: true }).focus();
+  assert.equal(await stephane.locator('.participant-actions').evaluate(el => getComputedStyle(el).opacity), '1');
+  await page.keyboard.press('Tab');
+  assert(await stephane.getByRole('button', { name: 'Régénérer le lien du participant', exact: true }).evaluate(el => el === document.activeElement));
+  await page.getByRole("button", { name: "Modifier les détails", exact: true }).focus();
+  await stephane.hover();
+  assert.equal(await stephane.locator('.participant-actions').evaluate(el => getComputedStyle(el).opacity), '1');
   await stephane.getByRole("button", { name: "Modifier", exact: true }).click();
   await page.locator("#exclusion-receiver").selectOption("p0");
   await page.getByRole("dialog", { name: "Modifier le participant" }).getByRole("button", { name: "Ajouter", exact: true }).click();
@@ -142,7 +151,7 @@ try {
   assert.equal(await page.locator("#received-link").count(), 0);
   assert.deepEqual(errors, []);
   console.log(
-    "Validated: 50 participants, desktop/mobile, keyboard expansion, per-participant directional write/removal, drawn lock, removed public route, home, axe (0 violations).",
+    "Validated: 50 participants, desktop/mobile, keyboard and hover action groups, per-participant directional write/removal, drawn lock, removed public route, home, axe (0 violations).",
   );
 } finally {
   await browser.close();

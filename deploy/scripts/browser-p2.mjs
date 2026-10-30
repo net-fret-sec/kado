@@ -87,7 +87,7 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     // Organizer uses authenticated reads and uploads in the edit form as well.
     await f.page.goto(`${base}/exchanges/${f.id}`);
     await f.page.locator('#locale-select').selectOption('en-CA');
-    await f.page.locator('#participants details summary').first().click();
+    await f.page.locator('#participants li').first().hover();
     await f.page.locator('#participants').getByRole('button', { name: en.exchangeDetail.edit, exact: true }).first().click();
     await expect(f.page.getByRole('dialog',{name:en.exchangeDetail.editModal.title})).toBeVisible();
     await f.page.setViewportSize({width:360,height:900});
@@ -186,7 +186,7 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await dialog.getByRole('button', { name: fr.exchangeDetail.linkModal.close }).click();
     await expect(dialog).not.toBeVisible();
     f.page.once('dialog', dialog => dialog.dismiss());
-    await f.page.locator('#participants details summary').first().click();
+    await f.page.locator('#participants li').first().hover();
     await f.page.getByRole('button', { name: fr.exchangeDetail.generateLink, exact: true }).first().click();
     assert.equal((await api('GET', '/api' + f.members[0].accessLink)).participant.name, 'Alex');
     const editButton = f.page.getByRole('button', { name: fr.exchangeDetail.dashboard.editSettings, exact: true }).first();

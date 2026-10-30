@@ -102,7 +102,7 @@
     },
     "support": {
       "title": "Kado est gratuit et le restera.",
-      "subtext": "Si l'application vous a été utile, un petit coup de pouce pour l’hébergement et le développement du projet est toujours apprécié.",
+      "subtext": "Si Kado vous a été utile, un petit coup de pouce pour l’hébergement et le développement est toujours apprécié.",
       "button": "Soutenir le projet"
     },
     "footer": {
@@ -443,6 +443,7 @@
     "detailsMutual": "Les piges mutuelles sont permises. Même si A pige B, B peut tout de même piger A.",
     "detailsExclusions": "Exclusions",
     "reciprocalExclusions": "Dans ce mode, chaque exclusion s’applique dans les deux sens.",
-    "close": "Fermer"
+    "close": "Fermer",
+    "participantActions": "Actions pour {name}"
   }
 }

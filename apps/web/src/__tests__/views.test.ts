@@ -327,16 +327,15 @@ describe('admin authorization and configuration regressions', () => {
       ),
     )
     const { wrapper } = await open(ExchangeDetailView, '/exchanges/exchange')
-    expect(
-      wrapper.findAll('button').some((button) => /Ajouter.*participant/.test(button.text())),
-    ).toBe(false)
+    expect(wrapper.find('#new-participant-name').exists()).toBe(false)
     failed = false
     await wrapper
       .findAll('button')
       .find((button) => button.text() === 'Actualiser la configuration')!
       .trigger('click')
     await flushPromises()
-    expect(wrapper.findAll('button').some((button) => button.text().includes('(0/7)'))).toBe(true)
+    expect(wrapper.find('#new-participant-name').exists()).toBe(true)
+    expect(wrapper.get('#participants button[type=submit]').text()).toBe('Ajouter')
   })
   it('detects an expired session through polling and hides administration', async () => {
     vi.useFakeTimers()
