@@ -18,7 +18,11 @@
   },
   "languages": {
     "fr": "Français",
-    "en": "English"
+    "en": "English",
+    "es": "Español",
+    "it": "Italiano",
+    "ru": "Русский",
+    "de": "Deutsch"
   },
   "fonts": {
     "a": "Lagune (Open Sans + Manrope)",

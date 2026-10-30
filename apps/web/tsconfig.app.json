@@ -4,6 +4,7 @@
   "exclude": ["src/**/__tests__/*"],
   "compilerOptions": {
     "resolveJsonModule": true,
+    "lib": ["ES2020", "ES2021.Intl", "DOM", "DOM.Iterable"],
     // Extra safety for array and object lookups, but may have false positives.
     "noUncheckedIndexedAccess": true,
 

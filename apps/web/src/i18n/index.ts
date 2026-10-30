@@ -1,7 +1,8 @@
 import { readStorage, writeStorage } from '@/composables/useStorage'
 import { createI18n } from 'vue-i18n'
+import { pluralRules } from './plurals'
 
-export const SUPPORT_LOCALES = ['fr-CA', 'en-CA'] as const
+export const SUPPORT_LOCALES = ['fr-CA', 'en-CA', 'es', 'it', 'ru', 'de'] as const
 export type AppLocale = (typeof SUPPORT_LOCALES)[number]
 
 type MessageSchema = Record<string, unknown>
@@ -15,6 +16,7 @@ export const i18n = createI18n({
   locale: defaultLocale,
   fallbackLocale: defaultLocale,
   messages: {},
+  pluralRules,
 })
 
 function isSupportedLocale(value: string): value is AppLocale {
@@ -26,10 +28,12 @@ export function getDefaultLocale(): AppLocale {
 }
 
 export function getBrowserLocale(): AppLocale {
-  const locale = navigator.language
-
-  if (locale.startsWith('fr')) return 'fr-CA'
-  if (locale.startsWith('en')) return 'en-CA'
+  const preferred = navigator.languages?.length ? navigator.languages : [navigator.language]
+  for (const language of preferred) {
+    const base = language.toLowerCase().split('-')[0]
+    const match = SUPPORT_LOCALES.find((locale) => locale.split('-')[0] === base)
+    if (match) return match
+  }
 
   return defaultLocale
 }

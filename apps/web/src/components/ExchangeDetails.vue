@@ -33,10 +33,8 @@ const summary = computed(() => {
     ),
     props.exchange.noMutualAssignments,
   )
-  const joinNames = (values: string[]) =>
-    values.length < 2
-      ? values.join('')
-      : `${values.slice(0, -1).join(', ')} ${locale.value.startsWith('fr') ? 'et' : 'and'} ${values[values.length - 1]}`
+  const listFormatter = new Intl.ListFormat(locale.value, { style: 'long', type: 'conjunction' })
+  const joinNames = (values: string[]) => listFormatter.format(values)
   return [
     ...groups.mutual.map(({ a, b }) => {
       const pair = [name(a), name(b)].sort(collator.compare)

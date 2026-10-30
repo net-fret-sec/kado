@@ -100,6 +100,64 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await f.page.locator('button[form=editParticipantForm]').click();assert.equal((await updated).status(),200);
     await finish(f);
   }
+  console.log('P2 browser: Spanish, Italian, Russian and German across public, organizer and participant views');
+  {
+    const f = await fixture('P2 langues');
+    await f.context.close();
+    for (const [locale, browserLocale] of [['es', 'es-MX'], ['it', 'it-IT'], ['ru', 'ru-RU'], ['de', 'de-CH']]) {
+      const messages = JSON.parse(await readFile(path.join(root, 'apps/web/src/i18n/locales', `${locale}.json`), 'utf8'));
+      const context = await browser.newContext({ ignoreHTTPSErrors: true, locale: browserLocale, reducedMotion: 'reduce' });
+      try {
+        const page = await context.newPage();
+        const errors = [];
+        page.on('pageerror', error => errors.push(error.message));
+        page.on('dialog', dialog => dialog.accept());
+        await page.goto(base);
+        await expect(page.locator('html')).toHaveAttribute('lang', locale);
+        await expect(page.getByRole('heading', { name: messages.home.hero.title, exact: true })).toBeVisible();
+        for (const width of [360, 1440]) {
+          await page.setViewportSize({ width, height: 1000 });
+          await page.getByRole('button', { name: messages.actions.createExchange, exact: true }).click();
+          await expect(page.getByRole('dialog')).toContainText(messages.review.passwordHelp);
+          assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${locale} creation width ${width}`);
+          assert.deepEqual((await audit(page)).violations.map(v => v.id), [], `${locale} creation accessibility`);
+          await page.screenshot({ path: path.join(output, `creation-${locale}-${width}.png`), fullPage: true });
+          await page.getByRole('button', { name: messages.actions.cancel, exact: true }).click();
+        }
+        await page.evaluate(({ id, token }) => localStorage.setItem('kado.adminSessions', JSON.stringify({ [id]: token })), { id: f.id, token: f.token });
+        await page.goto(`${base}/exchanges/${f.id}`);
+        await page.getByRole('button', { name: messages.exchangeDetail.dashboard.editSettings, exact: true }).click();
+        await expect(page.getByRole('dialog')).toContainText(messages.review.datesHelp);
+        await page.setViewportSize({ width: 360, height: 1000 });
+        assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${locale} organizer form width`);
+        assert.deepEqual((await audit(page)).violations.map(v => v.id), [], `${locale} organizer accessibility`);
+        await page.screenshot({ path: path.join(output, `organizer-${locale}-360.png`), fullPage: true });
+        await page.getByRole('dialog').getByRole('button', { name: messages.actions.cancel, exact: true }).click();
+        await page.goto(base + f.members[0].accessLink);
+        await expect(page.getByRole('heading', { name: messages.participant.suggestionsSectionTitle, exact: true })).toBeVisible();
+        for (const width of [360, 1440]) {
+          await page.setViewportSize({ width, height: 1000 });
+          assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${locale} participant width ${width}`);
+          assert(await page.locator('.suggestion-image-button .small').evaluateAll(labels => labels.every(label => {
+            const box = label.closest('button').getBoundingClientRect(), text = label.getBoundingClientRect();
+            return text.bottom <= box.bottom && text.right <= box.right && text.left >= box.left;
+          })), `${locale} image labels fit their buttons`);
+          assert.deepEqual((await audit(page)).violations.map(v => v.id), [], `${locale} participant accessibility`);
+          await page.screenshot({ path: path.join(output, `participant-${locale}-${width}.png`), fullPage: true });
+        }
+        // A manual choice survives navigation/reload and overrides browser preferences.
+        await page.locator('#locale-select').selectOption('en-CA');
+        await expect(page.locator('html')).toHaveAttribute('lang', 'en-CA');
+        await page.reload();
+        await expect(page.locator('html')).toHaveAttribute('lang', 'en-CA');
+        await page.locator('#locale-select').selectOption(locale);
+        await expect(page.locator('html')).toHaveAttribute('lang', locale);
+        assert.deepEqual(errors, [], `${locale} browser exceptions`);
+      } finally {
+        await context.close();
+      }
+    }
+  }
   console.log('P2 browser: conflicts, independent merge, repeated conflict, draft guard');
   {
     const f = await fixture('P2 conflits'); await self(f);

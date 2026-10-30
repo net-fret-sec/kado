@@ -1,0 +1,397 @@
+{
+  "app": {
+    "title": "Kado"
+  },
+  "actions": {
+    "changeLanguage": "Sprache ändern",
+    "changeFontTheme": "Schriftart",
+    "changePaletteTheme": "Farbpalette",
+    "cancel": "Änderungen verwerfen",
+    "createExchange": "Geschenkaustausch erstellen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "add": "Hinzufügen",
+    "close": "Schließen",
+    "save": "Speichern",
+    "saveChanges": "Änderungen speichern",
+    "copy": "Kopieren"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "es": "Español",
+    "it": "Italiano",
+    "ru": "Русский",
+    "de": "Deutsch"
+  },
+  "fonts": {
+    "a": "Lagune (Open Sans + Manrope)",
+    "b": "Sandstone (Cal Sans + Manrope)",
+    "c": "Elektrisch (Space Grotesk + Inter)",
+    "d": "Kulturerbe (Fraunces + Manrope)",
+    "e": "Nordisch (Sora + Noto Sans)",
+    "f": "Atlas (Archivo + Work Sans)",
+    "g": "Prestige (DM Serif Display + DM Sans)",
+    "h": "Circuit (Cal Sans + Inter)",
+    "i": "Sanfte Nacht (Space Grotesk + Noto Sans)",
+    "j": "Citrus (Sora + Open Sans)"
+  },
+  "palettes": {
+    "a": "Helle Lagune",
+    "b": "Redaktionelles Sandstone",
+    "c": "Elektrisches Produkt",
+    "d": "Kulturerbe mit Serifen",
+    "e": "Nordische Frische",
+    "f": "Strukturiertes Atlas",
+    "g": "Prestige-Kontrast",
+    "h": "Minzschaltung",
+    "i": "Sanfte Nacht",
+    "j": "Citrus Pop",
+    "k": "Grafischer Vulkan",
+    "l": "Säurefrost",
+    "m": "Sonnenarchiv",
+    "n": "Eisige Morgendämmerung",
+    "o": "Phosphorschwarz",
+    "p": "Feuchtes Blätterdach"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Geschenke tauschen ohne Aufwand",
+      "title": "Organisiere deinen Geschenkaustausch ganz unkompliziert.",
+      "description": "Erstelle in wenigen Minuten einen Geschenkaustausch, teile die Teilnehmerlinks und lass Kado die Regeln bei der Auslosung berücksichtigen.",
+      "micro": "Freie Software. Kostenlos. Datenschutzfreundlich."
+    },
+    "trustStrip": {
+      "openSource": {
+        "title": "Offener Quellcode",
+        "description": "Der Code ist öffentlich. Du kannst ihn prüfen, nutzen, verändern oder selbst hosten."
+      },
+      "privacy": {
+        "title": "Privatsphäre respektiert",
+        "description": "Zum Mitmachen ist kein Konto nötig. Alle Teilnehmenden erhalten einfach ihren eigenen Link."
+      },
+      "noMonetization": {
+        "title": "Keine aufdringliche Monetarisierung",
+        "description": "Keine Werbung, kein Datenverkauf und keine Tracking-Cookies."
+      }
+    },
+    "support": {
+      "title": "Kado ist und bleibt kostenlos.",
+      "subtext": "Wenn dir Kado geholfen hat, freuen wir uns über einen kleinen Beitrag für Hosting und Weiterentwicklung.",
+      "button": "Projekt unterstützen"
+    },
+    "adminLink": "Lokale Verwaltungstools (Entwicklung)"
+  },
+  "exchanges": {
+    "title": "Geschenkaustausche",
+    "empty": "Noch keine Geschenkaustausche vorhanden.",
+    "noDescription": "Keine Beschreibung.",
+    "updatedAt": "Aktualisiert",
+    "createModal": {
+      "title": "Geschenkaustausch anlegen",
+      "name": "Gib dem Geschenkaustausch einen Namen",
+      "organizerName": "Wie heißt du?",
+      "adminPassword": "Passwort",
+      "whatHappensTitle": "Was nach dem Erstellen passiert",
+      "whatHappensCreated": "Der Geschenkaustausch wird erstellt und du gelangst zur Verwaltungsseite.",
+      "whatHappensAdminSession": "Du wirst auf diesem Gerät automatisch als Organisator angemeldet.",
+      "whatHappensPassword": "<strong>Bewahre dein Passwort auf</strong>: Es gibt weder E-Mails noch eine Wiederherstellung des Zugangs.",
+      "whatHappensEditable": "Alle Angaben zum Geschenkaustausch können nach dem Erstellen noch geändert werden.",
+      "submit": "Austausch erstellen",
+      "successTitle": "Geschenkaustausch erstellt",
+      "successWarningTitle": "Bewahre deinen Verwaltungslink auf",
+      "successWarningText": "Speichere diesen Link als Lesezeichen, um deinen Geschenkaustausch wieder verwalten zu können. Nach dem Abmelden brauchst du auch dein Passwort.",
+      "adminLinkLabel": "Verwaltungslink",
+      "adminLinkHint": "Du brauchst diesen Link, um deinen Geschenkaustausch zu verwalten.",
+      "continueButton": "Zum Geschenkaustausch"
+    }
+  },
+  "common": {
+    "loading": "Wird geladen…",
+    "participants": "Teilnehmende",
+    "comment": "Kommentar",
+    "yes": "Ja",
+    "no": "Nein"
+  },
+  "exchangeStatus": {
+    "undrawn": "Noch nicht ausgelost",
+    "drawn": "Ausgelost",
+    "archived": "Archiviert"
+  },
+  "fields": {
+    "organizerName": "Organisator",
+    "eventDate": "Datum der Geschenkübergabe",
+    "budget": "Budget",
+    "minWishlistSuggestions": "Mindestanzahl an Wünschen",
+    "name": "Name",
+    "description": "Beschreibung",
+    "lockSuggestionsAfterDraw": "Wünsche nach der Auslosung nicht mehr bearbeiten lassen",
+    "noMutualAssignments": "Gegenseitige Zuordnungen verbieten",
+    "wishlist": "Geschenkwunschliste",
+    "title": "Name oder Beschreibung",
+    "email": "E-Mail",
+    "note": "Kommentar (optional)",
+    "linkUrl": "Link",
+    "imageId": "Gespeichertes Bild",
+    "pendingImage": "Ausgewähltes Bild",
+    "plannedDrawDate": "Geplantes Datum der Auslosung"
+  },
+  "exchangeDetail": {
+    "noParticipants": "An diesem Geschenkaustausch nimmt noch niemand teil.",
+    "wishlistSuggestions": "{count} Wunsch | {count} Wünsche",
+    "generateLink": "Teilnehmerlink neu erstellen",
+    "triggerDraw": "Auslosung durchführen",
+    "cancelDraw": "Auslosung aufheben",
+    "drawSuccess": "Die Auslosung wurde durchgeführt.",
+    "drawFailed": "Die Auslosung ist fehlgeschlagen.",
+    "cancelDrawSuccess": "Die Auslosung wurde aufgehoben.",
+    "cancelDrawFailed": "Die Auslosung konnte nicht aufgehoben werden.",
+    "linkCopied": "Link in die Zwischenablage kopiert",
+    "copyFailed": "Link konnte nicht kopiert werden",
+    "linkModal": {
+      "title": "Teilnehmerlink",
+      "description": "Teile diesen Link mit der teilnehmenden Person.",
+      "infoTitle": "Wichtig",
+      "infoNotRecoverable": "Bereits erstellte Teilnehmerlinks können nicht wieder abgerufen werden.",
+      "infoNewLinksAllowed": "Bei Verlust kann ein neuer Teilnehmerlink erstellt werden.",
+      "infoPreviousExpired": "Mit jedem neuen Link werden alle bisherigen Links dieser Person dauerhaft ungültig."
+    },
+    "addModal": {
+      "title": "Person hinzufügen"
+    },
+    "editModal": {
+      "title": "Teilnehmende Person bearbeiten"
+    },
+    "editExchangeModal": {
+      "title": "Geschenkaustausch bearbeiten"
+    },
+    "exceptions": {
+      "none": "Keine Ausschlüsse für die Auslosung.",
+      "selectReceiver": "Person auswählen",
+      "added": "Ausschluss für die Auslosung hinzugefügt.",
+      "removed": "Ausschluss für die Auslosung gelöscht.",
+      "addFailed": "Der Ausschluss konnte nicht hinzugefügt werden.",
+      "removeFailed": "Der Ausschluss konnte nicht gelöscht werden.",
+      "locked": "Ausschlüsse können nach der Auslosung nicht mehr geändert werden."
+    },
+    "confirmDeleteParticipant": "Diese Person löschen?",
+    "confirmTriggerDraw": "Auslosung für diesen Geschenkaustausch durchführen?",
+    "confirmCancelDraw": "Auslosung für diesen Geschenkaustausch aufheben?",
+    "adminAuth": {
+      "title": "Organisatorzugang erforderlich",
+      "description": "Gib das Organisatorpasswort für diesen Geschenkaustausch ein, um fortzufahren.",
+      "passwordLabel": "Organisatorpasswort",
+      "login": "Anmelden",
+      "loggingIn": "Anmeldung läuft…",
+      "logout": "Abmelden",
+      "loggedOut": "Organisatorsitzung beendet.",
+      "required": "Eine Organisatorsitzung ist erforderlich.",
+      "loginFailed": "Anmeldung als Organisator nicht möglich.",
+      "passwordUpdated": "Das Organisatorpasswort wurde aktualisiert.",
+      "passwordMismatch": "Das neue Passwort und die Bestätigung stimmen nicht überein."
+    },
+    "dashboard": {
+      "settings": "Angaben zum Geschenkaustausch",
+      "editSettings": "Angaben bearbeiten",
+      "exclusionCount": "Keine Ausschlüsse | Ein Ausschluss | {count} Ausschlüsse",
+      "receiver": "Darf nicht ziehen",
+      "deleteExchange": "Geschenkaustausch löschen",
+      "minimumParticipants": "Füge mindestens drei Personen hinzu, um die Auslosung durchzuführen."
+    }
+  },
+  "participant": {
+    "profileSectionTitle": "Mein Profil",
+    "wishlist": "Wunschliste",
+    "addSuggestion": "Wunsch hinzufügen",
+    "noSuggestions": "Noch keine Wünsche vorhanden.",
+    "minWishlistSuggestionsHint": "Mindestanzahl: {count} Wunsch | Mindestanzahl: {count} Wünsche",
+    "minWishlistSuggestionsError": "Füge mindestens {count} Wunsch hinzu, um fortzufahren. | Füge mindestens {count} Wünsche hinzu, um fortzufahren.",
+    "note": "Kommentar für die Person, die mich gezogen hat (optional)",
+    "editingOpen": "Du kannst deine Angaben und Wünsche für diesen Geschenkaustausch bearbeiten.",
+    "editingClosed": "Wünsche und Kommentar können in diesem Geschenkaustausch nicht bearbeitet werden.",
+    "saving": "Wird gespeichert…",
+    "saveSuccess": "Deine Angaben wurden aktualisiert.",
+    "recipientSectionTitle": "Beschenkte Person",
+    "suggestionsSectionTitle": "Meine Geschenkwünsche",
+    "wishlistItem": {
+      "reorder": "Reihenfolge ändern",
+      "linkLabel": "Link (optional)",
+      "linkPlaceholder": "https://example.com/produkt",
+      "titleRequired": "Name oder Beschreibung fehlt",
+      "linkUrlInvalid": "Ungültige URL (http/https erforderlich)."
+    }
+  },
+  "apiErrors": {
+    "UNKNOWN": "Ein unerwarteter Fehler ist aufgetreten.",
+    "DRAW_MIN_ACTIVE_PARTICIPANTS": "Für die Auslosung werden mindestens 3 aktive Teilnehmende benötigt.",
+    "DRAW_MIN_WISHLIST_SUGGESTIONS": "Vor der Auslosung müssen alle aktiven Teilnehmenden die Mindestanzahl an Wünschen angeben.",
+    "DRAW_IMPOSSIBLE": "Mit den aktuellen Regeln ist keine gültige Auslosung möglich.",
+    "EXCHANGE_ARCHIVED_CANNOT_DRAW": "Für einen archivierten Geschenkaustausch ist keine Auslosung möglich.",
+    "EXCHANGE_ARCHIVED_CANNOT_MODIFY": "Der Inhalt dieses archivierten Geschenkaustauschs kann nicht geändert werden.",
+    "EXCHANGE_NOT_FOUND": "Der angeforderte Geschenkaustausch wurde nicht gefunden.",
+    "PARTICIPANT_NOT_FOUND": "Die angeforderte Person wurde nicht gefunden.",
+    "PARTICIPANT_CREATION_LOCKED": "Zu diesem Geschenkaustausch können keine Personen hinzugefügt werden.",
+    "PARTICIPANT_SUGGESTIONS_LOCKED": "Wünsche und Kommentare können in diesem Geschenkaustausch nicht bearbeitet werden.",
+    "PARTICIPANT_LINK_INVALID_OR_EXPIRED": "Dieser Teilnehmerlink ist ungültig oder abgelaufen.",
+    "EXCLUSION_RULES_LOCKED": "Die Ausschlüsse für diesen Geschenkaustausch können nicht geändert werden.",
+    "PARTICIPANT_OUTSIDE_EXCHANGE": "Diese Person gehört nicht zu diesem Geschenkaustausch.",
+    "EXCLUSION_SELF_NOT_ALLOWED": "Eine Person kann sich nicht selbst ausschließen.",
+    "EXCLUSION_RULE_ALREADY_EXISTS": "Dieser Ausschluss ist bereits vorhanden.",
+    "EXCLUSION_RULE_NOT_FOUND": "Der angeforderte Ausschluss wurde nicht gefunden.",
+    "RESOURCE_MODIFIED_CONCURRENTLY": "Diese Angaben wurden an anderer Stelle geändert. Lade die Seite neu und versuche es erneut.",
+    "ADMIN_CREDENTIALS_INVALID": "Ungültiges Organisatorpasswort.",
+    "ADMIN_SESSION_INVALID_OR_EXPIRED": "Deine Organisatorsitzung ist ungültig oder abgelaufen.",
+    "API_UNAVAILABLE": "Der Server ist vorübergehend nicht verfügbar. Prüfe, ob API und PostgreSQL laufen.",
+    "INVALID_REQUEST_BODY": "Der Inhalt der Anfrage ist ungültig.",
+    "INVALID_ROUTE_PARAMETERS": "Die Routenparameter sind ungültig.",
+    "PARTICIPANT_IDENTITY_LOCKED": "Namen und E-Mail-Adressen können nach der Auslosung nicht geändert werden.",
+    "PARTICIPANT_DELETION_LOCKED": "Hebe die Auslosung auf, bevor du eine Person löschst.",
+    "EXCHANGE_DRAW_SETTINGS_LOCKED": "Hebe die Auslosung auf, bevor du ihre Regeln änderst.",
+    "RATE_LIMITED": "Zu viele Anfragen. Versuche es nach der angegebenen Wartezeit erneut.",
+    "SERVICE_BUSY": "Der Dienst ist ausgelastet. Versuche es später erneut.",
+    "DRAW_BUSY": "Eine Auslosung läuft bereits. Versuche es gleich noch einmal.",
+    "DRAW_COMPUTATION_LIMIT": "Die Berechnung ist zu komplex. Vereinfache die Ausschlüsse und versuche es erneut.",
+    "PARTICIPANT_LIMIT_REACHED": "Die maximale Teilnehmerzahl ist erreicht.",
+    "SERVICE_UNAVAILABLE": "Der Dienst ist vorübergehend nicht verfügbar.",
+    "CORS_ORIGIN_DENIED": "Dieser Ursprung ist nicht zugelassen.",
+    "INVALID_JSON": "Der gesendete Inhalt ist ungültig.",
+    "REQUEST_BODY_TOO_LARGE": "Der gesendete Inhalt ist zu groß.",
+    "ORGANIZER_NAME_REQUIRES_NON_PARTICIPANT": "Bearbeite das Profil des Organisators.",
+    "API_TIMEOUT": "Die Antwortzeit wurde überschritten. Versuche erneut, die Daten abzurufen.",
+    "REQUEST_ABORTED": "Anfrage abgebrochen.",
+    "IMAGE_INVALID_FILE": "Die Datei ist kein gültiges Bild.",
+    "IMAGE_FORMAT_UNSUPPORTED": "Erlaubte Formate: JPEG, PNG und WebP ohne Animation.",
+    "IMAGE_TOO_LARGE": "Das Bild überschreitet die zulässige Dateigröße oder die maximalen Abmessungen.",
+    "IMAGE_QUOTA_EXCEEDED": "Das Speicherlimit für Bilder ist erreicht.",
+    "IMAGE_UPLOAD_BUSY": "Ein Bild wird gerade hochgeladen. Versuche es gleich noch einmal.",
+    "IMAGE_PROCESSING_INTERRUPTED": "Die Bildverarbeitung wurde unterbrochen. Deine Eingaben bleiben erhalten.",
+    "IMAGE_REFERENCE_INVALID": "Ein Bild ist abgelaufen oder nicht verfügbar. Wähle es erneut aus.",
+    "IMAGE_NOT_FOUND": "@:images.unavailable",
+    "INTERNAL_SERVER_ERROR": "@:apiErrors.UNKNOWN",
+    "ROUTE_NOT_FOUND": "Die angeforderte Ressource wurde nicht gefunden."
+  },
+  "p2": {
+    "discardDraft": "Nicht gespeicherte Änderungen verwerfen?",
+    "empty": "Leer",
+    "conflictTitle": "An anderer Stelle wurden Änderungen vorgenommen",
+    "conflictHelp": "Deine Eingaben bleiben erhalten. Wähle bei gleichzeitig geänderten Feldern die Werte aus, die du behalten möchtest. Das Vorbereiten des Entwurfs speichert ihn noch nicht.",
+    "yourVersion": "Deine Eingaben",
+    "currentVersion": "Aktuelle Version",
+    "prepareDraft": "Entwurf vorbereiten",
+    "outcomeUncertain": "Die Anfrage wurde unterbrochen. Die Aktion wurde möglicherweise ausgeführt: Prüfe das Ergebnis, bevor du sie wiederholst. Ein erneuter Erstellungsversuch kann ein Duplikat erzeugen.",
+    "storageUnavailable": "Der Speicher dieses Geräts ist nicht verfügbar. Die Sitzung bleibt im Arbeitsspeicher und geht beim Schließen oder Neuladen verloren.",
+    "skipContent": "Zum Inhalt springen",
+    "moved": "{title}: Position {position}.",
+    "invalidField": "Prüfe dieses Feld und die angegebenen Grenzen.",
+    "refresh": "Aktualisieren",
+    "refreshPaused": "Die Aktualisierung ist vorübergehend ausgesetzt. Die angezeigten Daten können veraltet sein.",
+    "home": "Zur Startseite",
+    "unsaved": "Nicht gespeicherte Änderungen.",
+    "logoutUnconfirmed": "Du bist auf diesem Gerät abgemeldet. Das Beenden der Sitzung auf dem Server konnte nicht bestätigt werden.",
+    "waitForAction": "Warte, bis der laufende Vorgang abgeschlossen ist.",
+    "confirmReplaceLink": "Teilnehmerlink neu erstellen? Alle bisherigen Links dieser Person werden dauerhaft ungültig.",
+    "retryConfig": "Konfiguration aktualisieren",
+    "adminActions": "Aktionen zur Verwaltung des Geschenkaustauschs",
+    "notFoundTitle": "Seite nicht gefunden",
+    "notFoundHelp": "Unter dieser Adresse gibt es keine Kado-Seite.",
+    "initialVersion": "Ursprüngliche Version"
+  },
+  "images": {
+    "label": "Bild (optional)",
+    "remove": "Bild entfernen",
+    "unavailable": "Bild nicht verfügbar.",
+    "validating": "Bild wird geprüft…"
+  },
+  "review": {
+    "keepAccess": "Bewahre deine Zugangsdaten auf",
+    "keepOrganizer": "Füge diese Seite deinen Lesezeichen hinzu und bewahre dein Passwort auf. Es gibt weder E-Mails noch eine Passwortwiederherstellung.",
+    "keepParticipant": "Füge diese Seite über das Menü deines Browsers zu deinen Lesezeichen hinzu. Dieser persönliche Link ermöglicht den Zugriff auf dein Profil.",
+    "accessSaved": "Ich habe meine Zugangsdaten gesichert",
+    "hide": "Verbergen",
+    "show": "Anzeigen",
+    "passwordHelp": "Mindestens 8 Zeichen. Groß- und Kleinschreibung werden gleich behandelt.",
+    "requiredNames": "Der Name des Geschenkaustauschs und dein Name sind erforderlich (höchstens 150 Zeichen).",
+    "datesHelp": "Die Datumsangaben sind optional. Das geplante Auslosungsdatum löst keine automatische Auslosung aus. Der Geschenkaustausch wird 31 Tage nach dem Datum der Geschenkübergabe archiviert.",
+    "addImage": "Bild hinzufügen",
+    "replaceImage": "Bild ersetzen",
+    "imageHint": "Klicken oder ein Bild hierher ziehen. JPEG, PNG oder WebP. Der Upload erfolgt beim Speichern.",
+    "imageLimit": "Maximum: {size} MiB und {pixels} Megapixel.",
+    "reorderHelp": "Nutze am Ziehgriff die Pfeiltasten nach oben und unten, um den Wunsch zu verschieben.",
+    "saveHelp": "Speichert das Profil und alle Wünsche.",
+    "invalidHelp": "Fülle die Pflichtfelder aus und behebe die Fehler, bevor du speicherst.",
+    "participantList": "Teilnehmende am Geschenkaustausch",
+    "deleteTitle": "Diesen Geschenkaustausch endgültig löschen",
+    "deleteHelp": "Diese Aktion löscht den Geschenkaustausch und die zugehörigen Zugänge. Gib zur Bestätigung genau „{name}“ ein.",
+    "confirmName": "Genauer Name des Geschenkaustauschs",
+    "mutual": "{a} und {b} dürfen sich nicht gegenseitig ziehen.",
+    "directional": "{name} darf {others} nicht ziehen.",
+    "editExclusions": "Ausschlüsse für diese Person",
+    "exclusionsHelp": "Die Schaltflächen Hinzufügen und Löschen speichern Ausschlüsse sofort. Die Schaltfläche Speichern betrifft nur das Profil und die Wünsche.",
+    "linkFor": "Teile diesen persönlichen Link mit {name}.",
+    "confirmDeleteSuggestion": "Diesen Geschenkwunsch löschen? Die Änderung wird erst beim Speichern wirksam.",
+    "detailsOrganizer": "Organisiert von {name}",
+    "detailsBudget": "Das Budget pro Geschenk beträgt {amount}.",
+    "detailsMinimumNone": "Die Teilnehmenden müssen keine Mindestanzahl an Wünschen angeben.",
+    "detailsMinimum": "Die Teilnehmenden müssen mindestens {count} Wunsch angeben, damit die Auslosung stattfinden kann. | Die Teilnehmenden müssen mindestens {count} Wünsche angeben, damit die Auslosung stattfinden kann.",
+    "detailsLocked": "Nach der Auslosung können die Wünsche nicht mehr bearbeitet werden.",
+    "detailsOpen": "Die Teilnehmenden können ihre Wünsche auch nach der Auslosung bearbeiten.",
+    "detailsNoMutual": "Gegenseitige Zuordnungen sind ausgeschlossen. Wenn A die Person B zieht, darf B nicht A ziehen.",
+    "detailsMutual": "Gegenseitige Zuordnungen sind erlaubt. Auch wenn A die Person B zieht, darf B ebenfalls A ziehen.",
+    "detailsExclusions": "Ausschlüsse",
+    "reciprocalExclusions": "In diesem Modus gilt jeder Ausschluss in beide Richtungen.",
+    "participantActions": "Aktionen für {name}"
+  },
+  "development": {
+    "paletteTitle": "Farbübersicht",
+    "paletteDraft": "Farbübersicht (Entwurf)",
+    "palette": {
+      "background": {
+        "name": "Allgemeiner Hintergrund",
+        "note": "kühler Neutralton"
+      },
+      "surface": {
+        "name": "Karte / Fläche",
+        "note": "reines Weiß"
+      },
+      "soft": {
+        "name": "Sanfte Fläche",
+        "note": "Hover-Zustände, abwechselnde Zeilen"
+      },
+      "beige": {
+        "name": "Beiger Kasten",
+        "note": "Erläuterungsbereiche"
+      },
+      "heading": {
+        "name": "Überschrift / Logo",
+        "note": "dunkles Blaugrün — Orientierungspunkt"
+      },
+      "primary": {
+        "name": "Hauptfarbe",
+        "note": "Aktionen, Links, Fokus"
+      },
+      "secondary": {
+        "name": "Nebentext",
+        "note": "Beschriftungen, Metadaten"
+      },
+      "success": {
+        "name": "Erfolg",
+        "note": "Auslosung durchgeführt"
+      },
+      "cta": {
+        "name": "Ockerfarbene Hauptaktion",
+        "note": "einzige Hauptaktion"
+      },
+      "ctaHover": {
+        "name": "Hauptaktion bei Hover"
+      },
+      "border": {
+        "name": "Rahmen",
+        "note": "Karten, Trennlinien"
+      },
+      "beigeBorder": {
+        "name": "Beiger Rahmen",
+        "note": "beige Kästen"
+      }
+    }
+  }
+}

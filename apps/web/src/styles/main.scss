@@ -577,6 +577,7 @@ main > * + * {
 }
 .suggestion-placeholder {
   font-size: 2rem;
+  line-height: 1;
   color: var(--bs-link-color);
 }
 .suggestion-fields {
@@ -603,9 +604,17 @@ main > * + * {
   height: auto;
   overflow: hidden;
 }
+.suggestion-image-button > span {
+  min-width: 0;
+  max-width: 100%;
+}
+.suggestion-image-button > span .suggestion-placeholder {
+  font-size: 1.5rem;
+}
 .suggestion-image-button .small {
   font-size: 0.7rem;
   line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 @media (min-width: 768px) {
   .suggestion-item {

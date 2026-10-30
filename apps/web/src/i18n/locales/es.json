@@ -1,0 +1,397 @@
+{
+  "app": {
+    "title": "Kado"
+  },
+  "actions": {
+    "changeLanguage": "Cambiar idioma",
+    "changeFontTheme": "Tipografía",
+    "changePaletteTheme": "Paleta",
+    "cancel": "Descartar los cambios",
+    "createExchange": "Crear un intercambio",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "add": "Añadir",
+    "close": "Cerrar",
+    "save": "Guardar",
+    "saveChanges": "Guardar los cambios",
+    "copy": "Copiar"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "es": "Español",
+    "it": "Italiano",
+    "ru": "Русский",
+    "de": "Deutsch"
+  },
+  "fonts": {
+    "a": "Laguna (Open Sans + Manrope)",
+    "b": "Sandstone (Cal Sans + Manrope)",
+    "c": "Eléctrico (Space Grotesk + Inter)",
+    "d": "Patrimonio (Fraunces + Manrope)",
+    "e": "Nórdico (Sora + Noto Sans)",
+    "f": "Atlas (Archivo + Work Sans)",
+    "g": "Prestige (DM Serif Display + DM Sans)",
+    "h": "Circuit (Cal Sans + Inter)",
+    "i": "Noche serena (Space Grotesk + Noto Sans)",
+    "j": "Citrus (Sora + Open Sans)"
+  },
+  "palettes": {
+    "a": "Laguna clara",
+    "b": "Sandstone editorial",
+    "c": "Producto eléctrico",
+    "d": "Patrimonio con serifas",
+    "e": "Frescura nórdica",
+    "f": "Atlas estructurado",
+    "g": "Contraste de prestigio",
+    "h": "Circuito menta",
+    "i": "Noche serena",
+    "j": "Citrus pop",
+    "k": "Volcán gráfico",
+    "l": "Escarcha ácida",
+    "m": "Archivo solar",
+    "n": "Alba glacial",
+    "o": "Negro fosforescente",
+    "p": "Dosel húmedo"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Intercambios de regalos sin complicaciones",
+      "title": "Organiza tus intercambios de regalos sin complicaciones.",
+      "description": "Crea un intercambio en unos minutos, comparte los enlaces de los participantes y deja que Kado gestione las restricciones del sorteo.",
+      "micro": "Libre. Gratis. Respetuoso con la privacidad."
+    },
+    "trustStrip": {
+      "openSource": {
+        "title": "Código abierto",
+        "description": "El código es público. Puedes examinarlo, usarlo, modificarlo o alojarlo por tu cuenta."
+      },
+      "privacy": {
+        "title": "Respeto por la privacidad",
+        "description": "No hace falta una cuenta para participar. Cada participante recibe su propio enlace."
+      },
+      "noMonetization": {
+        "title": "Sin monetización intrusiva",
+        "description": "Sin publicidad, sin venta de datos y sin cookies de seguimiento."
+      }
+    },
+    "support": {
+      "title": "Kado es gratis y lo seguirá siendo.",
+      "subtext": "Si Kado te ha sido útil, siempre se agradece una pequeña ayuda para el alojamiento y el desarrollo.",
+      "button": "Apoyar el proyecto"
+    },
+    "adminLink": "Herramientas de administración local (desarrollo)"
+  },
+  "exchanges": {
+    "title": "Intercambios",
+    "empty": "Todavía no hay intercambios.",
+    "noDescription": "Sin descripción.",
+    "updatedAt": "Actualizado",
+    "createModal": {
+      "title": "Creación de un intercambio",
+      "name": "Ponle un nombre al intercambio",
+      "organizerName": "¿Cómo te llamas?",
+      "adminPassword": "Contraseña",
+      "whatHappensTitle": "Qué ocurrirá después de la creación",
+      "whatHappensCreated": "Se crea el intercambio y se te redirige a su página de gestión.",
+      "whatHappensAdminSession": "Se inicia automáticamente una sesión de organizador en este dispositivo.",
+      "whatHappensPassword": "<strong>Guarda tu contraseña</strong>: no se ofrecen correos electrónicos ni recuperación de acceso.",
+      "whatHappensEditable": "Todos los detalles del intercambio se pueden modificar después de crearlo.",
+      "submit": "Crear el intercambio",
+      "successTitle": "Intercambio creado",
+      "successWarningTitle": "Guarda tu enlace de acceso como organizador",
+      "successWarningText": "Guarda este enlace en tus marcadores para volver a gestionar el intercambio. También necesitarás la contraseña si cierras la sesión.",
+      "adminLinkLabel": "Enlace de acceso del organizador",
+      "adminLinkHint": "Necesitarás este enlace para gestionar el intercambio.",
+      "continueButton": "Ir al intercambio"
+    }
+  },
+  "common": {
+    "loading": "Cargando…",
+    "participants": "Participantes",
+    "comment": "Comentario",
+    "yes": "Sí",
+    "no": "No"
+  },
+  "exchangeStatus": {
+    "undrawn": "Sin sortear",
+    "drawn": "Sorteado",
+    "archived": "Archivado"
+  },
+  "fields": {
+    "organizerName": "Organizador",
+    "eventDate": "Fecha del intercambio de regalos",
+    "budget": "Presupuesto",
+    "minWishlistSuggestions": "Número mínimo de sugerencias",
+    "name": "Nombre",
+    "description": "Descripción",
+    "lockSuggestionsAfterDraw": "Desactivar los cambios en las sugerencias después del sorteo",
+    "noMutualAssignments": "Asignaciones recíprocas prohibidas",
+    "wishlist": "Lista de sugerencias de regalos",
+    "title": "Nombre o descripción",
+    "email": "Correo electrónico",
+    "note": "Comentario (opcional)",
+    "linkUrl": "Enlace",
+    "imageId": "Imagen guardada",
+    "pendingImage": "Imagen seleccionada",
+    "plannedDrawDate": "Fecha prevista del sorteo"
+  },
+  "exchangeDetail": {
+    "noParticipants": "Este intercambio no tiene participantes.",
+    "wishlistSuggestions": "{count} sugerencia | {count} sugerencias",
+    "generateLink": "Regenerar el enlace del participante",
+    "triggerDraw": "Realizar el sorteo",
+    "cancelDraw": "Anular el sorteo",
+    "drawSuccess": "El sorteo se ha realizado.",
+    "drawFailed": "No se ha podido realizar el sorteo.",
+    "cancelDrawSuccess": "El sorteo se ha anulado.",
+    "cancelDrawFailed": "No se ha podido anular el sorteo.",
+    "linkCopied": "Enlace copiado al portapapeles",
+    "copyFailed": "No se ha podido copiar el enlace",
+    "linkModal": {
+      "title": "Enlace del participante",
+      "description": "Comparte este enlace con el participante.",
+      "infoTitle": "Importante",
+      "infoNotRecoverable": "Los enlaces generados para los participantes no se pueden recuperar.",
+      "infoNewLinksAllowed": "Si se pierde, se puede generar un nuevo enlace para el participante.",
+      "infoPreviousExpired": "Cada vez que se genera un nuevo enlace, todos los enlaces anteriores de ese participante quedan invalidados definitivamente."
+    },
+    "addModal": {
+      "title": "Añadir un participante"
+    },
+    "editModal": {
+      "title": "Editar al participante"
+    },
+    "editExchangeModal": {
+      "title": "Editar el intercambio"
+    },
+    "exceptions": {
+      "none": "No hay exclusiones de sorteo.",
+      "selectReceiver": "Elegir un participante",
+      "added": "Exclusión de sorteo añadida.",
+      "removed": "Exclusión de sorteo eliminada.",
+      "addFailed": "No se ha podido añadir la exclusión de sorteo.",
+      "removeFailed": "No se ha podido eliminar la exclusión de sorteo.",
+      "locked": "Las exclusiones no se pueden modificar después del sorteo."
+    },
+    "confirmDeleteParticipant": "¿Eliminar a este participante?",
+    "confirmTriggerDraw": "¿Realizar el sorteo de este intercambio?",
+    "confirmCancelDraw": "¿Anular el sorteo de este intercambio?",
+    "adminAuth": {
+      "title": "Se requiere acceso de organizador",
+      "description": "Introduce la contraseña del organizador de este intercambio para continuar.",
+      "passwordLabel": "Contraseña del organizador",
+      "login": "Iniciar sesión",
+      "loggingIn": "Iniciando sesión…",
+      "logout": "Cerrar sesión",
+      "loggedOut": "Sesión de organizador cerrada.",
+      "required": "Se requiere una sesión de organizador.",
+      "loginFailed": "No se puede iniciar sesión como organizador.",
+      "passwordUpdated": "La contraseña del organizador se ha actualizado.",
+      "passwordMismatch": "La nueva contraseña y su confirmación no coinciden."
+    },
+    "dashboard": {
+      "settings": "Detalles del intercambio",
+      "editSettings": "Editar los detalles",
+      "exclusionCount": "Ninguna exclusión | Una exclusión | {count} exclusiones",
+      "receiver": "No puede sacar a",
+      "deleteExchange": "Eliminar el intercambio",
+      "minimumParticipants": "Añade al menos tres participantes para realizar el sorteo."
+    }
+  },
+  "participant": {
+    "profileSectionTitle": "Mi perfil",
+    "wishlist": "Lista de sugerencias",
+    "addSuggestion": "Añadir una sugerencia",
+    "noSuggestions": "Todavía no hay sugerencias.",
+    "minWishlistSuggestionsHint": "Número mínimo de sugerencias: {count} sugerencia | Número mínimo de sugerencias: {count} sugerencias",
+    "minWishlistSuggestionsError": "Añade al menos {count} sugerencia para continuar. | Añade al menos {count} sugerencias para continuar.",
+    "note": "Comentario para la persona que me ha sacado (opcional)",
+    "editingOpen": "Puedes modificar tus datos y sugerencias para este intercambio.",
+    "editingClosed": "No se pueden modificar las sugerencias ni el comentario de este intercambio.",
+    "saving": "Guardando…",
+    "saveSuccess": "Tus datos se han actualizado.",
+    "recipientSectionTitle": "Persona que te ha tocado",
+    "suggestionsSectionTitle": "Mis sugerencias de regalos",
+    "wishlistItem": {
+      "reorder": "Cambiar el orden",
+      "linkLabel": "Enlace (opcional)",
+      "linkPlaceholder": "https://example.com/producto",
+      "titleRequired": "Falta el nombre o la descripción",
+      "linkUrlInvalid": "URL no válida (se requiere http/https)."
+    }
+  },
+  "apiErrors": {
+    "UNKNOWN": "Se ha producido un error inesperado.",
+    "DRAW_MIN_ACTIVE_PARTICIPANTS": "Se necesitan al menos 3 participantes activos para realizar el sorteo.",
+    "DRAW_MIN_WISHLIST_SUGGESTIONS": "Todos los participantes activos deben alcanzar el número mínimo de sugerencias antes del sorteo.",
+    "DRAW_IMPOSSIBLE": "No es posible realizar un sorteo válido con las reglas actuales.",
+    "EXCHANGE_ARCHIVED_CANNOT_DRAW": "No se puede realizar el sorteo de un intercambio archivado.",
+    "EXCHANGE_ARCHIVED_CANNOT_MODIFY": "No se puede modificar el contenido de este intercambio archivado.",
+    "EXCHANGE_NOT_FOUND": "No se ha encontrado el intercambio solicitado.",
+    "PARTICIPANT_NOT_FOUND": "No se ha encontrado al participante solicitado.",
+    "PARTICIPANT_CREATION_LOCKED": "No se pueden añadir participantes a este intercambio.",
+    "PARTICIPANT_SUGGESTIONS_LOCKED": "No se pueden modificar las sugerencias ni los comentarios de este intercambio.",
+    "PARTICIPANT_LINK_INVALID_OR_EXPIRED": "Este enlace de participante no es válido o ha caducado.",
+    "EXCLUSION_RULES_LOCKED": "No se pueden modificar las exclusiones de sorteo de este intercambio.",
+    "PARTICIPANT_OUTSIDE_EXCHANGE": "El participante no pertenece a este intercambio.",
+    "EXCLUSION_SELF_NOT_ALLOWED": "Un participante no puede excluirse a sí mismo.",
+    "EXCLUSION_RULE_ALREADY_EXISTS": "Esta exclusión de sorteo ya existe.",
+    "EXCLUSION_RULE_NOT_FOUND": "No se ha encontrado la exclusión de sorteo solicitada.",
+    "RESOURCE_MODIFIED_CONCURRENTLY": "Estos datos se han modificado en otro lugar. Actualiza la página e inténtalo de nuevo.",
+    "ADMIN_CREDENTIALS_INVALID": "Contraseña del organizador incorrecta.",
+    "ADMIN_SESSION_INVALID_OR_EXPIRED": "Tu sesión de organizador no es válida o ha caducado.",
+    "API_UNAVAILABLE": "El servidor no está disponible temporalmente. Comprueba que la API y PostgreSQL estén en ejecución.",
+    "INVALID_REQUEST_BODY": "El cuerpo de la solicitud no es válido.",
+    "INVALID_ROUTE_PARAMETERS": "Los parámetros de la ruta no son válidos.",
+    "PARTICIPANT_IDENTITY_LOCKED": "Los nombres y correos electrónicos no se pueden modificar después del sorteo.",
+    "PARTICIPANT_DELETION_LOCKED": "Anula el sorteo antes de eliminar a un participante.",
+    "EXCHANGE_DRAW_SETTINGS_LOCKED": "Anula el sorteo antes de modificar sus reglas.",
+    "RATE_LIMITED": "Demasiadas solicitudes. Vuelve a intentarlo después del plazo indicado.",
+    "SERVICE_BUSY": "El servicio está ocupado. Inténtalo más tarde.",
+    "DRAW_BUSY": "Hay un sorteo en curso. Inténtalo de nuevo en un momento.",
+    "DRAW_COMPUTATION_LIMIT": "El cálculo es demasiado complejo. Simplifica las exclusiones e inténtalo de nuevo.",
+    "PARTICIPANT_LIMIT_REACHED": "Se ha alcanzado el límite de participantes.",
+    "SERVICE_UNAVAILABLE": "El servicio no está disponible temporalmente.",
+    "CORS_ORIGIN_DENIED": "Este origen no está autorizado.",
+    "INVALID_JSON": "El contenido enviado no es válido.",
+    "REQUEST_BODY_TOO_LARGE": "El contenido enviado es demasiado grande.",
+    "ORGANIZER_NAME_REQUIRES_NON_PARTICIPANT": "Modifica el perfil del organizador.",
+    "API_TIMEOUT": "Se ha agotado el tiempo de respuesta. Vuelve a intentar la consulta.",
+    "REQUEST_ABORTED": "Solicitud cancelada.",
+    "IMAGE_INVALID_FILE": "El archivo no es una imagen válida.",
+    "IMAGE_FORMAT_UNSUPPORTED": "Formatos aceptados: JPEG, PNG y WebP sin animación.",
+    "IMAGE_TOO_LARGE": "La imagen supera los límites de tamaño de archivo o de dimensiones.",
+    "IMAGE_QUOTA_EXCEEDED": "Se ha alcanzado el límite de almacenamiento de imágenes.",
+    "IMAGE_UPLOAD_BUSY": "Hay una imagen subiendo. Inténtalo de nuevo en un momento.",
+    "IMAGE_PROCESSING_INTERRUPTED": "El procesamiento de la imagen se ha interrumpido. Se ha conservado lo que has introducido.",
+    "IMAGE_REFERENCE_INVALID": "Una imagen ha caducado o no está disponible. Selecciónala de nuevo.",
+    "IMAGE_NOT_FOUND": "@:images.unavailable",
+    "INTERNAL_SERVER_ERROR": "@:apiErrors.UNKNOWN",
+    "ROUTE_NOT_FOUND": "No se ha encontrado el recurso solicitado."
+  },
+  "p2": {
+    "discardDraft": "¿Descartar los cambios sin guardar?",
+    "empty": "Vacío",
+    "conflictTitle": "Se han realizado cambios en otro lugar",
+    "conflictHelp": "Se ha conservado lo que has introducido. Elige qué valores mantener cuando se haya modificado el mismo campo. Preparar el borrador no lo guarda.",
+    "yourVersion": "Tus datos introducidos",
+    "currentVersion": "Versión actual",
+    "prepareDraft": "Preparar el borrador",
+    "outcomeUncertain": "La solicitud se ha interrumpido. Es posible que la operación se haya realizado: comprueba el resultado antes de repetirla. Volver a intentar una creación puede generar un duplicado.",
+    "storageUnavailable": "El almacenamiento de este dispositivo no está disponible. La sesión se mantiene en memoria y se perderá al cerrar o recargar la página.",
+    "skipContent": "Ir al contenido",
+    "moved": "{title}: posición {position}.",
+    "invalidField": "Revisa este campo y los límites indicados.",
+    "refresh": "Actualizar",
+    "refreshPaused": "La actualización está suspendida temporalmente. Los datos mostrados pueden estar desactualizados.",
+    "home": "Volver al inicio",
+    "unsaved": "Cambios sin guardar.",
+    "logoutUnconfirmed": "Has cerrado la sesión en este dispositivo. No se ha podido confirmar la revocación de la sesión en el servidor.",
+    "waitForAction": "Espera a que termine la operación en curso.",
+    "confirmReplaceLink": "¿Regenerar el enlace del participante? Todos sus enlaces anteriores quedarán invalidados definitivamente.",
+    "retryConfig": "Actualizar la configuración",
+    "adminActions": "Acciones de gestión del intercambio",
+    "notFoundTitle": "Página no encontrada",
+    "notFoundHelp": "Esta dirección no corresponde a ninguna página de Kado.",
+    "initialVersion": "Versión inicial de referencia"
+  },
+  "images": {
+    "label": "Imagen (opcional)",
+    "remove": "Eliminar la imagen",
+    "unavailable": "Imagen no disponible.",
+    "validating": "Verificando la imagen…"
+  },
+  "review": {
+    "keepAccess": "Guarda tus datos de acceso",
+    "keepOrganizer": "Añade esta página a tus marcadores y guarda tu contraseña. No se ofrecen correos electrónicos ni recuperación de contraseña.",
+    "keepParticipant": "Añade esta página a tus marcadores desde el menú del navegador. Este enlace personal da acceso a tu perfil.",
+    "accessSaved": "He guardado mis datos de acceso",
+    "hide": "Ocultar",
+    "show": "Mostrar",
+    "passwordHelp": "Al menos 8 caracteres. No se distingue entre mayúsculas y minúsculas.",
+    "requiredNames": "El nombre del intercambio y tu nombre son obligatorios (máximo 150 caracteres).",
+    "datesHelp": "Las fechas son opcionales. La fecha prevista del sorteo no lo inicia automáticamente. El intercambio se archiva 31 días después de la entrega de regalos.",
+    "addImage": "Añadir una imagen",
+    "replaceImage": "Reemplazar la imagen",
+    "imageHint": "Haz clic o arrastra una imagen. JPEG, PNG o WebP. Se subirá al guardar.",
+    "imageLimit": "Máximo: {size} MiB y {pixels} megapíxeles.",
+    "reorderHelp": "Con el asa de arrastre seleccionada, usa las flechas arriba y abajo para mover la sugerencia.",
+    "saveHelp": "Guarda el perfil y todas las sugerencias.",
+    "invalidHelp": "Completa los campos obligatorios y corrige los errores antes de guardar.",
+    "participantList": "Participantes del intercambio",
+    "deleteTitle": "Eliminar este intercambio definitivamente",
+    "deleteHelp": "Esta acción elimina el intercambio y los accesos asociados. Para confirmar, escribe exactamente «{name}».",
+    "confirmName": "Nombre exacto del intercambio",
+    "mutual": "{a} y {b} no pueden sacarse mutuamente.",
+    "directional": "{name} no puede sacar a {others}.",
+    "editExclusions": "Exclusiones de esta persona",
+    "exclusionsHelp": "Los botones Añadir y Eliminar guardan las exclusiones inmediatamente. El botón Guardar solo afecta al perfil y a las sugerencias.",
+    "linkFor": "Comparte este enlace personal con {name}.",
+    "confirmDeleteSuggestion": "¿Eliminar esta sugerencia de regalo? El cambio se aplicará al guardar.",
+    "detailsOrganizer": "Organizado por {name}",
+    "detailsBudget": "El presupuesto del regalo es de {amount}.",
+    "detailsMinimumNone": "No hay un número mínimo de sugerencias que deban aportar los participantes.",
+    "detailsMinimum": "Los participantes deben aportar al menos {count} sugerencia para realizar el sorteo. | Los participantes deben aportar al menos {count} sugerencias para realizar el sorteo.",
+    "detailsLocked": "No se podrán modificar las sugerencias una vez realizado el sorteo.",
+    "detailsOpen": "Los participantes podrán modificar sus sugerencias una vez realizado el sorteo.",
+    "detailsNoMutual": "Las asignaciones recíprocas están prohibidas. Si A saca a B, B no puede sacar a A.",
+    "detailsMutual": "Las asignaciones recíprocas están permitidas. Aunque A saque a B, B también puede sacar a A.",
+    "detailsExclusions": "Exclusiones",
+    "reciprocalExclusions": "En este modo, cada exclusión se aplica en ambos sentidos.",
+    "participantActions": "Acciones para {name}"
+  },
+  "development": {
+    "paletteTitle": "Paleta visual",
+    "paletteDraft": "Paleta visual (borrador)",
+    "palette": {
+      "background": {
+        "name": "Fondo general",
+        "note": "neutro frío"
+      },
+      "surface": {
+        "name": "Tarjeta / Superficie",
+        "note": "blanco puro"
+      },
+      "soft": {
+        "name": "Superficie suave",
+        "note": "estados al pasar el cursor, filas alternas"
+      },
+      "beige": {
+        "name": "Recuadro beige",
+        "note": "zonas explicativas"
+      },
+      "heading": {
+        "name": "Título / Logotipo",
+        "note": "azul verdoso oscuro — punto de referencia"
+      },
+      "primary": {
+        "name": "Color principal",
+        "note": "acciones, enlaces, foco"
+      },
+      "secondary": {
+        "name": "Texto secundario",
+        "note": "etiquetas, metadatos"
+      },
+      "success": {
+        "name": "Éxito",
+        "note": "sorteo realizado"
+      },
+      "cta": {
+        "name": "Acción principal ocre",
+        "note": "única acción principal"
+      },
+      "ctaHover": {
+        "name": "Acción al pasar el cursor"
+      },
+      "border": {
+        "name": "Borde",
+        "note": "tarjetas, separadores"
+      },
+      "beigeBorder": {
+        "name": "Borde beige",
+        "note": "recuadros beige"
+      }
+    }
+  }
+}

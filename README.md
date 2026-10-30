@@ -29,19 +29,26 @@ Les noms techniques existants (`admin`, `adminPassword`, `adminSessionToken` et 
 ## Traductions
 
 `apps/web/src/i18n/locales/fr-CA.json` est la source de vérité. Toute évolution des
-textes part du français, puis est reportée dans `en-CA.json` avec les mêmes clés,
-variables et formes plurielles. Les noms de marques et les mots communs aux deux
-langues peuvent rester identiques; ils sont explicitement contrôlés dans les tests.
+textes part du français, puis est reportée dans les cinq autres catalogues :
+`en-CA.json` (anglais), `es.json` (espagnol), `it.json` (italien), `ru.json` (russe)
+et `de.json` (allemand). Les clés, variables et liens entre messages doivent rester
+identiques. Les noms de langues restent affichés dans leur propre langue.
+
+Les formes plurielles suivent la grammaire de chaque langue. Le russe utilise
+`one | few | many` (par exemple 1, 2 et 5), précédés d’une forme zéro explicite
+pour le compteur d’exclusions. La règle est centralisée dans `i18n/plurals.ts`.
+La langue du navigateur est reconnue, y compris ses variantes régionales ; un
+choix manuel mémorisé reste prioritaire. Le français demeure la langue de repli.
 
 Réutiliser les libellés partagés de `actions`, `common`, `fields` et `exchangeStatus`.
 Éviter les copies de texte dans les sections propres à une page. Pour un code d’erreur
 qui doit conserver sa clé, un lien Vue I18n comme `@:images.unavailable` permet de
-réutiliser un message. Les clés sans usage doivent être retirées des deux catalogues;
+réutiliser un message. Les clés sans usage doivent être retirées de tous les catalogues;
 les clés composées dynamiquement (erreurs, conflits et listes) restent à prendre en compte.
 
 `pnpm test:web` inclut le contrôle de parité des catalogues, des doublons, des
 références, des variables, du balisage, des pluriels et du rendu de chaque message
-dans les deux langues. `pnpm test:review` complète ces contrôles par les parcours
+dans les six langues. `pnpm test:review` complète ces contrôles par les parcours
 réels et le changement de langue dans le navigateur.
 
 ## Fonctionnalités couvertes
