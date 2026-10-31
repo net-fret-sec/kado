@@ -3,7 +3,8 @@ import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import { defineComponent, h, nextTick } from 'vue'
 import { createPinia } from 'pinia'
 import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
-import type { ParticipantSelfViewDto } from '@kado/shared'
+import type { ParticipantSelfViewDto, ParticipantDto } from '@kado/shared'
+import EditParticipantModal from '../components/EditParticipantModal.vue'
 import ParticipantSelfView from '../views/ParticipantSelfView.vue'
 import ExchangeDetailView from '../views/ExchangeDetailView.vue'
 import { i18n, setLocale } from '../i18n'
@@ -64,6 +65,7 @@ afterEach(() => {
   for (const wrapper of wrappers) wrapper.unmount()
   wrappers = []
   document.body.innerHTML = ''
+  vi.restoreAllMocks()
   vi.unstubAllGlobals()
   vi.useRealTimers()
 })
@@ -91,6 +93,224 @@ describe('participant form regressions', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
+  it('saves a profile below the required minimum and permits an empty wishlist', async () => {
+    const current = personal()
+    current.exchange.minWishlistSuggestions = 3
+    current.participant.wishlist = []
+    const writes: Record<string, unknown>[] = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_path, init) => {
+        if (init.method === 'PUT') {
+          const body = JSON.parse(init.body)
+          writes.push(body)
+          Object.assign(current.participant, body)
+        }
+        return json(current)
+      }),
+    )
+    const { wrapper } = await open(ParticipantSelfView, '/p/TEST')
+    await wrapper.get('#participant-note').setValue('À compléter demain')
+    expect(wrapper.find('button[type=submit]').exists()).toBe(false)
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+    expect(writes).toHaveLength(1)
+    expect(writes[0]?.wishlist).toBeUndefined()
+    expect(wrapper.text()).toContain('pour la pige seulement')
+  })
+  it('autosaves a valid profile beside an invalid suggestion and clears an existing message', async () => {
+    const current = personal()
+    current.participant.wishlist = [{ title: 'Livre' }]
+    const writes: Record<string, unknown>[] = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_path, init) => {
+        if (init.method === 'PUT') {
+          const body = JSON.parse(init.body)
+          writes.push(body)
+          Object.assign(current.participant, body)
+        }
+        return json(current)
+      }),
+    )
+    const { wrapper } = await open(ParticipantSelfView, '/p/TEST')
+    vi.useFakeTimers()
+    await wrapper.get('input[id$="-title"]').setValue('')
+    await wrapper.get('#participant-name').setValue('Nouveau nom')
+    await wrapper.get('#participant-name').trigger('blur')
+    await vi.advanceTimersByTimeAsync(400)
+    await flushPromises()
+    expect(writes).toHaveLength(1)
+    expect(writes[0]?.name).toBe('Nouveau nom')
+    expect(writes[0]?.wishlist).toBeUndefined()
+    expect(wrapper.get('.profile-save-status').text()).toContain('Profil enregistré')
+    expect(wrapper.get('.participant-profile-card').text()).not.toContain(
+      'Indiquez un nom ou une description',
+    )
+    expect((wrapper.get('input[id$="-title"]').element as HTMLInputElement).value).toBe('')
+    await wrapper.get('#participant-note').setValue('')
+    await wrapper.get('#participant-note').trigger('blur')
+    await vi.advanceTimersByTimeAsync(400)
+    expect(writes[1]?.note).toBe('')
+    await wrapper.get('#participant-name').setValue('   ')
+    await wrapper.get('#participant-name').trigger('blur')
+    await vi.advanceTimersByTimeAsync(400)
+    expect(writes).toHaveLength(2)
+    expect(wrapper.get('#participant-name').attributes('aria-invalid')).toBe('true')
+  })
+  it('serializes profile and suggestion autosaves using the latest version', async () => {
+    const current = personal()
+    current.participant.wishlist = [{ title: 'Livre' }]
+    const writes: Record<string, unknown>[] = []
+    let finish!: () => void
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_path, init) => {
+        if (init.method === 'PUT') {
+          const body = JSON.parse(init.body)
+          writes.push(body)
+          if (writes.length === 1)
+            await new Promise<void>((resolve) => {
+              finish = resolve
+            })
+          Object.assign(current.participant, body, {
+            updatedAt: `2026-01-0${writes.length + 1}T00:00:00.000Z`,
+          })
+        }
+        return json(current)
+      }),
+    )
+    const { wrapper } = await open(ParticipantSelfView, '/p/TEST')
+    vi.useFakeTimers()
+    await wrapper.get('#participant-note').setValue('Message')
+    await wrapper.get('#participant-note').trigger('blur')
+    await wrapper.get('input[id$="-title"]').setValue('Autre livre')
+    await wrapper.get('.suggestion-shell').trigger('focusout')
+    await vi.advanceTimersByTimeAsync(400)
+    expect(writes).toHaveLength(1)
+    finish()
+    await flushPromises()
+    expect(writes).toHaveLength(2)
+    expect(writes[1]?.expectedUpdatedAt).toBe('2026-01-02T00:00:00.000Z')
+    expect(wrapper.get('.profile-save-status').text()).toContain('Profil enregistré')
+    expect(wrapper.get('.suggestion-save-status').text()).toContain('Suggestions enregistrées')
+  })
+  it('autosaves suggestions without saving a profile draft, then deletes the last suggestion below the minimum', async () => {
+    const current = personal()
+    current.exchange.minWishlistSuggestions = 3
+    current.participant.wishlist = [{ title: 'Livre' }]
+    const writes: Record<string, unknown>[] = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_path, init) => {
+        if (init.method === 'PUT') {
+          const body = JSON.parse(init.body)
+          writes.push(body)
+          Object.assign(current.participant, body, { updatedAt: '2026-01-02T00:00:00.000Z' })
+        }
+        return json(current)
+      }),
+    )
+    const { wrapper } = await open(ParticipantSelfView, '/p/TEST')
+    vi.useFakeTimers()
+    await wrapper.get('#participant-note').setValue('Profil en brouillon')
+    await wrapper.get('input[id$="-title"]').setValue('Nouveau livre')
+    await wrapper.get('.suggestion-shell').trigger('focusout')
+    await vi.advanceTimersByTimeAsync(400)
+    await flushPromises()
+    expect(writes).toHaveLength(1)
+    expect(Object.keys(writes[0]!)).toEqual(['wishlist', 'expectedUpdatedAt'])
+    expect(writes[0]?.wishlist).toEqual([{ title: 'Nouveau livre' }])
+    expect((wrapper.get('#participant-note').element as HTMLTextAreaElement).value).toBe(
+      'Profil en brouillon',
+    )
+    expect(wrapper.get('.suggestion-save-status').text()).toContain('Suggestions enregistrées')
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    await wrapper.get('.suggestion-controls .btn-outline-danger').trigger('click')
+    await vi.advanceTimersByTimeAsync(400)
+    await flushPromises()
+    expect(writes).toHaveLength(2)
+    expect(writes[1]?.wishlist).toEqual([])
+    expect(writes[1]?.expectedUpdatedAt).toBe('2026-01-02T00:00:00.000Z')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+    expect(writes[2]?.note).toBe('Profil en brouillon')
+  })
+  it('keeps invalid suggestions as drafts and exposes an explicit retry after a failed autosave', async () => {
+    const current = personal()
+    current.participant.wishlist = [{ title: 'Livre' }]
+    let fail = true,
+      writes = 0
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_path, init) => {
+        if (init.method === 'PUT') {
+          writes++
+          if (fail) return json({ error: { code: 'API_UNAVAILABLE' } }, 503)
+          Object.assign(current.participant, JSON.parse(init.body))
+        }
+        return json(current)
+      }),
+    )
+    const { wrapper } = await open(ParticipantSelfView, '/p/TEST')
+    vi.useFakeTimers()
+    await wrapper.get('input[id$="-title"]').setValue('')
+    await wrapper.get('.suggestion-shell').trigger('focusout')
+    await vi.advanceTimersByTimeAsync(400)
+    expect(writes).toBe(0)
+    await wrapper.get('input[id$="-title"]').setValue('Mon brouillon')
+    await wrapper.get('.suggestion-shell').trigger('focusout')
+    await vi.advanceTimersByTimeAsync(400)
+    await flushPromises()
+    expect(writes).toBe(1)
+    expect(wrapper.get('.suggestion-save-status').text()).toContain(
+      'n’ont pas pu être enregistrées',
+    )
+    expect((wrapper.get('input[id$="-title"]').element as HTMLInputElement).value).toBe(
+      'Mon brouillon',
+    )
+    await vi.advanceTimersByTimeAsync(10000)
+    expect(writes).toBe(1)
+    fail = false
+    await wrapper.get('.suggestion-save-status button').trigger('click')
+    await vi.advanceTimersByTimeAsync(400)
+    await flushPromises()
+    expect(writes).toBe(2)
+    expect(wrapper.get('.suggestion-save-status').text()).toContain('Suggestions enregistrées')
+  })
+  it('requires conflict resolution instead of overwriting a remotely edited suggestion', async () => {
+    let current = personal()
+    current.participant.wishlist = [{ title: 'Livre' }]
+    let writes = 0
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_path, init) => {
+        if (init.method === 'PUT') {
+          writes++
+          current = {
+            ...current,
+            participant: {
+              ...current.participant,
+              wishlist: [{ title: 'Autre session' }],
+              updatedAt: '2026-01-03T00:00:00.000Z',
+            },
+          }
+          return json({ error: { code: 'RESOURCE_MODIFIED_CONCURRENTLY' } }, 409)
+        }
+        return json(current)
+      }),
+    )
+    const { wrapper } = await open(ParticipantSelfView, '/p/TEST')
+    vi.useFakeTimers()
+    await wrapper.get('input[id$="-title"]').setValue('Mon choix')
+    await wrapper.get('.suggestion-shell').trigger('focusout')
+    await vi.advanceTimersByTimeAsync(400)
+    await flushPromises()
+    expect(wrapper.text()).toContain('Autre session')
+    expect((wrapper.get('input[id$="-title"]').element as HTMLInputElement).value).toBe('Mon choix')
+    await vi.advanceTimersByTimeAsync(10000)
+    expect(writes).toBe(1)
+  })
   it('keeps the image reference and sends one write for rapid submit events', async () => {
     const view = personal()
     let writes = 0
@@ -112,9 +332,8 @@ describe('participant form regressions', () => {
     const second = wrapper.get('form').trigger('submit')
     await Promise.all([first, second])
     expect(writes).toBe(1)
-    expect(saved?.wishlist).toEqual([
-      { title: 'Livre', imageId: 'img_00000000-0000-4000-8000-000000000001' },
-    ])
+    expect(saved?.wishlist).toBeUndefined()
+    expect(saved?.note).toBe('Draft')
     expect(saved?.expectedUpdatedAt).toBe(startVersion)
     await new Promise((resolve) => setTimeout(resolve, 20))
     await flushPromises()
@@ -263,6 +482,9 @@ describe('admin authorization and configuration regressions', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn((path, init) => {
+        if (init?.method === 'DELETE') return Promise.resolve(new Response(null, { status: 204 }))
+        if (init?.method === 'PUT')
+          throw new Error('Exclusions must not write the participant profile')
         if (init?.method === 'POST') {
           writes.push(JSON.parse(init.body))
           return Promise.resolve(json({ id: 'new-rule', ...JSON.parse(init.body) }))
@@ -304,6 +526,22 @@ describe('admin authorization and configuration regressions', () => {
     await flushPromises()
     expect(writes).toEqual([{ giverParticipantId: 'dave', receiverParticipantId: 'alex' }])
     expect(wrapper.text()).toContain('Dave ne peut pas piger Alex et Stéphane.')
+    expect(document.querySelector('.modal-save-feedback')).toBeNull()
+    expect(document.querySelector('.participant-close')?.textContent?.trim()).toBe('Fermer')
+    expect(
+      document
+        .querySelector('.participant-close')
+        ?.closest('.modal-footer')
+        ?.querySelectorAll('button'),
+    ).toHaveLength(1)
+    const remove = [...document.querySelectorAll<HTMLButtonElement>('.modal li button')].find(
+      (button) => button.closest('li')?.textContent?.includes('Alex'),
+    )!
+    remove.click()
+    await flushPromises()
+    expect(document.querySelector('.modal-save-feedback')).toBeNull()
+    expect(document.querySelector('.participant-close')?.textContent?.trim()).toBe('Fermer')
+    expect(document.querySelector('#editParticipantName')?.getAttribute('disabled')).toBeNull()
   })
   it.each([
     { drawn: true, archived: false },
@@ -520,5 +758,110 @@ describe('admin authorization and configuration regressions', () => {
     expect(auth.getSessionToken('exchange')).toBe('in-memory')
     auth.clearSession('exchange')
     expect(auth.getSessionToken('exchange')).toBeNull()
+  })
+})
+
+describe('participant modal autosave and closure', () => {
+  async function modal(
+    saveParticipant: (payload: Record<string, unknown>) => Promise<ParticipantDto | undefined>,
+  ) {
+    const participant = {
+      id: 'p',
+      exchangeId: 'e',
+      name: 'Alex',
+      note: 'Initial',
+      status: 'active',
+      createdAt: startVersion,
+      updatedAt: startVersion,
+      wishlist: [{ title: 'Livre' }],
+    } as ParticipantDto
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [{ path: '/', component: { render: () => h('div') } }],
+    })
+    await router.push('/')
+    const wrapper = mount(EditParticipantModal, {
+      props: { modelValue: false, participant, saveParticipant },
+      global: {
+        plugins: [i18n, router],
+        stubs: {
+          BaseModal: { template: '<div><slot/><footer><slot name="footer"/></footer></div>' },
+        },
+      },
+    })
+    wrappers.push(wrapper)
+    await wrapper.setProps({ modelValue: true })
+    return { wrapper, participant }
+  }
+  it('saves valid profile changes before asking to discard an incomplete suggestion', async () => {
+    const save = vi.fn<(payload: Record<string, unknown>) => Promise<ParticipantDto>>()
+    const { wrapper, participant } = await modal(save)
+    save.mockImplementation(
+      async (payload) =>
+        ({ ...participant, ...payload, updatedAt: '2026-01-02T00:00:00.000Z' }) as ParticipantDto,
+    )
+    vi.useFakeTimers()
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    await wrapper.get('input[id$="-title"]').setValue('')
+    await wrapper.get('#editParticipantNote').setValue('Nouveau message')
+    expect(wrapper.get('.participant-close').text()).toBe('Enregistrer et fermer')
+    await wrapper.get('.participant-close').trigger('click')
+    await flushPromises()
+    expect(save).toHaveBeenCalledTimes(1)
+    expect(save.mock.calls[0]![0]).toEqual({
+      name: 'Alex',
+      note: 'Nouveau message',
+      expectedUpdatedAt: startVersion,
+    })
+    expect(confirm).toHaveBeenCalledTimes(1)
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    expect(wrapper.get('.participant-close').text()).toBe('Fermer')
+    expect(wrapper.get('.profile-save-status').text()).toContain('Profil enregistré')
+    confirm.mockReturnValue(true)
+    await wrapper.get('.participant-close').trigger('click')
+    expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+    expect(save).toHaveBeenCalledTimes(1)
+  })
+  it('waits for the write and stays open on failure, then retries and closes', async () => {
+    let resolve!: (participant: ParticipantDto | undefined) => void
+    const save = vi.fn(
+      () =>
+        new Promise<ParticipantDto | undefined>((done) => {
+          resolve = done
+        }),
+    )
+    const { wrapper, participant } = await modal(save)
+    vi.useFakeTimers()
+    await wrapper.get('#editParticipantName').setValue('Autre nom')
+    await wrapper.get('.participant-close').trigger('click')
+    expect(wrapper.get('.participant-close').text()).toBe('Enregistrement…')
+    expect(wrapper.get('.participant-close').attributes('disabled')).toBeDefined()
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    resolve(undefined)
+    await flushPromises()
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    expect(wrapper.get('.profile-save-status').text()).toContain('n’a pas pu être enregistré')
+    await wrapper.get('.participant-close').trigger('click')
+    resolve({ ...participant, name: 'Autre nom', updatedAt: '2026-01-02T00:00:00.000Z' })
+    await flushPromises()
+    expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+    expect(save).toHaveBeenCalledTimes(2)
+  })
+  it('autosaves on blur without closing and keeps an invalid suggestion as a draft', async () => {
+    const save = vi.fn<(payload: Record<string, unknown>) => Promise<ParticipantDto>>()
+    const { wrapper, participant } = await modal(save)
+    save.mockImplementation(async (payload) => ({ ...participant, ...payload }) as ParticipantDto)
+    vi.useFakeTimers()
+    await wrapper.get('input[id$="-title"]').setValue('')
+    await wrapper.get('#editParticipantNote').setValue('')
+    await wrapper.get('#editParticipantNote').trigger('blur')
+    await vi.advanceTimersByTimeAsync(400)
+    await flushPromises()
+    expect(save.mock.calls[0]![0].note).toBe('')
+    expect(save.mock.calls[0]![0].wishlist).toBeUndefined()
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    expect(wrapper.get('.participant-close').text()).toBe('Fermer')
+    expect(wrapper.findAll('footer button')).toHaveLength(1)
+    expect(wrapper.find('.modal-save-feedback').exists()).toBe(false)
   })
 })

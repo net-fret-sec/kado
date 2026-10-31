@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   updateParticipantInputSchema,
@@ -8,6 +8,8 @@ import {
 } from '@kado/shared'
 import { useImageAccess } from '@/composables/useImageAccess'
 import { getApiErrorMessage } from '@/composables/useApiErrorMessage'
+import { useAutosave } from '@/composables/useAutosave'
+import AutosaveStatus from './AutosaveStatus.vue'
 import BaseModal from './BaseModal.vue'
 import WishlistEditor from './WishlistEditor.vue'
 import ConflictReview from './ConflictReview.vue'
@@ -16,6 +18,7 @@ import { clone, equal, useConflict, type FormValues } from '@/composables/useCon
 import { confirmDiscard, useDraftGuard } from '@/composables/useDraftGuard'
 const props = defineProps<{
   modelValue: boolean
+  saveParticipant: (payload: UpdateParticipantInputDto) => Promise<ParticipantDto | undefined>
   identityLocked?: boolean
   suggestionsLocked?: boolean
   participant: ParticipantDto | null
@@ -29,19 +32,19 @@ const emit = defineEmits<{
   uploading: [value: boolean]
   'upload-error': [cause: unknown]
   'update:modelValue': [value: boolean]
-  submit: [payload: UpdateParticipantInputDto]
   dirty: [value: boolean]
 }>()
 const { t } = useI18n()
 const name = ref(''),
   email = ref(''),
   note = ref('')
-const { wishlist, hydrate, uploadImages, cancelUploads } = useWishlist()
+const { wishlist, hydrate, acknowledge, uploadImages, cancelUploads } = useWishlist()
 const imageValidating = ref(false),
-  uploading = ref(false),
+  saving = ref(false),
+  closing = ref(false),
   uploadError = ref('')
 const imageAccess = useImageAccess()
-const imagesBusy = computed(() => imageValidating.value || uploading.value)
+const imagesBusy = computed(() => imageValidating.value || saving.value)
 const baselineVersion = ref('')
 const conflict = useConflict()
 const { remote, fields, choices, ready } = conflict
@@ -66,21 +69,70 @@ const dirty = computed(() => props.modelValue && !equal(values(), conflict.basel
 useDraftGuard(dirty)
 watch(dirty, (value) => emit('dirty', value))
 function beforeClose() {
-  return (
-    props.suspended ||
-    (!props.isSubmitting && !imagesBusy.value && (!dirty.value || confirmDiscard()))
-  )
+  if (props.suspended) return true
+  if (props.isSubmitting || imagesBusy.value || closing.value) return false
+  if (!dirty.value) return true
+  void nextTick(close)
+  return false
 }
-function payload(): UpdateParticipantInputDto {
-  return {
-    name: name.value,
-    email: email.value || undefined,
-    note: note.value || undefined,
-    wishlist: serializeWishlist(wishlist.value),
-    expectedUpdatedAt: baselineVersion.value,
+function profilePayload(): UpdateParticipantInputDto {
+  return { ...(props.identityLocked ? {} : { name: name.value.trim() }), note: note.value.trim() }
+}
+const profileDirty = computed(
+  () =>
+    props.modelValue &&
+    (name.value !== conflict.baseline.value.name || note.value !== conflict.baseline.value.note),
+)
+const profileValid = computed(
+  () =>
+    name.value.trim().length > 0 &&
+    updateParticipantInputSchema.safeParse(profilePayload()).success,
+)
+const suggestionsDirty = computed(
+  () => props.modelValue && !equal(draftWishlist(wishlist.value), conflict.baseline.value.wishlist),
+)
+const suggestionsValid = computed(
+  () =>
+    updateParticipantInputSchema.safeParse({ wishlist: serializeWishlist(wishlist.value) }).success,
+)
+const autosave = useAutosave({
+  dirty: suggestionsDirty,
+  valid: suggestionsValid,
+  active: computed(() => props.modelValue && !props.suspended && !props.suggestionsLocked),
+  blocked: computed(() => !!props.isSubmitting || imagesBusy.value || !!remote.value),
+  save: () => submit('suggestions'),
+})
+const { status: autosaveStatus } = autosave
+const profileAutosave = useAutosave({
+  dirty: profileDirty,
+  valid: profileValid,
+  active: computed(() => props.modelValue && !props.suspended && !props.suggestionsLocked),
+  blocked: computed(() => !!props.isSubmitting || imagesBusy.value || !!remote.value),
+  save: () => submit('profile'),
+})
+const { status: profileStatus } = profileAutosave
+const canSaveBeforeClose = computed(
+  () =>
+    !remote.value &&
+    ((profileDirty.value && profileValid.value) ||
+      (suggestionsDirty.value && suggestionsValid.value)),
+)
+async function close() {
+  if (props.isSubmitting || imagesBusy.value || closing.value || props.suspended) return
+  autosave.cancel()
+  profileAutosave.cancel()
+  closing.value = true
+  try {
+    if (!remote.value) {
+      if (profileDirty.value && profileValid.value && !(await profileAutosave.saveNow())) return
+      if (suggestionsDirty.value && suggestionsValid.value && !(await autosave.saveNow())) return
+    }
+    if (dirty.value && !confirmDiscard()) return
+    emit('update:modelValue', false)
+  } finally {
+    closing.value = false
   }
 }
-const valid = computed(() => updateParticipantInputSchema.safeParse(payload()).success)
 watch(
   () => props.modelValue,
   (open) => {
@@ -108,34 +160,55 @@ function applyConflict() {
     baselineVersion.value = props.conflictVersion.updatedAt
   }
 }
-async function submit() {
+async function submit(scope: 'profile' | 'suggestions'): Promise<boolean> {
+  const suggestionsOnly = scope === 'suggestions'
   if (
     props.isSubmitting ||
-    imagesBusy.value ||
+    saving.value ||
+    imageValidating.value ||
     props.suggestionsLocked ||
-    !dirty.value ||
-    !valid.value ||
+    !(suggestionsOnly ? suggestionsDirty.value : profileDirty.value) ||
+    !(suggestionsOnly ? suggestionsValid.value : profileValid.value) ||
     remote.value ||
     !props.participant
   )
-    return
-  uploading.value = true
+    return false
+  if (suggestionsOnly) autosave.cancel()
+  else profileAutosave.cancel()
+  saving.value = true
   uploadError.value = ''
   emit('uploading', true)
   try {
     const access = imageAccess(props.participant.id)
-    if (wishlist.value.some((s) => s.pendingImage)) {
+    if (suggestionsOnly && wishlist.value.some((s) => s.pendingImage)) {
       if (!access) throw new Error('Session unavailable')
       await uploadImages(access.base, { headers: access.headers })
     }
-    if (props.modelValue && !props.suspended) emit('submit', payload())
+    if (!props.modelValue || props.suspended) return false
+    const current = await props.saveParticipant({
+      ...(suggestionsOnly ? { wishlist: serializeWishlist(wishlist.value) } : profilePayload()),
+      expectedUpdatedAt: baselineVersion.value,
+    })
+    if (!current || !props.modelValue) return false
+    if (suggestionsOnly) {
+      acknowledge(current.wishlist ?? [])
+      conflict.baseline.value.wishlist = clone(current.wishlist ?? [])
+    } else {
+      name.value = current.name
+      note.value = current.note ?? ''
+      conflict.baseline.value.name = name.value
+      conflict.baseline.value.note = note.value
+    }
+    baselineVersion.value = current.updatedAt
+    return true
   } catch (cause) {
     if (props.modelValue) {
       uploadError.value = getApiErrorMessage(cause)
       emit('upload-error', cause)
     }
+    return false
   } finally {
-    uploading.value = false
+    saving.value = false
     emit('uploading', false)
   }
 }
@@ -175,37 +248,35 @@ watch(
       @choice="(key, choice) => (choices[key] = choice)"
       @apply="applyConflict"
     />
-    <form id="editParticipantForm" @submit.prevent="submit">
+    <form id="editParticipantForm" novalidate @submit.prevent="profileAutosave.saveNow()">
       <div class="mb-3 form-field">
-        <label for="editParticipantName" class="form-label">{{
-          t('fields.name')
-        }}</label
+        <label for="editParticipantName" class="form-label">{{ t('fields.name') }}</label
         ><input
           id="editParticipantName"
           v-model="name"
+          @blur="profileAutosave.request"
           class="form-control"
           maxlength="150"
           :readonly="identityLocked"
-          :disabled="isSubmitting || uploading || !!remote"
-          :aria-invalid="!!fieldErrors?.name || undefined"
-          :aria-describedby="fieldErrors?.name ? 'edit-name-error' : undefined"
+          :disabled="isSubmitting || saving || !!remote"
+          :aria-invalid="!name.trim() || !!fieldErrors?.name || undefined"
+          :aria-describedby="!name.trim() || fieldErrors?.name ? 'edit-name-error' : undefined"
           required
         />
-        <p v-if="fieldErrors?.name" id="edit-name-error" class="text-danger">
+        <p v-if="!name.trim() || fieldErrors?.name" id="edit-name-error" class="text-danger">
           {{ t('p2.invalidField') }}
         </p>
       </div>
       <div class="mb-3 form-field">
-        <label for="editParticipantNote" class="form-label">{{
-          t('common.comment')
-        }}</label
+        <label for="editParticipantNote" class="form-label">{{ t('common.comment') }}</label
         ><textarea
           id="editParticipantNote"
           v-model="note"
+          @blur="profileAutosave.request"
           class="form-control"
           maxlength="2000"
           :readonly="suggestionsLocked"
-          :disabled="isSubmitting || uploading || !!remote"
+          :disabled="isSubmitting || saving || !!remote"
           :aria-invalid="!!fieldErrors?.note || undefined"
           :aria-describedby="fieldErrors?.note ? 'edit-note-error' : undefined"
         ></textarea>
@@ -213,33 +284,47 @@ watch(
           {{ t('p2.invalidField') }}
         </p>
       </div>
+      <AutosaveStatus
+        v-if="!suggestionsLocked"
+        profile
+        :status="profileStatus"
+        :retry-disabled="!profileValid || isSubmitting || saving || !!remote"
+        @retry="profileAutosave.saveNow"
+      />
+    </form>
+    <div class="mt-3">
       <h3 class="h6">{{ t('fields.wishlist') }}</h3>
       <WishlistEditor
+        @commit="autosave.request"
         v-model="wishlist"
         :locked="suggestionsLocked"
         :participant-id="participant?.id"
         @validating="imageValidating = $event"
-        :busy="isSubmitting || uploading || !!remote"
+        :busy="isSubmitting || saving || !!remote"
+      />
+      <AutosaveStatus
+        v-if="!suggestionsLocked"
+        :status="autosaveStatus"
+        :retry-disabled="!suggestionsValid || isSubmitting || imagesBusy || !!remote"
+        @retry="autosave.request"
       />
       <p v-if="fieldErrors?.wishlist" class="text-danger">{{ t('p2.invalidField') }}</p>
-    </form>
+    </div>
     <slot name="exclusions" />
     <template #footer>
       <button
-        type="submit"
-        class="btn btn-primary order-2"
-        form="editParticipantForm"
-        :disabled="suggestionsLocked || !dirty || !valid || isSubmitting || imagesBusy || !!remote"
-      >
-        {{ t('actions.save') }}
-      </button>
-      <button
         type="button"
-        class="btn btn-link order-1"
-        data-bs-dismiss="modal"
-        :disabled="isSubmitting || imagesBusy"
+        class="btn btn-primary participant-close"
+        :disabled="isSubmitting || imagesBusy || closing"
+        @click="close"
       >
-        {{ dirty ? t('actions.discardChanges') : t('actions.close') }}
+        {{
+          isSubmitting || saving || closing
+            ? t('autosave.savingChanges')
+            : canSaveBeforeClose
+              ? t('autosave.saveAndClose')
+              : t('actions.close')
+        }}
       </button>
     </template>
   </BaseModal>

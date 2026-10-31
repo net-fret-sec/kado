@@ -32,7 +32,6 @@ export function useExchangeAdmin() {
   const exclusionRules = ref<ExclusionRule[]>([])
   const selectedExclusionGiver = ref('')
   const selectedExclusionReceiver = ref('')
-  const exclusionFeedback = ref('')
   watch(selectedExclusionGiver, () => {
     selectedExclusionReceiver.value = ''
   })
@@ -363,7 +362,6 @@ export function useExchangeAdmin() {
   }
 
   async function perform_addParticipantExclusion(giverParticipantId: string) {
-    exclusionFeedback.value = ''
     if (!exchange.value || isExclusionEditingLocked.value) return
 
     const receiverParticipantId = selectedExclusionReceiver.value
@@ -392,8 +390,7 @@ export function useExchangeAdmin() {
       exclusionRules.value.push(createdRule)
       selectedExclusionReceiver.value = ''
       selectedExclusionGiver.value = ''
-      exclusionFeedback.value = t('exchangeDetail.exceptions.added')
-      toasts.success(exclusionFeedback.value)
+      toasts.success(t('exchangeDetail.exceptions.added'))
     } catch (err) {
       if (isAdminAuthError(err)) {
         setAdminAuthRequired()
@@ -404,7 +401,6 @@ export function useExchangeAdmin() {
   }
 
   async function perform_removeParticipantExclusion(ruleId: string) {
-    exclusionFeedback.value = ''
     if (!exchange.value || isExclusionEditingLocked.value) return
 
     try {
@@ -420,8 +416,7 @@ export function useExchangeAdmin() {
 
       await api.delete(`/api/exchanges/${exchange.value.id}/exclusions/${ruleId}`, init)
       exclusionRules.value = exclusionRules.value.filter((rule) => rule.id !== ruleId)
-      exclusionFeedback.value = t('exchangeDetail.exceptions.removed')
-      toasts.success(exclusionFeedback.value)
+      toasts.success(t('exchangeDetail.exceptions.removed'))
     } catch (err) {
       if (isAdminAuthError(err)) {
         setAdminAuthRequired()
@@ -627,7 +622,6 @@ export function useExchangeAdmin() {
     if (isAdminAuthError(cause)) setAdminAuthRequired()
   }
   function openEditParticipantModal(participant: ParticipantDto) {
-    exclusionFeedback.value = ''
     if (isParticipantSuggestionsLocked.value) return
     participantForm.clear()
     editParticipantCurrent.value = null
@@ -721,13 +715,14 @@ export function useExchangeAdmin() {
           }
         : undefined
 
-      await api.put(
+      const updated = await api.put<ParticipantDto>(
         `/api/exchanges/${exchange.value.id}/participants/${participantId}`,
         payload,
         init,
       )
-      setEditParticipantModalVisibility(false)
-      await fetchExchange()
+      participants.value = participants.value.map((p) => (p.id === participantId ? updated : p))
+      editingParticipant.value = clone(updated)
+      return updated
     } catch (err) {
       if (isAdminAuthError(err)) {
         setAdminAuthRequired()
@@ -1041,7 +1036,6 @@ export function useExchangeAdmin() {
     exchange,
     participants: computed(() => sortParticipants(participants.value, locale.value)),
     exclusionRules,
-    exclusionFeedback,
     selectedExclusionGiver,
     selectedExclusionReceiver,
     isLoading,

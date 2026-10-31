@@ -13,7 +13,6 @@
     "add": "Añadir",
     "close": "Cerrar",
     "save": "Guardar",
-    "saveChanges": "Guardar los cambios",
     "copy": "Copiar",
     "discardChanges": "Descartar los cambios"
   },
@@ -207,12 +206,10 @@
     "addSuggestion": "Añadir una sugerencia",
     "noSuggestions": "Todavía no hay sugerencias.",
     "minWishlistSuggestionsHint": "Número mínimo de sugerencias: {count} sugerencia | Número mínimo de sugerencias: {count} sugerencias",
-    "minWishlistSuggestionsError": "Añade al menos {count} sugerencia para continuar. | Añade al menos {count} sugerencias para continuar.",
+    "minWishlistSuggestionsError": "El mínimo de {count} sugerencia solo es necesario para el sorteo. Puedes guardar y volver más tarde. | El mínimo de {count} sugerencias solo es necesario para el sorteo. Puedes guardar y volver más tarde.",
     "note": "Comentario para quien sacó mi nombre (opcional)",
     "editingOpen": "Puedes modificar tus datos y sugerencias para este intercambio.",
     "editingClosed": "No se pueden modificar las sugerencias ni el comentario de este intercambio.",
-    "saving": "Guardando…",
-    "saveSuccess": "Tus datos se han actualizado.",
     "recipientSectionTitle": "Persona a la que le harás un regalo",
     "suggestionsSectionTitle": "Mis sugerencias de regalos",
     "wishlistItem": {
@@ -319,8 +316,6 @@
     "imageHint": "Haz clic o arrastra una imagen. JPEG, PNG o WebP. Se subirá al guardar.",
     "imageLimit": "Máximo: {size} MiB y {pixels} megapíxeles.",
     "reorderHelp": "Con el asa de arrastre seleccionada, usa las flechas arriba y abajo para mover la sugerencia.",
-    "saveHelp": "Guarda el perfil y todas las sugerencias.",
-    "invalidHelp": "Completa los campos obligatorios y corrige los errores antes de guardar.",
     "participantList": "Participantes del intercambio",
     "deleteTitle": "Eliminar este intercambio definitivamente",
     "deleteHelp": "Esta acción elimina el intercambio y los accesos asociados. Para confirmar, escribe exactamente «{name}».",
@@ -328,9 +323,9 @@
     "mutual": "{a} y {b} no pueden sacarse mutuamente.",
     "directional": "{name} no puede sacar a {others}.",
     "editExclusions": "Exclusiones de esta persona",
-    "exclusionsHelp": "Los botones Añadir y Eliminar guardan las exclusiones inmediatamente. El botón Guardar solo afecta al perfil y a las sugerencias.",
+    "exclusionsHelp": "Los botones Añadir y Eliminar guardan las exclusiones inmediatamente.",
     "linkFor": "Comparte este enlace personal con {name}.",
-    "confirmDeleteSuggestion": "¿Eliminar esta sugerencia de regalo? El cambio se aplicará al guardar.",
+    "confirmDeleteSuggestion": "¿Eliminar esta sugerencia de regalo? La eliminación se guardará automáticamente.",
     "detailsOrganizer": "Organizado por {name}",
     "detailsBudget": "El presupuesto del regalo es de {amount}.",
     "detailsMinimumNone": "Las sugerencias de regalos son opcionales.",
@@ -395,5 +390,20 @@
         "note": "recuadros beige"
       }
     }
+  },
+  "autosave": {
+    "help": "Las sugerencias se guardan automáticamente al salir de su bloque, y después de eliminarlas, reordenarlas o cambiar una imagen.",
+    "pending": "Sugerencias sin guardar. Completa los campos indicados y sal del bloque para guardarlas.",
+    "saving": "Guardando las sugerencias…",
+    "saved": "Sugerencias guardadas.",
+    "failed": "No se pudieron guardar las sugerencias. Tus cambios se conservan en esta página.",
+    "retry": "Reintentar",
+    "profileHelp": "El nombre y el mensaje se guardan automáticamente al salir del campo.",
+    "profilePending": "Cambios del perfil sin guardar.",
+    "profileSaved": "Perfil guardado.",
+    "profileFailed": "No se pudo guardar el perfil. Tus cambios se conservan en esta página.",
+    "saveAndClose": "Guardar y cerrar",
+    "savingChanges": "Guardando…",
+    "profileSaving": "@:autosave.savingChanges"
   }
 }

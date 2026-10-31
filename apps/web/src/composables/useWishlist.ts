@@ -50,6 +50,12 @@ export function useWishlist() {
     const kept = new Set(items.map((s) => s.pendingImage))
     for (const key of files.keys()) if (!kept.has(key)) files.delete(key)
   }
+  function acknowledge(items: GiftSuggestionDto[]) {
+    wishlist.value = items.map((item, index) => ({
+      ...item,
+      _clientId: wishlist.value[index]?._clientId ?? crypto.randomUUID(),
+    }))
+  }
   function add() {
     if (wishlist.value.length < 100) wishlist.value.push(withClientId({ title: '' }))
   }
@@ -97,5 +103,5 @@ export function useWishlist() {
     cancelUploads()
     files.clear()
   })
-  return { wishlist, withClientId, hydrate, add, uploadImages, cancelUploads }
+  return { wishlist, withClientId, hydrate, acknowledge, add, uploadImages, cancelUploads }
 }

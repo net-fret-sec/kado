@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import ExchangeHeader from '@/components/ExchangeHeader.vue'
+import AutosaveStatus from '@/components/AutosaveStatus.vue'
+import { useAutosave } from '@/composables/useAutosave'
 import AccessReminder from '@/components/AccessReminder.vue'
 import ExchangeDetails from '@/components/ExchangeDetails.vue'
 import { sortParticipants } from '@/lib/participantOrder'
@@ -16,7 +19,6 @@ import { clone, equal, useConflict, type FormValues } from '@/composables/useCon
 import { useDraftGuard } from '@/composables/useDraftGuard'
 import { useRefresh } from '@/composables/useRefresh'
 import { useFormErrors } from '@/composables/useFormErrors'
-import { useToastsStore } from '@/stores/toasts'
 import WishlistEditor from '@/components/WishlistEditor.vue'
 import { provideImageAccess } from '@/composables/useImageAccess'
 import WishlistSuggestionItem from '@/components/WishlistSuggestionItem.vue'
@@ -25,7 +27,6 @@ import ConflictReview from '@/components/ConflictReview.vue'
 const { t, locale } = useI18n()
 const route = useRoute()
 const api = useApi()
-const toasts = useToastsStore()
 const view = ref<ParticipantSelfViewDto | null>(null)
 const sortedParticipants = computed(() =>
   sortParticipants(view.value?.participants ?? [], locale.value),
@@ -33,7 +34,7 @@ const sortedParticipants = computed(() =>
 const name = ref(''),
   email = ref(''),
   note = ref('')
-const { wishlist, hydrate, uploadImages, cancelUploads } = useWishlist()
+const { wishlist, hydrate, acknowledge, uploadImages, cancelUploads } = useWishlist()
 const imageValidating = ref(false)
 provideImageAccess(() =>
   view.value
@@ -88,19 +89,25 @@ const suggestionsLocked = computed(
 const canEdit = computed(() => !suggestionsLocked.value)
 const enabled = computed(() => !isSaving.value)
 const requiredMinSuggestions = computed(() => view.value?.exchange.minWishlistSuggestions ?? 0)
-function payload(): UpdateParticipantInputDto {
-  return {
-    name: name.value.trim(),
-    email: email.value.trim() || undefined,
-    note: note.value.trim() || undefined,
-    wishlist: serializeWishlist(wishlist.value),
-    expectedUpdatedAt: baselineVersion.value,
-  }
+function profilePayload(): UpdateParticipantInputDto {
+  return { ...(identityLocked.value ? {} : { name: name.value.trim() }), note: note.value.trim() }
 }
-const valid = computed(
+const profileDirty = computed(
   () =>
-    updateParticipantInputSchema.safeParse(payload()).success &&
-    wishlist.value.length >= requiredMinSuggestions.value,
+    !!view.value &&
+    (name.value !== conflict.baseline.value.name || note.value !== conflict.baseline.value.note),
+)
+const profileValid = computed(
+  () =>
+    name.value.trim().length > 0 &&
+    updateParticipantInputSchema.safeParse(profilePayload()).success,
+)
+const suggestionsDirty = computed(
+  () => !!view.value && !equal(draftWishlist(wishlist.value), conflict.baseline.value.wishlist),
+)
+const suggestionsValid = computed(
+  () =>
+    updateParticipantInputSchema.safeParse({ wishlist: serializeWishlist(wishlist.value) }).success,
 )
 function setValues(value: FormValues) {
   name.value = String(value.name ?? '')
@@ -157,6 +164,26 @@ async function load(signal: AbortSignal) {
 }
 const refreshState = useRefresh(load, enabled)
 const { busy: isRefreshing, paused, connectionLost } = refreshState
+const autosave = useAutosave({
+  dirty: suggestionsDirty,
+  valid: suggestionsValid,
+  active: canEdit,
+  blocked: computed(
+    () => imageValidating.value || isSaving.value || isRefreshing.value || !!remote.value,
+  ),
+  save: () => saveSelf('suggestions'),
+})
+const { status: autosaveStatus } = autosave
+const profileAutosave = useAutosave({
+  dirty: profileDirty,
+  valid: profileValid,
+  active: canEdit,
+  blocked: computed(
+    () => imageValidating.value || isSaving.value || isRefreshing.value || !!remote.value,
+  ),
+  save: () => saveSelf('profile'),
+})
+const { status: profileStatus } = profileAutosave
 async function refresh() {
   try {
     await refreshState.refresh()
@@ -171,34 +198,49 @@ function applyConflict() {
   baselineVersion.value = view.value.participant.updatedAt
   form.clear()
 }
-async function saveSelf() {
+async function saveSelf(scope: 'profile' | 'suggestions'): Promise<boolean> {
+  const suggestionsOnly = scope === 'suggestions'
   if (
     imageValidating.value ||
     isSaving.value ||
     isRefreshing.value ||
     !canEdit.value ||
-    !dirty.value ||
-    !valid.value ||
+    !(suggestionsOnly ? suggestionsDirty.value : profileDirty.value) ||
+    !(suggestionsOnly ? suggestionsValid.value : profileValid.value) ||
     remote.value
   )
-    return
+    return false
+  if (suggestionsOnly) autosave.cancel()
+  else profileAutosave.cancel()
   isSaving.value = true
   form.clear()
   refreshState.cancel()
   const token = String(route.params.token)
   try {
-    await uploadImages(`/api/p/${encodeURIComponent(token)}`)
-    if (token !== route.params.token) return
+    if (suggestionsOnly) await uploadImages(`/api/p/${encodeURIComponent(token)}`)
+    if (token !== route.params.token) return false
     const current = await api.put<ParticipantSelfViewDto>(
       `/api/p/${encodeURIComponent(token)}`,
-      payload(),
+      suggestionsOnly
+        ? { wishlist: serializeWishlist(wishlist.value), expectedUpdatedAt: baselineVersion.value }
+        : { ...profilePayload(), expectedUpdatedAt: baselineVersion.value },
     )
-    if (token !== route.params.token) return
+    if (token !== route.params.token) return false
     view.value = current
-    initialize(current)
-    toasts.success(t('participant.saveSuccess'))
+    if (suggestionsOnly) {
+      acknowledge(current.participant.wishlist ?? [])
+      conflict.baseline.value.wishlist = clone(current.participant.wishlist ?? [])
+      baselineVersion.value = current.participant.updatedAt
+    } else {
+      name.value = current.participant.name
+      note.value = current.participant.note ?? ''
+      conflict.baseline.value.name = name.value
+      conflict.baseline.value.note = note.value
+      baselineVersion.value = current.participant.updatedAt
+    }
+    return true
   } catch (cause) {
-    if (token !== route.params.token) return
+    if (token !== route.params.token) return false
     form.capture(cause)
     if (
       cause instanceof HttpError &&
@@ -220,6 +262,7 @@ async function saveSelf() {
       setValues({})
       remote.value = null
     }
+    return false
   } finally {
     isSaving.value = false
   }
@@ -228,6 +271,8 @@ onMounted(refresh)
 watch(
   () => route.params.token,
   () => {
+    autosave.reset()
+    profileAutosave.reset()
     refreshState.cancel(true)
     cancelUploads()
     view.value = null
@@ -243,18 +288,25 @@ watch(
 
 <template>
   <section id="participant-self-view" :aria-busy="isLoading || isSaving || isRefreshing">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-      <h1 class="h3">{{ view?.exchange.name || t('participant.profileSectionTitle') }}</h1>
-      <button
-        v-if="connectionLost"
-        class="btn btn-outline-secondary"
-        type="button"
-        :disabled="isSaving || isRefreshing"
-        @click="refresh"
-      >
-        {{ t('p2.refresh') }}
-      </button>
-    </div>
+    <ExchangeHeader
+      class="mb-3"
+      :title="view?.exchange.name || t('participant.profileSectionTitle')"
+      :label="view?.participant.name"
+    >
+      <template v-if="connectionLost" #actions>
+        <button
+          class="btn btn-outline-secondary"
+          type="button"
+          :disabled="isSaving || isRefreshing"
+          @click="refresh"
+        >
+          {{ t('p2.refresh') }}
+        </button>
+      </template>
+      <p v-if="view" class="mb-0">
+        {{ canEdit ? t('participant.editingOpen') : t('participant.editingClosed') }}
+      </p>
+    </ExchangeHeader>
     <p v-if="isLoading" role="status">{{ t('common.loading') }}</p>
     <p v-if="error" class="alert alert-danger" role="alert">{{ error }}</p>
     <p v-if="paused && view" class="text-body-secondary" role="status">
@@ -268,9 +320,6 @@ watch(
         :key="String(route.params.token)"
         :access-id="`${view.exchange.id}:${view.participant.id}:${String(route.params.token).slice(-4)}`"
       />
-      <p class="alert" :class="canEdit ? 'alert-info' : 'alert-secondary'">
-        {{ canEdit ? t('participant.editingOpen') : t('participant.editingClosed') }}
-      </p>
       <p v-if="dirty" class="small text-body-secondary">{{ t('p2.unsaved') }}</p>
       <ConflictReview
         v-if="remote"
@@ -281,7 +330,7 @@ watch(
         @choice="(key, choice) => (choices[key] = choice)"
         @apply="applyConflict"
       />
-      <form class="participant-self-form" @submit.prevent="saveSelf">
+      <div class="participant-self-form">
         <div class="participant-columns">
           <aside class="participant-details-column">
             <ExchangeDetails :exchange="view.exchange" :exclusions="view.exclusions" />
@@ -296,22 +345,29 @@ watch(
           </aside>
           <div class="participant-content-column">
             <section class="card mb-3 participant-profile-card">
-              <div class="card-body">
+              <form class="card-body" novalidate @submit.prevent="profileAutosave.saveNow()">
                 <h2 class="h5">{{ t('participant.profileSectionTitle') }}</h2>
                 <div class="form-field mb-3">
                   <label for="participant-name" class="form-label">{{ t('fields.name') }}</label
                   ><input
                     id="participant-name"
                     v-model="name"
+                    @blur="profileAutosave.request"
                     class="form-control"
                     maxlength="150"
                     :readonly="identityLocked"
                     :disabled="isSaving || !!remote"
-                    :aria-invalid="!!fieldErrors.name || undefined"
-                    :aria-describedby="fieldErrors.name ? 'participant-name-error' : undefined"
+                    :aria-invalid="!name.trim() || !!fieldErrors.name || undefined"
+                    :aria-describedby="
+                      !name.trim() || fieldErrors.name ? 'participant-name-error' : undefined
+                    "
                     required
                   />
-                  <p v-if="fieldErrors.name" id="participant-name-error" class="text-danger">
+                  <p
+                    v-if="!name.trim() || fieldErrors.name"
+                    id="participant-name-error"
+                    class="text-danger"
+                  >
                     {{ t('p2.invalidField') }}
                   </p>
                 </div>
@@ -322,6 +378,7 @@ watch(
                   ><textarea
                     id="participant-note"
                     v-model="note"
+                    @blur="profileAutosave.request"
                     class="form-control"
                     rows="3"
                     maxlength="2000"
@@ -334,21 +391,14 @@ watch(
                     {{ t('p2.invalidField') }}
                   </p>
                 </div>
-                <button
+                <AutosaveStatus
                   v-if="canEdit"
-                  type="submit"
-                  class="btn btn-primary mt-3"
-                  :disabled="
-                    !dirty || !valid || imageValidating || isSaving || isRefreshing || !!remote
-                  "
-                >
-                  {{ isSaving ? t('participant.saving') : t('actions.saveChanges') }}
-                </button>
-                <p v-if="canEdit" class="form-text">{{ t('review.saveHelp') }}</p>
-                <p v-if="canEdit && dirty && !valid" class="text-danger small" role="status">
-                  {{ t('review.invalidHelp') }}
-                </p>
-              </div>
+                  profile
+                  :status="profileStatus"
+                  :retry-disabled="!profileValid || isSaving || isRefreshing || !!remote"
+                  @retry="profileAutosave.saveNow"
+                />
+              </form>
             </section>
             <section class="card mb-3 participant-suggestions-card">
               <div class="card-body">
@@ -363,13 +413,23 @@ watch(
                   }}
                 </p>
                 <WishlistEditor
+                  @commit="autosave.request"
                   @validating="imageValidating = $event"
                   v-model="wishlist"
                   :locked="suggestionsLocked"
                   :busy="isSaving || !!remote"
                 />
+                <AutosaveStatus
+                  v-if="canEdit"
+                  :status="autosaveStatus"
+                  :retry-disabled="!suggestionsValid || isSaving || imageValidating || !!remote"
+                  @retry="autosave.request"
+                />
                 <p v-if="fieldErrors.wishlist" class="text-danger">{{ t('p2.invalidField') }}</p>
-                <p v-if="wishlist.length < requiredMinSuggestions" class="text-danger small">
+                <p
+                  v-if="wishlist.length < requiredMinSuggestions"
+                  class="text-body-secondary small"
+                >
                   {{
                     t(
                       'participant.minWishlistSuggestionsError',
@@ -410,7 +470,7 @@ watch(
             </section>
           </div>
         </div>
-      </form>
+      </div>
     </div>
   </section>
 </template>

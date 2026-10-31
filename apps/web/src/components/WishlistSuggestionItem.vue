@@ -18,6 +18,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   'update:modelValue': [value: SuggestionDraft]
+  commit: []
   remove: []
   validating: [value: boolean]
 }>()
@@ -137,6 +138,7 @@ async function acceptFile(file: File) {
     }
     if (id !== selection || props.disabled) return
     emit('update:modelValue', { ...props.modelValue, pendingImage: files.select(file) })
+    emit('commit')
   } catch (cause) {
     if (id === selection)
       imageError.value = t(
@@ -154,6 +156,7 @@ async function acceptFile(file: File) {
 function removeImage() {
   selection++
   emit('update:modelValue', { ...props.modelValue, imageId: undefined, pendingImage: undefined })
+  emit('commit')
   imageError.value = ''
 }
 onBeforeUnmount(() => {

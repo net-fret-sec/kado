@@ -13,7 +13,6 @@
     "add": "Hinzufügen",
     "close": "Schließen",
     "save": "Speichern",
-    "saveChanges": "Änderungen speichern",
     "copy": "Kopieren",
     "discardChanges": "Änderungen verwerfen"
   },
@@ -207,12 +206,10 @@
     "addSuggestion": "Wunsch hinzufügen",
     "noSuggestions": "Noch keine Wünsche vorhanden.",
     "minWishlistSuggestionsHint": "Mindestanzahl: {count} Wunsch | Mindestanzahl: {count} Wünsche",
-    "minWishlistSuggestionsError": "Füge mindestens {count} Wunsch hinzu, um fortzufahren. | Füge mindestens {count} Wünsche hinzu, um fortzufahren.",
+    "minWishlistSuggestionsError": "Das Minimum von {count} Wunsch ist nur für die Auslosung erforderlich. Du kannst speichern und später zurückkommen. | Das Minimum von {count} Wünschen ist nur für die Auslosung erforderlich. Du kannst speichern und später zurückkommen.",
     "note": "Kommentar für die Person, die meinen Namen gezogen hat (optional)",
     "editingOpen": "Du kannst deine Angaben und Wünsche für diesen Geschenkaustausch bearbeiten.",
     "editingClosed": "Wünsche und Kommentar können in diesem Geschenkaustausch nicht bearbeitet werden.",
-    "saving": "Wird gespeichert…",
-    "saveSuccess": "Deine Angaben wurden aktualisiert.",
     "recipientSectionTitle": "Beschenkte Person",
     "suggestionsSectionTitle": "Meine Geschenkwünsche",
     "wishlistItem": {
@@ -319,8 +316,6 @@
     "imageHint": "Klicken oder ein Bild hierher ziehen. JPEG, PNG oder WebP. Der Upload erfolgt beim Speichern.",
     "imageLimit": "Maximum: {size} MiB und {pixels} Megapixel.",
     "reorderHelp": "Nutze am Ziehgriff die Pfeiltasten nach oben und unten, um den Wunsch zu verschieben.",
-    "saveHelp": "Speichert das Profil und alle Wünsche.",
-    "invalidHelp": "Fülle die Pflichtfelder aus und behebe die Fehler, bevor du speicherst.",
     "participantList": "Teilnehmende am Geschenkaustausch",
     "deleteTitle": "Diesen Geschenkaustausch endgültig löschen",
     "deleteHelp": "Diese Aktion löscht den Geschenkaustausch und die zugehörigen Zugänge. Gib zur Bestätigung genau „{name}“ ein.",
@@ -328,9 +323,9 @@
     "mutual": "{a} und {b} dürfen sich nicht gegenseitig ziehen.",
     "directional": "{name} darf {others} nicht ziehen.",
     "editExclusions": "Ausschlüsse für diese Person",
-    "exclusionsHelp": "Die Schaltflächen Hinzufügen und Löschen speichern Ausschlüsse sofort. Die Schaltfläche Speichern betrifft nur das Profil und die Wünsche.",
+    "exclusionsHelp": "Die Schaltflächen Hinzufügen und Löschen speichern die Ausschlüsse sofort.",
     "linkFor": "Teile diesen persönlichen Link mit {name}.",
-    "confirmDeleteSuggestion": "Diesen Geschenkwunsch löschen? Die Änderung wird erst beim Speichern wirksam.",
+    "confirmDeleteSuggestion": "Diesen Geschenkwunsch löschen? Die Löschung wird automatisch gespeichert.",
     "detailsOrganizer": "Organisiert von {name}",
     "detailsBudget": "Das Budget pro Geschenk beträgt {amount}.",
     "detailsMinimumNone": "Geschenkwünsche sind freiwillig.",
@@ -395,5 +390,20 @@
         "note": "beige Kästen"
       }
     }
+  },
+  "autosave": {
+    "help": "Wünsche werden automatisch gespeichert, wenn du ihren Bereich verlässt, sowie nach dem Löschen, Umordnen oder Ändern eines Bildes.",
+    "pending": "Wünsche nicht gespeichert. Fülle die markierten Felder aus und verlasse den Bereich, um sie zu speichern.",
+    "saving": "Wünsche werden gespeichert…",
+    "saved": "Wünsche gespeichert.",
+    "failed": "Die Wünsche konnten nicht gespeichert werden. Deine Änderungen bleiben auf dieser Seite erhalten.",
+    "retry": "Erneut versuchen",
+    "profileHelp": "Name und Nachricht werden automatisch gespeichert, wenn du das Feld verlässt.",
+    "profilePending": "Profiländerungen nicht gespeichert.",
+    "profileSaved": "Profil gespeichert.",
+    "profileFailed": "Das Profil konnte nicht gespeichert werden. Deine Änderungen bleiben auf dieser Seite erhalten.",
+    "saveAndClose": "Speichern und schließen",
+    "savingChanges": "Wird gespeichert…",
+    "profileSaving": "@:autosave.savingChanges"
   }
 }

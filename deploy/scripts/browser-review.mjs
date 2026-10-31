@@ -140,8 +140,8 @@ try {
   await page.locator('#exclusion-receiver').selectOption(members.find(m => m.name === 'Blair').participant);
   await page.getByRole('dialog', { name: 'Modifier le participant' }).getByRole('button', { name: 'Ajouter', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Modifier le participant' })).toContainText('Blair');
-  await expect(page.getByRole('dialog').locator('.text-success[role=status]')).toContainText('Exclusion');
-  await expect(page.locator('button[form=editParticipantForm]')).toBeDisabled();
+  await expect(page.getByRole('dialog').locator('.modal-footer button')).toHaveCount(1);
+  await expect(page.locator('.participant-close')).toHaveText('Fermer');
   await page.getByRole('dialog', { name: 'Modifier le participant' }).getByRole('button', { name: 'Fermer', exact: true }).click();
   await expect(page.locator('#exchange-details')).toContainText('Alex ne peut pas piger Blair.');
   const detailBox = await page.locator('#exchange-details').boundingBox(), participantBox = await page.locator('#participants').boundingBox();
@@ -172,7 +172,7 @@ try {
   await expect(page.locator('.participant-details-column')).toContainText('Alex ne peut pas piger Blair.');
   const left = await page.locator('.participant-details-column').boundingBox(), profile = await page.locator('.participant-profile-card').boundingBox(), wishes = await page.locator('.participant-suggestions-card').boundingBox();
   assert(left.x < profile.x && profile.y < wishes.y, 'Shared details on left, profile above suggestions on right');
-  await expect(page.getByRole('button', { name: 'Enregistrer les modifications', exact: true })).toBeDisabled();
+  await expect(page.locator('.participant-profile-card button[type=submit]')).toHaveCount(0);
   await page.getByRole('button', { name: 'Ajouter une suggestion', exact: true }).click();
   await page.locator('input[id$="-title"]').first().fill('Un livre');
   await page.locator('input[type=url]').first().fill('https://example.com/book');
@@ -184,8 +184,8 @@ try {
   await page.locator('input[id$="-title"]').nth(1).fill('Du chocolat');
   await page.locator('.drag-handle').first().focus(); await page.keyboard.press('ArrowDown');
   await expect(page.locator('input[id$="-title"]').first()).toHaveValue('Du chocolat');
-  await page.getByRole('button', { name: 'Enregistrer les modifications', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Enregistrer les modifications', exact: true })).toBeDisabled();
+  await expect(page.locator('.suggestion-save-status')).toContainText('Suggestions enregistrées.');
+  await expect(page.locator('.participant-profile-card button[type=submit]')).toHaveCount(0);
   const saved = await api('GET', '/api' + personal.accessLink);
   assert.equal(saved.participant.wishlist[1].title, 'Un livre'); assert(saved.participant.wishlist[1].imageId);
   await audit('Participant desktop');
@@ -203,8 +203,9 @@ try {
   await page.evaluate(() => window.dispatchEvent(new Event('online')));
   await expect(page.getByRole('button', { name: 'Actualiser', exact: true })).toHaveCount(0);
   await expect(page.locator('#participant-note')).toHaveValue('Brouillon conservé');
-  await page.getByRole('button', { name: 'Enregistrer les modifications', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Enregistrer les modifications', exact: true })).toBeDisabled();
+  await page.locator('#participant-name').press('Enter');
+  await expect(page.locator('.profile-save-status')).toContainText('Profil enregistré.');
+  await expect(page.locator('.participant-profile-card button[type=submit]')).toHaveCount(0);
   await api('POST', `/api/exchanges/${id}/draw`, undefined, token);
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   await expect(page.getByRole('heading', { name: 'Personne pigée', exact: true })).toBeVisible();

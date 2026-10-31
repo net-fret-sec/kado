@@ -625,6 +625,21 @@ describe("Business state and contracts", () => {
       .send({ organizerId: a.members[0].participant.id })
       .expect(200);
   });
+  it("saves incomplete wishlists through both routes while keeping the minimum at draw time", async () => {
+    const f = await fixture({ minWishlistSuggestions: 3 });
+    for (const wishlist of [[{ title: "First idea" }], []]) {
+      const admin = await request(app)
+        .put(`${path(f.id)}/participants/${f.members[0].participant.id}`)
+        .set(f.auth).send({ wishlist }).expect(200);
+      expect(admin.body.wishlist ?? []).toEqual(wishlist);
+      const self = await request(app).put(`/api/p/${f.token}`)
+        .send({ wishlist, note: "Continue tomorrow" }).expect(200);
+      expect(self.body.participant.wishlist ?? []).toEqual(wishlist);
+      await expect(drawExchange(f.id)).rejects.toMatchObject({
+        details: { code: "DRAW_MIN_WISHLIST_SUGGESTIONS" },
+      });
+    }
+  });
   it("reports minimum participants, wishlist and impossible constraints", async () => {
     const small = await fixture({}, 2);
     await expect(drawExchange(small.id)).rejects.toMatchObject({

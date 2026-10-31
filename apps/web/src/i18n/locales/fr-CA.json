@@ -13,7 +13,6 @@
     "add": "Ajouter",
     "close": "Fermer",
     "save": "Enregistrer",
-    "saveChanges": "Enregistrer les modifications",
     "copy": "Copier",
     "discardChanges": "Abandonner les modifications"
   },
@@ -207,12 +206,10 @@
     "addSuggestion": "Ajouter une suggestion",
     "noSuggestions": "Aucune suggestion pour le moment.",
     "minWishlistSuggestionsHint": "Nombre de suggestions minimal : {count} suggestion | Nombre de suggestions minimal : {count} suggestions",
-    "minWishlistSuggestionsError": "Ajoutez au moins {count} suggestion pour continuer. | Ajoutez au moins {count} suggestions pour continuer.",
+    "minWishlistSuggestionsError": "Le minimum de {count} suggestion est requis pour la pige seulement. Vous pouvez enregistrer et revenir plus tard. | Le minimum de {count} suggestions est requis pour la pige seulement. Vous pouvez enregistrer et revenir plus tard.",
     "note": "Message pour la personne qui a pigé mon nom (facultatif)",
     "editingOpen": "Vous pouvez modifier vos informations et vos suggestions pour cet échange.",
     "editingClosed": "Les modifications des suggestions et du commentaire sont désactivées pour cet échange.",
-    "saving": "Enregistrement...",
-    "saveSuccess": "Vos informations ont été mises à jour.",
     "recipientSectionTitle": "Personne pigée",
     "suggestionsSectionTitle": "Mes suggestions de cadeaux",
     "wishlistItem": {
@@ -319,8 +316,6 @@
     "imageHint": "Cliquer ou déposer une image. JPEG, PNG ou WebP. Envoi lors de l’enregistrement.",
     "imageLimit": "Maximum : {size} Mio et {pixels} mégapixels.",
     "reorderHelp": "Sur la poignée, utilisez les flèches haut et bas pour déplacer la suggestion.",
-    "saveHelp": "Enregistre le profil et toutes les suggestions.",
-    "invalidHelp": "Complétez les champs obligatoires et corrigez les erreurs avant d’enregistrer.",
     "participantList": "Participants à l’échange",
     "deleteTitle": "Supprimer définitivement cet échange",
     "deleteHelp": "Cette action supprime l’échange et les accès associés. Pour confirmer, saisissez exactement « {name} ».",
@@ -328,9 +323,9 @@
     "mutual": "{a} et {b} ne peuvent pas se piger.",
     "directional": "{name} ne peut pas piger {others}.",
     "editExclusions": "Exclusions de cette personne",
-    "exclusionsHelp": "Les boutons Ajouter et Supprimer enregistrent immédiatement les exclusions. Le bouton Enregistrer concerne uniquement le profil et les suggestions.",
+    "exclusionsHelp": "Les boutons Ajouter et Supprimer enregistrent immédiatement les exclusions.",
     "linkFor": "Partagez ce lien personnel avec {name}.",
-    "confirmDeleteSuggestion": "Supprimer cette suggestion cadeau? Cette modification prendra effet après l’enregistrement.",
+    "confirmDeleteSuggestion": "Supprimer cette suggestion cadeau? La suppression sera enregistrée automatiquement.",
     "detailsOrganizer": "Organisé par {name}",
     "detailsBudget": "Le budget de cadeau est de {amount}.",
     "detailsMinimumNone": "Les suggestions de cadeaux sont facultatives.",
@@ -395,5 +390,20 @@
         "note": "encarts beige"
       }
     }
+  },
+  "autosave": {
+    "help": "Les suggestions sont enregistrées automatiquement à la sortie de leur bloc, ainsi qu’après une suppression, un déplacement ou un changement d’image.",
+    "pending": "Suggestions non enregistrées. Complétez les champs indiqués, puis quittez le bloc pour les enregistrer.",
+    "saving": "Enregistrement des suggestions…",
+    "saved": "Suggestions enregistrées.",
+    "failed": "Les suggestions n’ont pas pu être enregistrées. Vos modifications sont conservées sur cette page.",
+    "retry": "Réessayer",
+    "profileHelp": "Le nom et le message sont enregistrés automatiquement à la sortie du champ.",
+    "profilePending": "Modifications du profil non enregistrées.",
+    "profileSaved": "Profil enregistré.",
+    "profileFailed": "Le profil n’a pas pu être enregistré. Vos modifications restent sur cette page.",
+    "saveAndClose": "Enregistrer et fermer",
+    "savingChanges": "Enregistrement…",
+    "profileSaving": "@:autosave.savingChanges"
   }
 }

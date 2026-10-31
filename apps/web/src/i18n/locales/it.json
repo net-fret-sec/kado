@@ -13,7 +13,6 @@
     "add": "Aggiungi",
     "close": "Chiudi",
     "save": "Salva",
-    "saveChanges": "Salva le modifiche",
     "copy": "Copia",
     "discardChanges": "Annulla le modifiche"
   },
@@ -207,12 +206,10 @@
     "addSuggestion": "Aggiungi un suggerimento",
     "noSuggestions": "Non ci sono ancora suggerimenti.",
     "minWishlistSuggestionsHint": "Numero minimo di suggerimenti: {count} suggerimento | Numero minimo di suggerimenti: {count} suggerimenti",
-    "minWishlistSuggestionsError": "Aggiungi almeno {count} suggerimento per continuare. | Aggiungi almeno {count} suggerimenti per continuare.",
+    "minWishlistSuggestionsError": "Il minimo di {count} suggerimento è richiesto solo per il sorteggio. Puoi salvare e tornare più tardi. | Il minimo di {count} suggerimenti è richiesto solo per il sorteggio. Puoi salvare e tornare più tardi.",
     "note": "Messaggio per chi ha estratto il mio nome (facoltativo)",
     "editingOpen": "Puoi modificare i tuoi dati e i suggerimenti per questo scambio.",
     "editingClosed": "Per questo scambio non è possibile modificare i suggerimenti e il commento.",
-    "saving": "Salvataggio…",
-    "saveSuccess": "I tuoi dati sono stati aggiornati.",
     "recipientSectionTitle": "Persona a cui farai il regalo",
     "suggestionsSectionTitle": "I miei suggerimenti regalo",
     "wishlistItem": {
@@ -319,8 +316,6 @@
     "imageHint": "Fai clic o trascina un’immagine. JPEG, PNG o WebP. Il caricamento avviene al salvataggio.",
     "imageLimit": "Massimo: {size} MiB e {pixels} megapixel.",
     "reorderHelp": "Con la maniglia selezionata, usa le frecce su e giù per spostare il suggerimento.",
-    "saveHelp": "Salva il profilo e tutti i suggerimenti.",
-    "invalidHelp": "Compila i campi obbligatori e correggi gli errori prima di salvare.",
     "participantList": "Partecipanti allo scambio",
     "deleteTitle": "Elimina definitivamente questo scambio",
     "deleteHelp": "Questa azione elimina lo scambio e i relativi accessi. Per confermare, digita esattamente «{name}».",
@@ -328,9 +323,9 @@
     "mutual": "{a} e {b} non possono estrarsi a vicenda.",
     "directional": "{name} non può estrarre {others}.",
     "editExclusions": "Esclusioni per questa persona",
-    "exclusionsHelp": "I pulsanti Aggiungi ed Elimina salvano subito le esclusioni. Il pulsante Salva riguarda solo il profilo e i suggerimenti.",
+    "exclusionsHelp": "I pulsanti Aggiungi ed Elimina salvano immediatamente le esclusioni.",
     "linkFor": "Condividi questo link personale con {name}.",
-    "confirmDeleteSuggestion": "Eliminare questo suggerimento regalo? La modifica avrà effetto dopo il salvataggio.",
+    "confirmDeleteSuggestion": "Eliminare questo suggerimento regalo? L’eliminazione verrà salvata automaticamente.",
     "detailsOrganizer": "Organizzato da {name}",
     "detailsBudget": "Il budget per il regalo è di {amount}.",
     "detailsMinimumNone": "I suggerimenti regalo sono facoltativi.",
@@ -395,5 +390,20 @@
         "note": "riquadri beige"
       }
     }
+  },
+  "autosave": {
+    "help": "I suggerimenti vengono salvati automaticamente quando esci dal loro riquadro e dopo una cancellazione, un riordino o una modifica dell’immagine.",
+    "pending": "Suggerimenti non salvati. Completa i campi indicati, poi esci dal riquadro per salvarli.",
+    "saving": "Salvataggio dei suggerimenti…",
+    "saved": "Suggerimenti salvati.",
+    "failed": "Impossibile salvare i suggerimenti. Le modifiche sono conservate in questa pagina.",
+    "retry": "Riprova",
+    "profileHelp": "Il nome e il messaggio vengono salvati automaticamente quando esci dal campo.",
+    "profilePending": "Modifiche al profilo non salvate.",
+    "profileSaved": "Profilo salvato.",
+    "profileFailed": "Impossibile salvare il profilo. Le modifiche restano in questa pagina.",
+    "saveAndClose": "Salva e chiudi",
+    "savingChanges": "Salvataggio…",
+    "profileSaving": "@:autosave.savingChanges"
   }
 }

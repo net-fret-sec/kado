@@ -41,7 +41,7 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await f.page.goto(`${base}/exchanges/${f.id}`);
     await expect(f.page.getByRole('button', { name: fr.exchangeDetail.dashboard.editSettings, exact: true }).first()).toBeVisible();
   }
-  const save = page => page.getByRole('button', { name: fr.actions.saveChanges, exact: true });
+  const saveProfile = page => page.locator('#participant-name').press('Enter');
   const refresh = page => ({ click: () => page.evaluate(() => document.dispatchEvent(new Event('visibilitychange'))) });
   console.log('P2 browser: wishlist payload, keyboard, mobile, languages and accessibility');
   {
@@ -54,12 +54,12 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await f.page.locator('input[type=file]').first().setInputFiles(file);
     await expect(f.page.locator('img[src^="blob:"]').first()).toBeVisible();assert.equal(uploads,0,'Preview is local');
     const response = f.page.waitForResponse(r => r.request().method() === 'PUT' && r.url().includes('/api/p/'));
-    await save(f.page).click(); await response;
+    await response;
+    await expect(f.page.locator('.suggestion-save-status')).toContainText(fr.autosave.saved);
     const current = await api('GET', '/api' + f.members[0].accessLink);
     assert.deepEqual(current.participant.wishlist.map(s => s.title), ['Cadeau', 'Livre']);
     assert.equal(uploads,1);assert.match(current.participant.wishlist[0].imageId,/^img_/);
     await expect(f.page.locator('img[src^="blob:"]').first()).toBeVisible();
-    await expect(f.page.getByText(fr.participant.saveSuccess, { exact: true })).not.toBeVisible({ timeout: 10000 });
     for (const width of [360, 768, 1440]) {
       await f.page.setViewportSize({ width, height: 900 });
       await f.page.evaluate(() => window.scrollTo(0, 0));
@@ -78,10 +78,11 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await f.page.locator('#locale-select').selectOption('en-CA');
     await expect(f.page.getByRole('button', { name: 'Refresh', exact: true })).toHaveCount(0);
     await expect(f.page.locator('.drag-handle').first()).toBeVisible();
+    const replacement=f.page.waitForResponse(r=>r.request().method()==='PUT'&&r.url().includes('/api/p/'));
     await f.page.locator('input[type=file]').first().setInputFiles({...file,name:'replacement.png'});
     const en=JSON.parse(await readFile(path.join(root,'apps/web/src/i18n/locales/en-CA.json'),'utf8'));
-    const replacement=f.page.waitForResponse(r=>r.request().method()==='PUT'&&r.url().includes('/api/p/'));
-    await f.page.getByRole('button',{name:en.actions.saveChanges,exact:true}).click();assert.equal((await replacement).status(),200);
+    assert.equal((await replacement).status(),200);
+    await expect(f.page.locator('.suggestion-save-status')).toContainText(en.autosave.saved);
     await expect(f.page.locator('img[src^="blob:"]').first()).toBeVisible();
     await f.page.screenshot({path:path.join(output,'participant-images-en.png'),fullPage:true});
     // Organizer uses authenticated reads and uploads in the edit form as well.
@@ -91,13 +92,94 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await f.page.locator('#participants').getByRole('button', { name: en.actions.edit, exact: true }).first().click();
     await expect(f.page.getByRole('dialog',{name:en.exchangeDetail.editModal.title})).toBeVisible();
     await f.page.setViewportSize({width:360,height:900});
-    await expect(f.page.locator('#editParticipantForm img[src^="blob:"]').first()).toBeVisible();
-    await f.page.locator('#editParticipantForm input[type=file]').first().setInputFiles(file);
-    await expect(f.page.locator('#editParticipantForm img[src^="blob:"]').first()).toBeVisible();
+    await expect(f.page.locator('.modal.show img[src^="blob:"]').first()).toBeVisible();
+    const updated = f.page.waitForResponse(r=>r.request().method()==='PUT'&&r.url().includes('/participants/'));
+    await f.page.locator('.modal.show input[type=file]').first().setInputFiles(file);
+    assert.equal((await updated).status(),200);
+    await expect(f.page.locator('.modal.show .suggestion-save-status')).toContainText(en.autosave.saved);
+    await expect(f.page.locator('.modal.show img[src^="blob:"]').first()).toBeVisible();
     assert.deepEqual((await audit(f.page)).violations.map(v=>v.id),[],'Organizer image form accessibility in English/mobile');
     await f.page.screenshot({path:path.join(output,'organizer-images-360-en.png'),fullPage:true});
-    const updated = f.page.waitForResponse(r=>r.request().method()==='PUT'&&r.url().includes('/participants/'));
-    await f.page.locator('button[form=editParticipantForm]').click();assert.equal((await updated).status(),200);
+    await expect(f.page.getByRole('dialog',{name:en.exchangeDetail.editModal.title})).toBeVisible();
+    await f.page.getByRole('dialog').getByRole('button',{name:en.actions.close,exact:true}).click();
+    await finish(f);
+  }
+  console.log('P2 browser: independent profile autosave, invalid suggestions, clearing messages and safe modal closure');
+  {
+    const f = await fixture('P2 sauvegarde automatique', { minWishlistSuggestions: 3 });
+    await self(f);
+    await f.page.getByRole('button', { name: fr.participant.addSuggestion, exact: true }).click();
+    const profileWrite = f.page.waitForResponse(r => r.request().method() === 'PUT' && r.url().includes('/api/p/'));
+    await f.page.locator('#participant-name').fill('Alex modifié');
+    await f.page.locator('#participant-note').fill('Message enregistré');
+    await f.page.getByRole('heading', { name: fr.participant.profileSectionTitle, exact: true }).click();
+    assert.equal((await profileWrite).status(), 200);
+    await expect(f.page.locator('.profile-save-status')).toContainText(fr.autosave.profileSaved);
+    let current = await api('GET', '/api' + f.members[0].accessLink);
+    assert.equal(current.participant.name, 'Alex modifié');
+    assert.equal(current.participant.note, 'Message enregistré');
+    assert.equal(current.participant.wishlist.length, 2);
+    await expect(f.page.locator('input[id$="-title"]').last()).toHaveValue('');
+    await expect(f.page.locator('.participant-profile-card .text-danger')).toHaveCount(0);
+    const clearMessage = f.page.waitForResponse(r => r.request().method() === 'PUT' && r.url().includes('/api/p/'));
+    await f.page.locator('#participant-note').fill('');
+    await f.page.getByRole('heading', { name: fr.participant.profileSectionTitle, exact: true }).click();
+    assert.equal((await clearMessage).status(), 200);
+    assert.equal((await api('GET', '/api' + f.members[0].accessLink)).participant.note, undefined);
+    f.page.once('dialog', dialog => dialog.accept());
+    await f.page.locator('.suggestion-controls .btn-outline-danger').last().click();
+    for (let remaining = 1; remaining >= 0; remaining--) {
+      f.page.once('dialog', dialog => dialog.accept());
+      const removal = f.page.waitForResponse(r => r.request().method() === 'PUT' && r.url().includes('/api/p/'));
+      await f.page.locator('.suggestion-controls .btn-outline-danger').first().click();
+      assert.equal((await removal).status(), 200);
+      await expect(f.page.locator('.suggestion-save-status')).toContainText(fr.autosave.saved);
+      assert.equal((await api('GET', '/api' + f.members[0].accessLink)).participant.wishlist.length, remaining);
+    }
+    await f.page.reload();
+    await expect(f.page.locator('#participant-name')).toHaveValue('Alex modifié');
+    await expect(f.page.locator('#participant-note')).toHaveValue('');
+    const draw = await api('POST', `/api/exchanges/${f.id}/draw`, undefined, f.token, 400);
+    assert.equal(draw.error.details.code, 'DRAW_MIN_WISHLIST_SUGGESTIONS');
+    await admin(f);
+    async function editFirst() {
+      await f.page.locator('#participants li').first().hover();
+      await f.page.locator('#participants').getByRole('button', { name: fr.actions.edit, exact: true }).first().click();
+    }
+    await editFirst();
+    const dialog = f.page.getByRole('dialog', { name: fr.exchangeDetail.editModal.title });
+    await dialog.getByRole('button', { name: fr.participant.addSuggestion, exact: true }).click();
+    const adminWrite = f.page.waitForResponse(r => r.request().method() === 'PUT' && r.url().includes('/participants/'));
+    await f.page.locator('#editParticipantNote').fill('Message de l’organisateur');
+    await dialog.getByRole('heading', { name: fr.exchangeDetail.editModal.title, exact: true }).click();
+    assert.equal((await adminWrite).status(), 200);
+    await expect(dialog.locator('.profile-save-status')).toContainText(fr.autosave.profileSaved);
+    await expect(dialog.locator('.participant-close')).toHaveText(fr.actions.close);
+    f.page.once('dialog', dialog => dialog.dismiss());
+    await dialog.locator('.participant-close').click();
+    await expect(dialog).toBeVisible();
+    f.page.once('dialog', dialog => dialog.accept());
+    await dialog.locator('.participant-close').click();
+    await expect(dialog).toBeHidden();
+    assert.equal((await api('GET', '/api' + f.members[0].accessLink)).participant.note, 'Message de l’organisateur');
+    await editFirst();
+    await f.page.locator('#exclusion-receiver').selectOption(f.members[1].participant.id);
+    await dialog.getByRole('button', { name: fr.actions.add, exact: true }).click();
+    await expect(dialog.locator('li')).toHaveCount(1);
+    await expect(dialog.locator('.modal-footer button')).toHaveCount(1);
+    await expect(dialog.locator('.modal-save-feedback')).toHaveCount(0);
+    await dialog.locator('li').getByRole('button', { name: fr.actions.delete, exact: true }).click();
+    await expect(dialog.locator('li')).toHaveCount(0);
+    await f.page.route('**/api/exchanges/*/participants/*', route => route.request().method() === 'PUT' ? route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: { code: 'SERVICE_BUSY' } }) }) : route.continue());
+    await f.page.locator('#editParticipantNote').fill('À conserver en cas d’erreur');
+    await expect(dialog.locator('.participant-close')).toHaveText(fr.autosave.saveAndClose);
+    await dialog.locator('.participant-close').click();
+    await expect(dialog.locator('.profile-save-status')).toContainText(fr.autosave.profileFailed);
+    await expect(dialog).toBeVisible();
+    await f.page.unroute('**/api/exchanges/*/participants/*');
+    await dialog.locator('.participant-close').click();
+    await expect(dialog).toBeHidden();
+    assert.equal((await api('GET', '/api' + f.members[0].accessLink)).participant.note, 'À conserver en cas d’erreur');
     await finish(f);
   }
   console.log('P2 browser: six languages, cancellation labels and reactive errors');
@@ -189,18 +271,21 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await f.page.locator('#participant-note').fill('Brouillon local');
     const p = f.members[0].participant;
     await api('PUT', `/api/exchanges/${f.id}/participants/${p.id}`, { name: 'Alex serveur' }, f.token);
-    await save(f.page).click();
+    await saveProfile(f.page);
     await expect(f.page.getByRole('region', { name: fr.p2.conflictTitle })).toBeVisible();
     await f.page.getByRole('button', { name: fr.p2.prepareDraft }).click();
     await expect(f.page.locator('#participant-name')).toHaveValue('Alex serveur');
     await expect(f.page.locator('#participant-note')).toHaveValue('Brouillon local');
     await api('PUT', `/api/exchanges/${f.id}/participants/${p.id}`, { note: 'Note serveur' }, f.token);
-    await save(f.page).click();
+    await saveProfile(f.page);
     await expect(f.page.getByRole('region', { name: fr.p2.conflictTitle })).toBeVisible();
     await f.page.getByRole('radio').first().check();
     await f.page.getByRole('button', { name: fr.p2.prepareDraft }).click();
-    await save(f.page).click();
-    await expect(f.page.getByText(fr.participant.saveSuccess, { exact: true })).toBeVisible();
+    await saveProfile(f.page);
+    await expect(f.page.locator('.profile-save-status')).toContainText(fr.autosave.profileSaved);
+    await f.page.locator('.drag-handle').first().focus();
+    await f.page.locator('#participant-name').focus();
+    await expect(f.page.locator('.suggestion-save-status')).toContainText(fr.autosave.saved);
     const saved=await api('GET', '/api' + f.members[0].accessLink);
     assert.equal(saved.participant.note,'Brouillon local');assert.match(saved.participant.wishlist[0].imageId,/^img_/);
     assert.equal(uploads,1,'Repeated conflicts preserve a successful upload without sending it again');
@@ -223,12 +308,12 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
       await route.fulfill({ status: 503, contentType: 'application/json', headers: { 'Retry-After': '10' }, body: JSON.stringify({ error: { code: 'SERVICE_BUSY' } }) });
     });
     await f.page.locator('#participant-note').fill('Encore présent');
-    await save(f.page).evaluate(button => { button.click(); button.click() });
+    await f.page.locator('.participant-profile-card form').evaluate(form => { form.requestSubmit(); form.requestSubmit() });
     await expect(f.page.locator('[role=alert]').filter({ hasText: /occup|busy|indisponible/i }).first()).toBeVisible();
     assert.equal(requests, 1); await expect(f.page.locator('#participant-note')).toHaveValue('Encore présent');
     await f.page.unroute('**/api/p/**');
     await f.page.route('**/api/p/**', route => route.request().method() === 'PUT' ? route.abort('failed') : route.continue());
-    await save(f.page).click();
+    await saveProfile(f.page);
     await expect(f.page.getByText(fr.p2.outcomeUncertain)).toBeVisible();
     await expect(f.page.locator('#participant-note')).toHaveValue('Encore présent');
     await finish(f);
@@ -238,7 +323,7 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     const f = await fixture('P2 permissions'); await self(f);
     await api('POST', `/api/exchanges/${f.id}/draw`, undefined, f.token);
     await refresh(f.page).click();
-    await expect(save(f.page)).toHaveCount(0);
+    await expect(f.page.locator('.profile-save-status')).toHaveCount(0);
     await expect(f.page.locator('#participant-self-view input[type=url]')).toHaveCount(0);
     await expect(f.page.getByText(fr.participant.recipientSectionTitle, { exact: true })).toBeVisible();
     await api('POST', `/api/exchanges/${f.id}/participants/${f.members[0].participant.id}/access/regenerate`, { revokeExisting: true }, f.token, 201);

@@ -13,7 +13,6 @@
     "add": "Add",
     "close": "Close",
     "save": "Save",
-    "saveChanges": "Save changes",
     "copy": "Copy",
     "discardChanges": "Discard changes"
   },
@@ -207,12 +206,10 @@
     "addSuggestion": "Add suggestion",
     "noSuggestions": "No suggestions yet.",
     "minWishlistSuggestionsHint": "Minimum number of suggestions: {count} suggestion | Minimum number of suggestions: {count} suggestions",
-    "minWishlistSuggestionsError": "Add at least {count} suggestion to continue. | Add at least {count} suggestions to continue.",
+    "minWishlistSuggestionsError": "The minimum of {count} suggestion is required only for the draw. You can save and come back later. | The minimum of {count} suggestions is required only for the draw. You can save and come back later.",
     "note": "Message for the person who drew my name (optional)",
     "editingOpen": "You can edit your information and suggestions for this exchange.",
     "editingClosed": "Changes to suggestions and the comment are disabled for this exchange.",
-    "saving": "Saving...",
-    "saveSuccess": "Your information was updated.",
     "recipientSectionTitle": "Your gift recipient",
     "suggestionsSectionTitle": "My gift suggestions",
     "wishlistItem": {
@@ -319,8 +316,6 @@
     "imageHint": "Click or drop an image. JPEG, PNG or WebP. Uploaded when you save.",
     "imageLimit": "Maximum: {size} MiB and {pixels} megapixels.",
     "reorderHelp": "On the handle, use the up and down arrow keys to move the suggestion.",
-    "saveHelp": "Saves your profile and all suggestions.",
-    "invalidHelp": "Complete the required fields and correct errors before saving.",
     "participantList": "Exchange participants",
     "deleteTitle": "Permanently delete this exchange",
     "deleteHelp": "This deletes the exchange and its access links. To confirm, type “{name}” exactly.",
@@ -328,9 +323,9 @@
     "mutual": "{a} and {b} cannot draw each other.",
     "directional": "{name} cannot draw {others}.",
     "editExclusions": "Exclusions for this person",
-    "exclusionsHelp": "Add and Delete save exclusions immediately. The Save button only saves the profile and suggestions.",
+    "exclusionsHelp": "The Add and Delete buttons save exclusions immediately.",
     "linkFor": "Share this personal link with {name}.",
-    "confirmDeleteSuggestion": "Delete this gift suggestion? This change will take effect when you save.",
+    "confirmDeleteSuggestion": "Delete this gift suggestion? The deletion will be saved automatically.",
     "detailsOrganizer": "Organized by {name}",
     "detailsBudget": "The gift budget is {amount}.",
     "detailsMinimumNone": "Gift suggestions are optional.",
@@ -395,5 +390,20 @@
         "note": "beige panels"
       }
     }
+  },
+  "autosave": {
+    "help": "Suggestions are saved automatically when you leave their item, and after deleting, reordering or changing an image.",
+    "pending": "Suggestions not saved. Complete the indicated fields, then leave the item to save.",
+    "saving": "Saving suggestions…",
+    "saved": "Suggestions saved.",
+    "failed": "Suggestions could not be saved. Your changes are kept on this page.",
+    "retry": "Try again",
+    "profileHelp": "The name and message are saved automatically when you leave the field.",
+    "profilePending": "Profile changes not saved.",
+    "profileSaved": "Profile saved.",
+    "profileFailed": "The profile could not be saved. Your changes remain on this page.",
+    "saveAndClose": "Save and close",
+    "savingChanges": "Saving…",
+    "profileSaving": "@:autosave.savingChanges"
   }
 }

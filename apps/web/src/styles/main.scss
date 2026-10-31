@@ -637,3 +637,25 @@ main > * + * {
   font-size: 0.8125rem;
   line-height: 1.5;
 }
+
+// Compact shared exchange heading; secondary actions stay beside the primary action.
+.exchange-header {
+  padding: clamp(1rem, 2vw, 1.5rem);
+  border: 1px solid var(--bs-border-color);
+  border-inline-start: 4px solid var(--bs-primary);
+  border-radius: 1rem;
+  background: var(--bs-secondary-bg);
+}
+.exchange-header-main { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem 2rem; }
+.exchange-header-heading { min-width: 0; flex: 1 1 18rem; }
+.exchange-header-heading h1 { overflow-wrap: anywhere; }
+.exchange-header-label { color: var(--text-secondary); font-size: .8rem; margin-bottom: .4rem; }
+.exchange-header-actions { display: flex; flex-direction: column; align-items: flex-end; gap: .5rem; max-width: 100%; }
+.exchange-header-tools { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .25rem .75rem; }
+.exchange-header-tools .btn { padding: .25rem 0; font-size: .7rem; }
+.exchange-header-message { margin-top: .75rem; color: var(--text-secondary); font-size: .95rem; }
+.exchange-header-message:empty { display: none; }
+@media (max-width: 575.98px) {
+  .exchange-header-actions { align-items: flex-start; }
+  .exchange-header-tools { justify-content: flex-start; }
+}

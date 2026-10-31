@@ -11,6 +11,7 @@ const props = defineProps<{
   participantId?: string
 }>()
 const emit = defineEmits<{
+  commit: []
   validating: [value: boolean]
   'update:modelValue': [value: EditableSuggestion[]]
 }>()
@@ -32,7 +33,10 @@ const updateMotion = (event: MediaQueryListEvent) => {
 motionPreference?.addEventListener('change', updateMotion)
 onBeforeUnmount(() => motionPreference?.removeEventListener('change', updateMotion))
 function reorder(value: EditableSuggestion[]) {
-  if (!props.locked && !props.busy) emit('update:modelValue', value)
+  if (!props.locked && !props.busy) {
+    emit('update:modelValue', value)
+    emit('commit')
+  }
 }
 function change(index: number, value: Partial<EditableSuggestion>) {
   if (props.locked || props.busy) return
@@ -42,11 +46,17 @@ function change(index: number, value: Partial<EditableSuggestion>) {
   )
 }
 function remove(index: number) {
-  if (!props.locked && !props.busy && window.confirm(t('review.confirmDeleteSuggestion')))
+  if (!props.locked && !props.busy && window.confirm(t('review.confirmDeleteSuggestion'))) {
     emit(
       'update:modelValue',
       props.modelValue.filter((_, i) => i !== index),
     )
+    emit('commit')
+  }
+}
+function leaveItem(event: FocusEvent) {
+  if (!(event.currentTarget as HTMLElement).contains(event.relatedTarget as Node | null))
+    emit('commit')
 }
 async function move(index: number, delta: number) {
   const target = index + delta
@@ -55,6 +65,7 @@ async function move(index: number, delta: number) {
   const [item] = list.splice(index, 1)
   list.splice(target, 0, item!)
   emit('update:modelValue', list)
+  emit('commit')
   announcement.value = t('p2.moved', {
     title: item!.title || t('participant.wishlist'),
     position: target + 1,
@@ -83,7 +94,11 @@ function add() {
       class="d-grid gap-3 mb-2"
     >
       <template #item="{ element, index }">
-        <article class="suggestion-shell" :class="{ 'suggestion-shell--locked': locked }">
+        <article
+          @focusout="leaveItem"
+          class="suggestion-shell"
+          :class="{ 'suggestion-shell--locked': locked }"
+        >
           <div v-if="!locked" class="suggestion-controls">
             <button
               type="button"
@@ -108,6 +123,7 @@ function add() {
           </div>
           <div class="suggestion-content">
             <WishlistSuggestionItem
+              @commit="emit('commit')"
               :model-value="element"
               :participant-id="participantId"
               @validating="validating(element._clientId, $event)"

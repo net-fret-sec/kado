@@ -2,6 +2,7 @@
 import { ref, watch, computed } from 'vue'
 import BaseModal from '@/components/BaseModal.vue'
 import AccessReminder from '@/components/AccessReminder.vue'
+import ExchangeHeader from '@/components/ExchangeHeader.vue'
 import ExchangeDetails from '@/components/ExchangeDetails.vue'
 import { useRoute } from 'vue-router'
 import { useAdminAuthStore } from '@/stores/useAdminAuthStore'
@@ -33,7 +34,6 @@ const {
   exchange,
   participants,
   exclusionRules,
-  exclusionFeedback,
   selectedExclusionReceiver,
   isLoading,
   error,
@@ -208,60 +208,59 @@ watch(requiresAdminAuth, (value) => {
         <legend class="visually-hidden">{{ t('p2.adminActions') }}</legend>
         <div class="col-12"><AccessReminder :access-id="exchange.id" organizer /></div>
         <section id="detail" class="col-12">
-          <div class="card border shadow-sm">
-            <div class="card-body">
-              <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
-                <div>
-                  <h1 class="h2 mb-2">{{ exchange.name }}</h1>
-                  <div class="d-flex flex-wrap gap-3 align-items-center">
-                    <span class="badge" :class="statusBadgeClass">{{ statusLabel }}</span>
-                  </div>
-                </div>
-                <button
-                  v-if="canTriggerDraw"
-                  class="btn btn-primary"
-                  :disabled="isDrawActionLoading || activeParticipants.length < 3"
-                  @click="triggerDraw"
-                >
-                  {{ t('exchangeDetail.triggerDraw') }}
-                </button>
-                <button
-                  v-else-if="canCancelDraw"
-                  class="btn btn-outline-secondary"
-                  :disabled="isDrawActionLoading"
-                  @click="cancelDraw"
-                >
-                  {{ t('exchangeDetail.cancelDraw') }}
-                </button>
-              </div>
-              <div class="d-flex flex-wrap justify-content-end gap-3 mt-3">
-                <button
-                  type="button"
-                  class="btn btn-sm btn-link"
-                  :disabled="isLoggingOutAdmin"
-                  @click="logoutAdmin"
-                >
-                  {{ t('exchangeDetail.adminAuth.logout') }}
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-link text-danger"
-                  @click="showDelete = true"
-                >
-                  {{ t('exchangeDetail.dashboard.deleteExchange') }}
-                </button>
-              </div>
-              <p v-if="exchange.isDrawn" class="text-success fw-semibold mt-3 mb-0" role="status">
-                {{ t('exchangeDetail.drawSuccess') }}
-              </p>
-              <p
-                v-else-if="!exchange.isArchived && activeParticipants.length < 3"
-                class="small text-body-secondary mt-3 mb-0"
+          <ExchangeHeader
+            :title="exchange.name"
+            :label="t('fields.organizerName')"
+            :status="statusLabel"
+            :status-class="statusBadgeClass"
+          >
+            <template #actions>
+              <button
+                v-if="canTriggerDraw"
+                type="button"
+                class="btn btn-primary"
+                :disabled="isDrawActionLoading || activeParticipants.length < 3"
+                @click="triggerDraw"
               >
-                {{ t('exchangeDetail.dashboard.minimumParticipants') }}
-              </p>
-            </div>
-          </div>
+                <i class="bi bi-shuffle" aria-hidden="true"></i
+                >{{ t('exchangeDetail.triggerDraw') }}
+              </button>
+              <button
+                v-else-if="canCancelDraw"
+                type="button"
+                class="btn btn-outline-secondary"
+                :disabled="isDrawActionLoading"
+                @click="cancelDraw"
+              >
+                {{ t('exchangeDetail.cancelDraw') }}
+              </button>
+            </template>
+            <template #tools>
+              <button
+                type="button"
+                class="btn btn-sm btn-link"
+                :disabled="isLoggingOutAdmin"
+                @click="logoutAdmin"
+              >
+                <i class="bi bi-box-arrow-right" aria-hidden="true"></i
+                >{{ t('exchangeDetail.adminAuth.logout') }}
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm btn-link text-danger"
+                @click="showDelete = true"
+              >
+                <i class="bi bi-trash" aria-hidden="true"></i
+                >{{ t('exchangeDetail.dashboard.deleteExchange') }}
+              </button>
+            </template>
+            <p v-if="exchange.isDrawn" class="text-success mb-0" role="status">
+              {{ t('exchangeDetail.drawSuccess') }}
+            </p>
+            <p v-else-if="!exchange.isArchived && activeParticipants.length < 3" class="mb-0">
+              {{ t('exchangeDetail.dashboard.minimumParticipants') }}
+            </p>
+          </ExchangeHeader>
         </section>
         <section id="exchange-details" class="col-12 col-xl-5">
           <ExchangeDetails
@@ -437,10 +436,10 @@ watch(requiresAdminAuth, (value) => {
       @dirty="participantDirty = $event"
       :model-value="showEditParticipantModal"
       :participant="editingParticipant"
+      :save-participant="updateParticipant"
       :identity-locked="isParticipantIdentityLocked"
       :suggestions-locked="isParticipantSuggestionsLocked"
       @update:model-value="setEditParticipantModalVisibility"
-      @submit="updateParticipant"
     >
       <template #exclusions>
         <section v-if="editingParticipant" class="border-top mt-3 pt-3">
@@ -448,9 +447,6 @@ watch(requiresAdminAuth, (value) => {
           <p class="small text-body-secondary">{{ t('review.exclusionsHelp') }}</p>
           <p v-if="exchange?.noMutualAssignments" class="small text-body-secondary">
             {{ t('review.reciprocalExclusions') }}
-          </p>
-          <p v-if="exclusionFeedback" class="small text-success" role="status">
-            {{ exclusionFeedback }}
           </p>
           <p v-if="isExclusionEditingLocked" class="small">
             {{ t('exchangeDetail.exceptions.locked') }}
