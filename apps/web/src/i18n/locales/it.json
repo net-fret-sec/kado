@@ -6,7 +6,7 @@
     "changeLanguage": "Cambia lingua",
     "changeFontTheme": "Carattere",
     "changePaletteTheme": "Tavolozza",
-    "cancel": "Annulla le modifiche",
+    "cancel": "Annulla",
     "createExchange": "Crea uno scambio",
     "edit": "Modifica",
     "delete": "Elimina",
@@ -14,7 +14,8 @@
     "close": "Chiudi",
     "save": "Salva",
     "saveChanges": "Salva le modifiche",
-    "copy": "Copia"
+    "copy": "Copia",
+    "discardChanges": "Annulla le modifiche"
   },
   "languages": {
     "fr": "Français",
@@ -59,7 +60,7 @@
       "eyebrow": "Scambi di regali senza intoppi",
       "title": "Organizza i tuoi scambi di regali, senza complicazioni.",
       "description": "Crea uno scambio in pochi minuti, condividi i link dei partecipanti e lascia che Kado gestisca i vincoli del sorteggio.",
-      "micro": "Libero. Gratuito. Rispettoso della privacy."
+      "micro": "A codice aperto. Gratuito. Rispettoso della privacy."
     },
     "trustStrip": {
       "openSource": {
@@ -120,7 +121,7 @@
   },
   "fields": {
     "organizerName": "Organizzatore",
-    "eventDate": "Data dello scambio dei regali",
+    "eventDate": "Data di consegna dei regali",
     "budget": "Budget",
     "minWishlistSuggestions": "Numero minimo di suggerimenti",
     "name": "Nome",
@@ -134,7 +135,8 @@
     "linkUrl": "Link",
     "imageId": "Immagine salvata",
     "pendingImage": "Immagine selezionata",
-    "plannedDrawDate": "Data prevista del sorteggio"
+    "plannedDrawDate": "Data prevista del sorteggio",
+    "exchangeName": "Nome dello scambio"
   },
   "exchangeDetail": {
     "noParticipants": "Non ci sono partecipanti a questo scambio.",
@@ -206,18 +208,18 @@
     "noSuggestions": "Non ci sono ancora suggerimenti.",
     "minWishlistSuggestionsHint": "Numero minimo di suggerimenti: {count} suggerimento | Numero minimo di suggerimenti: {count} suggerimenti",
     "minWishlistSuggestionsError": "Aggiungi almeno {count} suggerimento per continuare. | Aggiungi almeno {count} suggerimenti per continuare.",
-    "note": "Commento per chi ha estratto il mio nome (facoltativo)",
+    "note": "Messaggio per chi ha estratto il mio nome (facoltativo)",
     "editingOpen": "Puoi modificare i tuoi dati e i suggerimenti per questo scambio.",
     "editingClosed": "Per questo scambio non è possibile modificare i suggerimenti e il commento.",
     "saving": "Salvataggio…",
     "saveSuccess": "I tuoi dati sono stati aggiornati.",
-    "recipientSectionTitle": "Persona estratta",
+    "recipientSectionTitle": "Persona a cui farai il regalo",
     "suggestionsSectionTitle": "I miei suggerimenti regalo",
     "wishlistItem": {
       "reorder": "Riordina",
       "linkLabel": "Link (facoltativo)",
       "linkPlaceholder": "https://example.com/prodotto",
-      "titleRequired": "Nome o descrizione mancante",
+      "titleRequired": "Indica un nome o una descrizione.",
       "linkUrlInvalid": "URL non valido (è richiesto http/https)."
     }
   },
@@ -331,7 +333,7 @@
     "confirmDeleteSuggestion": "Eliminare questo suggerimento regalo? La modifica avrà effetto dopo il salvataggio.",
     "detailsOrganizer": "Organizzato da {name}",
     "detailsBudget": "Il budget per il regalo è di {amount}.",
-    "detailsMinimumNone": "Non c’è un numero minimo di suggerimenti richiesti ai partecipanti.",
+    "detailsMinimumNone": "I suggerimenti regalo sono facoltativi.",
     "detailsMinimum": "I partecipanti devono fornire almeno {count} suggerimento per effettuare il sorteggio. | I partecipanti devono fornire almeno {count} suggerimenti per effettuare il sorteggio.",
     "detailsLocked": "Non sarà possibile modificare i suggerimenti dopo il sorteggio.",
     "detailsOpen": "I partecipanti potranno modificare i propri suggerimenti dopo il sorteggio.",

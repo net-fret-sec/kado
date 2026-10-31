@@ -100,11 +100,11 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     await f.page.locator('button[form=editParticipantForm]').click();assert.equal((await updated).status(),200);
     await finish(f);
   }
-  console.log('P2 browser: Spanish, Italian, Russian and German across public, organizer and participant views');
+  console.log('P2 browser: six languages, cancellation labels and reactive errors');
   {
     const f = await fixture('P2 langues');
     await f.context.close();
-    for (const [locale, browserLocale] of [['es', 'es-MX'], ['it', 'it-IT'], ['ru', 'ru-RU'], ['de', 'de-CH']]) {
+    for (const [locale, browserLocale] of [['fr-CA', 'fr-CA'], ['en-CA', 'en-CA'], ['es', 'es-MX'], ['it', 'it-IT'], ['ru', 'ru-RU'], ['de', 'de-CH']]) {
       const messages = JSON.parse(await readFile(path.join(root, 'apps/web/src/i18n/locales', `${locale}.json`), 'utf8'));
       const context = await browser.newContext({ ignoreHTTPSErrors: true, locale: browserLocale, reducedMotion: 'reduce' });
       try {
@@ -122,17 +122,23 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
           assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${locale} creation width ${width}`);
           assert.deepEqual((await audit(page)).violations.map(v => v.id), [], `${locale} creation accessibility`);
           await page.screenshot({ path: path.join(output, `creation-${locale}-${width}.png`), fullPage: true });
-          await page.getByRole('button', { name: messages.actions.cancel, exact: true }).click();
+          await page.getByRole('button', { name: messages.actions.discardChanges, exact: true }).click();
         }
         await page.evaluate(({ id, token }) => localStorage.setItem('kado.adminSessions', JSON.stringify({ [id]: token })), { id: f.id, token: f.token });
         await page.goto(`${base}/exchanges/${f.id}`);
         await page.getByRole('button', { name: messages.exchangeDetail.dashboard.editSettings, exact: true }).click();
         await expect(page.getByRole('dialog')).toContainText(messages.review.datesHelp);
+        await expect(page.locator('label[for=editExchangeName]')).toHaveText(messages.fields.exchangeName);
         await page.setViewportSize({ width: 360, height: 1000 });
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${locale} organizer form width`);
         assert.deepEqual((await audit(page)).violations.map(v => v.id), [], `${locale} organizer accessibility`);
         await page.screenshot({ path: path.join(output, `organizer-${locale}-360.png`), fullPage: true });
-        await page.getByRole('dialog').getByRole('button', { name: messages.actions.cancel, exact: true }).click();
+        await page.getByRole('dialog').getByRole('button', { name: messages.actions.discardChanges, exact: true }).click();
+        await page.getByRole('button', { name: messages.exchangeDetail.dashboard.deleteExchange, exact: true }).click();
+        const deletion = page.getByRole('dialog', { name: messages.review.deleteTitle });
+        await expect(deletion.getByRole('button', { name: messages.actions.cancel, exact: true })).toBeVisible();
+        await expect(deletion.getByRole('button', { name: messages.actions.discardChanges, exact: true })).toHaveCount(0);
+        await deletion.getByRole('button', { name: messages.actions.cancel, exact: true }).click();
         await page.goto(base + f.members[0].accessLink);
         await expect(page.getByRole('heading', { name: messages.participant.suggestionsSectionTitle, exact: true })).toBeVisible();
         for (const width of [360, 1440]) {
@@ -157,6 +163,22 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
         await context.close();
       }
     }
+  }
+  console.log('P2 browser: expired participant link changes language without refetching');
+  {
+    const f = await fixture('P2 lien périmé');
+    await api('DELETE', `/api/exchanges/${f.id}`, undefined, f.token, 204);
+    let reads = 0;
+    f.page.on('request', request => { if (request.url().includes('/api/p/')) reads++; });
+    await f.page.goto(base + f.members[0].accessLink);
+    await expect(f.page.locator('[role=alert]')).toContainText(fr.apiErrors.PARTICIPANT_LINK_INVALID_OR_EXPIRED);
+    for (const locale of ['en-CA', 'es', 'it', 'ru', 'de', 'fr-CA']) {
+      const messages = JSON.parse(await readFile(path.join(root, 'apps/web/src/i18n/locales', `${locale}.json`), 'utf8'));
+      await f.page.locator('#locale-select').selectOption(locale);
+      await expect(f.page.locator('[role=alert]')).toHaveText(messages.apiErrors.PARTICIPANT_LINK_INVALID_OR_EXPIRED);
+    }
+    assert.equal(reads, 1, 'A language change only retranslates the existing error');
+    await finish(f);
   }
   console.log('P2 browser: conflicts, independent merge, repeated conflict, draft guard');
   {

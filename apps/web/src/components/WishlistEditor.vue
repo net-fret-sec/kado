@@ -69,7 +69,9 @@ function add() {
 </script>
 <template>
   <div ref="listElement">
-    <p :id="helpId" class="visually-hidden">{{ t('review.reorderHelp') }}</p>
+    <p v-if="!locked && modelValue.length" :id="helpId" class="visually-hidden">
+      {{ t('review.reorderHelp') }}
+    </p>
     <p class="visually-hidden" role="status">{{ announcement }}</p>
     <Draggable
       :model-value="modelValue"

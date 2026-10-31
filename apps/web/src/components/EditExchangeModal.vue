@@ -197,6 +197,7 @@ function visibility(value: boolean) {
     <p v-if="saveError" class="alert alert-danger" role="alert">{{ saveError }}</p>
     <p v-if="dirty" class="small text-body-secondary">{{ t('p2.unsaved') }}</p>
     <ConflictReview
+      :field-label-keys="{ name: 'fields.exchangeName' }"
       v-if="remote"
       :fields="fields"
       :choices="choices"
@@ -226,7 +227,7 @@ function visibility(value: boolean) {
           </p>
         </div>
         <div class="mb-3 form-field">
-          <label for="editExchangeName" class="form-label">{{ t('fields.name') }}</label>
+          <label for="editExchangeName" class="form-label">{{ t('fields.exchangeName') }}</label>
           <input
             v-model="editName"
             type="text"
@@ -382,7 +383,7 @@ function visibility(value: boolean) {
         data-bs-dismiss="modal"
         :disabled="isSubmitting"
       >
-        {{ t('actions.cancel') }}
+        {{ t('actions.discardChanges') }}
       </button>
     </template>
   </BaseModal>

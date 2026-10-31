@@ -210,6 +210,8 @@ try {
   await expect(page.getByRole('heading', { name: 'Personne pigée', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Participants à l’échange' })).toHaveCount(0);
   await expect(page.locator('input[type=url]')).toHaveCount(0);
+  await expect(page.locator('[id^=reorder-]')).toHaveCount(0);
+  await expect(page.locator('.drag-handle')).toHaveCount(0);
   await page.evaluate(() => { document.activeElement?.blur(); window.scrollTo(0, 0); });
   await page.screenshot({ path: path.join(output, 'review-after-draw.png'), fullPage: true });
   await api('POST', `/api/exchanges/${id}/draw/cancel`, undefined, token);

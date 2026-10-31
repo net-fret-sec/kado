@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 import ExchangeDetails from '../components/ExchangeDetails.vue'
+import WishlistEditor from '../components/WishlistEditor.vue'
+import ConflictReview from '../components/ConflictReview.vue'
 import {
   SUPPORT_LOCALES,
   getBrowserLocale,
@@ -16,7 +18,10 @@ beforeEach(async () => {
   await setLocale('fr-CA')
   localStorage.clear()
 })
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => {
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
+})
 
 describe('Language selection', () => {
   it.each([
@@ -98,6 +103,70 @@ it('joins excluded participants naturally in each newly supported language', asy
       expect(wrapper.text()).toContain(joined)
       expect(wrapper.text()).not.toContain('Blair and Casey')
     }
+  } finally {
+    wrapper.unmount()
+  }
+})
+
+it('formats image limits without unnecessary decimals and removes reorder help when locked', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            images: {
+              sourceBytes: 5 * 1048576,
+              pixels: 24000000,
+              dimension: 1600,
+              outputBytes: 512000,
+              formats: ['image/jpeg', 'image/png', 'image/webp'],
+            },
+          }),
+        ),
+    ),
+  )
+  const wrapper = mount(WishlistEditor, {
+    props: { modelValue: [{ _clientId: 'one', title: 'Gift' }] },
+    global: { plugins: [i18n] },
+  })
+  try {
+    await flushPromises()
+    for (const locale of SUPPORT_LOCALES) {
+      await setLocale(locale)
+      await flushPromises()
+      const help = wrapper.get('p[id$="-image-help"]').text()
+      expect(help).toContain(locale === 'fr-CA' ? '5 Mio' : locale === 'ru' ? '5 МиБ' : '5 MiB')
+      expect(help).not.toMatch(/5[.,]0/)
+      expect(wrapper.find('.drag-handle').exists()).toBe(true)
+      expect(wrapper.find('[id^="reorder-"]').exists()).toBe(true)
+      await wrapper.setProps({ locked: true })
+      expect(wrapper.find('.drag-handle').exists()).toBe(false)
+      expect(wrapper.find('[id^="reorder-"]').exists()).toBe(false)
+      expect(wrapper.text()).not.toContain(i18n.global.t('review.reorderHelp'))
+      await wrapper.setProps({ locked: false })
+    }
+  } finally {
+    wrapper.unmount()
+  }
+})
+
+it('uses an exchange title rather than a personal name in conflict summaries', async () => {
+  await setLocale('ru')
+  const wrapper = mount(ConflictReview, {
+    props: {
+      fields: [],
+      choices: {},
+      ready: false,
+      current: { name: 'Test' },
+      fieldLabelKeys: { name: 'fields.exchangeName' },
+    },
+    global: { plugins: [i18n] },
+  })
+  try {
+    expect(wrapper.get('dt').text()).toBe('Название обмена')
+    await wrapper.setProps({ fieldLabelKeys: undefined })
+    expect(wrapper.get('dt').text()).toBe('Имя')
   } finally {
     wrapper.unmount()
   }

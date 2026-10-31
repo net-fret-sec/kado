@@ -6,7 +6,7 @@
     "changeLanguage": "Sprache ändern",
     "changeFontTheme": "Schriftart",
     "changePaletteTheme": "Farbpalette",
-    "cancel": "Änderungen verwerfen",
+    "cancel": "Abbrechen",
     "createExchange": "Geschenkaustausch erstellen",
     "edit": "Bearbeiten",
     "delete": "Löschen",
@@ -14,7 +14,8 @@
     "close": "Schließen",
     "save": "Speichern",
     "saveChanges": "Änderungen speichern",
-    "copy": "Kopieren"
+    "copy": "Kopieren",
+    "discardChanges": "Änderungen verwerfen"
   },
   "languages": {
     "fr": "Français",
@@ -67,7 +68,7 @@
         "description": "Der Code ist öffentlich. Du kannst ihn prüfen, nutzen, verändern oder selbst hosten."
       },
       "privacy": {
-        "title": "Privatsphäre respektiert",
+        "title": "Deine Privatsphäre wird respektiert",
         "description": "Zum Mitmachen ist kein Konto nötig. Alle Teilnehmenden erhalten einfach ihren eigenen Link."
       },
       "noMonetization": {
@@ -134,7 +135,8 @@
     "linkUrl": "Link",
     "imageId": "Gespeichertes Bild",
     "pendingImage": "Ausgewähltes Bild",
-    "plannedDrawDate": "Geplantes Datum der Auslosung"
+    "plannedDrawDate": "Geplantes Datum der Auslosung",
+    "exchangeName": "Name des Geschenkaustauschs"
   },
   "exchangeDetail": {
     "noParticipants": "An diesem Geschenkaustausch nimmt noch niemand teil.",
@@ -206,7 +208,7 @@
     "noSuggestions": "Noch keine Wünsche vorhanden.",
     "minWishlistSuggestionsHint": "Mindestanzahl: {count} Wunsch | Mindestanzahl: {count} Wünsche",
     "minWishlistSuggestionsError": "Füge mindestens {count} Wunsch hinzu, um fortzufahren. | Füge mindestens {count} Wünsche hinzu, um fortzufahren.",
-    "note": "Kommentar für die Person, die mich gezogen hat (optional)",
+    "note": "Kommentar für die Person, die meinen Namen gezogen hat (optional)",
     "editingOpen": "Du kannst deine Angaben und Wünsche für diesen Geschenkaustausch bearbeiten.",
     "editingClosed": "Wünsche und Kommentar können in diesem Geschenkaustausch nicht bearbeitet werden.",
     "saving": "Wird gespeichert…",
@@ -217,7 +219,7 @@
       "reorder": "Reihenfolge ändern",
       "linkLabel": "Link (optional)",
       "linkPlaceholder": "https://example.com/produkt",
-      "titleRequired": "Name oder Beschreibung fehlt",
+      "titleRequired": "Gib einen Namen oder eine Beschreibung ein.",
       "linkUrlInvalid": "Ungültige URL (http/https erforderlich)."
     }
   },
@@ -331,7 +333,7 @@
     "confirmDeleteSuggestion": "Diesen Geschenkwunsch löschen? Die Änderung wird erst beim Speichern wirksam.",
     "detailsOrganizer": "Organisiert von {name}",
     "detailsBudget": "Das Budget pro Geschenk beträgt {amount}.",
-    "detailsMinimumNone": "Die Teilnehmenden müssen keine Mindestanzahl an Wünschen angeben.",
+    "detailsMinimumNone": "Geschenkwünsche sind freiwillig.",
     "detailsMinimum": "Die Teilnehmenden müssen mindestens {count} Wunsch angeben, damit die Auslosung stattfinden kann. | Die Teilnehmenden müssen mindestens {count} Wünsche angeben, damit die Auslosung stattfinden kann.",
     "detailsLocked": "Nach der Auslosung können die Wünsche nicht mehr bearbeitet werden.",
     "detailsOpen": "Die Teilnehmenden können ihre Wünsche auch nach der Auslosung bearbeiten.",

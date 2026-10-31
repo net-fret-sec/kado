@@ -6,7 +6,7 @@
     "changeLanguage": "Change language",
     "changeFontTheme": "Font",
     "changePaletteTheme": "Palette",
-    "cancel": "Discard changes",
+    "cancel": "Cancel",
     "createExchange": "Create an exchange",
     "edit": "Edit",
     "delete": "Delete",
@@ -14,7 +14,8 @@
     "close": "Close",
     "save": "Save",
     "saveChanges": "Save changes",
-    "copy": "Copy"
+    "copy": "Copy",
+    "discardChanges": "Discard changes"
   },
   "languages": {
     "fr": "Français",
@@ -56,9 +57,9 @@
   },
   "home": {
     "hero": {
-      "eyebrow": "Gift exchanges without friction",
+      "eyebrow": "Hassle-free gift exchanges",
       "title": "Organize your gift exchanges without the hassle.",
-      "description": "Create an exchange in minutes, share participant links, and let Kado handle the draw constraints.",
+      "description": "Create an exchange in minutes, share participant links, and let Kado handle the draw rules.",
       "micro": "Open source. Free. Privacy-respecting."
     },
     "trustStrip": {
@@ -120,7 +121,7 @@
   },
   "fields": {
     "organizerName": "Organizer",
-    "eventDate": "Gift exchange date",
+    "eventDate": "Gift-giving date",
     "budget": "Budget",
     "minWishlistSuggestions": "Minimum number of suggestions",
     "name": "Name",
@@ -134,7 +135,8 @@
     "linkUrl": "Link",
     "imageId": "Saved image",
     "pendingImage": "Selected image",
-    "plannedDrawDate": "Planned draw date"
+    "plannedDrawDate": "Planned draw date",
+    "exchangeName": "Exchange name"
   },
   "exchangeDetail": {
     "noParticipants": "No participants for this exchange.",
@@ -206,7 +208,7 @@
     "noSuggestions": "No suggestions yet.",
     "minWishlistSuggestionsHint": "Minimum number of suggestions: {count} suggestion | Minimum number of suggestions: {count} suggestions",
     "minWishlistSuggestionsError": "Add at least {count} suggestion to continue. | Add at least {count} suggestions to continue.",
-    "note": "Comment for the person who drew my name (optional)",
+    "note": "Message for the person who drew my name (optional)",
     "editingOpen": "You can edit your information and suggestions for this exchange.",
     "editingClosed": "Changes to suggestions and the comment are disabled for this exchange.",
     "saving": "Saving...",
@@ -217,7 +219,7 @@
       "reorder": "Reorder",
       "linkLabel": "Link (optional)",
       "linkPlaceholder": "https://example.com/product",
-      "titleRequired": "Name or description is required.",
+      "titleRequired": "Enter a name or description.",
       "linkUrlInvalid": "Invalid link URL (http/https required)."
     }
   },
@@ -232,7 +234,7 @@
     "PARTICIPANT_NOT_FOUND": "The requested participant was not found.",
     "PARTICIPANT_CREATION_LOCKED": "Adding participants is disabled for this exchange.",
     "PARTICIPANT_SUGGESTIONS_LOCKED": "Changes to suggestions and comments are disabled for this exchange.",
-    "PARTICIPANT_LINK_INVALID_OR_EXPIRED": "This participant link is invalid or expired.",
+    "PARTICIPANT_LINK_INVALID_OR_EXPIRED": "This participant link is invalid or has expired.",
     "EXCLUSION_RULES_LOCKED": "Changes to draw exclusions are disabled for this exchange.",
     "PARTICIPANT_OUTSIDE_EXCHANGE": "The participant does not belong to this exchange.",
     "EXCLUSION_SELF_NOT_ALLOWED": "A participant cannot be excluded from drawing themselves.",
@@ -331,7 +333,7 @@
     "confirmDeleteSuggestion": "Delete this gift suggestion? This change will take effect when you save.",
     "detailsOrganizer": "Organized by {name}",
     "detailsBudget": "The gift budget is {amount}.",
-    "detailsMinimumNone": "Participants are not required to provide a minimum number of suggestions.",
+    "detailsMinimumNone": "Gift suggestions are optional.",
     "detailsMinimum": "Participants must provide at least {count} suggestion before the draw. | Participants must provide at least {count} suggestions before the draw.",
     "detailsLocked": "Suggestions cannot be edited after the draw.",
     "detailsOpen": "Participants can edit their suggestions after the draw.",

@@ -69,6 +69,28 @@ afterEach(() => {
 })
 
 describe('participant form regressions', () => {
+  it('retranslates an invalid participant link on language changes without another request', async () => {
+    const fetchMock = vi.fn(async () =>
+      json({ error: { code: 'PARTICIPANT_LINK_INVALID_OR_EXPIRED' } }, 404),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const { wrapper } = await open(ParticipantSelfView, '/p/INVALID')
+    const messages = [
+      ['fr-CA', 'Ce lien du participant est invalide ou périmé.'],
+      ['en-CA', 'This participant link is invalid or has expired.'],
+      ['es', 'Este enlace de participante no es válido o ha caducado.'],
+      ['it', 'Questo link del partecipante non è valido o è scaduto.'],
+      ['ru', 'Эта ссылка участника недействительна или больше не действует.'],
+      ['de', 'Dieser Teilnehmerlink ist ungültig oder abgelaufen.'],
+    ] as const
+    for (const [locale, message] of messages) {
+      await setLocale(locale)
+      await flushPromises()
+      expect(wrapper.get('[role="alert"]').text()).toBe(message)
+    }
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
   it('keeps the image reference and sends one write for rapid submit events', async () => {
     const view = personal()
     let writes = 0

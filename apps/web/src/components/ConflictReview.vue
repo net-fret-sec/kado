@@ -6,11 +6,15 @@ const props = defineProps<{
   fields: ConflictField[]
   choices: Record<string, 'local' | 'remote'>
   ready: boolean
+  fieldLabelKeys?: Record<string, string>
   current: FormValues
 }>()
 const emit = defineEmits<{ choice: [key: string, value: 'local' | 'remote']; apply: [] }>()
 const { t } = useI18n()
 const files = useSuggestionFiles()
+function fieldLabel(key: string) {
+  return t(props.fieldLabelKeys?.[key] ?? `fields.${key}`)
+}
 function display(value: unknown): string {
   if (value == null || value === '') return t('p2.empty')
   if (typeof value === 'boolean') return t(value ? 'common.yes' : 'common.no')
@@ -41,13 +45,13 @@ function display(value: unknown): string {
       <summary>{{ t('p2.currentVersion') }}</summary>
       <dl class="mt-2">
         <template v-for="(value, key) in props.current" :key="key"
-          ><dt>{{ t(`fields.${key}`) }}</dt>
+          ><dt>{{ fieldLabel(key) }}</dt>
           <dd class="conflict-value">{{ display(value) }}</dd></template
         >
       </dl>
     </details>
     <fieldset v-for="field in fields" :key="field.key" class="mb-3">
-      <legend class="fs-6 fw-bold">{{ t(`fields.${field.key}`) }}</legend>
+      <legend class="fs-6 fw-bold">{{ fieldLabel(field.key) }}</legend>
       <p>
         {{ t('p2.initialVersion') }}:
         <span class="conflict-value">{{ display(field.initial) }}</span>

@@ -239,7 +239,7 @@ watch(
         data-bs-dismiss="modal"
         :disabled="isSubmitting || imagesBusy"
       >
-        {{ dirty ? t('actions.cancel') : t('actions.close') }}
+        {{ dirty ? t('actions.discardChanges') : t('actions.close') }}
       </button>
     </template>
   </BaseModal>

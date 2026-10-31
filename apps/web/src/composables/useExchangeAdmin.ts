@@ -466,7 +466,7 @@ export function useExchangeAdmin() {
 
     passwordForm.clear()
     if (newAdminPassword.value !== confirmAdminPassword.value) {
-      passwordError.value = t('exchangeDetail.adminAuth.passwordMismatch')
+      passwordForm.setMessage('exchangeDetail.adminAuth.passwordMismatch')
       return
     }
 

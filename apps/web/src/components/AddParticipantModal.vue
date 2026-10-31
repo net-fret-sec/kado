@@ -71,7 +71,7 @@ function handleSubmit() {
         {{ t('actions.add') }}
       </button>
       <button type="button" class="btn btn-link order-1" data-bs-dismiss="modal">
-        {{ t('actions.cancel') }}
+        {{ t('actions.discardChanges') }}
       </button>
     </template>
   </BaseModal>

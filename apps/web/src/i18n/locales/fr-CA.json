@@ -6,7 +6,7 @@
     "changeLanguage": "Changer la langue",
     "changeFontTheme": "Police",
     "changePaletteTheme": "Palette",
-    "cancel": "Abandonner les modifications",
+    "cancel": "Annuler",
     "createExchange": "Créer un échange",
     "edit": "Modifier",
     "delete": "Supprimer",
@@ -14,7 +14,8 @@
     "close": "Fermer",
     "save": "Enregistrer",
     "saveChanges": "Enregistrer les modifications",
-    "copy": "Copier"
+    "copy": "Copier",
+    "discardChanges": "Abandonner les modifications"
   },
   "languages": {
     "fr": "Français",
@@ -56,7 +57,7 @@
   },
   "home": {
     "hero": {
-      "eyebrow": "Échanges de cadeaux sans friction",
+      "eyebrow": "Échanges de cadeaux sans tracas",
       "title": "Organisez vos échanges de cadeaux, sans complications.",
       "description": "Créez un échange en quelques minutes, partagez les liens des participants et laissez Kado gérer les contraintes de la pige.",
       "micro": "Libre. Gratuit. Respectueux de la vie privée."
@@ -114,13 +115,13 @@
     "no": "Non"
   },
   "exchangeStatus": {
-    "undrawn": "Non pigée",
-    "drawn": "Pigée",
+    "undrawn": "Pige à venir",
+    "drawn": "Pige effectuée",
     "archived": "Archivée"
   },
   "fields": {
     "organizerName": "Organisateur",
-    "eventDate": "Date de l’échange de cadeaux",
+    "eventDate": "Date de remise des cadeaux",
     "budget": "Budget",
     "minWishlistSuggestions": "Nombre de suggestions minimal",
     "name": "Nom",
@@ -134,7 +135,8 @@
     "linkUrl": "Lien",
     "imageId": "Image enregistrée",
     "pendingImage": "Image sélectionnée",
-    "plannedDrawDate": "Date prévue de la pige"
+    "plannedDrawDate": "Date prévue de la pige",
+    "exchangeName": "Nom de l’échange"
   },
   "exchangeDetail": {
     "noParticipants": "Aucun participant pour cet échange.",
@@ -206,7 +208,7 @@
     "noSuggestions": "Aucune suggestion pour le moment.",
     "minWishlistSuggestionsHint": "Nombre de suggestions minimal : {count} suggestion | Nombre de suggestions minimal : {count} suggestions",
     "minWishlistSuggestionsError": "Ajoutez au moins {count} suggestion pour continuer. | Ajoutez au moins {count} suggestions pour continuer.",
-    "note": "Commentaire pour la personne qui m’a pigé (optionnel)",
+    "note": "Message pour la personne qui a pigé mon nom (facultatif)",
     "editingOpen": "Vous pouvez modifier vos informations et vos suggestions pour cet échange.",
     "editingClosed": "Les modifications des suggestions et du commentaire sont désactivées pour cet échange.",
     "saving": "Enregistrement...",
@@ -217,7 +219,7 @@
       "reorder": "Réordonner",
       "linkLabel": "Lien (facultatif)",
       "linkPlaceholder": "https://exemple.com/produit",
-      "titleRequired": "Nom ou description manquant(e)",
+      "titleRequired": "Indiquez un nom ou une description.",
       "linkUrlInvalid": "URL de lien invalide (http/https requis)."
     }
   },
@@ -331,7 +333,7 @@
     "confirmDeleteSuggestion": "Supprimer cette suggestion cadeau? Cette modification prendra effet après l’enregistrement.",
     "detailsOrganizer": "Organisé par {name}",
     "detailsBudget": "Le budget de cadeau est de {amount}.",
-    "detailsMinimumNone": "Il n’y a pas de minimum de suggestions à fournir pour les participants.",
+    "detailsMinimumNone": "Les suggestions de cadeaux sont facultatives.",
     "detailsMinimum": "Les participants doivent fournir au moins {count} suggestion pour effectuer la pige. | Les participants doivent fournir au moins {count} suggestions pour effectuer la pige.",
     "detailsLocked": "Il ne sera pas possible de modifier les suggestions une fois la pige effectuée.",
     "detailsOpen": "Les participants pourront modifier leurs suggestions une fois la pige effectuée.",

@@ -21,7 +21,10 @@ const emit = defineEmits<{
   remove: []
   validating: [value: boolean]
 }>()
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const limitNumber = computed(
+  () => new Intl.NumberFormat(locale.value, { maximumFractionDigits: 1 }),
+)
 const uniqueId = `suggestion-${useId()}`
 const files = useSuggestionFiles(),
   access = useImageAccess(),
@@ -214,9 +217,7 @@ onBeforeUnmount(() => {
     <div class="suggestion-fields">
       <template v-if="mode === 'edit'">
         <div class="form-field mb-2">
-          <label :for="`${uniqueId}-title`" class="form-label">{{
-            t('fields.title')
-          }}</label>
+          <label :for="`${uniqueId}-title`" class="form-label">{{ t('fields.title') }}</label>
           <input
             :id="`${uniqueId}-title`"
             :value="modelValue.title"
@@ -267,8 +268,8 @@ onBeforeUnmount(() => {
         {{ t('review.imageHint') }}
         <span v-if="limits">{{
           t('review.imageLimit', {
-            size: (limits.sourceBytes / 1048576).toFixed(1),
-            pixels: limits.pixels / 1000000,
+            size: limitNumber.format(limits.sourceBytes / 1048576),
+            pixels: limitNumber.format(limits.pixels / 1000000),
           })
         }}</span>
       </p>
