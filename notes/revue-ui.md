@@ -121,6 +121,10 @@
 - Page initiale de config (fuseau horaire, unité monétaire, délais de péremption des données, autre?)
 - Petite section FAQ. Questions à colliger.
 
+## FAQ
+
+- Possibilité de tester autant que l'on veut une pige puisqu'il est possible de l'annuler et que c'est à l'organisateur de communiquer les liens aux participants.
+
 <style>
 img {
   max-width:25%;
