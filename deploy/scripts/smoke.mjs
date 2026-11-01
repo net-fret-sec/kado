@@ -263,12 +263,12 @@ try {
   const afterMetrics = metrics();
   assert.equal(afterMetrics.counts.requests, beforeMetrics.counts.requests + 1);
   assert(!metricSource().includes("private-test"));
-  await api("GET", "/health");
-  await localFetch(base + "/health/web");
-  await api("POST", "/api/page-views", { page: "home" }, undefined, 204);
-  assert.deepEqual(metrics().counts, afterMetrics.counts, "Probes and old browser calls are excluded");
+  await api("HEAD", "/health");
+  await localFetch(base + "/", { method: "HEAD" });
+  assert.deepEqual(metrics().counts, afterMetrics.counts, "HEAD probes are excluded");
   await localFetch(base + "/metrics");
   assert.equal(metrics().counts.clientErrors, afterMetrics.counts.clientErrors + 1);
+  await api("POST", "/api/page-views", { page: "home" }, undefined, 204);
   // Real dump, destructive restore only in this explicitly disposable stack.
   const backups = path.join(scratch, "backups");
   await mkdir(backups);

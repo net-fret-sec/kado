@@ -23,11 +23,12 @@ class Monitoring(unittest.TestCase):
         m.record(self.db,self.now+offset,self.source(n,**kw),self.checks)
     def test_parser_counts_one_handler_and_discards_personal_labels(self):
         metrics='''process_start_time_seconds 100
-caddy_http_requests_total{handler="encode",server="srv0"} 6
-caddy_http_request_duration_seconds_count{handler="subroute",code="200"} 1000
-caddy_http_request_duration_seconds_count{handler="encode",code="200",uri="/p/secret",ip="192.0.2.42"} 3
-caddy_http_request_duration_seconds_count{handler="encode",code="404"} 2
-caddy_http_request_duration_seconds_count{handler="encode",code="502"} 1
+caddy_http_requests_total{handler="subroute",server="srv0"} 6
+caddy_http_request_duration_seconds_count{handler="file_server",code="200"} 1000
+caddy_http_request_duration_seconds_count{handler="subroute",code="200",method="HEAD"} 2000
+caddy_http_request_duration_seconds_count{handler="subroute",code="200",uri="/p/secret",ip="192.0.2.42"} 3
+caddy_http_request_duration_seconds_count{handler="subroute",code="404"} 2
+caddy_http_request_duration_seconds_count{handler="subroute",code="502"} 1
 '''
         got=m.parse_metrics(metrics)
         self.assertEqual(got,self.source(6,client=2,server=1))
@@ -35,7 +36,7 @@ caddy_http_request_duration_seconds_count{handler="encode",code="502"} 1
         self.assertNotIn('secret',str(list(self.db.iterdump())))
         self.assertNotIn('192.0.2.42',str(list(self.db.iterdump())))
     def test_missing_or_invalid_metrics_not_a_zero(self):
-        for raw in ['', 'process_start_time_seconds 100', 'process_start_time_seconds nan\ncaddy_http_requests_total{handler="encode"} 0']:
+        for raw in ['', 'process_start_time_seconds 100', 'process_start_time_seconds nan\ncaddy_http_requests_total{handler="subroute"} 0']:
             with self.assertRaises(ValueError):m.parse_metrics(raw)
     def test_initial_reference_then_increments_and_manual_reports(self):
         self.record(0,100)

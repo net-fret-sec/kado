@@ -31,8 +31,8 @@ def parse_metrics(text):
         if not m:
             continue
         labels = dict(re.findall(r'(\w+)="([^"\\]*)"', m[1]))
-        if labels.get('handler') != 'encode':
-            continue  # Every request traverses multiple handlers: count exactly one.
+        if labels.get('handler') != 'subroute' or labels.get('method') == 'HEAD':
+            continue  # The domain site is wrapped in one outer subroute; HEAD probes are excluded.
         code = labels.get('code', '')
         value = float(m[2])
         if not re.fullmatch(r'(?:[1-5]\d\d|0)', code) or not math.isfinite(value) or value < 0 or not value.is_integer():
@@ -55,14 +55,10 @@ def run(args, *, input=None, timeout=12):
 
 def probe(base, path, kind):
     try:
-        with urllib.request.urlopen(base + path, timeout=6) as response:
-            body = response.read(1024 * 1024)
-            if response.status != 200:
-                return False
-            if kind == 'web':
-                return b'<div id="app"></div>' in body and b'type="module"' in body
-            data = json.loads(body)
-            return data.get('ok') is True and (kind != 'database' or data.get('db', {}).get('ok') is True)
+        request = urllib.request.Request(base + path, method='HEAD')
+        with urllib.request.urlopen(request, timeout=6) as response:
+            expected = 'text/html' if kind == 'web' else 'application/json'
+            return response.status == 200 and expected in response.headers.get('Content-Type', '')
     except (OSError, ValueError):
         return False
 
@@ -151,7 +147,7 @@ def gather(root, config):
     base = (domain if domain.startswith(('http://', 'https://')) else 'https://' + domain).rstrip('/')
     with ThreadPoolExecutor(max_workers=4) as pool:
         futures = {key: pool.submit(probe, base, path, key) for key, path in
-                   [('web','/health/web'), ('api','/health/live'), ('database','/health')]}
+                   [('web','/'), ('api','/health/live'), ('database','/health')]}
         checks = {key: f.result() for key, f in futures.items()}
     raw = run(compose + ['exec','-T','caddy','wget','-T','5','-qO-','http://127.0.0.1:2019/metrics'])
     try:
@@ -214,7 +210,7 @@ def render(report):
         print(f"  {label} : {t['requests']} requêtes · {t['clientErrors']} réponses 4xx · {t['serverErrors']} réponses 5xx")
         print(f"    Minutes observées : {t['observedMinutes']} · manquantes : {t['missingMinutes']} · ruptures : {t['gaps']} · redémarrages Caddy détectés : {t['restarts']}")
         print(f"    Minutes avec échec de sonde : site {t['webFailures']} · API {t['apiFailures']} · base {t['databaseFailures']} · mesures {t['metricFailures']}")
-    print('\nFichiers, robots et appels automatiques inclus ; sondes et ancien compteur navigateur exclus.')
+    print('\nFichiers, robots et appels automatiques inclus ; requêtes HEAD (dont les sondes) exclues.')
     print('Pas de mesure des visiteurs uniques ni des pages servies uniquement depuis le cache.')
     print('Totaux par minute sur 7 jours, sans IP ni liens personnels, hors sauvegardes.')
     print('Une rupture de collecte ou un redémarrage peut laisser une courte période non mesurée.')

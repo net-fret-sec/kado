@@ -1,14 +1,9 @@
 {
   email {$ACME_EMAIL}
   metrics
-  # Metrics use the outermost handler: keep encode ahead of the security headers.
-  order encode before header
 }
 {$DOMAIN} {
-  # One outer encode handler provides one metric observation per business request.
-  # Health probes and obsolete browser telemetry do not inflate activity totals.
-  @traffic not path /health /health/* /api/page-views
-  encode @traffic zstd gzip
+  encode zstd gzip
   header {
     Strict-Transport-Security "max-age=31536000"
     X-Content-Type-Options "nosniff"
@@ -18,11 +13,6 @@
     -Server
   }
   route {
-    handle /health/web {
-      root * /srv
-      rewrite * /index.html
-      file_server
-    }
     @oldCounter {
       path /api/page-views
       method POST

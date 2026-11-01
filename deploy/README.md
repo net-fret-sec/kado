@@ -69,21 +69,22 @@ Un autre fichier Compose peut être passé en premier argument.
 
 Le compteur navigateur est retiré. La migration `006_remove_page_views.sql`
 supprime uniquement ses deux anciennes tables ; les échanges sont conservés.
-L’ancien POST `/api/page-views` renvoie encore 204 sans rien compter pour les
-clients en cache. Il n’y a plus de requête de télémétrie dans le nouveau navigateur.
+L’ancien POST `/api/page-views` renvoie encore 204 sans stocker de pages pour les
+clients en cache (cela reste une requête HTTP dans les totaux serveur). Il n’y a plus de requête de télémétrie dans le nouveau navigateur.
 
 Caddy expose ses compteurs uniquement sur son interface d’administration interne
 `127.0.0.1:2019/metrics` (port non publié). Aucun journal d’accès détaillé n’est
 activé. Le collecteur ne conserve que la somme de trois compteurs du seul handler
-externe `encode` : réponses terminées, réponses 4xx et réponses 5xx. Ne jamais
+externe `subroute` qui enveloppe le site à domaine configuré : réponses terminées, réponses 4xx et réponses 5xx. Ne jamais
 additionner les handlers : une requête en traverse plusieurs. Les métriques
 brutes ne sont pas écrites sur disque ; ni IP, URI, paramètres, jetons, noms,
 référents, méthodes HTTP libres ou identifiants visiteurs ne sont conservés.
 
 `kado-monitor.timer` exécute une collecte toutes les minutes ; `status:prod`
-effectue aussi un relevé frais. Le collecteur vérifie en HTTPS le document web
-(`/health/web`), le processus API (`/health/live`) et la base via l’API (`/health`).
-Ces sondes et l’ancien compteur sont exclus des mesures d’activité. Les requêtes
+effectue aussi un relevé frais. Le collecteur vérifie en HTTPS, par HEAD, le statut et le type de contenu de
+l’accueil (`/`), du processus API (`/health/live`) et de la base via l’API (`/health`).
+Les requêtes HEAD, y compris ces sondes, sont exclues des mesures d’activité.
+Les sondes ne valident pas le rendu JavaScript ; la recette navigateur le fait à la livraison. Les requêtes
 API, fichiers, robots et rafraîchissements automatiques sont inclus ; ce ne sont
 ni des pages vues ni des visiteurs uniques. Une page uniquement en cache ne
 produit pas de requête serveur. DNT/GPC ne modifient pas ces totaux techniques.
