@@ -153,7 +153,7 @@ def gather(root, config):
         futures = {key: pool.submit(probe, base, path, key) for key, path in
                    [('web','/health/web'), ('api','/health/live'), ('database','/health')]}
         checks = {key: f.result() for key, f in futures.items()}
-    raw = run(compose + ['exec','-T','caddy','wget','-qO-','http://127.0.0.1:2019/metrics'])
+    raw = run(compose + ['exec','-T','caddy','wget','-T','5','-qO-','http://127.0.0.1:2019/metrics'])
     try:
         metric = parse_metrics(raw or '')
     except ValueError:

@@ -1,6 +1,8 @@
 {
   email {$ACME_EMAIL}
   metrics
+  # Metrics use the outermost handler: keep encode ahead of the security headers.
+  order encode before header
 }
 {$DOMAIN} {
   # One outer encode handler provides one metric observation per business request.
