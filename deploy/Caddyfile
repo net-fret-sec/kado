@@ -1,8 +1,12 @@
 {
   email {$ACME_EMAIL}
+  metrics
 }
 {$DOMAIN} {
-  encode zstd gzip
+  # One outer encode handler provides one metric observation per business request.
+  # Health probes and obsolete browser telemetry do not inflate activity totals.
+  @traffic not path /health /health/* /api/page-views
+  encode @traffic zstd gzip
   header {
     Strict-Transport-Security "max-age=31536000"
     X-Content-Type-Options "nosniff"
@@ -12,6 +16,17 @@
     -Server
   }
   route {
+    handle /health/web {
+      root * /srv
+      rewrite * /index.html
+      file_server
+    }
+    @oldCounter {
+      path /api/page-views
+      method POST
+    }
+    respond @oldCounter 204
+    respond /metrics 404
     @api path /api /api/* /health /health/*
     reverse_proxy @api api:3000 {
       header_up -Forwarded

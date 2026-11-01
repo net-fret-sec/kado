@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Run the report inside the existing API container to use its actual DB and timezone.
+# Host-side reporting stays available when the API or PostgreSQL is down.
+# shellcheck source=deploy/scripts/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 config=deploy/.env.production
 format=text
@@ -10,7 +11,7 @@ for arg in "$@"; do
     --json) format=json ;;
     --help|-h)
       echo "Usage: bash deploy/scripts/status.sh [deploy/.env.production] [--json]"
-      echo "Bilan agrégé en lecture seule. Les services API et PostgreSQL doivent fonctionner."
+      echo "Échanges lus sans modification ; état des services et totaux serveur sur sept jours."
       exit 0 ;;
     -*) echo "Option inconnue : $arg" >&2; exit 2 ;;
     *)
@@ -19,4 +20,4 @@ for arg in "$@"; do
   esac
 done
 load_config "$config"
-compose exec -T api node --input-type=module - "$format" < "$ROOT/deploy/scripts/status.mjs"
+python3 "$ROOT/deploy/scripts/monitor.py" "$ROOT" "$ENV_FILE" --format "$format"

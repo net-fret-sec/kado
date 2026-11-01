@@ -75,6 +75,8 @@ elif [[ "$*" == *"ps -a -q db"* ]]; then echo existing-db; fi
   await writeFile(path.join(bundle, "images.tar.gz"), "tampered");
   assert.notEqual(invoke("release.sh", [bundle]).status, 0);
   assert.equal(await readFile(trace, "utf8"), "");
+  const monitorTests = spawnSync("python3", [path.join(root, "deploy/scripts/test-monitor.py")], { stdio: "inherit" });
+  assert.equal(monitorTests.status, 0, "Server monitoring regression tests");
   console.log(
     "Operations: failed dumps, verification and migrations abort safely; tampered release rejected.",
   );

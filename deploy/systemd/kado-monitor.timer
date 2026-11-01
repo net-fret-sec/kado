@@ -1,0 +1,9 @@
+[Unit]
+Description=Check Kado every minute, retain seven days
+[Timer]
+OnBootSec=30s
+OnCalendar=*-*-* *:*:00
+Persistent=true
+AccuracySec=1s
+[Install]
+WantedBy=timers.target

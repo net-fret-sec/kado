@@ -255,11 +255,20 @@ try {
   } finally {
     for (const name of clients) run(["docker", "rm", "-f", name]);
   }
-  // Anonymous totals exist before backup, but their data must not survive restore.
+  // Caddy metrics count real requests, including DNT/GPC, without personal labels.
+  const metricSource = () => compose("exec", "-T", "caddy", "wget", "-qO-", "http://127.0.0.1:2019/metrics");
+  const metrics = () => JSON.parse(run(["python3", "deploy/scripts/monitor.py", "--parse-metrics"], { input: metricSource() }));
+  const beforeMetrics = metrics();
+  await localFetch(base + "/?private-test=secret", { headers: { DNT: "1", "Sec-GPC": "1" } });
+  const afterMetrics = metrics();
+  assert.equal(afterMetrics.counts.requests, beforeMetrics.counts.requests + 1);
+  assert(!metricSource().includes("private-test"));
+  await api("GET", "/health");
+  await localFetch(base + "/health/web");
   await api("POST", "/api/page-views", { page: "home" }, undefined, 204);
-  const countViews = () => compose("exec", "-T", "db", "psql", "-U", "kado_test", "-d", db,
-    "-Atc", "SELECT COALESCE(sum(views), 0) FROM page_view_counts").trim();
-  assert.equal(countViews(), "1");
+  assert.deepEqual(metrics().counts, afterMetrics.counts, "Probes and old browser calls are excluded");
+  await localFetch(base + "/metrics");
+  assert.equal(metrics().counts.clientErrors, afterMetrics.counts.clientErrors + 1);
   // Real dump, destructive restore only in this explicitly disposable stack.
   const backups = path.join(scratch, "backups");
   await mkdir(backups);
@@ -284,9 +293,6 @@ try {
     (await api("GET", `/api/exchanges/${id}`, undefined, token)).name,
     "Smoke",
   );
-  assert.equal(countViews(), "0", "Backups must exclude anonymous traffic counts");
-  assert.equal(compose("exec", "-T", "db", "psql", "-U", "kado_test", "-d", db,
-    "-Atc", "SELECT count(*) FROM page_view_collection WHERE started_at > now() - interval '1 minute'").trim(), "1");
   const restoredImage = Buffer.from(await (await localFetch(base+imageBase+'/'+image.imageId,{headers:{Authorization:'Bearer '+token}})).arrayBuffer());
   assert.deepEqual(restoredImage,originalImage,'Backup restores the exact optimized image bytes');
   const corrupt = path.join(scratch, "corrupt.dump");
@@ -298,6 +304,7 @@ try {
     }),
   );
   await api("GET", "/health");
+  assert.equal(compose("exec", "-T", "db", "psql", "-U", "kado_test", "-d", db, "-Atc", "SELECT count(*) FROM information_schema.tables WHERE table_name IN ('page_view_counts','page_view_collection')").trim(), "0");
   // Browser verification against the production assets, CSP and real API.
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
@@ -319,14 +326,9 @@ try {
       }),
     );
   });
-  const pageCount = page.waitForResponse(r => r.url().endsWith("/api/page-views") && r.request().method() === "POST");
+  const browserCounters = [];
+  page.on("request", r => { if (r.url().endsWith("/api/page-views")) browserCounters.push(r.url()); });
   await page.goto(base + "/");
-  const counted = await pageCount;
-  assert.equal(counted.status(), 204);
-  assert.deepEqual(counted.request().postDataJSON(), { page: "home" });
-  const countHeaders = await counted.request().allHeaders();
-  assert(!countHeaders.referer && !countHeaders.cookie && !countHeaders.authorization);
-  assert.equal(countViews(), "1", "An initial home load should count exactly once");
   await page.locator("#app button").first().waitFor();
   await page
     .getByRole("button", { name: /créer|create/i })
@@ -356,6 +358,7 @@ try {
     path:
       process.env.KADO_SMOKE_SCREENSHOT ?? path.join(scratch, "browser.png"),
   });
+  assert.deepEqual(browserCounters, [], "No browser telemetry request remains");
   const fr = JSON.parse(
     await readFile(
       path.join(root, "apps/web/src/i18n/locales/fr-CA.json"),
@@ -439,6 +442,24 @@ try {
       }
     }
   } });
+  // Host report stays usable independently of API and database availability.
+  const caFile = path.join(scratch, "caddy-root.crt");
+  run(["docker", "cp", compose("ps", "-q", "caddy") + ":/data/caddy/pki/authorities/local/root.crt", caFile]);
+  const monitorEnv = { ...opsEnv, KADO_MONITOR_DIR: path.join(scratch, "monitor"),
+    KADO_MONITOR_URL: base, KADO_BACKUP_DIR: backups, SSL_CERT_FILE: caFile };
+  function monitorReport() {
+    const result = spawnSync("bash", ["deploy/scripts/status.sh", envFile, "--json"], {
+      cwd: root, env: monitorEnv, encoding: "utf8", timeout: 60000,
+    });
+    assert([0, 1].includes(result.status), "Host report unavailable: " + result.stderr);
+    return JSON.parse(result.stdout);
+  }
+  const healthyReport = monitorReport();
+  assert.deepEqual(healthyReport.health, { web: true, api: true, database: true });
+  assert(healthyReport.metricsAvailable && healthyReport.exchanges.total > 0);
+  assert.equal(healthyReport.serverActivity.last24Hours.requests, 0, "First sample is a baseline");
+  await localFetch(base + "/", { headers: { DNT: "1", "Sec-GPC": "1" } });
+  assert.equal(monitorReport().serverActivity.last24Hours.requests, 1, "Host checks do not inflate request totals");
   // Check SIGTERM readiness and clean exit using the actual Node process.
   const container = compose("ps", "-q", "api");
   compose("stop", "-t", "15", "api");
@@ -446,11 +467,22 @@ try {
     run(["docker", "inspect", "--format", "{{.State.ExitCode}}", container]),
     "0",
   );
+  assert.equal((await localFetch(base + "/api/config")).status, 502);
+  const stoppedReport = monitorReport();
+  assert.deepEqual(stoppedReport.health, { web: true, api: false, database: false });
+  assert.equal(stoppedReport.exchanges, null);
+  assert(stoppedReport.metricsAvailable);
+  assert.equal(stoppedReport.serverActivity.last24Hours.serverErrors, 1);
+  assert.equal(stoppedReport.serverActivity.last24Hours.requests, 2);
   compose("up", "-d", "--wait", "--wait-timeout", "90", "api");
   // Failure health must be 503 while liveness remains successful.
   compose("stop", "db");
   await api("GET", "/health", undefined, undefined, 503);
   await api("GET", "/health/live");
+  const databaseDown = monitorReport();
+  assert.deepEqual(databaseDown.health, { web: true, api: true, database: false });
+  assert.equal(databaseDown.exchanges, null);
+  console.log("Host monitoring: real traffic despite DNT/GPC, no browser beacon, probe exclusion, HTTP errors and reports during API/database outages verified.");
   console.log(
     "Production images: API lifecycle, Caddy/CSP, IP quotas, backup/restore, browser and shutdown verified.",
   );

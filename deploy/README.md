@@ -59,48 +59,73 @@ Les participants retirés sont exclus des compteurs de participants/suggestions.
 Les échanges supprimés ne sont plus mesurables ; ce bilan n’est pas un historique.
 Les fenêtres de création sont glissantes (24, 168 et 720 heures).
 
-Le script utilise la configuration réelle du conteneur API, une transaction
-PostgreSQL en lecture seule et des délais limités. Il ne fournit aucun nom,
-lien d’accès, mot de passe ou contenu de suggestion. Il ne démarre ni ne redémarre
-aucun service et échoue explicitement si la base n’est pas accessible. Les
-services API et PostgreSQL doivent fonctionner. Un autre fichier de configuration
-Compose peut être passé en premier argument, comme pour les autres scripts.
+Le bilan lit les données des échanges dans une transaction PostgreSQL en lecture
+seule, avec des délais limités. Si l’API ou la base est indisponible, il présente
+quand même l’état des services et signale explicitement l’absence de ces données.
+En JSON, `exchanges` et `activeExchanges` sont alors `null`, jamais remplacés par zéro.
+Un autre fichier Compose peut être passé en premier argument.
 
-## Fréquentation minimale
+## Surveillance serveur, sans suivi des visiteurs
 
-Le même bilan inclut les chargements signalés sur 24 heures, leur répartition
-accueil / organisateur / participant, le total sur 7 jours et les totaux par date
-locale. La date de début est affichée : aucun historique ne peut être reconstitué
-avant la mise en service. Une fenêtre de 24 heures inclut la minute de début
-entière (précision à la minute). Les jours aux bornes sont partiels ; le fuseau
-et les changements d’heure sont pris en compte.
+Le compteur navigateur est retiré. La migration `006_remove_page_views.sql`
+supprime uniquement ses deux anciennes tables ; les échanges sont conservés.
+L’ancien POST `/api/page-views` renvoie encore 204 sans rien compter pour les
+clients en cache. Il n’y a plus de requête de télémétrie dans le nouveau navigateur.
 
-En version de production, une navigation réussie du routeur (y compris le premier
-chargement et un rechargement) envoie seulement une catégorie fixe à
-`POST /api/page-views`. Pas de cookie, jeton, référent, URL personnelle, stockage
-local, identifiant de visiteur ou file de réessai. DNT et GPC sont respectés.
-Les changements de langue, requêtes automatiques de rafraîchissement et fichiers
-statiques n’incrémentent pas le compteur. Une page participant invalide ou une
-page de connexion organisateur compte comme un chargement de cette catégorie.
-Les visiteurs uniques et les humains ne sont pas identifiables ; les robots
-exécutant JavaScript, les rechargements et les tests peuvent compter. Les anciens
-clients en cache, bloqueurs, erreurs réseau et navigations hors ligne peuvent
-manquer. Les pages restent utilisables si le compteur échoue.
+Caddy expose ses compteurs uniquement sur son interface d’administration interne
+`127.0.0.1:2019/metrics` (port non publié). Aucun journal d’accès détaillé n’est
+activé. Le collecteur ne conserve que la somme de trois compteurs du seul handler
+externe `encode` : réponses terminées, réponses 4xx et réponses 5xx. Ne jamais
+additionner les handlers : une requête en traverse plusieurs. Les métriques
+brutes ne sont pas écrites sur disque ; ni IP, URI, paramètres, jetons, noms,
+référents, méthodes HTTP libres ou identifiants visiteurs ne sont conservés.
 
-L’API valide strictement la catégorie, applique les protections existantes et
-incrémente atomiquement un total par minute UTC et catégorie. Aucun historique
-individuel de ces requêtes n’est ajouté au journal d’accès API. Les protections
-contre les abus continuent d’utiliser temporairement les IP **en mémoire**, comme
-avant ; elles ne sont ni enregistrées ni utilisées pour le bilan.
+`kado-monitor.timer` exécute une collecte toutes les minutes ; `status:prod`
+effectue aussi un relevé frais. Le collecteur vérifie en HTTPS le document web
+(`/health/web`), le processus API (`/health/live`) et la base via l’API (`/health`).
+Ces sondes et l’ancien compteur sont exclus des mesures d’activité. Les requêtes
+API, fichiers, robots et rafraîchissements automatiques sont inclus ; ce ne sont
+ni des pages vues ni des visiteurs uniques. Une page uniquement en cache ne
+produit pas de requête serveur. DNT/GPC ne modifient pas ces totaux techniques.
 
-Les deux tables `page_view_counts` et `page_view_collection` ne contiennent que
-les compteurs et la date de mise en service. Les compteurs de plus de 7 jours
-sont effacés au démarrage puis chaque minute (retard de purge possible d’une
-minute en fonctionnement normal), et exclus du bilan immédiatement. Aucun
-nettoyage ne tourne pendant l’arrêt de l’API ; il reprend avant son écoute.
-Leurs données sont exclues des dumps de sauvegarde : une restauration repart
-avec des compteurs vides et une nouvelle date de collecte. Les échanges et leurs
-sauvegardes restent inchangés. La migration est additive.
+L’historique de totaux par minute et de résultats de sondes est dans
+`/var/lib/kado-monitor/monitor.sqlite3` (dossier 700, fichier 600), hors des dumps
+PostgreSQL et sans interface publique. Rétention de 7 jours, purge à chaque
+relevé avec effacement sécurisé SQLite. Un serveur arrêté ne peut pas purger ;
+la purge reprend au prochain relevé. Seuls la date initiale et le point de
+référence récent du compteur cumulatif sont conservés pour calculer les écarts.
+Les tables de l’ancien compteur restent exclues des dumps pré-migration.
+
+La première collecte établit une référence sans inventer d’historique. Les
+écarts sont affectés à la minute du relevé (résolution d’environ une minute).
+Les coupures de plus de 3 minutes entraînent une nouvelle référence : leur
+trafic n’est pas attribué artificiellement à une minute récente. Une reprise
+Caddy peut perdre la fin de la minute précédente ; ruptures, reprises, minutes
+manquantes et échecs de collecte sont affichés. Ce bilan n’est pas un engagement
+de disponibilité ni une alerte externe. Un VPS inaccessible ne peut pas produire
+son propre bilan ; l’échec SSH reste visible.
+
+Le statut comprend aussi l’état des conteneurs et l’état de la sauvegarde :
+fichier non vide de moins de 36 heures, minuteur actif et résultat du dernier
+travail. Le dump a été vérifié lors de sa création ; aucun test de restauration
+n’est prétendu à chaque relevé. Code de sortie du bilan : 0 si les contrôles
+actuels sont bons, 1 si dégradés/incomplets (avec rapport), 2 si aucun rapport
+ne peut être produit. Une collecte planifiée enregistre les sondes en échec
+sans s’interrompre pour autant.
+
+Installation initiale du collecteur sur le VPS après la livraison :
+
+```bash
+install -m 644 deploy/systemd/kado-monitor.{service,timer} /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now kado-monitor.timer
+systemctl start kado-monitor.service
+```
+
+Variables pour une installation différente ou une recette isolée :
+`KADO_MONITOR_DIR`, `KADO_MONITOR_URL`, `KADO_BACKUP_DIR`, `KADO_COMPOSE_FILE`.
+Le script n’installe pas les unités tout seul. Le contrôle s’exécute sur l’hôte
+(Python 3 avec SQLite, `docker`, `systemctl`), même quand les conteneurs sont arrêtés.
 
 ## Sauvegarde et restauration
 
