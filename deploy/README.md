@@ -66,6 +66,42 @@ aucun service et échoue explicitement si la base n’est pas accessible. Les
 services API et PostgreSQL doivent fonctionner. Un autre fichier de configuration
 Compose peut être passé en premier argument, comme pour les autres scripts.
 
+## Fréquentation minimale
+
+Le même bilan inclut les chargements signalés sur 24 heures, leur répartition
+accueil / organisateur / participant, le total sur 7 jours et les totaux par date
+locale. La date de début est affichée : aucun historique ne peut être reconstitué
+avant la mise en service. Une fenêtre de 24 heures inclut la minute de début
+entière (précision à la minute). Les jours aux bornes sont partiels ; le fuseau
+et les changements d’heure sont pris en compte.
+
+En version de production, une navigation réussie du routeur (y compris le premier
+chargement et un rechargement) envoie seulement une catégorie fixe à
+`POST /api/page-views`. Pas de cookie, jeton, référent, URL personnelle, stockage
+local, identifiant de visiteur ou file de réessai. DNT et GPC sont respectés.
+Les changements de langue, requêtes automatiques de rafraîchissement et fichiers
+statiques n’incrémentent pas le compteur. Une page participant invalide ou une
+page de connexion organisateur compte comme un chargement de cette catégorie.
+Les visiteurs uniques et les humains ne sont pas identifiables ; les robots
+exécutant JavaScript, les rechargements et les tests peuvent compter. Les anciens
+clients en cache, bloqueurs, erreurs réseau et navigations hors ligne peuvent
+manquer. Les pages restent utilisables si le compteur échoue.
+
+L’API valide strictement la catégorie, applique les protections existantes et
+incrémente atomiquement un total par minute UTC et catégorie. Aucun historique
+individuel de ces requêtes n’est ajouté au journal d’accès API. Les protections
+contre les abus continuent d’utiliser temporairement les IP **en mémoire**, comme
+avant ; elles ne sont ni enregistrées ni utilisées pour le bilan.
+
+Les deux tables `page_view_counts` et `page_view_collection` ne contiennent que
+les compteurs et la date de mise en service. Les compteurs de plus de 7 jours
+sont effacés au démarrage puis chaque minute (retard de purge possible d’une
+minute en fonctionnement normal), et exclus du bilan immédiatement. Aucun
+nettoyage ne tourne pendant l’arrêt de l’API ; il reprend avant son écoute.
+Leurs données sont exclues des dumps de sauvegarde : une restauration repart
+avec des compteurs vides et une nouvelle date de collecte. Les échanges et leurs
+sauvegardes restent inchangés. La migration est additive.
+
 ## Sauvegarde et restauration
 
 Sauvegarde manuelle :

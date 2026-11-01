@@ -25,7 +25,7 @@ backup_database() {
   umask 077
   mkdir -p "$dir"
   temp="$(mktemp "$dir/.kado-XXXXXXXX.dump")"
-  if ! compose exec -T db pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc > "$temp"; then rm -f "$temp"; return 1; fi
+  if ! compose exec -T db pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc --exclude-table-data=public.page_view_counts --exclude-table-data=public.page_view_collection > "$temp"; then rm -f "$temp"; return 1; fi
   if [[ ! -s "$temp" ]] || ! compose exec -T db pg_restore --list < "$temp" >/dev/null; then rm -f "$temp"; return 1; fi
   out="$dir/kado-$(date -u +%Y%m%dT%H%M%S)-$(basename "$temp" .dump).dump"
   mv "$temp" "$out"

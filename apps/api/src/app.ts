@@ -1,3 +1,4 @@
+import pageViewRoutes from "./routes/page-views.routes";
 import imageRoutes from "./routes/images.routes";
 import express from "express";
 import cors from "cors";
@@ -22,6 +23,11 @@ export function createApp() {
   app.use((req, res, next) => {
     res.locals.requestId = crypto.randomUUID();
     res.setHeader("X-Request-Id", res.locals.requestId);
+    // These anonymous counters do not need a second, per-request access history.
+    if (req.path === "/api/page-views") {
+      next();
+      return;
+    }
     const start = performance.now();
     res.once("finish", () =>
       console.info(
@@ -81,6 +87,7 @@ export function createApp() {
       },
     }),
   );
+  app.use("/api", pageViewRoutes);
   app.use("/api", imageRoutes());
   app.use("/api", publicRoutes);
   app.use("/api/exchanges", exchangesRoutes);

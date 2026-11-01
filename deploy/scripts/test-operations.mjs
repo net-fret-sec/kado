@@ -65,6 +65,8 @@ elif [[ "$*" == *"ps -a -q db"* ]]; then echo existing-db; fi
   );
   const log = await readFile(trace, "utf8");
   assert(!log.includes("up -d --wait --wait-timeout 90 api caddy"));
+  assert(log.includes("--exclude-table-data=public.page_view_counts"));
+  assert(log.includes("--exclude-table-data=public.page_view_collection"));
   assert(!log.includes("dropdb"));
   await writeFile(trace, "");
   assert.notEqual(invoke("release.sh", [bundle], { FAIL: "start" }).status, 0);

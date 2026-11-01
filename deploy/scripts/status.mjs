@@ -58,6 +58,33 @@ try {
       )
     ) AS report FROM exchange_state
   `, [zone]);
+  const { rows: [{ traffic }] } = await db.query(`
+    WITH recent AS (
+      SELECT minute, page, views FROM page_view_counts
+      WHERE minute >= CURRENT_TIMESTAMP - interval '7 days'
+        AND minute <= CURRENT_TIMESTAMP
+    )
+    SELECT json_build_object(
+      'collectionStartedAt', (SELECT started_at FROM page_view_collection WHERE singleton),
+      'retentionDays', 7,
+      'last24HoursFrom', date_trunc('minute', CURRENT_TIMESTAMP) - interval '24 hours',
+      'last24Hours', (SELECT COALESCE(sum(views), 0) FROM recent
+        WHERE minute >= date_trunc('minute', CURRENT_TIMESTAMP) - interval '24 hours'),
+      'byPageLast24Hours', (SELECT json_object_agg(page, total) FROM (
+        SELECT kinds.page, COALESCE(sum(r.views), 0) AS total
+        FROM (VALUES ('home'), ('organizer'), ('participant')) kinds(page)
+        LEFT JOIN recent r ON r.page = kinds.page
+          AND r.minute >= date_trunc('minute', CURRENT_TIMESTAMP) - interval '24 hours'
+        GROUP BY kinds.page
+      ) categories),
+      'last7Days', (SELECT COALESCE(sum(views), 0) FROM recent),
+      'byDay', (SELECT COALESCE(json_agg(days ORDER BY days.date DESC), '[]'::json) FROM (
+        SELECT (minute AT TIME ZONE $1)::date AS date, sum(views) AS views
+        FROM recent GROUP BY (minute AT TIME ZONE $1)::date
+      ) days)
+    ) AS traffic
+  `, [zone]);
+  report.traffic = traffic;
   await db.query("COMMIT");
   if (format === "json") {
     console.log(JSON.stringify(report, null, 2));
@@ -89,7 +116,25 @@ Parmi les échanges actifs :
 
 Actif = non archivé, sans mesure des visites ou de l’activité récente.
 Archivage : 31 jours après la date de remise, à minuit dans le fuseau indiqué.
-Sans date de remise, un échange reste actif. Les échanges supprimés ne sont pas comptés.`);
+Sans date de remise, un échange reste actif. Les échanges supprimés ne sont pas comptés.
+
+Chargements de pages signalés (pas des visiteurs uniques) :
+  Collecte depuis : ${traffic.collectionStartedAt ? new Intl.DateTimeFormat("fr-CA", {
+    timeZone, dateStyle: "long", timeStyle: "medium",
+  }).format(new Date(traffic.collectionStartedAt)) : "indisponible"}
+  Dernières 24 heures, à la minute près : ${n(traffic.last24Hours)}
+    Accueil : ${n(traffic.byPageLast24Hours.home)}
+    Organisateur : ${n(traffic.byPageLast24Hours.organizer)}
+    Participant : ${n(traffic.byPageLast24Hours.participant)}
+  7 derniers jours : ${n(traffic.last7Days)}
+  Par date locale (jours partiels aux bornes) :
+${traffic.byDay.length ? traffic.byDay.map(day => `    ${day.date} : ${n(day.views)}`).join("\n") : "    Aucun chargement signalé."}
+
+Compteurs agrégés uniquement, conservés 7 jours et exclus des sauvegardes.
+Rechargements et robots possibles inclus ; sans JavaScript, hors ligne,
+avec blocage de la requête ou DNT/GPC activé : chargements non comptés.
+Aucune IP, URL personnelle ou identité de visiteur conservée dans ces compteurs.
+Une consultation ne prouve ni une connexion réussie ni une création d’échange.`);
   }
 } catch (error) {
   // Do not print SQL, connection strings, credentials or database error details.

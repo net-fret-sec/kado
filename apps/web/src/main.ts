@@ -4,6 +4,7 @@ import { registerSW } from 'virtual:pwa-register'
 
 import App from './App.vue'
 import router from './router'
+import { registerPageViews } from './page-views'
 import { i18n, setupI18n } from './i18n'
 import { defaultTheme, setTheme } from './composables/useTheme'
 import { defaultPaletteTheme, setPaletteTheme } from './composables/usePaletteTheme'
@@ -27,6 +28,7 @@ async function bootstrap() {
   const app = createApp(App)
 
   app.use(createPinia())
+  if (import.meta.env.PROD) registerPageViews(router)
   app.use(router)
   app.use(i18n)
 

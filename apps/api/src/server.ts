@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { cleanPageViews } from "./services/page-views.service";
 import { createApp } from "./app";
 import { getConfig } from "./lib/config";
 import { localAdminToolsEnabled } from "./lib/local-admin-tools";
@@ -10,6 +11,20 @@ async function bootstrap() {
   const config = getConfig();
   if (!(await checkDatabaseHealth()).ok)
     throw new Error("Database is not ready.");
+  await cleanPageViews();
+  let cleaningViews = false;
+  const viewCleanup = setInterval(async () => {
+    if (cleaningViews) return;
+    cleaningViews = true;
+    try {
+      await cleanPageViews();
+    } catch {
+      console.error(JSON.stringify({ event: "page_view_cleanup_failed" }));
+    } finally {
+      cleaningViews = false;
+    }
+  }, 60000);
+  viewCleanup.unref();
   await runImageCleanup();
   let cleaning = false;
   const cleanup = setInterval(async () => {
@@ -35,6 +50,7 @@ async function bootstrap() {
     if (stopping) return;
     stopping = true;
     clearInterval(cleanup);
+    clearInterval(viewCleanup);
     const deadline = setTimeout(() => {
       server.closeAllConnections();
       void Promise.all([stopDrawWorker(), stopImageWorker()]).finally(() =>

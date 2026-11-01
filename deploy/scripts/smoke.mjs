@@ -255,6 +255,11 @@ try {
   } finally {
     for (const name of clients) run(["docker", "rm", "-f", name]);
   }
+  // Anonymous totals exist before backup, but their data must not survive restore.
+  await api("POST", "/api/page-views", { page: "home" }, undefined, 204);
+  const countViews = () => compose("exec", "-T", "db", "psql", "-U", "kado_test", "-d", db,
+    "-Atc", "SELECT COALESCE(sum(views), 0) FROM page_view_counts").trim();
+  assert.equal(countViews(), "1");
   // Real dump, destructive restore only in this explicitly disposable stack.
   const backups = path.join(scratch, "backups");
   await mkdir(backups);
@@ -279,6 +284,9 @@ try {
     (await api("GET", `/api/exchanges/${id}`, undefined, token)).name,
     "Smoke",
   );
+  assert.equal(countViews(), "0", "Backups must exclude anonymous traffic counts");
+  assert.equal(compose("exec", "-T", "db", "psql", "-U", "kado_test", "-d", db,
+    "-Atc", "SELECT count(*) FROM page_view_collection WHERE started_at > now() - interval '1 minute'").trim(), "1");
   const restoredImage = Buffer.from(await (await localFetch(base+imageBase+'/'+image.imageId,{headers:{Authorization:'Bearer '+token}})).arrayBuffer());
   assert.deepEqual(restoredImage,originalImage,'Backup restores the exact optimized image bytes');
   const corrupt = path.join(scratch, "corrupt.dump");
@@ -311,7 +319,14 @@ try {
       }),
     );
   });
+  const pageCount = page.waitForResponse(r => r.url().endsWith("/api/page-views") && r.request().method() === "POST");
   await page.goto(base + "/");
+  const counted = await pageCount;
+  assert.equal(counted.status(), 204);
+  assert.deepEqual(counted.request().postDataJSON(), { page: "home" });
+  const countHeaders = await counted.request().allHeaders();
+  assert(!countHeaders.referer && !countHeaders.cookie && !countHeaders.authorization);
+  assert.equal(countViews(), "1", "An initial home load should count exactly once");
   await page.locator("#app button").first().waitFor();
   await page
     .getByRole("button", { name: /créer|create/i })
