@@ -32,15 +32,15 @@ const sections: {
       emblem: 'private' as const,
       intro: 'home.privacy.intro',
     },
-    {
-      title: 'home.benefits.title',
-      cards: [
-        ['home.benefits.draw.title', 'home.benefits.draw.body'],
-        ['home.benefits.wish.title', 'home.benefits.wish.body'],
-        ['home.benefits.link.title', 'home.benefits.link.body'],
-      ],
-      paper: ['draw', 'wish', 'link'],
-    },
+    // {
+    //   title: 'home.benefits.title',
+    //   cards: [
+    //     ['home.benefits.draw.title', 'home.benefits.draw.body'],
+    //     ['home.benefits.wish.title', 'home.benefits.wish.body'],
+    //     ['home.benefits.link.title', 'home.benefits.link.body'],
+    //   ],
+    //   paper: ['draw', 'wish', 'link'],
+    // },
   ]
 </script>
 <template>
@@ -113,10 +113,6 @@ const sections: {
   color: var(--on-primary, #fff);
   font-weight: 700;
   line-height: 1;
-}
-
-.feature-row {
-  gap: 1rem;
 }
 
 @media (min-width: 992px) {
