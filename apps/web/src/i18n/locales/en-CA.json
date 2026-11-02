@@ -56,31 +56,73 @@
   },
   "home": {
     "hero": {
-      "eyebrow": "Hassle-free gift exchanges",
-      "title": "Organize your gift exchanges without the hassle.",
-      "description": "Create an exchange in minutes, share participant links, and let Kado handle the draw rules.",
-      "micro": "Open source. Free. Privacy-respecting."
-    },
-    "trustStrip": {
-      "openSource": {
-        "title": "Open source",
-        "description": "The code is public. You can inspect it, use it, modify it, or host it yourself."
-      },
-      "privacy": {
-        "title": "Privacy respected",
-        "description": "No account is required to participate. Each person simply receives their participant link."
-      },
-      "noMonetization": {
-        "title": "No intrusive monetization",
-        "description": "No ads, no data resale, and no tracking cookies."
-      }
+      "eyebrow": "Gift exchange",
+      "title": "The fun of giving starts with a simple name draw.",
+      "description": "Bring family, friends or colleagues together for a gift exchange. Kado takes care of the draw and keeps everyone’s gift ideas in one place.",
+      "micro": "Free. No account to create. No app to install."
     },
     "support": {
       "title": "Kado is free and will stay that way.",
       "subtext": "If Kado has been useful to you, a small contribution towards hosting and development is always appreciated.",
       "button": "Support the project"
     },
-    "adminLink": "Local administration tools (development)"
+    "adminLink": "Local administration tools (development)",
+    "steps": {
+      "title": "A gift exchange in three easy steps",
+      "prepare": {
+        "title": "Set up your exchange",
+        "body": "Give it a name, choose a date and a budget, then add your participants. If certain people shouldn’t draw each other, you can set that up too."
+      },
+      "invite": {
+        "title": "Invite your group",
+        "body": "Send each person their own link however you like. Everyone can add a few gift ideas to help the person who draws their name."
+      },
+      "surprise": {
+        "title": "Time for the surprise!",
+        "body": "Draw names when everyone is ready. Each person can see who they’re giving to and take a look at that person’s gift ideas."
+      }
+    },
+    "benefits": {
+      "title": "Less to organize, more to enjoy",
+      "draw": {
+        "title": "A draw that works for your group",
+        "body": "Would you like to keep partners from drawing each other? Set those exclusions before the draw and Kado will take care of them."
+      },
+      "wish": {
+        "title": "A little gift inspiration",
+        "body": "Everyone can share a few wishes or hints. Whoever draws their name gets some inspiration and still gets to choose the surprise."
+      },
+      "link": {
+        "title": "One link is all it takes",
+        "body": "No password for participants to remember or app for the whole family to install. Each person joins through their own link."
+      }
+    },
+    "privacy": {
+      "title": "Your exchange is yours. Your privacy matters.",
+      "intro": "Organizing a gift exchange shouldn’t mean handing over your address book. Kado works without accounts and doesn’t ask for participants’ email addresses.",
+      "share": {
+        "title": "Invite people your way",
+        "body": "Share the links yourself in the conversations you already use. Kado doesn’t need access to your contacts."
+      },
+      "tracking": {
+        "title": "No ads or ad tracking",
+        "body": "No tracking cookies and no selling your data. Enjoy your exchange without advertising getting in the way."
+      },
+      "manage": {
+        "title": "You’re in charge",
+        "body": "Use your organizer link and password to manage the exchange and delete it when you’re done."
+      }
+    },
+    "open": {
+      "title": "Open code you can see for yourself",
+      "body": "Kado is free and open source software. Anyone can read the code, use it, improve it or host their own copy. You can see how it all works.",
+      "link": "Explore the source code"
+    },
+    "closing": {
+      "title": "Ready for your next gift exchange?",
+      "body": "Bring everyone together. Kado will take care of the draw."
+    },
+    "stepLabel": "Step {number}."
   },
   "exchanges": {
     "title": "Exchanges",

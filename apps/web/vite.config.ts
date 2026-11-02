@@ -30,6 +30,8 @@ export default defineConfig(({ mode }) => {
             '**/*.{js,css,html}',
             'assets/kado-gifts-*.png',
             'assets/kado-benefits-*.png',
+            'assets/kado-privacy-*.png',
+            'assets/kado-paper-*.webp',
           ],
           navigateFallbackDenylist: [/^\/api(?:\/|$)/, /^\/health(?:\/|$)/],
           runtimeCaching: [],

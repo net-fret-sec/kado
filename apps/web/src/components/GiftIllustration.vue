@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{ kind: 'hero' | 'private' | 'giving' | 'open' }>()
+defineProps<{ kind: 'hero' | 'private' | 'giving' | 'open' | 'prepare' | 'invite' | 'surprise' }>()
 </script>
 
 <template>
@@ -18,7 +18,12 @@ defineProps<{ kind: 'hero' | 'private' | 'giving' | 'open' }>()
 .gift-illustration--hero {
   background-position: 0% 50%;
 }
-.gift-illustration:not(.gift-illustration--hero) {
+.gift-illustration--prepare { background-position: 100% 50%; }
+.gift-illustration--invite { background-position: 33.333333% 50%; }
+.gift-illustration--surprise { background-position: 66.666667% 50%; }
+.gift-illustration--private,
+.gift-illustration--giving,
+.gift-illustration--open {
   background-image: url('../assets/illustrations/kado-benefits.png');
   background-size: 300% 100%;
   aspect-ratio: 1;

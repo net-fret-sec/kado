@@ -56,31 +56,73 @@
   },
   "home": {
     "hero": {
-      "eyebrow": "Geschenke tauschen ohne Aufwand",
-      "title": "Organisiere deinen Geschenkaustausch ganz unkompliziert.",
-      "description": "Erstelle in wenigen Minuten einen Geschenkaustausch, teile die Teilnehmerlinks und lass Kado die Regeln bei der Auslosung berücksichtigen.",
-      "micro": "Freie Software. Kostenlos. Datenschutzfreundlich."
-    },
-    "trustStrip": {
-      "openSource": {
-        "title": "Offener Quellcode",
-        "description": "Der Code ist öffentlich. Du kannst ihn prüfen, nutzen, verändern oder selbst hosten."
-      },
-      "privacy": {
-        "title": "Deine Privatsphäre wird respektiert",
-        "description": "Zum Mitmachen ist kein Konto nötig. Alle Teilnehmenden erhalten einfach ihren eigenen Link."
-      },
-      "noMonetization": {
-        "title": "Keine aufdringliche Monetarisierung",
-        "description": "Keine Werbung, kein Datenverkauf und keine Tracking-Cookies."
-      }
+      "eyebrow": "Geschenkaustausch",
+      "title": "Die Freude am Schenken beginnt mit dem Ziehen der Namen.",
+      "description": "Ob mit der Familie, im Freundeskreis oder im Büro: Organisiere eine Wichtelrunde, bei der schon die Vorbereitung Spaß macht. Kado übernimmt die Auslosung und sammelt die Geschenkideen.",
+      "micro": "Kostenlos. Kein Konto nötig. Keine App zu installieren."
     },
     "support": {
       "title": "Kado ist und bleibt kostenlos.",
       "subtext": "Wenn dir Kado geholfen hat, freuen wir uns über einen kleinen Beitrag für Hosting und Weiterentwicklung.",
       "button": "Projekt unterstützen"
     },
-    "adminLink": "Lokale Verwaltungstools (Entwicklung)"
+    "adminLink": "Lokale Verwaltungstools (Entwicklung)",
+    "steps": {
+      "title": "In drei Schritten zur Wichtelrunde",
+      "prepare": {
+        "title": "Bereite die Runde vor",
+        "body": "Gib ihr einen Namen, lege Datum und Budget fest und füge die Teilnehmenden hinzu. Du kannst auch angeben, wer sich nicht gegenseitig ziehen soll."
+      },
+      "invite": {
+        "title": "Lade alle ein",
+        "body": "Schick jeder Person ihren eigenen Link auf dem Weg, der für euch passt. Alle können ein paar Wünsche hinterlegen, damit die Person, die sie zieht, eine Idee hat."
+      },
+      "surprise": {
+        "title": "Zeit für die Überraschung!",
+        "body": "Starte die Auslosung, wenn alle bereit sind. Jetzt erfährt jede Person, wen sie beschenkt, und kann sich die Wünsche ansehen."
+      }
+    },
+    "benefits": {
+      "title": "Weniger Aufwand, mehr Vorfreude",
+      "draw": {
+        "title": "Eine Auslosung, die zu euch passt",
+        "body": "Ein Paar soll sich nicht gegenseitig ziehen? Lege das vor der Auslosung fest. Kado berücksichtigt eure Vorgaben."
+      },
+      "wish": {
+        "title": "Ideen, die Freude machen",
+        "body": "Alle können Wünsche und kleine Hinweise teilen. Wer den Namen zieht, bekommt Anregungen und kann das Geschenk selbst aussuchen."
+      },
+      "link": {
+        "title": "Ein Link genügt",
+        "body": "Niemand muss sich zum Mitmachen ein Passwort ausdenken oder die Familie bitten, eine App zu installieren. Jede Person nimmt über ihren eigenen Link teil."
+      }
+    },
+    "privacy": {
+      "title": "Eure Runde gehört euch. Eure Privatsphäre zählt.",
+      "intro": "Für eine Wichtelrunde solltest du dein Adressbuch nicht aus der Hand geben müssen. Kado funktioniert ohne Konto und fragt nicht nach den E-Mail-Adressen der Teilnehmenden.",
+      "share": {
+        "title": "Du entscheidest, wie du einlädst",
+        "body": "Teile die Links selbst in euren gewohnten Chats. Kado braucht keinen Zugriff auf deine Kontakte."
+      },
+      "tracking": {
+        "title": "Ohne Werbung und Werbetracking",
+        "body": "Keine Tracking-Cookies, kein Verkauf deiner Daten. So kannst du dich ganz ohne Werbung auf eure Runde konzentrieren."
+      },
+      "manage": {
+        "title": "Du behältst die Kontrolle",
+        "body": "Mit deinem Verwaltungslink und deinem Passwort kannst du die Runde verwalten und löschen, wenn ihr sie nicht mehr braucht."
+      }
+    },
+    "open": {
+      "title": "Ein offenes Projekt zum Nachschauen",
+      "body": "Kado ist freie Software. Der Quellcode ist öffentlich. Du kannst ihn ansehen, nutzen, verbessern oder Kado selbst hosten. So lässt sich nachvollziehen, wie alles funktioniert.",
+      "link": "Quellcode ansehen"
+    },
+    "closing": {
+      "title": "Bereit für die nächste Wichtelrunde?",
+      "body": "Bring alle zusammen. Kado übernimmt die Auslosung."
+    },
+    "stepLabel": "Schritt {number}."
   },
   "exchanges": {
     "title": "Geschenkaustausche",

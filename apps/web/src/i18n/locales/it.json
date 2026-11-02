@@ -56,31 +56,73 @@
   },
   "home": {
     "hero": {
-      "eyebrow": "Scambi di regali senza intoppi",
-      "title": "Organizza i tuoi scambi di regali, senza complicazioni.",
-      "description": "Crea uno scambio in pochi minuti, condividi i link dei partecipanti e lascia che Kado gestisca i vincoli del sorteggio.",
-      "micro": "A codice aperto. Gratuito. Rispettoso della privacy."
-    },
-    "trustStrip": {
-      "openSource": {
-        "title": "Codice aperto",
-        "description": "Il codice è pubblico. Puoi esaminarlo, usarlo, modificarlo o ospitarlo sul tuo server."
-      },
-      "privacy": {
-        "title": "Rispetto della privacy",
-        "description": "Non serve un account per partecipare. Ogni partecipante riceve semplicemente il proprio link."
-      },
-      "noMonetization": {
-        "title": "Nessuna monetizzazione invasiva",
-        "description": "Niente pubblicità, vendita di dati o cookie di tracciamento."
-      }
+      "eyebrow": "Scambio di regali",
+      "title": "Il piacere di fare un regalo comincia da una semplice estrazione.",
+      "description": "Organizza uno scambio di regali in famiglia, tra amici o tra colleghi. Kado pensa all’estrazione e raccoglie le idee regalo di tutti.",
+      "micro": "Gratis. Nessun account da creare. Nessuna app da installare."
     },
     "support": {
       "title": "Kado è gratuito e lo resterà.",
       "subtext": "Se Kado ti è stato utile, un piccolo contributo per l’hosting e lo sviluppo è sempre apprezzato.",
       "button": "Sostieni il progetto"
     },
-    "adminLink": "Strumenti di amministrazione locale (sviluppo)"
+    "adminLink": "Strumenti di amministrazione locale (sviluppo)",
+    "steps": {
+      "title": "Il tuo scambio in tre semplici passi",
+      "prepare": {
+        "title": "Prepara lo scambio",
+        "body": "Dagli un nome, scegli la data e il budget, poi aggiungi i partecipanti. Se alcune persone non devono pescarsi a vicenda, puoi indicarlo qui."
+      },
+      "invite": {
+        "title": "Invita il gruppo",
+        "body": "Invia a ogni persona il suo link personale come preferisci. Ognuno può aggiungere qualche idea per aiutare chi pescherà il suo nome."
+      },
+      "surprise": {
+        "title": "È il momento della sorpresa!",
+        "body": "Avvia l’estrazione quando il gruppo è pronto. Ogni persona scopre a chi fare un regalo e può dare un’occhiata ai suoi desideri."
+      }
+    },
+    "benefits": {
+      "title": "Meno pensieri, più piacere",
+      "draw": {
+        "title": "Un’estrazione su misura per il tuo gruppo",
+        "body": "Preferisci che due persone che stanno insieme non si peschino a vicenda? Imposta le esclusioni prima dell’estrazione e Kado ne terrà conto."
+      },
+      "wish": {
+        "title": "Idee per un regalo gradito",
+        "body": "Ognuno può condividere desideri e piccoli indizi. Chi pescherà il suo nome avrà uno spunto e potrà comunque scegliere la sorpresa."
+      },
+      "link": {
+        "title": "Per partecipare basta un link",
+        "body": "Nessuna password da inventare per i partecipanti, nessuna app da far installare a tutta la famiglia. Ognuno accede con il proprio link."
+      }
+    },
+    "privacy": {
+      "title": "Lo scambio è tuo. La tua privacy conta.",
+      "intro": "Per organizzare uno scambio di regali non dovresti dover condividere la tua rubrica. Kado funziona senza account e non chiede gli indirizzi email dei partecipanti.",
+      "share": {
+        "title": "Scegli tu come invitare",
+        "body": "Condividi i link nelle conversazioni che usi di solito. Kado non ha bisogno di accedere ai tuoi contatti."
+      },
+      "tracking": {
+        "title": "Senza pubblicità né tracciamento pubblicitario",
+        "body": "Niente cookie di tracciamento e nessuna vendita dei tuoi dati. Puoi goderti lo scambio senza annunci pubblicitari."
+      },
+      "manage": {
+        "title": "Gestisci tu lo scambio",
+        "body": "Con il tuo link di organizzazione e la tua password puoi gestire lo scambio ed eliminarlo quando non ti serve più."
+      }
+    },
+    "open": {
+      "title": "Un progetto aperto, da scoprire anche dentro",
+      "body": "Kado è software libero. Il codice è pubblico e puoi consultarlo, usarlo, migliorarlo o ospitarlo su un tuo server. Così puoi vedere come funziona.",
+      "link": "Esplora il codice sorgente"
+    },
+    "closing": {
+      "title": "Prepariamo il tuo prossimo scambio?",
+      "body": "Riunisci il gruppo. All’estrazione pensa Kado."
+    },
+    "stepLabel": "Passo {number}."
   },
   "exchanges": {
     "title": "Scambi",

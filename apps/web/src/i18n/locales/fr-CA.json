@@ -56,31 +56,73 @@
   },
   "home": {
     "hero": {
-      "eyebrow": "Échanges de cadeaux sans tracas",
-      "title": "Organisez vos échanges de cadeaux, sans complications.",
-      "description": "Créez un échange en quelques minutes, partagez les liens des participants et laissez Kado gérer les contraintes de la pige.",
-      "micro": "Libre. Gratuit. Respectueux de la vie privée."
-    },
-    "trustStrip": {
-      "openSource": {
-        "title": "Code source ouvert",
-        "description": "Le code est public. Vous pouvez l'inspecter, l'utiliser, le modifier ou l'héberger vous-même."
-      },
-      "privacy": {
-        "title": "Vie privée respectée",
-        "description": "Aucun compte requis pour participer. Chaque participant reçoit simplement son lien."
-      },
-      "noMonetization": {
-        "title": "Aucune monétisation intrusive",
-        "description": "Pas de publicité, pas de revente de données, pas de cookies de traçage."
-      }
+      "eyebrow": "Échange de cadeaux",
+      "title": "Le plaisir d’offrir commence par une pige toute simple.",
+      "description": "En famille, entre amis ou entre collègues, organisez un échange de cadeaux qui fait plaisir dès les préparatifs. Kado s’occupe de la pige et rassemble les suggestions de chacun.",
+      "micro": "Gratuit. Aucun compte à créer. Aucune application à installer."
     },
     "support": {
       "title": "Kado est gratuit et le restera.",
-      "subtext": "Si Kado vous a été utile, un petit coup de pouce pour l’hébergement et le développement est toujours apprécié.",
+      "subtext": "Si Kado vous a facilité les préparatifs, vous pouvez contribuer à son hébergement et à son développement. Un petit coup de pouce, toujours facultatif et apprécié.",
       "button": "Soutenir le projet"
     },
-    "adminLink": "Outils d’administration locale (développement)"
+    "adminLink": "Outils d’administration locale (développement)",
+    "steps": {
+      "title": "Un échange organisé en trois petites étapes",
+      "prepare": {
+        "title": "Préparez votre échange",
+        "body": "Donnez-lui un nom, choisissez la date et le budget, puis ajoutez les participants. Précisez au besoin les personnes qui ne doivent pas se piger."
+      },
+      "invite": {
+        "title": "Invitez votre monde",
+        "body": "Partagez avec chaque personne son lien personnel, par le moyen qui vous convient. Chacun peut ajouter ses suggestions de cadeaux pour donner quelques bonnes idées."
+      },
+      "surprise": {
+        "title": "Place à la surprise!",
+        "body": "Lancez la pige lorsque tout le monde est prêt. Chaque personne découvre à qui offrir un cadeau et peut consulter ses suggestions."
+      }
+    },
+    "benefits": {
+      "title": "Moins de casse-tête, plus de plaisir",
+      "draw": {
+        "title": "Une pige qui tient compte de votre groupe",
+        "body": "Vous souhaitez éviter que deux conjoints se pigent? Définissez les exclusions avant le tirage : Kado en tient compte."
+      },
+      "wish": {
+        "title": "Des idées pour faire plaisir",
+        "body": "Les participants peuvent partager leurs envies et quelques pistes. De quoi inspirer la personne qui les a pigés, tout en lui laissant le plaisir de choisir."
+      },
+      "link": {
+        "title": "Un simple lien pour participer",
+        "body": "Pas de mot de passe à inventer ni d’application à faire installer à toute la famille. Chaque personne accède à l’échange avec son lien personnel."
+      }
+    },
+    "privacy": {
+      "title": "Votre échange vous appartient. Votre vie privée compte.",
+      "intro": "Organiser un échange de cadeaux ne devrait pas vous obliger à confier votre carnet d’adresses à un service. Kado fonctionne sans compte et sans demander les adresses courriel des participants.",
+      "share": {
+        "title": "Vous choisissez comment inviter",
+        "body": "Vous transmettez vous-même les liens, dans vos conversations habituelles. Kado n’a pas besoin d’accéder à vos contacts."
+      },
+      "tracking": {
+        "title": "Pas de publicité ni de pistage publicitaire",
+        "body": "Aucun cookie de traçage, aucune revente de données. Vous pouvez vous concentrer sur votre échange, sans sollicitations publicitaires."
+      },
+      "manage": {
+        "title": "Vous gardez la main sur l’organisation",
+        "body": "Votre lien d’organisation et votre mot de passe vous permettent de gérer l’échange et de le supprimer lorsque vous n’en avez plus besoin."
+      }
+    },
+    "open": {
+      "title": "Un projet ouvert, une confiance qui se vérifie",
+      "body": "Kado est un logiciel libre : son code est public. Il peut être consulté, utilisé, amélioré ou hébergé ailleurs. C’est aussi une façon de rendre son fonctionnement transparent.",
+      "link": "Découvrir le code source"
+    },
+    "closing": {
+      "title": "On prépare votre prochain échange?",
+      "body": "Réunissez votre monde. Kado s’occupe de la pige."
+    },
+    "stepLabel": "Étape {number}."
   },
   "exchanges": {
     "title": "Échanges",

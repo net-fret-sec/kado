@@ -56,31 +56,73 @@
   },
   "home": {
     "hero": {
-      "eyebrow": "Intercambios de regalos sin complicaciones",
-      "title": "Organiza tus intercambios de regalos sin complicaciones.",
-      "description": "Crea un intercambio en unos minutos, comparte los enlaces de los participantes y deja que Kado gestione las restricciones del sorteo.",
-      "micro": "De código abierto. Gratis. Respetuoso con la privacidad."
-    },
-    "trustStrip": {
-      "openSource": {
-        "title": "Código abierto",
-        "description": "El código es público. Puedes examinarlo, usarlo, modificarlo o alojarlo por tu cuenta."
-      },
-      "privacy": {
-        "title": "Respeto por la privacidad",
-        "description": "No hace falta una cuenta para participar. Cada participante recibe su propio enlace."
-      },
-      "noMonetization": {
-        "title": "Sin monetización intrusiva",
-        "description": "Sin publicidad, sin venta de datos y sin cookies de seguimiento."
-      }
+      "eyebrow": "Intercambio de regalos",
+      "title": "La ilusión de regalar empieza con un sorteo sencillo.",
+      "description": "Organiza un amigo secreto con tu familia, tus amistades o tus compañeros de trabajo. Kado se encarga del sorteo y reúne las ideas de regalo de cada persona.",
+      "micro": "Gratis. Sin cuentas ni aplicaciones que instalar."
     },
     "support": {
       "title": "Kado es gratis y lo seguirá siendo.",
       "subtext": "Si Kado te ha sido útil, siempre se agradece una pequeña ayuda para el alojamiento y el desarrollo.",
       "button": "Apoyar el proyecto"
     },
-    "adminLink": "Herramientas de administración local (desarrollo)"
+    "adminLink": "Herramientas de administración local (desarrollo)",
+    "steps": {
+      "title": "Organiza tu intercambio en tres pasos",
+      "prepare": {
+        "title": "Prepara el intercambio",
+        "body": "Ponle un nombre, elige la fecha y el presupuesto y añade a los participantes. Si hay personas que no deben tocarse entre sí, puedes indicarlo aquí."
+      },
+      "invite": {
+        "title": "Invita al grupo",
+        "body": "Envía a cada persona su enlace personal como prefieras. Cada participante puede añadir ideas para orientar a quien le toque hacerle un regalo."
+      },
+      "surprise": {
+        "title": "¡Llega la sorpresa!",
+        "body": "Haz el sorteo cuando todo el grupo esté listo. Cada persona verá a quién le toca regalar y podrá consultar sus sugerencias."
+      }
+    },
+    "benefits": {
+      "title": "Menos complicaciones, más ilusión",
+      "draw": {
+        "title": "Un sorteo a la medida de tu grupo",
+        "body": "¿Prefieres que dos personas que son pareja no se regalen entre sí? Indícalo antes del sorteo y Kado lo tendrá en cuenta."
+      },
+      "wish": {
+        "title": "Ideas para acertar con el regalo",
+        "body": "Cada participante puede compartir sus deseos o dar algunas pistas. Así, quien le haga el regalo tendrá inspiración y seguirá disfrutando de la elección."
+      },
+      "link": {
+        "title": "Basta un enlace para participar",
+        "body": "Los participantes no necesitan inventar una contraseña ni instalar una aplicación. Cada persona accede al intercambio con su enlace personal."
+      }
+    },
+    "privacy": {
+      "title": "El intercambio es tuyo. Tu privacidad importa.",
+      "intro": "Para organizar un intercambio de regalos no deberías tener que compartir tu agenda de contactos. Kado funciona sin cuentas y no pide las direcciones de correo de los participantes.",
+      "share": {
+        "title": "Tú decides cómo invitar",
+        "body": "Comparte los enlaces en tus conversaciones habituales. Kado no necesita acceder a tus contactos."
+      },
+      "tracking": {
+        "title": "Sin publicidad ni seguimiento publicitario",
+        "body": "No usamos cookies de seguimiento ni vendemos tus datos. Disfruta del intercambio sin anuncios."
+      },
+      "manage": {
+        "title": "Tú llevas las riendas",
+        "body": "Con tu enlace de organización y tu contraseña puedes gestionar el intercambio y eliminarlo cuando ya no lo necesites."
+      }
+    },
+    "open": {
+      "title": "Un proyecto abierto que puedes conocer por dentro",
+      "body": "Kado es software libre. Su código es público y puedes consultarlo, usarlo, mejorarlo o alojarlo por tu cuenta. Así puedes ver cómo funciona.",
+      "link": "Explorar el código fuente"
+    },
+    "closing": {
+      "title": "¿Preparamos tu próximo intercambio?",
+      "body": "Reúne al grupo. Kado se encarga del sorteo."
+    },
+    "stepLabel": "Paso {number}."
   },
   "exchanges": {
     "title": "Intercambios",

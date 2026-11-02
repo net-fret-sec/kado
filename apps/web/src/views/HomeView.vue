@@ -5,14 +5,11 @@ import { useI18n } from 'vue-i18n'
 import CreateExchangeModal from '@/components/CreateExchangeModal.vue'
 import GiftIllustration from '@/components/GiftIllustration.vue'
 
+import HomeContent from '@/components/HomeContent.vue'
+
 const { t } = useI18n()
 const isCreateModalOpen = ref(false)
 const showAdminLink = localAdminToolsEnabled
-const commitments = [
-  { key: 'privacy', illustration: 'private' },
-  { key: 'noMonetization', illustration: 'giving' },
-  { key: 'openSource', illustration: 'open' },
-] as const
 </script>
 
 <template>
@@ -34,22 +31,7 @@ const commitments = [
       </div>
     </section>
 
-    <section class="row g-3">
-      <div v-for="commitment in commitments" :key="commitment.key" class="col-md-4">
-        <article class="home-trust-card card h-100 border-0">
-          <div class="card-body p-4">
-            <GiftIllustration
-              :kind="commitment.illustration"
-              class="home-trust-card__illustration mx-auto"
-            />
-            <h3 class="h5">{{ t(`home.trustStrip.${commitment.key}.title`) }}</h3>
-            <p class="text-body-secondary mb-0">
-              {{ t(`home.trustStrip.${commitment.key}.description`) }}
-            </p>
-          </div>
-        </article>
-      </div>
-    </section>
+    <HomeContent @create="isCreateModalOpen = true" />
 
     <footer v-if="showAdminLink" class="text-center small">
       <router-link to="/exchanges" class="text-body-secondary">
