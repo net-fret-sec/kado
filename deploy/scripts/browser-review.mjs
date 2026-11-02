@@ -85,10 +85,10 @@ try {
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${label}: no horizontal overflow`);
   }
   await page.goto(base);
-  await expect(page.locator('footer .home-support')).toHaveCount(1);
+  await expect(page.locator('footer .home-support')).toHaveCount(0);
   await page.evaluate(() => { document.activeElement?.blur(); window.scrollTo(0, 0); });
   await page.screenshot({ path: path.join(output, 'review-home.png'), fullPage: true });
-  await page.getByRole('button', { name: 'Créer un échange', exact: true }).click();
+  await page.locator('.home-hero').getByRole('button', { name: 'Créer un échange', exact: true }).click();
   await expect(page.locator('#adminPassword')).toHaveAttribute('type', 'text');
   await expect(page.locator('#organizerParticipates')).toHaveCount(0);
   await page.locator('#exchangeName').fill('Revue Kado');

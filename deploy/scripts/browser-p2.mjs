@@ -199,7 +199,9 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
         await expect(page.getByRole('heading', { name: messages.home.hero.title, exact: true })).toBeVisible();
         for (const width of [360, 1440]) {
           await page.setViewportSize({ width, height: 1000 });
-          await page.getByRole('button', { name: messages.actions.createExchange, exact: true }).click();
+          await expect(page.getByRole('heading', { name: messages.home.closing.title, exact: true })).toBeVisible();
+          const block = width === 360 ? '.home-hero' : '.closing';
+          await page.locator(block).getByRole('button', { name: messages.actions.createExchange, exact: true }).click();
           await expect(page.getByRole('dialog')).toContainText(messages.review.passwordHelp);
           assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${locale} creation width ${width}`);
           assert.deepEqual((await audit(page)).violations.map(v => v.id), [], `${locale} creation accessibility`);
