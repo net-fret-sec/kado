@@ -33,12 +33,6 @@ const showAdminLink = localAdminToolsEnabled
 
     <HomeContent @create="isCreateModalOpen = true" />
 
-    <footer v-if="showAdminLink" class="text-center small">
-      <router-link to="/exchanges" class="text-body-secondary">
-        {{ t('home.adminLink') }}
-      </router-link>
-    </footer>
-
     <CreateExchangeModal v-model="isCreateModalOpen" />
   </section>
 </template>
