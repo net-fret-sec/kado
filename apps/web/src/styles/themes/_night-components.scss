@@ -118,8 +118,7 @@ html[data-palette-theme='i'] {
     filter: invert(1) grayscale(1) brightness(2);
   }
 
-  .input-group-text,
-  .section-soft {
+  .input-group-text {
     background: var(--surface-soft);
     color: var(--text-primary);
     border-color: var(--surface-border);

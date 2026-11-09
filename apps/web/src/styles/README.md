@@ -32,17 +32,22 @@ Tokens dominants actuels:
 
 ## Principes de travail
 
+- Pour toute nouvelle interface ou tout nouveau widget, partir des composants et des utilitaires Bootstrap 5.3 (Flex, espacement, tailles, typographie, couleurs et états).
+- Préférer `d-flex`, `flex-wrap` et `gap-*` pour la mise en page. Réserver `table` aux données tabulaires; ne pas réintroduire `row`/`col-*` dans les composants Vue pour organiser l'interface.
+- Accepter une valeur Bootstrap proche lorsqu'une différence de quelques pixels ne nuit ni à la lisibilité ni à l'accessibilité. Éviter une règle propre à Kado pour reproduire un espacement ordinaire au pixel près.
 - Modifier d'abord les variables Bootstrap avant d'ajouter du CSS spécifique.
 - Réutiliser les tokens déjà présents avant d'introduire une nouvelle couleur ou une nouvelle échelle d'espacement.
 - Garder un focus visible et des contrastes lisibles.
 - Préserver la cohérence entre les variables Sass injectées dans Bootstrap et les variables CSS déclarées dans `main.scss`.
+- Garder le CSS propre à Kado pour les thèmes, illustrations, proportions vraiment utiles, interactions et cas où les utilitaires rendent le balisage moins clair. Une petite grille CSS reste adaptée à l'alignement bidimensionnel des formulaires.
 
 ## Ajouter ou modifier un style
 
-1. Vérifier si le besoin peut être couvert par une variable Bootstrap existante.
-2. Sinon, ajouter l'override minimal dans `_custom-overrides.scss`.
+1. Vérifier si une variable, un composant ou une classe utilitaire Bootstrap couvre le besoin.
+2. Si un style propre est nécessaire, le limiter au composant concerné; le placer dans le SCSS commun seulement s'il est réellement partagé. Ne pas déplacer une règle scoped dans le global pour réduire artificiellement le nombre de blocs.
 3. Si le style doit être réutilisable à grande échelle, l'exprimer d'abord comme token dans `_bootstrap-variables.scss` ou comme variable CSS dans `main.scss`.
-4. Valider au minimum avec:
+4. Contrôler les largeurs mobiles, les textes longs, les thèmes, le focus clavier et l'usage tactile quand le style touche la mise en page ou une interaction.
+5. Valider au minimum avec:
 
 ```bash
 pnpm --dir apps/web type-check

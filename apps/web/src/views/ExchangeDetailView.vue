@@ -319,13 +319,13 @@ watch(requiresAdminAuth, (value) => {
               </form>
               <ul
                 v-if="participants.length"
-                class="list-group mb-3 participant-list"
+                class="list-group mb-3 participant-list overflow-visible"
                 :aria-label="t('common.participants')"
               >
                 <li
                   v-for="participant in participants"
                   :key="participant.id"
-                  class="list-group-item participant-row d-flex align-items-center justify-content-between gap-2"
+                  class="list-group-item participant-row d-flex align-items-center justify-content-between gap-2 py-2"
                 >
                   <div class="participant-info flex-grow-1">
                     <div class="participant-identity d-flex flex-wrap align-items-center gap-2">
@@ -555,12 +555,6 @@ watch(requiresAdminAuth, (value) => {
 </template>
 
 <style scoped>
-.participant-list {
-  overflow: visible;
-}
-.participant-row {
-  padding-block: 0.65rem;
-}
 .participant-info {
   min-width: 0;
 }

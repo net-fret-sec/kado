@@ -1,4 +1,3 @@
-@use "sass:color";
 @use "./_bootstrap-variables" as vars;
 
 .kado-ui-label {
@@ -310,48 +309,6 @@
 .offcanvas {
   .btn-close {
     filter: sepia(.3) saturate(.6) brightness(.92);
-  }
-}
-
-.hero-surface {
-  background: var(--hero-bg);
-  color: var(--hero-color);
-  box-shadow: none;
-
-  @if vars.$enable-gradients {
-    background:
-      radial-gradient(circle at top left, rgba(201, 122, 43, .18), transparent 28%),
-      radial-gradient(circle at bottom right, rgba(91, 141, 184, .14), transparent 24%),
-      linear-gradient(135deg, #2e2823 0%, #3f3731 100%);
-  }
-
-  @if vars.$enable-shadows {
-    box-shadow: 0 1rem 2rem rgba(33, 29, 26, .12);
-  }
-}
-
-.section-soft {
-  background: rgba(255, 255, 255, .52);
-  border: 1px solid rgba(221, 212, 197, .7);
-  border-radius: 0;
-
-  @if vars.$enable-rounded {
-    border-radius: 1rem;
-  }
-}
-
-.status-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: .35rem;
-  padding: .35rem .6rem;
-  border-radius: 0;
-  background: var(--surface-beige);
-  color: var(--text-primary);
-  border: 1px solid var(--surface-border);
-
-  @if vars.$enable-rounded {
-    border-radius: 999px;
   }
 }
 

@@ -14,7 +14,6 @@ const { t, currentTheme } = useTheme()
       id="font-theme-select"
       v-model="currentTheme"
       class="form-select-sm"
-      style="min-width: 12rem"
     >
       <option value="a">{{ t('fonts.a') }}</option>
       <option value="b">{{ t('fonts.b') }}</option>

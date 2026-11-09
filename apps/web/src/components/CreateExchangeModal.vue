@@ -245,7 +245,7 @@ async function handleHidden() {
     <div v-else-if="modalState === ModalState.SUCCESS">
       <div class="alert alert-warning border-0 mb-3">
         <div class="d-flex align-items-start gap-2">
-          <span class="text-warning fw-bold" style="font-size: 1.2em">⚠️</span>
+          <span class="text-warning fw-bold fs-5">⚠️</span>
           <div>
             <p class="fw-semibold mb-1">{{ t('exchanges.createModal.successWarningTitle') }}</p>
             <p class="mb-0 small">

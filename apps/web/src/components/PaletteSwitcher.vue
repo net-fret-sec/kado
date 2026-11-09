@@ -14,7 +14,6 @@ const { t, currentPaletteTheme } = usePaletteTheme()
       id="palette-theme-select"
       v-model="currentPaletteTheme"
       class="form-select-sm"
-      style="min-width: 12rem"
     >
       <option value="a">{{ t('palettes.a') }}</option>
       <option value="b">{{ t('palettes.b') }}</option>

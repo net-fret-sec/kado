@@ -19,6 +19,8 @@ L'application couvre trois surfaces utilisateur:
 - Bootstrap et Bootstrap Icons.
 - vite-plugin-pwa.
 
+Les nouvelles interfaces et les nouveaux widgets suivent la [convention Bootstrap et CSS de l'application](src/styles/README.md#principes-de-travail).
+
 ## Routes principales
 
 - `/`: accueil.

@@ -23,7 +23,6 @@ const labels: Record<AppLocale, string> = {
       id="locale-select"
       v-model="currentLocale"
       class="form-select-sm"
-      style="min-width: 10rem"
     >
       <option v-for="language in supportedLocales" :key="language" :value="language">
         {{ t(labels[language]) }}

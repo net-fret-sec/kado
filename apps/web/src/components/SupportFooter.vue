@@ -4,7 +4,7 @@ const { t } = useI18n()
 const donationUrl = import.meta.env.VITE_DONATION_URL?.trim() || ''
 </script>
 <template>
-  <footer v-if="donationUrl" class="support-footer container-xl py-3">
+  <footer v-if="donationUrl" class="container-xl py-3 mt-auto">
     <section
       v-if="donationUrl"
       class="home-support d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-2"

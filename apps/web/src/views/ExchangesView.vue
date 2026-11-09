@@ -81,12 +81,7 @@ onMounted(() => {
           <div v-for="swatch in paletteSwatches" :key="swatch.key" class="palette-swatch">
             <div class="border rounded-4 bg-white h-100 p-2 d-flex align-items-start gap-2">
               <span
-                class="rounded-circle border flex-shrink-0"
-                style="
-                  width: 1.2rem;
-                  height: 1.2rem;
-                  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
-                "
+                class="rounded-circle border flex-shrink-0 p-2"
                 :style="{ backgroundColor: swatch.value }"
                 aria-hidden="true"
               ></span>

@@ -133,8 +133,6 @@
   --focus-ring-outer: rgba(37, 102, 101, 0.48);
   --focus-ring-shadow: 0 0 0 2px var(--focus-ring-inner), 0 0 0 4px var(--focus-ring-outer);
   --topbar-shadow: 0 1px 4px rgba(31, 78, 79, 0.05);
-  --hero-bg: var(--text-heading);
-  --hero-color: #fff;
   --bs-focus-ring-width: 0.25rem;
   --bs-focus-ring-opacity: 0.45;
   --bs-focus-ring-color: rgba(37, 102, 101, var(--bs-focus-ring-opacity));
@@ -292,9 +290,6 @@ main > * + * {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-}
-.support-footer {
-  margin-top: auto;
 }
 .app-main {
   flex: 1;
@@ -650,16 +645,7 @@ main > * + * {
   border-radius: 1rem;
   background: var(--bs-secondary-bg);
 }
-.exchange-header-main { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem 2rem; }
 .exchange-header-heading { min-width: 0; flex: 1 1 18rem; }
 .exchange-header-heading h1 { overflow-wrap: anywhere; }
-.exchange-header-label { color: var(--text-secondary); font-size: .8rem; margin-bottom: .4rem; }
-.exchange-header-actions { display: flex; flex-direction: column; align-items: flex-end; gap: .5rem; max-width: 100%; }
-.exchange-header-tools { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .25rem .75rem; }
 .exchange-header-tools .btn { padding: .25rem 0; font-size: .7rem; }
-.exchange-header-message { margin-top: .75rem; color: var(--text-secondary); font-size: .95rem; }
 .exchange-header-message:empty { display: none; }
-@media (max-width: 575.98px) {
-  .exchange-header-actions { align-items: flex-start; }
-  .exchange-header-tools { justify-content: flex-start; }
-}
