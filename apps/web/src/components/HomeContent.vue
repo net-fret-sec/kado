@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-// import GiftIllustration from './GiftIllustration.vue'
+import celebrateGift from '@/assets/illustrations/kado-celebrate.webp'
 
 defineEmits<{ create: [] }>()
 const { t } = useI18n()
@@ -38,7 +38,6 @@ const sections: {
   <section v-for="section in sections" :key="section.title">
 
     <div :class="section.emblem ? 'feature-row' : 'gap-3'">
-      <!-- <GiftIllustration v-if="section.emblem" :kind="section.emblem" class="section-emblem flex-shrink-0" -->
       <div class="text-center">
         <h2 class="h4 mb-3">{{ t(section.title) }}</h2>
         <p v-if="section.intro" class="text-body-secondary">{{ t(section.intro) }}</p>
@@ -50,12 +49,16 @@ const sections: {
 
         <article class="home-trust-card card h-100 border-0">
           <div class="card-body p-4">
-            <span v-if="section.paper" aria-hidden="true" :class="['paper', 'paper--' + section.paper[i]]" />
-            <div :class="{ 'd-flex align-items-start gap-3': section.numbered }">
+            <div class="d-flex align-items-start gap-3" :class="{ 'flex-wrap': section.paper }">
+              <span
+                v-if="section.paper"
+                aria-hidden="true"
+                :class="['paper', 'paper--' + section.paper[i]]"
+              />
               <span v-if="section.numbered" class="step-number" aria-hidden="true">{{
                 i + 1
                 }}</span>
-              <div class="flex-grow-1">
+              <div :class="section.paper ? 'home-card-copy' : 'flex-grow-1'">
                 <h3 class="h5">
                   <span v-if="section.numbered" class="visually-hidden">{{ t('home.stepLabel', { number: i + 1 }) }}
                   </span>{{ t(title) }}
@@ -71,7 +74,6 @@ const sections: {
   </section>
 
   <section class="feature-row d-flex align-items-center">
-    <!-- <GiftIllustration kind="open" class="section-emblem flex-shrink-0" /> -->
     <div class="text-center">
       <h2 class="h4">{{ t('home.open.title') }}</h2>
       <p class="text-body-secondary">
@@ -81,7 +83,7 @@ const sections: {
   </section>
 
   <section class="closing d-flex flex-column align-items-center gap-3 py-4 text-center">
-    <span aria-hidden="true" class="paper paper--celebrate" />
+    <img :src="celebrateGift" alt="" aria-hidden="true" width="112" height="112" />
     <h2 class="h4 mb-0 mx-auto">{{ t('home.closing.title') }}</h2>
     <p class="mb-0 mx-auto">{{ t('home.closing.body') }}</p>
     <button class="btn btn-primary px-4" type="button" @click="$emit('create')">
@@ -96,8 +98,8 @@ const sections: {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 2rem;
-  font-size: 1.0625rem;
+  width: 3rem;
+  font-size: 1.5rem;
   aspect-ratio: 1;
   border-radius: 50%;
   background: var(--primary);
@@ -120,8 +122,9 @@ const sections: {
   }
 }
 
-.section-emblem {
-  width: clamp(4rem, 10vw, 8rem);
+.home-card-copy {
+  flex: 1 1 9rem;
+  min-width: 0;
 }
 
 .paper {
@@ -129,15 +132,6 @@ const sections: {
   width: 5rem;
   aspect-ratio: 1;
   background: url('../assets/illustrations/kado-paper.webp') 0 0 / 300% 300% no-repeat;
-  margin-bottom: 0.85rem;
-}
-
-.paper--wish {
-  background-position: 50% 0;
-}
-
-.paper--link {
-  background-position: 100% 0;
 }
 
 .paper--invite {
@@ -150,12 +144,6 @@ const sections: {
 
 .paper--keys {
   background-position: 100% 50%;
-}
-
-.paper--celebrate {
-  background-position: 50% 100%;
-  width: 7rem;
-  margin: 0;
 }
 
 .closing h2 {

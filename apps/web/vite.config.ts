@@ -35,6 +35,7 @@ export default defineConfig(({ mode }) => {
             'assets/kado-benefits-*.png',
             'assets/kado-privacy-*.png',
             'assets/kado-paper-*.webp',
+            'assets/kado-celebrate-*.webp',
           ],
         },
         includeAssets: ['favicon.svg', 'robots.txt'],

@@ -85,7 +85,7 @@ try {
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${label}: no horizontal overflow`);
   }
   await page.goto(base);
-  await expect(page.locator('footer .home-support')).toHaveCount(0);
+  await expect(page.locator('footer .home-support')).toHaveCount(1);
   await page.evaluate(() => { document.activeElement?.blur(); window.scrollTo(0, 0); });
   await page.screenshot({ path: path.join(output, 'review-home.png'), fullPage: true });
   await page.locator('.home-hero').getByRole('button', { name: 'Créer un échange', exact: true }).click();
