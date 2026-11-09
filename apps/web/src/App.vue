@@ -30,6 +30,6 @@ const { t } = useI18n()
     <router-view />
   </main>
 
-  <SupportFooter v-if="$route.name !== 'home'" />
+  <SupportFooter />
   <AppToasts />
 </template>

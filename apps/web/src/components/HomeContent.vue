@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import GiftIllustration from './GiftIllustration.vue'
+// import GiftIllustration from './GiftIllustration.vue'
 
 defineEmits<{ create: [] }>()
 const { t } = useI18n()
@@ -12,77 +12,74 @@ const sections: {
   emblem?: 'private'
   intro?: string
 }[] = [
-  {
-    title: 'home.steps.title',
-    cards: [
-      ['home.steps.prepare.title', 'home.steps.prepare.body'],
-      ['home.steps.invite.title', 'home.steps.invite.body'],
-      ['home.steps.surprise.title', 'home.steps.surprise.body'],
-    ],
-    numbered: true,
-  },
-  {
-    title: 'home.privacy.title',
-    cards: [
-      ['home.privacy.share.title', 'home.privacy.share.body'],
-      ['home.privacy.tracking.title', 'home.privacy.tracking.body'],
-      ['home.privacy.manage.title', 'home.privacy.manage.body'],
-    ],
-    paper: ['invite', 'shield', 'keys'],
-    emblem: 'private' as const,
-    intro: 'home.privacy.intro',
-  },
-]
+    {
+      title: 'home.steps.title',
+      cards: [
+        ['home.steps.prepare.title', 'home.steps.prepare.body'],
+        ['home.steps.invite.title', 'home.steps.invite.body'],
+        ['home.steps.surprise.title', 'home.steps.surprise.body'],
+      ],
+      numbered: true,
+    },
+    {
+      title: 'home.privacy.title',
+      cards: [
+        ['home.privacy.share.title', 'home.privacy.share.body'],
+        ['home.privacy.tracking.title', 'home.privacy.tracking.body'],
+        ['home.privacy.manage.title', 'home.privacy.manage.body'],
+      ],
+      paper: ['invite', 'shield', 'keys'],
+      emblem: 'private' as const,
+      intro: 'home.privacy.intro',
+    },
+  ]
 </script>
 <template>
   <section v-for="section in sections" :key="section.title">
-    <div class="d-flex align-items-center" :class="section.emblem ? 'feature-row' : 'gap-3'">
-      <GiftIllustration
-        v-if="section.emblem"
-        :kind="section.emblem"
-        class="section-emblem flex-shrink-0"
-      />
-      <div>
+
+    <div :class="section.emblem ? 'feature-row' : 'gap-3'">
+      <!-- <GiftIllustration v-if="section.emblem" :kind="section.emblem" class="section-emblem flex-shrink-0" -->
+      <div class="text-center">
         <h2 class="h4 mb-3">{{ t(section.title) }}</h2>
         <p v-if="section.intro" class="text-body-secondary">{{ t(section.intro) }}</p>
       </div>
     </div>
+
     <div class="d-flex flex-column flex-md-row gap-3">
       <div v-for="([title, body], i) in section.cards" :key="title" class="home-trust-slot">
+
         <article class="home-trust-card card h-100 border-0">
           <div class="card-body p-4">
-            <span
-              v-if="section.paper"
-              aria-hidden="true"
-              :class="['paper', 'paper--' + section.paper[i]]"
-            />
+            <span v-if="section.paper" aria-hidden="true" :class="['paper', 'paper--' + section.paper[i]]" />
             <div :class="{ 'd-flex align-items-start gap-3': section.numbered }">
               <span v-if="section.numbered" class="step-number" aria-hidden="true">{{
                 i + 1
-              }}</span>
+                }}</span>
               <div class="flex-grow-1">
                 <h3 class="h5">
-                  <span v-if="section.numbered" class="visually-hidden"
-                    >{{ t('home.stepLabel', { number: i + 1 }) }} </span
-                  >{{ t(title) }}
+                  <span v-if="section.numbered" class="visually-hidden">{{ t('home.stepLabel', { number: i + 1 }) }}
+                  </span>{{ t(title) }}
                 </h3>
                 <p class="text-body-secondary mb-0">{{ t(body) }}</p>
               </div>
             </div>
           </div>
         </article>
+
       </div>
     </div>
   </section>
+
   <section class="feature-row d-flex align-items-center">
-    <GiftIllustration kind="open" class="section-emblem flex-shrink-0" />
-    <div>
+    <!-- <GiftIllustration kind="open" class="section-emblem flex-shrink-0" /> -->
+    <div class="text-center">
       <h2 class="h4">{{ t('home.open.title') }}</h2>
       <p class="text-body-secondary">
         {{ t('home.open.body') }}
       </p>
     </div>
   </section>
+
   <section class="closing d-flex flex-column align-items-center gap-3 py-4 text-center">
     <span aria-hidden="true" class="paper paper--celebrate" />
     <h2 class="h4 mb-0 mx-auto">{{ t('home.closing.title') }}</h2>
@@ -112,7 +109,7 @@ const sections: {
 @media (min-width: 992px) {
   .feature-row {
     width: 100%;
-    max-width: 54rem;
+    max-width: 40rem;
     margin-inline: auto;
     padding: 2rem 1.5rem;
     column-gap: 2rem;
