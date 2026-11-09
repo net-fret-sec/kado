@@ -34,6 +34,9 @@ function run(args, options = {}) {
 const envFile = path.join(scratch, "env"),
   apiFile = path.join(scratch, "api.env"),
   override = path.join(scratch, "compose.json");
+// The host collector runs as the test user; the private parent protects its spool.
+// Production keeps both a root-only parent and 0600 files.
+await mkdir(path.join(scratch, "access"), { mode: 0o700 });
 await writeFile(
   apiFile,
   `FRONTEND_BASE_URL=https://kado.test\nFRONTEND_ALLOWED_ORIGINS=https://kado.test,https://localhost:${httpsPort}\nAPI_RATE_LIMIT=80\nAPI_RATE_WINDOW_MS=300000\nCREATE_RATE_LIMIT=10\nMAX_ACTIVE_PARTICIPANTS=50\n`,
@@ -41,7 +44,7 @@ await writeFile(
 );
 await writeFile(
   envFile,
-  `COMPOSE_PROJECT_NAME=${project}\nPOSTGRES_DB=${db}\nPOSTGRES_USER=kado_test\nPOSTGRES_PASSWORD=${password}\nIMAGE_TAG=${tag}\nDOMAIN=https://localhost\nACME_EMAIL=smoke@example.com\nKADO_API_ENV_FILE=${apiFile}\n`,
+  `COMPOSE_PROJECT_NAME=${project}\nPOSTGRES_DB=${db}\nPOSTGRES_USER=kado_test\nPOSTGRES_PASSWORD=${password}\nIMAGE_TAG=${tag}\nDOMAIN=https://localhost\nACME_EMAIL=smoke@example.com\nKADO_API_ENV_FILE=${apiFile}\nKADO_MONITOR_LOG_DIR=${scratch}/access\n`,
   { mode: 0o600 },
 );
 const production = run([
@@ -80,6 +83,9 @@ config.services.caddy.volumes.push({
   target: "/etc/caddy/Caddyfile",
   read_only: true,
 });
+const testMonitorCaddy = path.join(scratch, "monitor.Caddyfile");
+await writeFile(testMonitorCaddy, (await readFile(path.join(root, "deploy/monitor.Caddyfile"), "utf8")).replace("mode 0600", "mode 0644"));
+config.services.caddy.volumes.push({ type: "bind", source: testMonitorCaddy, target: "/etc/caddy/monitor.Caddyfile", read_only: true });
 for (const v of Object.values(config.volumes)) {
   delete v.name;
 }
@@ -457,9 +463,21 @@ try {
   const healthyReport = monitorReport();
   assert.deepEqual(healthyReport.health, { web: true, api: true, database: true });
   assert(healthyReport.metricsAvailable && healthyReport.exchanges.total > 0);
+  assert.equal(healthyReport.schemaVersion, 2);
+  assert(healthyReport.traffic.available, "Classified journal is readable and valid");
   assert.equal(healthyReport.serverActivity.last24Hours.requests, 0, "First sample is a baseline");
   await localFetch(base + "/", { headers: { DNT: "1", "Sec-GPC": "1" } });
-  assert.equal(monitorReport().serverActivity.last24Hours.requests, 1, "Host checks do not inflate request totals");
+  const afterHome = monitorReport();
+  assert.equal(afterHome.serverActivity.last24Hours.requests, 1, "Host checks do not inflate request totals");
+  assert.equal(afterHome.traffic.periods.last24Hours.home.ok + afterHome.traffic.periods.last24Hours.home.notModified, 1);
+  const monitorFile = path.join(scratch, "monitor", "monitor.sqlite3");
+  const beforeRead = await readFile(monitorFile);
+  const readonly = spawnSync("bash", ["deploy/scripts/status.sh", envFile, "--json", "--read-only", "--history"], { cwd: root, env: monitorEnv, encoding: "utf8" });
+  assert([0, 1].includes(readonly.status), readonly.stderr);
+  const readonlyReport = JSON.parse(readonly.stdout);
+  assert.equal(readonlyReport.traffic.periods.last24Hours.requests, afterHome.traffic.periods.last24Hours.requests);
+  assert(readonlyReport.traffic.hours.length > 0);
+  assert.deepEqual(await readFile(monitorFile), beforeRead, "Dashboard reads never modify monitoring storage");
   // Check SIGTERM readiness and clean exit using the actual Node process.
   const container = compose("ps", "-q", "api");
   compose("stop", "-t", "15", "api");

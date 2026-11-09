@@ -67,66 +67,86 @@ Un autre fichier Compose peut être passé en premier argument.
 
 ## Surveillance serveur, sans suivi des visiteurs
 
-Le compteur navigateur est retiré. La migration `006_remove_page_views.sql`
-supprime uniquement ses deux anciennes tables ; les échanges sont conservés.
-L’ancien POST `/api/page-views` renvoie encore 204 sans stocker de pages pour les
-clients en cache (cela reste une requête HTTP dans les totaux serveur). Il n’y a plus de requête de télémétrie dans le nouveau navigateur.
+Le suivi reste exclusivement côté serveur. Aucun compteur navigateur, cookie de
+traçage ou identifiant de visiteur n'est ajouté. L'ancien POST `/api/page-views`
+reste une réponse 204 sans stockage pour les très anciens clients.
 
-Caddy expose ses compteurs uniquement sur son interface d’administration interne
-`127.0.0.1:2019/metrics` (port non publié). Aucun journal d’accès détaillé n’est
-activé. Le collecteur ne conserve que la somme de trois compteurs du seul handler
-externe `subroute` qui enveloppe le site à domaine configuré : réponses terminées, réponses 4xx et réponses 5xx. Ne jamais
-additionner les handlers : une requête en traverse plusieurs. Les métriques
-brutes ne sont pas écrites sur disque ; ni IP, URI, paramètres, jetons, noms,
-référents, méthodes HTTP libres ou identifiants visiteurs ne sont conservés.
+Les compteurs Caddy internes restent la référence de volume (port 2019 non
+publié, HEAD exclus). En complément, `monitor.Caddyfile` classe chaque demande
+avant réécriture : accueil, organisation, participation, fichiers, API, technique
+ou autre. Le journal d'accès est filtré **avant écriture** : uniquement `ts`,
+`category`, `method`, `status`, `navigation`. Aucun chemin, paramètre, IP, jeton,
+référent, cookie ou user-agent n'y figure. Les en-têtes Fetch Metadata servent
+uniquement à produire un booléen; ils ne prouvent pas une visite humaine et
+peuvent être absents, notamment après passage par le service worker.
 
-`kado-monitor.timer` exécute une collecte toutes les minutes ; `status:prod`
-effectue aussi un relevé frais. Le collecteur vérifie en HTTPS, par HEAD, le statut et le type de contenu de
-l’accueil (`/`), du processus API (`/health/live`) et de la base via l’API (`/health`).
-Les requêtes HEAD, y compris ces sondes, sont exclues des mesures d’activité.
-Les sondes ne valident pas le rendu JavaScript ; la recette navigateur le fait à la livraison. Les requêtes
-API, fichiers, robots et rafraîchissements automatiques sont inclus ; ce ne sont
-ni des pages vues ni des visiteurs uniques. Une page uniquement en cache ne
-produit pas de requête serveur. DNT/GPC ne modifient pas ces totaux techniques.
+Le spool privé est `/var/lib/kado-monitor/access` (700; fichiers 600), monté dans
+Caddy. Rotation horaire et à 1 MiB, au maximum 23 archives + le fichier actif;
+les fichiers fermés sont supprimés dès leur import réussi. Limite temporelle de
+24 h en fonctionnement normal. Un serveur arrêté ne peut pas purger : la purge
+reprend au démarrage. Le spool et la base de surveillance sont hors des dumps
+PostgreSQL. Le collecteur refuse les schémas inattendus, ne recopie jamais une
+ligne rejetée, et conserve seulement des agrégats et des curseurs techniques.
 
-L’historique de totaux par minute et de résultats de sondes est dans
-`/var/lib/kado-monitor/monitor.sqlite3` (dossier 700, fichier 600), hors des dumps
-PostgreSQL et sans interface publique. Rétention de 7 jours, purge à chaque
-relevé avec effacement sécurisé SQLite. Un serveur arrêté ne peut pas purger ;
-la purge reprend au prochain relevé. Seuls la date initiale et le point de
-référence récent du compteur cumulatif sont conservés pour calculer les écarts.
-Les tables de l’ancien compteur restent exclues des dumps pré-migration.
+Le minuteur collecte toutes les minutes, avec verrou commun au relevé manuel.
+L'import et les positions de lecture sont transactionnels; les rotations sont
+reconnues par fichier, et une troncature ou disparition est signalée. SQLite
+conserve sept jours de détails par minute et 90 jours de totaux horaires. La
+migration ajoute des tables sans supprimer l'ancien historique. Les heures UTC
+évitent les collisions au changement d'heure; l'affichage utilise Toronto.
+Les instantanés horaires des échanges restent des états, pas des événements.
 
-La première collecte établit une référence sans inventer d’historique. Les
-écarts sont affectés à la minute du relevé (résolution d’environ une minute).
-Les coupures de plus de 3 minutes entraînent une nouvelle référence : leur
-trafic n’est pas attribué artificiellement à une minute récente. Une reprise
-Caddy peut perdre la fin de la minute précédente ; ruptures, reprises, minutes
-manquantes et échecs de collecte sont affichés. Ce bilan n’est pas un engagement
-de disponibilité ni une alerte externe. Un VPS inaccessible ne peut pas produire
-son propre bilan ; l’échec SSH reste visible.
+L'indicateur d'accueil additionne les réponses **GET 200 et GET 304** de `/` et
+`/index.html`, avec distinction entre HTML transmis et cache revalidé. Les
+préchargements, robots, rafraîchissements et vos essais peuvent contribuer à ces
+chiffres. Les routes inconnues ne deviennent pas des accueils malgré le fallback
+SPA. Les sondes HEAD ne contribuent pas aux demandes classées.
 
-Le statut comprend aussi l’état des conteneurs et l’état de la sauvegarde :
-fichier non vide de moins de 36 heures, minuteur actif et résultat du dernier
-travail. Le dump a été vérifié lors de sa création ; aucun test de restauration
-n’est prétendu à chaque relevé. Code de sortie du bilan : 0 si les contrôles
-actuels sont bons, 1 si dégradés/incomplets (avec rapport), 2 si aucun rapport
-ne peut être produit. Une collecte planifiée enregistre les sondes en échec
-sans s’interrompre pour autant.
+L'accueil utilise désormais le réseau en priorité et revalide le HTML. Après
+3 secondes, hors ligne ou en erreur serveur, le shell précaché peut être servi.
+Les fichiers restent en cache. Les autres routes, les restaurations d'onglets,
+la navigation interne et les anciens service workers peuvent éviter le réseau.
+On ne mesure donc **ni visiteurs uniques ni toutes les pages vues**.
 
-Installation initiale du collecteur sur le VPS après la livraison :
+Le rapport JSON version 2 garde les champs existants et ajoute `traffic` :
+`collectionStartedAt`, `sampledAt`, `available`, `stale`, les quatre `periods`,
+leurs bornes et qualité, puis `comparison`. `--history` ajoute `hours` et
+`businessSnapshots`, ainsi que les heures de bord limitées à chaque fenêtre. Les fenêtres 24 h/7 j sont à la minute; 30/90 j sont à
+l'heure, avec bornes explicites. Une période sans mesure utilisable est `null`.
+La comparaison utilise les heures entières sans interruption communes aux deux
+sources; de petits écarts restent possibles aux frontières des relevés, car les
+compteurs Caddy sont relevés périodiquement. Ce n'est pas une validation du
+nombre de personnes. Pas de reconstruction des anciennes catégories.
 
 ```bash
-install -m 644 deploy/systemd/kado-monitor.{service,timer} /etc/systemd/system/
-systemctl daemon-reload
-systemctl enable --now kado-monitor.timer
-systemctl start kado-monitor.service
+pnpm status:prod
+pnpm --silent status:prod --json --history
+pnpm --silent status:prod --json --history --read-only
+pnpm monitor:prod
 ```
 
-Variables pour une installation différente ou une recette isolée :
-`KADO_MONITOR_DIR`, `KADO_MONITOR_URL`, `KADO_BACKUP_DIR`, `KADO_COMPOSE_FILE`.
-Le script n’installe pas les unités tout seul. Le contrôle s’exécute sur l’hôte
-(Python 3 avec SQLite, `docker`, `systemctl`), même quand les conteneurs sont arrêtés.
+La dernière commande construit l'interface locale et donne son adresse
+`http://127.0.0.1:4317`. Il faut installer les dépendances avec `pnpm install
+--frozen-lockfile` après mise à jour du code. Le tableau utilise l'alias SSH
+`netfretsec`, un accès non interactif et des lectures seules. Il n'expose aucun
+nouvel accès sur le VPS. `KADO_MONITOR_PORT` change le port local;
+`KADO_MONITOR_SSH_CONFIG` permet un autre fichier SSH (par défaut `~/.ssh/config`
+s'il existe). Aucun mot de passe ni clé privée n'est transmis au navigateur.
+
+La vue actualise son bilan chaque minute, garde en mémoire le dernier résultat
+si SSH échoue et le marque périmé. La lecture seule ne migre pas SQLite, ne
+modifie pas les permissions, ne lance pas de sondes et ne recalcule pas de
+compteurs sur le serveur. Le minuteur reste responsable de la collecte. Un
+relevé vieux de plus de trois minutes est périmé. Les graphiques et le CSV
+exposent les heures incomplètes, et les tableaux offrent un accès clavier.
+L'interface n'utilise aucune ressource ni police distante.
+
+Le statut conserve ses codes 0 (contrôles techniques satisfaits), 1 (bilan avec
+problème technique) et 2 (bilan impossible). Le tableau accepte le JSON d'un code
+1 et affiche les problèmes; une perte d'accès SSH ne devient pas une période
+sans trafic. La qualité du journal classé est affichée séparément.
+
+Validation et livraison : voir [MONITORING.md](MONITORING.md).
 
 ## Sauvegarde et restauration
 

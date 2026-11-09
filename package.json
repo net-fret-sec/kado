@@ -26,7 +26,11 @@
     "test:web": "pnpm --dir apps/web test",
     "test:e2e": "node deploy/scripts/e2e.mjs",
     "lint:check": "pnpm --dir apps/web exec eslint . && pnpm --dir apps/web exec oxlint .",
-    "test:review": "pnpm build:api && node deploy/scripts/browser-review.mjs"
+    "test:review": "pnpm build:api && node deploy/scripts/browser-review.mjs",
+    "monitor:prod": "node apps/monitor/launch.mjs",
+    "build:monitor": "pnpm --dir apps/monitor build",
+    "test:monitor": "python3 deploy/scripts/test-monitor.py && python3 deploy/scripts/test-activity.py && pnpm --dir apps/monitor test",
+    "test:monitor:browser": "node deploy/scripts/test-monitor-browser.mjs"
   },
   "keywords": [],
   "author": "Dave Létourneau <daveletourneau@gmail.com>",

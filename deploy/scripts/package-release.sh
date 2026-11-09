@@ -10,6 +10,7 @@ docker build --pull -f deploy/docker/api.Dockerfile -t "kado-api:$TAG" .
 docker build --pull -f deploy/docker/caddy.Dockerfile --build-arg "VITE_CURRENCY_SYMBOL=${VITE_CURRENCY_SYMBOL:-$}" --build-arg "VITE_DONATION_URL=${VITE_DONATION_URL:-}" -t "kado-web:$TAG" .
 KADO_IMAGE_TAG="$TAG" pnpm release:smoke
 docker save "kado-api:$TAG" "kado-web:$TAG" | gzip > "$OUT/images.tar.gz"
+git archive --format=tar "$TAG" | gzip > "$OUT/source.tar.gz"
 printf '%s\n' "$TAG" > "$OUT/version"
-(cd "$OUT" && sha256sum images.tar.gz version > SHA256SUMS)
+(cd "$OUT" && sha256sum images.tar.gz source.tar.gz version > SHA256SUMS)
 echo "Release bundle: $OUT"

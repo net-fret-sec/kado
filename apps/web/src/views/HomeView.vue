@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { localAdminToolsEnabled } from '@/local-admin-tools'
 import { useI18n } from 'vue-i18n'
 import CreateExchangeModal from '@/components/CreateExchangeModal.vue'
 import GiftIllustration from '@/components/GiftIllustration.vue'
@@ -9,7 +8,6 @@ import HomeContent from '@/components/HomeContent.vue'
 
 const { t } = useI18n()
 const isCreateModalOpen = ref(false)
-const showAdminLink = localAdminToolsEnabled
 </script>
 
 <template>

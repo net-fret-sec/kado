@@ -62,3 +62,7 @@ workbox-*.js
 api.env
 .secret
 notes/*
+
+# Python monitoring caches
+__pycache__/
+*.pyc

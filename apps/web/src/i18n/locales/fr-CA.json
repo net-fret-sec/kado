@@ -66,7 +66,6 @@
       "subtext": "Si Kado vous a facilité les préparatifs, vous pouvez contribuer à son hébergement et à son développement. Un petit coup de pouce, toujours facultatif et apprécié.",
       "button": "Soutenir le projet"
     },
-    "adminLink": "Outils d’administration locale (développement)",
     "steps": {
       "title": "Un échange organisé en trois petites étapes",
       "prepare": {
@@ -80,21 +79,6 @@
       "surprise": {
         "title": "Place à la surprise!",
         "body": "Lancez la pige lorsque tout le monde est prêt. Chaque personne découvre à qui offrir un cadeau et peut consulter ses suggestions."
-      }
-    },
-    "benefits": {
-      "title": "Moins de casse-tête, plus de plaisir",
-      "draw": {
-        "title": "Une pige qui tient compte de votre groupe",
-        "body": "Vous souhaitez éviter que deux conjoints se pigent? Définissez les exclusions avant le tirage : Kado en tient compte."
-      },
-      "wish": {
-        "title": "Des idées pour faire plaisir",
-        "body": "Les participants peuvent partager leurs envies et quelques pistes. De quoi inspirer la personne qui les a pigés, tout en lui laissant le plaisir de choisir."
-      },
-      "link": {
-        "title": "Un simple lien pour participer",
-        "body": "Pas de mot de passe à inventer ni d’application à faire installer à toute la famille. Chaque personne accède à l’échange avec son lien personnel."
       }
     },
     "privacy": {
@@ -115,8 +99,7 @@
     },
     "open": {
       "title": "Un projet ouvert, une confiance qui se vérifie",
-      "body": "Kado est un logiciel libre : son code est public. Il peut être consulté, utilisé, amélioré ou hébergé ailleurs. C’est aussi une façon de rendre son fonctionnement transparent.",
-      "link": "Découvrir le code source"
+      "body": "Kado est un logiciel libre : son code est public. Il peut être consulté, utilisé, amélioré ou hébergé ailleurs. C’est aussi une façon de rendre son fonctionnement transparent."
     },
     "closing": {
       "title": "On prépare votre prochain échange?",

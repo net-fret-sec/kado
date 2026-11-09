@@ -19,10 +19,13 @@ jobs:
       - run: pnpm --dir apps/api exec tsc --noEmit --strict --target ES2022 --module ESNext --moduleResolution bundler --skipLibCheck ../../packages/shared/src/index.ts
       - run: pnpm build:api
       - run: pnpm build:web
+      - run: pnpm build:monitor
+      - run: pnpm test:monitor
       - run: pnpm lint:check
       - run: bash -n deploy/scripts/*.sh && shellcheck deploy/scripts/*.sh
       - run: pnpm test:operations
       - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:monitor:browser
       - run: pnpm release:bundle
       - uses: actions/upload-artifact@v4
         with:

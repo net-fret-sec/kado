@@ -4,6 +4,7 @@ from pathlib import Path
 import tempfile
 import sys
 sys.dont_write_bytecode=True
+sys.path.insert(0,str(Path(__file__).parent))
 import unittest
 
 spec=importlib.util.spec_from_file_location('monitor',Path(__file__).with_name('monitor.py'))

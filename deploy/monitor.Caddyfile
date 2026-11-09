@@ -1,0 +1,56 @@
+# Imported inside the site, before routing. Only fixed enums survive encoding.
+map {path} {kado_category} {
+  / home
+  /index.html home
+  ~^/health(?:/|$) technical
+  ~^/(?:sw\.js|workbox-[^/]+\.js|registerSW\.js|manifest\.webmanifest|robots\.txt|metrics)$ technical
+  ~^/api(?:/|$) api
+  ~^/exchanges/[^/]+/?$ organizer
+  ~^/p/[^/]+/?$ participant
+  ~^/(?:assets/|favicon\.svg$|pwa-[^/]+\.png$) files
+  default other
+}
+map {method} {kado_method} {
+  GET GET
+  HEAD HEAD
+  POST POST
+  PUT PUT
+  PATCH PATCH
+  DELETE DELETE
+  OPTIONS OPTIONS
+  default OTHER
+}
+map "{http.request.header.Sec-Fetch-Mode}:{http.request.header.Sec-Fetch-Dest}" {kado_navigation} {
+  navigate:document 1
+  default 0
+}
+log kado_activity {
+  output file /var/log/kado/access.log {
+    mode 0600
+    roll_size 1MiB
+    roll_minutes 0
+    roll_keep 23
+    roll_keep_for 24h
+    roll_uncompressed
+  }
+  format filter {
+    wrap json {
+      time_format unix_seconds_float
+      message_key ""
+      level_key ""
+      name_key ""
+      caller_key ""
+      stacktrace_key ""
+    }
+    fields {
+      request delete
+      resp_headers delete
+      user_id delete
+      duration delete
+      size delete
+      bytes_read delete
+      err_id delete
+      err_trace delete
+    }
+  }
+}

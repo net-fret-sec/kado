@@ -25,7 +25,10 @@ export default defineConfig(({ mode }) => {
       vueDevTools(),
       VitePWA({
         registerType: 'autoUpdate',
-        workbox: {
+        strategies: 'injectManifest',
+        srcDir: 'src',
+        filename: 'sw.ts',
+        injectManifest: {
           globPatterns: [
             '**/*.{js,css,html}',
             'assets/kado-gifts-*.png',
@@ -33,8 +36,6 @@ export default defineConfig(({ mode }) => {
             'assets/kado-privacy-*.png',
             'assets/kado-paper-*.webp',
           ],
-          navigateFallbackDenylist: [/^\/api(?:\/|$)/, /^\/health(?:\/|$)/],
-          runtimeCaching: [],
         },
         includeAssets: ['favicon.svg', 'robots.txt'],
         manifest: {

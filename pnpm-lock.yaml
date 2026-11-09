@@ -167,6 +167,22 @@ importers:
         specifier: ~5.9.3
         version: 5.9.3
 
+  apps/monitor:
+    dependencies:
+      '@fontsource/source-sans-3':
+        specifier: ^5.2.8
+        version: 5.2.9
+      vue:
+        specifier: ^3.5.29
+        version: 3.5.30(typescript@5.9.3)
+    devDependencies:
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.4
+        version: 6.0.5(vite@8.3.3(@types/node@24.12.0)(esbuild@0.28.2)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.9.1))(vue@3.5.30(typescript@5.9.3))
+      vite:
+        specifier: '>=7.3.2'
+        version: 8.3.3(@types/node@24.12.0)(esbuild@0.28.2)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.9.1)
+
   apps/web:
     dependencies:
       '@fontsource/source-sans-3':
@@ -275,6 +291,18 @@ importers:
       vue-tsc:
         specifier: ^3.2.5
         version: 3.2.6(typescript@5.9.3)
+      workbox-core:
+        specifier: ^7.4.0
+        version: 7.4.0
+      workbox-precaching:
+        specifier: ^7.4.0
+        version: 7.4.0
+      workbox-routing:
+        specifier: ^7.4.0
+        version: 7.4.0
+      workbox-strategies:
+        specifier: ^7.4.0
+        version: 7.4.0
 
   packages/shared:
     dependencies:

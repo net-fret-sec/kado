@@ -1,5 +1,5 @@
 [Unit]
-Description=Check Kado every minute, retain seven days
+Description=Collect Kado each minute; 7-day details and 90-day hourly totals
 [Timer]
 OnBootSec=30s
 OnCalendar=*-*-* *:*:00

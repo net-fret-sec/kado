@@ -66,7 +66,6 @@
       "subtext": "Si Kado te ha sido útil, siempre se agradece una pequeña ayuda para el alojamiento y el desarrollo.",
       "button": "Apoyar el proyecto"
     },
-    "adminLink": "Herramientas de administración local (desarrollo)",
     "steps": {
       "title": "Organiza tu intercambio en tres pasos",
       "prepare": {
@@ -80,21 +79,6 @@
       "surprise": {
         "title": "¡Llega la sorpresa!",
         "body": "Haz el sorteo cuando todo el grupo esté listo. Cada persona verá a quién le toca regalar y podrá consultar sus sugerencias."
-      }
-    },
-    "benefits": {
-      "title": "Menos complicaciones, más ilusión",
-      "draw": {
-        "title": "Un sorteo a la medida de tu grupo",
-        "body": "¿Prefieres que dos personas que son pareja no se regalen entre sí? Indícalo antes del sorteo y Kado lo tendrá en cuenta."
-      },
-      "wish": {
-        "title": "Ideas para acertar con el regalo",
-        "body": "Cada participante puede compartir sus deseos o dar algunas pistas. Así, quien le haga el regalo tendrá inspiración y seguirá disfrutando de la elección."
-      },
-      "link": {
-        "title": "Basta un enlace para participar",
-        "body": "Los participantes no necesitan inventar una contraseña ni instalar una aplicación. Cada persona accede al intercambio con su enlace personal."
       }
     },
     "privacy": {
@@ -115,8 +99,7 @@
     },
     "open": {
       "title": "Un proyecto abierto que puedes conocer por dentro",
-      "body": "Kado es software libre. Su código es público y puedes consultarlo, usarlo, mejorarlo o alojarlo por tu cuenta. Así puedes ver cómo funciona.",
-      "link": "Explorar el código fuente"
+      "body": "Kado es software libre. Su código es público y puedes consultarlo, usarlo, mejorarlo o alojarlo por tu cuenta. Así puedes ver cómo funciona."
     },
     "closing": {
       "title": "¿Preparamos tu próximo intercambio?",

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Private host-side monitoring. Persist numeric aggregates, never raw metrics/logs."""
 import argparse
+import fcntl
+import activity
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import json
@@ -22,6 +24,7 @@ def parse_metrics(text):
     counts = dict.fromkeys(FIELDS, 0)
     started = None
     enabled = False
+    outer = False
     for line in text.splitlines():
         if line.startswith('process_start_time_seconds '):
             started = float(line.split()[-1])
@@ -31,6 +34,8 @@ def parse_metrics(text):
         if not m:
             continue
         labels = dict(re.findall(r'(\w+)="([^"\\]*)"', m[1]))
+        if labels.get('handler') == 'subroute':
+            outer = True
         if labels.get('handler') != 'subroute' or labels.get('method') == 'HEAD':
             continue  # The domain site is wrapped in one outer subroute; HEAD probes are excluded.
         code = labels.get('code', '')
@@ -42,7 +47,7 @@ def parse_metrics(text):
             counts['clientErrors'] += int(value)
         if code.startswith('5'):
             counts['serverErrors'] += int(value)
-    if not enabled or started is None or not math.isfinite(started) or started <= 0:
+    if not enabled or not outer or started is None or not math.isfinite(started) or started <= 0:
         raise ValueError('Metrics unavailable')
     return {'sourceStartedAt': started, 'counts': counts}
 
@@ -73,6 +78,7 @@ def connect(directory):
       at INTEGER PRIMARY KEY, requests INTEGER NOT NULL, client_errors INTEGER NOT NULL,
       server_errors INTEGER NOT NULL, web_ok INTEGER NOT NULL, api_ok INTEGER NOT NULL,
       db_ok INTEGER NOT NULL, metrics_ok INTEGER NOT NULL, gap INTEGER NOT NULL, restart INTEGER NOT NULL)''')
+    activity.initialize(db)
     db.commit()
     os.chmod(directory / 'monitor.sqlite3', 0o600)
     return db
@@ -214,6 +220,25 @@ def render(report):
     print('Pas de mesure des visiteurs uniques ni des pages servies uniquement depuis le cache.')
     print('Totaux par minute sur 7 jours, sans IP ni liens personnels, hors sauvegardes.')
     print('Une rupture de collecte ou un redémarrage peut laisser une courte période non mesurée.')
+    traffic = report.get('traffic')
+    if traffic:
+        print('\nDemandes classées — début : ' + date(traffic['collectionStartedAt']))
+        print('  Journal : ' + state(traffic['available'] and not traffic['stale']))
+        for key, label in [('last24Hours','24 heures'), ('last7Days','7 jours'), ('last30Days','30 jours'), ('last90Days','90 jours')]:
+            period = traffic['periods'][key]
+            home = period['home']
+            if home is None:
+                print(f'  {label} : données indisponibles')
+                continue
+            quality = period['quality']
+            incomplete = period['partial'] or quality['missingMinutes'] or quality['gaps'] or traffic['stale']
+            print(f"  {label} : accueil GET 200 {home['ok']} · GET 304 {home['notModified']} · dont navigations {home['navigation']}" + (' — période incomplète' if incomplete else ''))
+            print(f"    Requêtes classées : {period['requests']} · ruptures {quality['gaps']} · lignes invalides {quality['invalidRecords']}")
+        comparison=traffic['comparison']
+        print(f"  Comparaison Caddy : {comparison['hours']} heures complètes · écart classées − serveur : {comparison['difference'] if comparison['difference'] is not None else 'indisponible'}")
+        print('  Agrégats horaires sur 90 jours ; robots et vos propres consultations inclus.')
+    if report.get('stale'):
+        print('\nATTENTION : dernier bilan périmé, collecte à vérifier.')
     if business:
         e=business['exchanges']; a=business['activeExchanges']
         print(f"\nÉchanges présents : {e['total']} · actifs : {e['active']} · archivés : {e['archived']}\n  Sans pige : {e['activeUndrawn']} · pige effectuée : {e['activeDrawn']}")
@@ -224,6 +249,26 @@ def render(report):
     else:
         print('\nBilan des échanges indisponible. Les zéros ne sont pas substitués aux données manquantes.')
 
+def build_report(db, now, compose, checks, metric, root):
+    raw=run(compose+['exec','-T','api','node','--input-type=module','-','json'],
+            input=(root/'deploy/scripts/status.mjs').read_text(), timeout=15)
+    try: business=json.loads(raw) if raw else None
+    except ValueError: business=None
+    activity.rollup(db, now, business)
+    return {**(business or {'exchanges':None,'activeExchanges':None,'timeZone':'America/Toronto'}),
+            'schemaVersion':2,'generatedAt':datetime.fromtimestamp(now,timezone.utc).isoformat(),
+            'health':checks,'metricsAvailable':metric is not None,'services':service_states(compose),
+            'monitorTimerActive':timer_active('kado-monitor.timer'),'backup':backup_state(now)}
+
+
+def exit_status(report):
+    return 0 if (not report.get('stale') and report.get('traffic',{}).get('available',False) and all(report['health'].values()) and report['metricsAvailable']
+      and report['exchanges'] is not None and report['monitorTimerActive']
+      and all(s['running'] for s in report['services'].values())
+      and report['backup']['recent'] and report['backup']['timerActive']
+      and report['backup']['lastJobSucceeded'] is True) else 1
+
+
 def main():
     if sys.argv[1:] == ['--parse-metrics']:
         print(json.dumps(parse_metrics(sys.stdin.read())))
@@ -231,30 +276,41 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('root',type=Path); parser.add_argument('config',type=Path)
     parser.add_argument('--collect',action='store_true'); parser.add_argument('--format',choices=['text','json'],default='text')
+    parser.add_argument('--read-only',action='store_true'); parser.add_argument('--history',action='store_true')
     args=parser.parse_args()
     os.umask(0o077)
-    # Timestamp before network calls prevents an overlapping older scrape from replacing a newer one.
-    now=time.time()
-    compose, checks, metric=gather(args.root,args.config)
     directory=Path(os.environ.get('KADO_MONITOR_DIR','/var/lib/kado-monitor'))
-    with connect(directory) as db:
-        record(db,now,metric,checks)
-        activity=history(db,now)
+    if args.read_only:
+        # No mkdir, chmod, migration, probes, SSH side effects or database writes.
+        with sqlite3.connect((directory/'monitor.sqlite3').resolve().as_uri()+'?mode=ro', uri=True, timeout=10) as db:
+            db.execute('BEGIN')
+            report=activity.get_meta(db,'report')
+            if report is None: raise ValueError('No report')
+            now=time.time()
+            report['serverActivity']=history(db,now)
+            report['traffic']=activity.report(db,now,args.history)
+            report['stale']=now-datetime.fromisoformat(report['generatedAt']).timestamp()>180
+            report['readAt']=datetime.fromtimestamp(now,timezone.utc).isoformat()
+    else:
+        directory.mkdir(mode=0o700,parents=True,exist_ok=True)
+        with (directory/'collector.lock').open('a') as lock:
+            fcntl.flock(lock,fcntl.LOCK_EX | fcntl.LOCK_NB)
+            # Serialize all external reads too; a slower old scrape cannot win.
+            now=time.time()
+            compose,checks,metric=gather(args.root,args.config)
+            with connect(directory) as db:
+                record(db,now,metric,checks)
+                activity.ingest(db,Path(os.environ.get('KADO_MONITOR_LOG_DIR',str(directory/'access'))),now)
+                report=build_report(db,now,compose,checks,metric,args.root)
+                with db: activity.set_meta(db,'report',report)
+                report['serverActivity']=history(db,now)
+                report['traffic']=activity.report(db,now,args.history)
+                report['stale']=False
     if args.collect:
-        return 0  # Persist outages too; a failed probe is data, not a collector crash.
-    raw=run(compose+['exec','-T','api','node','--input-type=module','-','json'],
-            input=(args.root/'deploy/scripts/status.mjs').read_text(), timeout=15)
-    try: business=json.loads(raw) if raw else None
-    except ValueError: business=None
-    backup=backup_state(now)
-    services=service_states(compose)
-    scheduled=timer_active('kado-monitor.timer')
-    report={**(business or {'exchanges':None,'activeExchanges':None,'timeZone':'America/Toronto'}),
-            'generatedAt':datetime.fromtimestamp(now,timezone.utc).isoformat(),'health':checks,'metricsAvailable':metric is not None,'services':services,
-            'monitorTimerActive':scheduled,'backup':backup,'serverActivity':activity}
+        return 0  # Outages are data. The timer still persists failed probes.
     if args.format=='json': print(json.dumps(report,indent=2,ensure_ascii=False))
     else: render(report)
-    return 0 if all(checks.values()) and metric and business and scheduled and all(s['running'] for s in services.values()) and backup['recent'] and backup['timerActive'] and backup['lastJobSucceeded'] is True else 1
+    return exit_status(report)
 
 if __name__=='__main__':
     try: sys.exit(main())

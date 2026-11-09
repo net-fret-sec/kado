@@ -66,7 +66,6 @@
       "subtext": "If Kado has been useful to you, a small contribution towards hosting and development is always appreciated.",
       "button": "Support the project"
     },
-    "adminLink": "Local administration tools (development)",
     "steps": {
       "title": "A gift exchange in three easy steps",
       "prepare": {
@@ -80,21 +79,6 @@
       "surprise": {
         "title": "Time for the surprise!",
         "body": "Draw names when everyone is ready. Each person can see who they’re giving to and take a look at that person’s gift ideas."
-      }
-    },
-    "benefits": {
-      "title": "Less to organize, more to enjoy",
-      "draw": {
-        "title": "A draw that works for your group",
-        "body": "Would you like to keep partners from drawing each other? Set those exclusions before the draw and Kado will take care of them."
-      },
-      "wish": {
-        "title": "A little gift inspiration",
-        "body": "Everyone can share a few wishes or hints. Whoever draws their name gets some inspiration and still gets to choose the surprise."
-      },
-      "link": {
-        "title": "One link is all it takes",
-        "body": "No password for participants to remember or app for the whole family to install. Each person joins through their own link."
       }
     },
     "privacy": {
@@ -115,8 +99,7 @@
     },
     "open": {
       "title": "Open code you can see for yourself",
-      "body": "Kado is free and open source software. Anyone can read the code, use it, improve it or host their own copy. You can see how it all works.",
-      "link": "Explore the source code"
+      "body": "Kado is free and open source software. Anyone can read the code, use it, improve it or host their own copy. You can see how it all works."
     },
     "closing": {
       "title": "Ready for your next gift exchange?",

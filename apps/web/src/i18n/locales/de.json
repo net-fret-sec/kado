@@ -66,7 +66,6 @@
       "subtext": "Wenn dir Kado geholfen hat, freuen wir uns über einen kleinen Beitrag für Hosting und Weiterentwicklung.",
       "button": "Projekt unterstützen"
     },
-    "adminLink": "Lokale Verwaltungstools (Entwicklung)",
     "steps": {
       "title": "In drei Schritten zur Wichtelrunde",
       "prepare": {
@@ -80,21 +79,6 @@
       "surprise": {
         "title": "Zeit für die Überraschung!",
         "body": "Starte die Auslosung, wenn alle bereit sind. Jetzt erfährt jede Person, wen sie beschenkt, und kann sich die Wünsche ansehen."
-      }
-    },
-    "benefits": {
-      "title": "Weniger Aufwand, mehr Vorfreude",
-      "draw": {
-        "title": "Eine Auslosung, die zu euch passt",
-        "body": "Ein Paar soll sich nicht gegenseitig ziehen? Lege das vor der Auslosung fest. Kado berücksichtigt eure Vorgaben."
-      },
-      "wish": {
-        "title": "Ideen, die Freude machen",
-        "body": "Alle können Wünsche und kleine Hinweise teilen. Wer den Namen zieht, bekommt Anregungen und kann das Geschenk selbst aussuchen."
-      },
-      "link": {
-        "title": "Ein Link genügt",
-        "body": "Niemand muss sich zum Mitmachen ein Passwort ausdenken oder die Familie bitten, eine App zu installieren. Jede Person nimmt über ihren eigenen Link teil."
       }
     },
     "privacy": {
@@ -115,8 +99,7 @@
     },
     "open": {
       "title": "Ein offenes Projekt zum Nachschauen",
-      "body": "Kado ist freie Software. Der Quellcode ist öffentlich. Du kannst ihn ansehen, nutzen, verbessern oder Kado selbst hosten. So lässt sich nachvollziehen, wie alles funktioniert.",
-      "link": "Quellcode ansehen"
+      "body": "Kado ist freie Software. Der Quellcode ist öffentlich. Du kannst ihn ansehen, nutzen, verbessern oder Kado selbst hosten. So lässt sich nachvollziehen, wie alles funktioniert."
     },
     "closing": {
       "title": "Bereit für die nächste Wichtelrunde?",

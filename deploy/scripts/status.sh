@@ -6,12 +6,14 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 config=deploy/.env.production
 format=text
 config_set=false
+options=()
 for arg in "$@"; do
   case "$arg" in
     --json) format=json ;;
+    --read-only|--history) options+=("$arg") ;;
     --help|-h)
-      echo "Usage: bash deploy/scripts/status.sh [deploy/.env.production] [--json]"
-      echo "Échanges lus sans modification ; état des services et totaux serveur sur sept jours."
+      echo "Usage: bash deploy/scripts/status.sh [deploy/.env.production] [--json] [--read-only] [--history]"
+      echo "Échanges lus sans modification ; état des services et totaux serveur et demandes classées; historique sur 90 jours."
       exit 0 ;;
     -*) echo "Option inconnue : $arg" >&2; exit 2 ;;
     *)
@@ -20,4 +22,4 @@ for arg in "$@"; do
   esac
 done
 load_config "$config"
-python3 "$ROOT/deploy/scripts/monitor.py" "$ROOT" "$ENV_FILE" --format "$format"
+python3 "$ROOT/deploy/scripts/monitor.py" "$ROOT" "$ENV_FILE" --format "$format" "${options[@]}"

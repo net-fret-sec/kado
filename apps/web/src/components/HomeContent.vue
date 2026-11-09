@@ -32,15 +32,6 @@ const sections: {
       emblem: 'private' as const,
       intro: 'home.privacy.intro',
     },
-    // {
-    //   title: 'home.benefits.title',
-    //   cards: [
-    //     ['home.benefits.draw.title', 'home.benefits.draw.body'],
-    //     ['home.benefits.wish.title', 'home.benefits.wish.body'],
-    //     ['home.benefits.link.title', 'home.benefits.link.body'],
-    //   ],
-    //   paper: ['draw', 'wish', 'link'],
-    // },
   ]
 </script>
 <template>
@@ -81,7 +72,6 @@ const sections: {
       <p class="text-body-secondary">
         {{ t('home.open.body') }}
       </p>
-      <!-- <a href="https://github.com/net-fret-sec/kado">{{ t('home.open.link') }}</a> -->
     </div>
   </section>
   <section class="closing py-4">

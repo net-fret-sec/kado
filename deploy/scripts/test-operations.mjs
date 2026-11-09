@@ -77,6 +77,8 @@ elif [[ "$*" == *"ps -a -q db"* ]]; then echo existing-db; fi
   assert.equal(await readFile(trace, "utf8"), "");
   const monitorTests = spawnSync("python3", [path.join(root, "deploy/scripts/test-monitor.py")], { stdio: "inherit" });
   assert.equal(monitorTests.status, 0, "Server monitoring regression tests");
+  const activityTests = spawnSync("python3", [path.join(root, "deploy/scripts/test-activity.py")], { stdio: "inherit" });
+  assert.equal(activityTests.status, 0, "Classified activity and retention regression tests");
   console.log(
     "Operations: failed dumps, verification and migrations abort safely; tampered release rejected.",
   );

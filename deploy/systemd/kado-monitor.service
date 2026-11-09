@@ -1,5 +1,5 @@
 [Unit]
-Description=Kado anonymous server counters and health checks
+Description=Kado anonymous activity, health checks and 90-day hourly aggregates
 After=docker.service
 [Service]
 Type=oneshot

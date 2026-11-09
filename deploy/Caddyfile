@@ -1,8 +1,19 @@
 {
   email {$ACME_EMAIL}
   metrics
+  # Error logging must not reintroduce request URLs/headers removed below.
+  log default {
+    format filter {
+      wrap json
+      fields {
+        request delete
+        resp_headers delete
+      }
+    }
+  }
 }
 {$DOMAIN} {
+  import /etc/caddy/monitor.Caddyfile
   encode zstd gzip
   header {
     Strict-Transport-Security "max-age=31536000"
@@ -13,6 +24,14 @@
     -Server
   }
   route {
+    # Capture the classification before try_files rewrites private paths.
+    log_append <category {kado_category}
+    log_append <method {kado_method}
+    log_append <navigation {kado_navigation}
+    @head method HEAD
+    log_skip @head
+    @revalidate path / /index.html /sw.js
+    header @revalidate Cache-Control "no-cache"
     @oldCounter {
       path /api/page-views
       method POST
