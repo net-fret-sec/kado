@@ -77,8 +77,8 @@ onMounted(() => {
         <p class="text-uppercase small fw-semibold text-body-secondary mb-2">
           {{ t('development.paletteDraft') }}
         </p>
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-2">
-          <div v-for="swatch in paletteSwatches" :key="swatch.key" class="col">
+        <div class="d-flex flex-wrap gap-2">
+          <div v-for="swatch in paletteSwatches" :key="swatch.key" class="palette-swatch">
             <div class="border rounded-4 bg-white h-100 p-2 d-flex align-items-start gap-2">
               <span
                 class="rounded-circle border flex-shrink-0"
@@ -113,8 +113,8 @@ onMounted(() => {
       {{ t('exchanges.empty') }}
     </div>
     <div v-else>
-      <div class="row g-3">
-        <div v-for="exchange in sortedExchanges" :key="exchange.id" class="col-12 col-lg-6">
+      <div class="d-flex flex-wrap gap-3">
+        <div v-for="exchange in sortedExchanges" :key="exchange.id" class="exchange-card-slot">
           <router-link
             :to="{ name: 'exchange-detail', params: { id: exchange.id } }"
             class="text-decoration-none text-reset"
@@ -132,34 +132,34 @@ onMounted(() => {
                   {{ exchange.description || t('exchanges.noDescription') }}
                 </p>
 
-                <dl class="row mb-0 small">
-                  <dt class="col-5 text-body-secondary fw-semibold">
+                <dl class="exchange-meta d-flex flex-wrap mb-0 small">
+                  <dt class="text-body-secondary fw-semibold">
                     {{ t('fields.organizerName') }}
                   </dt>
-                  <dd class="col-7 mb-2">{{ exchange.organizerName || '-' }}</dd>
+                  <dd class="mb-2">{{ exchange.organizerName || '-' }}</dd>
 
-                  <dt class="col-5 text-body-secondary fw-semibold">
+                  <dt class="text-body-secondary fw-semibold">
                     {{ t('common.participants') }}
                   </dt>
-                  <dd class="col-7 mb-2">{{ participantsCount(exchange) }}</dd>
+                  <dd class="mb-2">{{ participantsCount(exchange) }}</dd>
 
-                  <dt class="col-5 text-body-secondary fw-semibold">
+                  <dt class="text-body-secondary fw-semibold">
                     {{ t('fields.eventDate') }}
                   </dt>
-                  <dd class="col-7 mb-2">{{ formatCivilDate(exchange.eventDate) }}</dd>
+                  <dd class="mb-2">{{ formatCivilDate(exchange.eventDate) }}</dd>
 
-                  <dt class="col-5 text-body-secondary fw-semibold">{{ t('fields.budget') }}</dt>
-                  <dd class="col-7 mb-2">{{ formatBudget(exchange) }}</dd>
+                  <dt class="text-body-secondary fw-semibold">{{ t('fields.budget') }}</dt>
+                  <dd class="mb-2">{{ formatBudget(exchange) }}</dd>
 
-                  <dt class="col-5 text-body-secondary fw-semibold">
+                  <dt class="text-body-secondary fw-semibold">
                     {{ t('fields.minWishlistSuggestions') }}
                   </dt>
-                  <dd class="col-7 mb-2">{{ exchange.minWishlistSuggestions ?? 0 }}</dd>
+                  <dd class="mb-2">{{ exchange.minWishlistSuggestions ?? 0 }}</dd>
 
-                  <dt class="col-5 text-body-secondary fw-semibold">
+                  <dt class="text-body-secondary fw-semibold">
                     {{ t('exchanges.updatedAt') }}
                   </dt>
-                  <dd class="col-7 mb-0">{{ formatDate(exchange.updatedAt) }}</dd>
+                  <dd class="mb-0">{{ formatDate(exchange.updatedAt) }}</dd>
                 </dl>
               </div>
             </article>

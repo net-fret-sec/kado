@@ -50,7 +50,7 @@ const summary = computed(() => {
 })
 </script>
 <template>
-  <section class="card border shadow-sm exchange-details-card">
+  <section class="card border shadow-sm">
     <div class="card-body">
       <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
         <div>
@@ -69,7 +69,7 @@ const summary = computed(() => {
           {{ t('exchangeDetail.dashboard.editSettings') }}
         </button>
       </div>
-      <p v-if="exchange.description" class="details-description">{{ exchange.description }}</p>
+      <p v-if="exchange.description" class="preserve-lines">{{ exchange.description }}</p>
       <ul class="ps-3 details-rules">
         <li v-if="exchange.plannedDrawDate">
           {{ t('fields.plannedDrawDate') }} : {{ formatCivilDate(exchange.plannedDrawDate) }}
@@ -118,11 +118,5 @@ const summary = computed(() => {
 <style scoped>
 .details-rules li + li {
   margin-top: 0.35rem;
-}
-.details-description {
-  white-space: pre-wrap;
-}
-.exchange-details-card {
-  overflow-wrap: anywhere;
 }
 </style>

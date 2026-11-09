@@ -46,7 +46,7 @@ function display(value: unknown): string {
       <dl class="mt-2">
         <template v-for="(value, key) in props.current" :key="key"
           ><dt>{{ fieldLabel(key) }}</dt>
-          <dd class="conflict-value">{{ display(value) }}</dd></template
+          <dd class="preserve-lines">{{ display(value) }}</dd></template
         >
       </dl>
     </details>
@@ -54,7 +54,7 @@ function display(value: unknown): string {
       <legend class="fs-6 fw-bold">{{ fieldLabel(field.key) }}</legend>
       <p>
         {{ t('p2.initialVersion') }}:
-        <span class="conflict-value">{{ display(field.initial) }}</span>
+        <span class="preserve-lines">{{ display(field.initial) }}</span>
       </p>
       <label class="d-block"
         ><input
@@ -64,7 +64,7 @@ function display(value: unknown): string {
           @change="emit('choice', field.key, 'local')"
         />
         {{ t('p2.yourVersion') }}:
-        <span class="conflict-value">{{ display(field.local) }}</span></label
+        <span class="preserve-lines">{{ display(field.local) }}</span></label
       >
       <label class="d-block"
         ><input
@@ -74,7 +74,7 @@ function display(value: unknown): string {
           @change="emit('choice', field.key, 'remote')"
         />
         {{ t('p2.currentVersion') }}:
-        <span class="conflict-value">{{ display(field.remote) }}</span></label
+        <span class="preserve-lines">{{ display(field.remote) }}</span></label
       >
     </fieldset>
     <button type="button" class="btn btn-warning" :disabled="!ready" @click="emit('apply')">
@@ -82,9 +82,3 @@ function display(value: unknown): string {
     </button>
   </section>
 </template>
-<style scoped>
-.conflict-value {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-</style>

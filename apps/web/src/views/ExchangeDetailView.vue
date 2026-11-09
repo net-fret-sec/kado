@@ -131,7 +131,7 @@ watch(requiresAdminAuth, (value) => {
       <div class="card-body">
         <h3 class="h5 mb-2">{{ t('exchangeDetail.adminAuth.title') }}</h3>
         <p class="text-muted mb-3">{{ t('exchangeDetail.adminAuth.description') }}</p>
-        <form class="d-grid gap-3" @submit.prevent="authenticateAdmin">
+        <form class="d-flex flex-column gap-3" @submit.prevent="authenticateAdmin">
           <div class="form-field">
             <label for="exchange-admin-password" class="form-label mb-1">{{
               t('exchangeDetail.adminAuth.passwordLabel')
@@ -199,15 +199,14 @@ watch(requiresAdminAuth, (value) => {
     <div v-else-if="error && !exchange" class="alert alert-danger" role="alert">
       {{ error }} <router-link to="/">{{ t('p2.home') }}</router-link>
     </div>
-    <div v-else-if="exchange && !requiresAdminAuth" class="row g-4 align-items-start">
+    <div v-else-if="exchange && !requiresAdminAuth">
       <fieldset
         :disabled="mutationBusy || imageUploading"
-        class="admin-actions-contents"
-        style="display: contents"
+        class="admin-actions-contents d-flex flex-wrap align-items-start gap-4"
       >
         <legend class="visually-hidden">{{ t('p2.adminActions') }}</legend>
-        <div class="col-12"><AccessReminder :access-id="exchange.id" organizer /></div>
-        <section id="detail" class="col-12">
+        <div class="w-100"><AccessReminder :access-id="exchange.id" organizer /></div>
+        <section id="detail" class="w-100">
           <ExchangeHeader
             :title="exchange.name"
             :label="t('fields.organizerName')"
@@ -262,7 +261,7 @@ watch(requiresAdminAuth, (value) => {
             </p>
           </ExchangeHeader>
         </section>
-        <section id="exchange-details" class="col-12 col-xl-5">
+        <section id="exchange-details" class="organizer-summary">
           <ExchangeDetails
             :exchange="exchange"
             :exclusions="namedExclusions"
@@ -271,7 +270,7 @@ watch(requiresAdminAuth, (value) => {
           />
         </section>
         <!-- Participants -->
-        <section id="participants" class="col-12 col-xl-7">
+        <section id="participants" class="organizer-participants">
           <div class="card border shadow-sm">
             <div class="card-body">
               <div class="d-flex">
@@ -347,7 +346,7 @@ watch(requiresAdminAuth, (value) => {
                     </div>
                     <p
                       v-if="participant.note"
-                      class="participant-note small text-body-secondary mt-1 mb-0"
+                      class="preserve-lines small text-body-secondary mt-1 mb-0"
                     >
                       {{ participant.note }}
                     </p>
@@ -564,10 +563,6 @@ watch(requiresAdminAuth, (value) => {
 }
 .participant-info {
   min-width: 0;
-}
-.participant-note {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
 }
 .participant-identity {
   min-width: 0;

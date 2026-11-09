@@ -209,9 +209,7 @@ function visibility(value: boolean) {
     <form id="editExchangeForm" @submit.prevent="handleSubmit">
       <fieldset :disabled="contentLocked || isSubmitting || !!remote">
         <div v-if="organizerEditable" class="mb-3 form-field">
-          <label for="editOrganizerName" class="form-label">{{
-            t('fields.organizerName')
-          }}</label>
+          <label for="editOrganizerName" class="form-label">{{ t('fields.organizerName') }}</label>
           <input
             id="editOrganizerName"
             :aria-invalid="!!fieldErrors?.organizerName || undefined"
@@ -274,69 +272,63 @@ function visibility(value: boolean) {
           />
           <p id="dates-help" class="form-text">{{ t('review.datesHelp') }}</p>
         </div>
-        <div class="row g-3 mb-3">
-          <div class="col-12 form-field">
-            <label for="editExchangeEventDate" class="form-label">{{
-              t('fields.eventDate')
-            }}</label>
-            <input
-              v-model="editEventDate"
-              type="date"
-              class="form-control"
-              id="editExchangeEventDate"
-              :aria-invalid="!!fieldErrors?.eventDate || undefined"
-              :aria-describedby="fieldErrors?.eventDate ? 'editExchangeEventDate-error' : undefined"
-            />
-            <p v-if="fieldErrors?.eventDate" id="editExchangeEventDate-error" class="text-danger">
-              {{ t('p2.invalidField') }}
-            </p>
-          </div>
+        <div class="form-field mb-3">
+          <label for="editExchangeEventDate" class="form-label">{{ t('fields.eventDate') }}</label>
+          <input
+            v-model="editEventDate"
+            type="date"
+            class="form-control"
+            id="editExchangeEventDate"
+            :aria-invalid="!!fieldErrors?.eventDate || undefined"
+            :aria-describedby="fieldErrors?.eventDate ? 'editExchangeEventDate-error' : undefined"
+          />
+          <p v-if="fieldErrors?.eventDate" id="editExchangeEventDate-error" class="text-danger">
+            {{ t('p2.invalidField') }}
+          </p>
         </div>
-        <div class="row g-3 mb-3">
-          <div class="col-12 form-field">
-            <label for="editExchangeBudget" class="form-label"
-              >{{ t('fields.budget') }} ({{ currencySymbol }})</label
-            >
-            <input
-              v-model.number="editBudget"
-              type="number"
-              min="0"
-              step="0.01"
-              class="form-control"
-              id="editExchangeBudget"
-              :aria-invalid="!!fieldErrors?.budget || undefined"
-              :aria-describedby="fieldErrors?.budget ? 'editExchangeBudget-error' : undefined"
-            />
-            <p v-if="fieldErrors?.budget" id="editExchangeBudget-error" class="text-danger">
-              {{ t('p2.invalidField') }}
-            </p>
-          </div>
-          <div class="col-12 form-field">
-            <label for="editExchangeMinSuggestions" class="form-label">{{
-              t('fields.minWishlistSuggestions')
-            }}</label>
-            <input
-              v-model.number="editMinWishlistSuggestions"
-              type="number"
-              min="0"
-              max="100"
-              step="1"
-              class="form-control"
-              id="editExchangeMinSuggestions"
-              :aria-invalid="!!fieldErrors?.minWishlistSuggestions || undefined"
-              :aria-describedby="
-                fieldErrors?.minWishlistSuggestions ? 'editExchangeMinSuggestions-error' : undefined
-              "
-              :disabled="rulesLocked"
-            />
-            <p
-              v-if="fieldErrors?.minWishlistSuggestions"
-              id="editExchangeMinSuggestions-error"
-              class="text-danger"
-            >
-              {{ t('p2.invalidField') }}
-            </p>
-          </div>
+        <div class="form-field mb-3">
+          <label for="editExchangeBudget" class="form-label"
+            >{{ t('fields.budget') }} ({{ currencySymbol }})</label
+          >
+          <input
+            v-model.number="editBudget"
+            type="number"
+            min="0"
+            step="0.01"
+            class="form-control"
+            id="editExchangeBudget"
+            :aria-invalid="!!fieldErrors?.budget || undefined"
+            :aria-describedby="fieldErrors?.budget ? 'editExchangeBudget-error' : undefined"
+          />
+          <p v-if="fieldErrors?.budget" id="editExchangeBudget-error" class="text-danger">
+            {{ t('p2.invalidField') }}
+          </p>
+        </div>
+        <div class="form-field mb-3">
+          <label for="editExchangeMinSuggestions" class="form-label">{{
+            t('fields.minWishlistSuggestions')
+          }}</label>
+          <input
+            v-model.number="editMinWishlistSuggestions"
+            type="number"
+            min="0"
+            max="100"
+            step="1"
+            class="form-control"
+            id="editExchangeMinSuggestions"
+            :aria-invalid="!!fieldErrors?.minWishlistSuggestions || undefined"
+            :aria-describedby="
+              fieldErrors?.minWishlistSuggestions ? 'editExchangeMinSuggestions-error' : undefined
+            "
+            :disabled="rulesLocked"
+          />
+          <p
+            v-if="fieldErrors?.minWishlistSuggestions"
+            id="editExchangeMinSuggestions-error"
+            class="text-danger"
+          >
+            {{ t('p2.invalidField') }}
+          </p>
         </div>
         <div class="mb-3 form-check">
           <input

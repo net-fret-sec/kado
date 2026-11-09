@@ -357,6 +357,8 @@
 
 #home-view {
   .home-hero__eyebrow { color: var(--link, var(--primary)); }
+  .home-hero__copy,
+  .home-hero__art { width: 100%; min-width: 0; }
   .home-hero__title {
     font-size: clamp(1.9rem, 3.2vw, 2.5rem);
     line-height: 1.2;
@@ -368,9 +370,11 @@
   .home-trust-card__illustration { width: 10.375rem; max-width: 100%; margin-block: -.875rem .375rem; }
   .home-trust-card h3 { font-family: var(--font-heading); font-size: 1.0625rem; line-height: 1.35; font-weight: 500; }
   .home-trust-card p { font-size: .875rem; line-height: 1.65; }
-  .home-support { background: transparent; }
-  .home-support h2 { font-family: var(--font-heading); font-size: .9375rem; }
-  .home-support p { max-width: 48rem; }
+  @media (min-width: 768px) {
+    .home-hero__copy { flex: 7 1 0; }
+    .home-hero__art { flex: 5 1 0; }
+    .home-trust-slot { flex: 1 1 0; min-width: 0; }
+  }
   @media (max-width: 767.98px) {
     .home-hero__illustration { width: 12rem; }
     .home-trust-card__illustration { width: 8.5rem; }

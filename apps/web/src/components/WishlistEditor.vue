@@ -91,14 +91,10 @@ function add() {
       handle=".drag-handle"
       :disabled="locked || busy"
       :animation="reducedMotion ? 0 : 200"
-      class="d-grid gap-3 mb-2"
+      class="d-flex flex-column gap-3 mb-2"
     >
       <template #item="{ element, index }">
-        <article
-          @focusout="leaveItem"
-          class="suggestion-shell"
-          :class="{ 'suggestion-shell--locked': locked }"
-        >
+        <article @focusout="leaveItem" class="suggestion-shell d-flex">
           <div v-if="!locked" class="suggestion-controls">
             <button
               type="button"

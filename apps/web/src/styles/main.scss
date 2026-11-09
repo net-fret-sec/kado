@@ -318,10 +318,6 @@ main > * + * {
   border-color: var(--surface-beige-border) !important;
 }
 
-.btn {
-  padding: 0.58rem 1rem;
-}
-
 .btn-primary {
   --bs-btn-bg: var(--primary);
   --bs-btn-border-color: var(--primary);
@@ -359,10 +355,6 @@ main > * + * {
   --bs-btn-active-bg: var(--primary-hover);
   --bs-btn-active-border-color: var(--primary-hover);
   --bs-btn-active-color: var(--on-primary, #fff);
-}
-
-.alert-light {
-  color: var(--text-primary);
 }
 
 :where(
@@ -430,8 +422,11 @@ main > * + * {
 .input-group {
   min-width: 0;
 }
-.card-body,
-.conflict-value {
+.card-body {
+  overflow-wrap: anywhere;
+}
+.preserve-lines {
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 .wishlist-controls .btn {
@@ -460,16 +455,7 @@ main > * + * {
   --bs-btn-disabled-color: #142f30;
 }
 
-// Restore Bootstrap row gutters across the shared disabled fieldset wrapper.
-.admin-actions-contents > section {
-  padding-inline: calc(var(--bs-gutter-x) * 0.5);
-  margin-block-start: var(--bs-gutter-y);
-}
-
-/* UI review: shared form rhythm, compact suggestions and real column gutters. */
-.form-field {
-  container-type: inline-size;
-}
+/* Shared form rhythm; grid keeps labels, controls and errors aligned. */
 .form-field > .form-text,
 .form-field > .text-danger {
   margin: 0.35rem 0 0;
@@ -500,35 +486,30 @@ main > * + * {
 .btn:not(.drag-handle) {
   line-height: 1.4;
 }
-.participant-columns {
-  display: grid;
-  gap: 1.5rem;
-  align-items: start;
-}
 .participant-columns > * {
+  width: 100%;
   min-width: 0;
 }
+.admin-actions-contents {
+  // The old Bootstrap row's negative top gutter offset the page spacing.
+  margin-top: -1.5rem;
+}
 @media (min-width: 992px) {
-  .participant-columns {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-  }
+  .participant-details-column { flex: 1 1 0; }
+  .participant-content-column { flex: 2 1 0; }
 }
 .access-reminder > div {
   flex-basis: 26rem;
 }
 .suggestion-shell {
-  display: grid;
-  grid-template-columns: 2.5rem minmax(0, 1fr);
   border: 1px solid var(--bs-border-color);
   border-radius: 0.65rem;
   overflow: hidden;
 }
-.suggestion-shell--locked {
-  grid-template-columns: minmax(0, 1fr);
-}
 .suggestion-controls {
   display: flex;
   flex-direction: column;
+  flex: 0 0 2.5rem;
   border-right: 1px solid var(--bs-border-color);
 }
 .suggestion-controls .drag-handle {
@@ -543,6 +524,7 @@ main > * + * {
 }
 .suggestion-content {
   padding: 0.75rem;
+  flex: 1 1 0;
   min-width: 0;
 }
 .suggestion-item {
@@ -636,6 +618,28 @@ main > * + * {
   max-width: 48rem;
   font-size: 0.8125rem;
   line-height: 1.5;
+}
+
+/* Flex widths that Bootstrap's stock utilities do not provide. */
+.palette-swatch,
+.exchange-card-slot {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+.exchange-meta > dt { flex: 0 0 41.666667%; }
+.exchange-meta > dd { flex: 0 0 58.333333%; min-width: 0; }
+.organizer-summary,
+.organizer-participants { flex: 0 0 100%; min-width: 0; }
+@media (min-width: 576px) {
+  .palette-swatch { flex-basis: calc((100% - .5rem) / 2); }
+}
+@media (min-width: 992px) {
+  .exchange-card-slot { flex-basis: calc((100% - 1rem) / 2); }
+}
+@media (min-width: 1200px) {
+  .palette-swatch { flex-basis: calc((100% - 1rem) / 3); }
+  .organizer-summary { flex-basis: calc((100% - 1.5rem) * 5 / 12); }
+  .organizer-participants { flex-basis: calc((100% - 1.5rem) * 7 / 12); }
 }
 
 // Compact shared exchange heading; secondary actions stay beside the primary action.

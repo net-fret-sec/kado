@@ -331,7 +331,7 @@ watch(
         @apply="applyConflict"
       />
       <div class="participant-self-form">
-        <div class="participant-columns">
+        <div class="participant-columns d-flex flex-column flex-lg-row align-items-start gap-4">
           <aside class="participant-details-column">
             <ExchangeDetails :exchange="view.exchange" :exclusions="view.exclusions" />
             <section v-if="!view.exchange.isDrawn && view.participants?.length" class="card mt-3">

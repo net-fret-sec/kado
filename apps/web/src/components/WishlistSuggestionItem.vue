@@ -195,7 +195,7 @@ onBeforeUnmount(() => {
           @drop.prevent="dropFile"
         >
           <img v-if="imageUrl" :src="imageUrl" alt="" class="suggestion-image" />
-          <span v-else class="d-grid gap-1"
+          <span v-else class="d-flex flex-column gap-1"
             ><i class="bi bi-gift suggestion-placeholder" aria-hidden="true"></i
             ><span class="small">{{ t('review.addImage') }}</span></span
           >
