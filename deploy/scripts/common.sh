@@ -12,9 +12,13 @@ load_config() {
   : "${POSTGRES_DB:?}" "${POSTGRES_USER:?}" "${POSTGRES_PASSWORD:?}"
   [[ "$POSTGRES_DB" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]] || { echo "Invalid database name" >&2; exit 1; }
   COMPOSE_FILE="${KADO_COMPOSE_FILE:-$ROOT/deploy/docker-compose.prod.yml}"
+  COMPOSE_ARGS=(-f "$COMPOSE_FILE")
+  if [[ "${KADO_EDGE_MODE:-0}" == 1 ]]; then
+    COMPOSE_ARGS+=(-f "$ROOT/deploy/docker-compose.edge.yml")
+  fi
   export IMAGE_TAG="${IMAGE_TAG:-unselected}"
 }
-compose() { docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"; }
+compose() { docker compose --env-file "$ENV_FILE" "${COMPOSE_ARGS[@]}" "$@"; }
 lock_operations() {
   local lock_file="${KADO_OPERATION_LOCK:-$ROOT/deploy/.operation.lock}"
   exec 9>"$lock_file"

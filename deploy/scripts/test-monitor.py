@@ -36,6 +36,51 @@ caddy_http_request_duration_seconds_count{handler="subroute",code="502"} 1
         m.record(self.db,self.now,got,self.checks)
         self.assertNotIn('secret',str(list(self.db.iterdump())))
         self.assertNotIn('192.0.2.42',str(list(self.db.iterdump())))
+    def test_shared_gateway_filters_hosts_and_excludes_head(self):
+        raw = '\n'.join([
+            'process_start_time_seconds 100',
+            'caddy_http_requests_total{server="srv0",host="kado.test"} 6',
+            'caddy_http_request_duration_seconds_count{handler="subroute",host="kado.test",method="GET",code="200"} 3',
+            'caddy_http_request_duration_seconds_count{handler="subroute",host="kado.test",method="GET",code="404"} 2',
+            'caddy_http_request_duration_seconds_count{handler="subroute",host="kado.test",method="HEAD",code="200"} 200',
+            'caddy_http_request_duration_seconds_count{handler="subroute",host="netfretsec.test",method="GET",code="200"} 1000',
+            'caddy_http_request_duration_seconds_count{handler="subroute",host="future.test",method="GET",code="500"} 1000',
+            'caddy_http_request_duration_seconds_count{handler="subroute",method="GET",code="200"} 1000',
+        ])
+        got = m.parse_metrics(raw, host='kado.test')
+        self.assertEqual(got['counts'], {'requests':5,'clientErrors':2,'serverErrors':0})
+        self.assertEqual(got['scope'], 'host:kado.test')
+        with self.assertRaises(ValueError):
+            m.parse_metrics(raw, host='missing.test')
+
+    def test_scope_change_starts_fresh_baseline(self):
+        self.record(0, 100)
+        scoped = self.source(250)
+        scoped['scope'] = 'host:kado.test'
+        m.record(self.db, self.now+60, scoped, self.checks)
+        self.assertEqual(m.history(self.db,self.now+60)['last24Hours']['requests'], 0)
+        scoped['counts']['requests'] = 253
+        m.record(self.db, self.now+120, scoped, self.checks)
+        self.assertEqual(m.history(self.db,self.now+120)['last24Hours']['requests'], 3)
+
+    def test_mixed_interval_preserved_but_excluded_from_totals(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('exclusion', Path(__file__).with_name('exclude-mixed-metrics.py'))
+        exclusion = importlib.util.module_from_spec(spec); spec.loader.exec_module(exclusion)
+        self.record(0,100); self.record(60,110); self.record(120,111)
+        exclusion.exclude(self.db, self.now+60, self.now+60)
+        self.assertEqual(self.db.execute('SELECT requests,metrics_ok,gap FROM minutes WHERE at=?',(self.now+60,)).fetchone(), (10,0,1))
+        h = m.history(self.db,self.now+120)
+        self.assertEqual(h['last24Hours']['requests'],1)
+        self.assertEqual(h['last24Hours']['metricFailures'],1)
+        self.assertEqual(len(h['metricCorrections']),1)
+        exclusion.exclude(self.db,self.now+60,self.now+60)
+        self.assertEqual(len(m.history(self.db,self.now+120)['metricCorrections']),1)
+        exclusion.exclude(self.db,self.now+60,self.now+120,once=True)
+        self.assertEqual(self.db.execute('SELECT metrics_ok FROM minutes WHERE at=?',(self.now+120,)).fetchone()[0],1)
+        m.activity.rollup(self.db,self.now+120)
+        self.assertEqual(self.db.execute('SELECT sum(requests) FROM server_hours').fetchone()[0],1)
+
     def test_missing_or_invalid_metrics_not_a_zero(self):
         for raw in ['', 'process_start_time_seconds 100', 'process_start_time_seconds nan\ncaddy_http_requests_total{handler="subroute"} 0']:
             with self.assertRaises(ValueError):m.parse_metrics(raw)

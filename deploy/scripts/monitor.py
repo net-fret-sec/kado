@@ -15,12 +15,13 @@ import subprocess
 import sys
 import time
 import urllib.request
+from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
 RETENTION = 7 * 86400
 FIELDS = ('requests', 'clientErrors', 'serverErrors')
 
-def parse_metrics(text):
+def parse_metrics(text, host=None):
     counts = dict.fromkeys(FIELDS, 0)
     started = None
     enabled = False
@@ -34,6 +35,8 @@ def parse_metrics(text):
         if not m:
             continue
         labels = dict(re.findall(r'(\w+)="([^"\\]*)"', m[1]))
+        if host is not None and labels.get('host') != host:
+            continue
         if labels.get('handler') == 'subroute':
             outer = True
         if labels.get('handler') != 'subroute' or labels.get('method') == 'HEAD':
@@ -49,7 +52,10 @@ def parse_metrics(text):
             counts['serverErrors'] += int(value)
     if not enabled or not outer or started is None or not math.isfinite(started) or started <= 0:
         raise ValueError('Metrics unavailable')
-    return {'sourceStartedAt': started, 'counts': counts}
+    result = {'sourceStartedAt': started, 'counts': counts}
+    if host is not None:
+        result['scope'] = 'host:' + host
+    return result
 
 def run(args, *, input=None, timeout=12):
     try:
@@ -95,6 +101,9 @@ def record(db, now, metric, checks):
     restart = 0
     previous = state.get('baseline')
     if metric:
+        if previous and previous.get('scope') != metric.get('scope'):
+            previous = None
+            gap = 1  # Scope changed: establish a fresh baseline, never subtract unlike counters.
         if previous:
             elapsed = now - previous['at']
             restart = int(metric['sourceStartedAt'] != previous['sourceStartedAt'])
@@ -134,11 +143,13 @@ def record(db, now, metric, checks):
 
 def history(db, now):
     state = {key: json.loads(value) for key, value in db.execute('SELECT key,value FROM meta')}
-    result = {'collectionStartedAt': state.get('startedAt'), 'sampledAt': state.get('observedAt'), 'retentionDays': 7}
+    result = {'collectionStartedAt': state.get('startedAt'), 'sampledAt': state.get('observedAt'), 'retentionDays': 7,
+              'metricCorrections': activity.get_meta(db, 'metricCorrections', [])}
     for label, seconds in [('last24Hours', 86400), ('last7Days', RETENTION)]:
         rows = db.execute('SELECT * FROM minutes WHERE at >= ? AND at <= ?', (now-seconds, now)).fetchall()
-        totals = {'requests': sum(r[1] for r in rows), 'clientErrors': sum(r[2] for r in rows),
-                  'serverErrors': sum(r[3] for r in rows), 'observedMinutes': len(rows),
+        valid = [r for r in rows if r[7]]
+        totals = {'requests': sum(r[1] for r in valid), 'clientErrors': sum(r[2] for r in valid),
+                  'serverErrors': sum(r[3] for r in valid), 'observedMinutes': len(rows),
                   'webFailures': sum(not r[4] for r in rows), 'apiFailures': sum(not r[5] for r in rows),
                   'databaseFailures': sum(not r[6] for r in rows), 'metricFailures': sum(not r[7] for r in rows),
                   'gaps': sum(r[8] for r in rows), 'restarts': sum(r[9] for r in rows)}
@@ -149,23 +160,35 @@ def history(db, now):
 
 def gather(root, config):
     compose = ['docker', 'compose', '--env-file', str(config), '-f', os.environ.get('KADO_COMPOSE_FILE', str(root/'deploy/docker-compose.prod.yml'))]
+    edge = os.environ.get('KADO_EDGE_MODE') == '1'
+    if edge:
+        compose += ['-f', str(root/'deploy/docker-compose.edge.yml')]
     domain = os.environ.get('KADO_MONITOR_URL') or os.environ.get('DOMAIN', '')
     base = (domain if domain.startswith(('http://', 'https://')) else 'https://' + domain).rstrip('/')
     with ThreadPoolExecutor(max_workers=4) as pool:
         futures = {key: pool.submit(probe, base, path, key) for key, path in
                    [('web','/'), ('api','/health/live'), ('database','/health')]}
         checks = {key: f.result() for key, f in futures.items()}
-    raw = run(compose + ['exec','-T','caddy','wget','-T','5','-qO-','http://127.0.0.1:2019/metrics'])
+    metrics_command = (['docker', 'exec', os.environ.get('NETFRETSEC_EDGE_CONTAINER', 'netfretsec-edge')]
+                       if edge else compose + ['exec', '-T', 'caddy'])
+    raw = run(metrics_command + ['wget','-T','5','-qO-','http://127.0.0.1:2019/metrics'])
     try:
-        metric = parse_metrics(raw or '')
+        host = os.environ.get('KADO_METRICS_HOST') or (urlsplit(base).hostname if edge else None)
+        if edge and not host:
+            raise ValueError('Missing metrics host')
+        metric = parse_metrics(raw or '', host=host)
     except ValueError:
         metric = None
     return compose, checks, metric
 
 def service_states(compose):
     result = {}
-    for name in ['caddy','api','db']:
-        cid = (run(compose + ['ps','-aq',name]) or '').strip()
+    names = ['caddy', 'api', 'db']
+    if os.environ.get('KADO_EDGE_MODE') == '1':
+        names.append('edge')
+    for name in names:
+        cid = ((run(['docker', 'inspect', '--format', '{{.Id}}', os.environ.get('NETFRETSEC_EDGE_CONTAINER', 'netfretsec-edge')]) or '').strip()
+               if name == 'edge' else (run(compose + ['ps','-aq',name]) or '').strip())
         fmt = '{"running":{{.State.Running}},"restarts":{{.RestartCount}},"oom":{{.State.OOMKilled}},"health":{{if .State.Health}}{{json .State.Health.Status}}{{else}}"not-configured"{{end}}}'
         raw = run(['docker','inspect',cid,'--format',fmt]) if re.fullmatch(r'[a-f0-9]{12,64}',cid) else None
         try:
@@ -217,6 +240,8 @@ def render(report):
         print(f"    Minutes observées : {t['observedMinutes']} · manquantes : {t['missingMinutes']} · ruptures : {t['gaps']} · redémarrages Caddy détectés : {t['restarts']}")
         print(f"    Minutes avec échec de sonde : site {t['webFailures']} · API {t['apiFailures']} · base {t['databaseFailures']} · mesures {t['metricFailures']}")
     print('\nFichiers, robots et appels automatiques inclus ; requêtes HEAD (dont les sondes) exclues.')
+    for correction in m.get('metricCorrections', []):
+        print(f"  Compteurs multi-domaines exclus : {date(correction['from'])} à {date(correction['to'])}. Les totaux sont partiels; les demandes classées Kado restent conservées.")
     print('Pas de mesure des visiteurs uniques ni des pages servies uniquement depuis le cache.')
     print('Totaux par minute sur 7 jours, sans IP ni liens personnels, hors sauvegardes.')
     print('Une rupture de collecte ou un redémarrage peut laisser une courte période non mesurée.')

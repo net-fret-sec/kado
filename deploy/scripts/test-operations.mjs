@@ -72,6 +72,12 @@ elif [[ "$*" == *"ps -a -q db"* ]]; then echo existing-db; fi
   assert.notEqual(invoke("release.sh", [bundle], { FAIL: "start" }).status, 0);
   assert(!(await readFile(trace, "utf8")).includes("dropdb"));
   await writeFile(trace, "");
+  assert.equal(invoke("release.sh", [bundle], { KADO_EDGE_MODE: "1" }).status, 0);
+  const edgeLog = await readFile(trace, "utf8");
+  assert(edgeLog.includes("docker-compose.edge.yml"));
+  assert(edgeLog.includes("up -d --wait --wait-timeout 90 api caddy"));
+  assert(!edgeLog.includes("netfretsec-edge"), "Kado releases never manage the shared gateway");
+  await writeFile(trace, "");
   await writeFile(path.join(bundle, "images.tar.gz"), "tampered");
   assert.notEqual(invoke("release.sh", [bundle]).status, 0);
   assert.equal(await readFile(trace, "utf8"), "");

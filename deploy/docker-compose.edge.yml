@@ -1,0 +1,31 @@
+# Optional deployment behind the independent NetFretSec gateway.
+# Requires Docker Compose 2.24.4+; selected by KADO_EDGE_MODE=1.
+services:
+  api:
+    networks:
+      default:
+      gateway:
+        aliases: [kado-api]
+  caddy:
+    # Retain the service/image name for compatibility with existing releases.
+    # This process only serves this product's static files over private HTTP.
+    command: ["caddy", "run", "--config", "/etc/caddy/internal.Caddyfile", "--adapter", "caddyfile"]
+    environment: !reset {}
+    depends_on: !reset {}
+    ports: !reset []
+    volumes: !override
+      - ./internal.Caddyfile:/etc/caddy/internal.Caddyfile:ro
+    networks: !override
+      gateway:
+        aliases: [kado-web]
+    read_only: true
+    tmpfs: [/config, /data]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+networks:
+  gateway:
+    external: true
+    name: netfretsec_kado

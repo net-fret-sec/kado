@@ -1,3 +1,45 @@
+# Modes d’hébergement
+
+Kado peut être hébergé seul ou derrière la passerelle indépendante NetFretSec.
+Sur le VPS NetFretSec, `.env.production` contient `KADO_EDGE_MODE=1` et
+`KADO_METRICS_HOST=kado.netfretsec.com`. Les scripts d’exploitation chargent alors
+`docker-compose.prod.yml` **et** `docker-compose.edge.yml` (Docker Compose 2.24.4+).
+Ne pas utiliser uniquement le premier fichier pour démarrer la production dans
+ce mode : il rétablirait les ports publics du mode autonome.
+
+La passerelle est exploitée depuis `/opt/netfretsec-edge`, avec ses propres
+certificats, sa configuration et ses livraisons, dans le projet NetFretSec.
+Le réseau externe `netfretsec_kado` connecte uniquement la passerelle, l’API et
+le serveur de fichiers Kado. PostgreSQL reste sur le réseau privé de Kado.
+Le service `caddy` de Kado garde son nom pour les bundles existants, mais ne sert
+que les fichiers statiques sur le port interne 8080 (`internal.Caddyfile`).
+L’API est jointe directement par la passerelle : `TRUST_PROXY_HOPS=1` reste exact.
+
+Les scripts release, sauvegarde, restauration et suivi utilisent le même choix
+de fichiers Compose. Une livraison Kado actualise seulement `api` et `caddy`;
+elle ne gère ni les certificats ni le conteneur `netfretsec-edge`. Le fichier
+`internal.Caddyfile` livré doit rester présent. Les règles publiques spécifiques
+à Kado (en-têtes, classification, routes) sont dans le projet NetFretSec et se
+mettent à jour séparément lorsqu’un changement fonctionnel le nécessite.
+
+Le collecteur lit les métriques privées de la passerelle et filtre strictement
+le domaine Kado; sans série portant ce domaine il indique une indisponibilité,
+jamais le total de tous les sites. Les changements de périmètre réinitialisent
+la référence. Les minutes identifiées comme multi-domaines restent conservées,
+mais `metrics_ok=0` les exclut des totaux et de la comparaison; les journaux
+classés et les données des échanges ne sont pas modifiés. Le tableau de suivi
+et le rapport texte expliquent cette correction sur les périodes concernées.
+
+Pour une commande Compose manuelle sur ce VPS :
+
+```bash
+docker compose --env-file deploy/.env.production -f deploy/docker-compose.prod.yml -f deploy/docker-compose.edge.yml ps
+```
+
+Le reste de ce guide décrit aussi le mode autonome. Ses commandes directes
+utilisant un seul fichier Compose doivent recevoir le second fichier en mode
+NetFretSec. Les scripts `deploy/scripts/*.sh` font ce choix automatiquement.
+
 # Livraison manuelle sur un VPS
 
 Kado utilise PostgreSQL 16, une API Node compilée et Caddy pour HTTPS et les fichiers web. L’API et PostgreSQL n’exposent aucun port public. Une seule instance API est prise en charge : les quotas et le worker de pige sont locaux au processus.

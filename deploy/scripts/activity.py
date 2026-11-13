@@ -171,7 +171,7 @@ def rollup(db, now, business=None):
     beginning = math.ceil((now-DETAIL)/3600)*3600
     with db:
         db.execute('''INSERT OR REPLACE INTO server_hours
-          SELECT CAST(at/3600 AS INTEGER)*3600,sum(requests),sum(client_errors),sum(server_errors),
+          SELECT CAST(at/3600 AS INTEGER)*3600,sum(CASE WHEN metrics_ok=1 THEN requests END),sum(CASE WHEN metrics_ok=1 THEN client_errors END),sum(CASE WHEN metrics_ok=1 THEN server_errors END),
           count(*),sum(gap),sum(restart),sum(CASE WHEN metrics_ok=0 THEN 1 ELSE 0 END)
           FROM minutes WHERE at>=? GROUP BY CAST(at/3600 AS INTEGER)''', (beginning,))
         db.execute('''INSERT OR REPLACE INTO coverage_hours
@@ -274,7 +274,7 @@ def report(db, now, include_history=False):
                 h = {'at':at,'requests':None,'clientErrors':None,'serverErrors':None,
                      'observedMinutes':0,'gaps':0,'restarts':0,'metricFailures':0,
                      'coverage':None,'categories':None,'home':None}
-                stats=db.execute('SELECT sum(requests),sum(client_errors),sum(server_errors),count(*),sum(gap),sum(restart),sum(1-metrics_ok) FROM minutes WHERE at>=? AND at<=?',(lo,hi)).fetchone()
+                stats=db.execute('SELECT sum(CASE WHEN metrics_ok=1 THEN requests END),sum(CASE WHEN metrics_ok=1 THEN client_errors END),sum(CASE WHEN metrics_ok=1 THEN server_errors END),count(*),sum(gap),sum(restart),sum(1-metrics_ok) FROM minutes WHERE at>=? AND at<=?',(lo,hi)).fetchone()
                 if stats[3]:
                     for key,value in zip(('requests','clientErrors','serverErrors','observedMinutes','gaps','restarts','metricFailures'),stats):h[key]=value
                 c=db.execute('SELECT count(*),coalesce(sum(1-ok),0),coalesce(sum(gap),0),coalesce(sum(invalid),0) FROM coverage_minutes WHERE at>=? AND at<=?',(lo,hi)).fetchone()

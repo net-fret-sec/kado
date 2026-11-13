@@ -1,0 +1,11 @@
+{
+	admin off
+	auto_https off
+}
+:8080 {
+	root * /srv
+	@api path /api /api/* /health /health/* /metrics
+	respond @api 404
+	try_files {path} /index.html
+	file_server
+}

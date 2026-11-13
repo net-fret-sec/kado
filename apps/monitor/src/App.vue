@@ -20,6 +20,11 @@ const definition = computed(() =>
 );
 const period = computed(() => report.value?.traffic?.periods[selected.value]);
 const hours = computed(() => selectedHours(report.value, period.value));
+const metricCorrections = computed(() =>
+  (report.value?.serverActivity?.metricCorrections ?? []).filter(
+    (item) => item.from <= period.value?.to && item.to >= period.value?.from,
+  ),
+);
 const buckets = computed(() =>
   chartBuckets(hours.value, definition.value.days),
 );
@@ -429,6 +434,11 @@ onUnmounted(() => clearInterval(interval));
               Sur la période : {{ number(technical.gaps) }} ruptures des
               compteurs, {{ number(technical.restarts) }} redémarrages et
               {{ number(technical.failures) }} minutes sans métriques Caddy.
+            </p>
+            <p v-for="item in metricCorrections" :key="item.from" class="subtle">
+              Du {{ date(item.from) }} au {{ date(item.to) }}, les compteurs
+              serveur mélangeaient plusieurs domaines. Cette période est exclue
+              des totaux serveur fiables. Les demandes classées Kado sont conservées.
             </p>
             <p class="subtle">
               Dernière sauvegarde :
