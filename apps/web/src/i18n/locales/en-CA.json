@@ -59,10 +59,11 @@
       "eyebrow": "Gift exchange",
       "title": "The fun of giving starts with a simple name draw.",
       "description": "Bring family, friends or colleagues together for a gift exchange. Kado takes care of the draw and keeps everyone’s gift ideas in one place.",
-      "micro": "Free. No account to create. No app to install."
+      "micro": "Free. No account to create. No app to install.",
+      "tryInvitation": "Try it before inviting your group. No invitations are sent automatically, and you can delete your test exchange."
     },
     "support": {
-      "title": "Kado is free and will stay that way.",
+      "title": "Kado is free.",
       "subtext": "If Kado has been useful to you, a small contribution towards hosting and development is always appreciated.",
       "button": "Support the project"
     },
@@ -83,7 +84,7 @@
     },
     "privacy": {
       "title": "Your exchange is yours. Your privacy matters.",
-      "intro": "Organizing a gift exchange shouldn’t mean handing over your address book. Kado works without accounts and doesn’t ask for participants’ email addresses.",
+      "intro": "Kado works without accounts or access to your address book. The names or nicknames, gift suggestions and other information you enter are stored to run your exchange.",
       "share": {
         "title": "Invite people your way",
         "body": "Share the links yourself in the conversations you already use. Kado doesn’t need access to your contacts."
@@ -105,7 +106,23 @@
       "title": "Ready for your next gift exchange?",
       "body": "Bring everyone together. Kado will take care of the draw."
     },
-    "stepLabel": "Step {number}."
+    "stepLabel": "Step {number}.",
+    "contact": "Have a question or suggestion? Email us.",
+    "faq": {
+      "title": "A few questions before you start",
+      "try": {
+        "question": "Can I try it before organizing a real exchange?",
+        "answer": "Yes! Create an exchange with a few fictional participants to see how it works. Kado doesn’t send invitations: you share the links yourself when you’re ready. You can create several exchanges and delete your test exchanges."
+      },
+      "participants": {
+        "question": "Is it complicated for participants?",
+        "answer": "Each person receives a personal link to add gift suggestions and, once the draw is done, discover who they’re giving a gift to. No account to create or app to install."
+      },
+      "access": {
+        "question": "What if someone loses their link?",
+        "answer": "A participant can ask the organizer for a new link. As the organizer, keep your organizer link and password: Kado does not offer a way to recover them."
+      }
+    }
   },
   "exchanges": {
     "title": "Exchanges",

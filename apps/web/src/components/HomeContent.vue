@@ -4,6 +4,11 @@ import celebrateGift from '@/assets/illustrations/kado-celebrate.webp'
 
 defineEmits<{ create: [] }>()
 const { t } = useI18n()
+const faqItems = [
+  ['home.faq.try.question', 'home.faq.try.answer'],
+  ['home.faq.participants.question', 'home.faq.participants.answer'],
+  ['home.faq.access.question', 'home.faq.access.answer'],
+] as const
 const sections: {
   title: string
   cards: [string, string][]
@@ -82,6 +87,14 @@ const sections: {
     </div>
   </section>
 
+  <section aria-labelledby="home-faq-title" class="home-faq d-flex flex-column gap-4 mx-auto w-100">
+    <h2 id="home-faq-title" class="h4 mb-0 text-center">{{ t('home.faq.title') }}</h2>
+    <article v-for="[question, answer] in faqItems" :key="question">
+      <h3 class="h5 mb-2">{{ t(question) }}</h3>
+      <p class="text-body-secondary mb-0">{{ t(answer) }}</p>
+    </article>
+  </section>
+
   <section class="closing d-flex flex-column align-items-center gap-3 py-4 text-center">
     <img :src="celebrateGift" alt="" aria-hidden="true" width="112" height="112" />
     <h2 class="h4 mb-0 mx-auto">{{ t('home.closing.title') }}</h2>
@@ -93,6 +106,10 @@ const sections: {
 </template>
 
 <style scoped>
+.home-faq {
+  max-width: 48rem;
+}
+
 .step-number {
   display: inline-flex;
   align-items: center;

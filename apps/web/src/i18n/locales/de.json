@@ -59,10 +59,11 @@
       "eyebrow": "Geschenkaustausch",
       "title": "Die Freude am Schenken beginnt mit dem Ziehen der Namen.",
       "description": "Ob mit der Familie, im Freundeskreis oder im Büro: Organisiere eine Wichtelrunde, bei der schon die Vorbereitung Spaß macht. Kado übernimmt die Auslosung und sammelt die Geschenkideen.",
-      "micro": "Kostenlos. Kein Konto nötig. Keine App zu installieren."
+      "micro": "Kostenlos. Kein Konto nötig. Keine App zu installieren.",
+      "tryInvitation": "Probiere Kado aus, bevor du deine Gruppe einlädst. Es werden keine Einladungen automatisch verschickt, und du kannst deine Testrunde wieder löschen."
     },
     "support": {
-      "title": "Kado ist und bleibt kostenlos.",
+      "title": "Kado ist kostenlos.",
       "subtext": "Wenn dir Kado geholfen hat, freuen wir uns über einen kleinen Beitrag für Hosting und Weiterentwicklung.",
       "button": "Projekt unterstützen"
     },
@@ -83,7 +84,7 @@
     },
     "privacy": {
       "title": "Eure Runde gehört euch. Eure Privatsphäre zählt.",
-      "intro": "Für eine Wichtelrunde solltest du dein Adressbuch nicht aus der Hand geben müssen. Kado funktioniert ohne Konto und fragt nicht nach den E-Mail-Adressen der Teilnehmenden.",
+      "intro": "Kado funktioniert ohne Konto und ohne Zugriff auf dein Adressbuch. Die eingegebenen Namen oder Spitznamen, Geschenkwünsche und weiteren Angaben werden gespeichert, damit eure Wichtelrunde funktioniert.",
       "share": {
         "title": "Du entscheidest, wie du einlädst",
         "body": "Teile die Links selbst in euren gewohnten Chats. Kado braucht keinen Zugriff auf deine Kontakte."
@@ -105,7 +106,23 @@
       "title": "Bereit für die nächste Wichtelrunde?",
       "body": "Bring alle zusammen. Kado übernimmt die Auslosung."
     },
-    "stepLabel": "Schritt {number}."
+    "stepLabel": "Schritt {number}.",
+    "contact": "Fragen oder Vorschläge? Schreib uns.",
+    "faq": {
+      "title": "Ein paar Fragen, bevor es losgeht",
+      "try": {
+        "question": "Kann ich Kado vor einer echten Wichtelrunde ausprobieren?",
+        "answer": "Ja! Erstelle eine Runde mit ein paar erfundenen Personen, um Kado kennenzulernen. Kado verschickt keine Einladungen: Du teilst die Links selbst, wenn du bereit bist. Du kannst mehrere Runden erstellen und deine Testrunden wieder löschen."
+      },
+      "participants": {
+        "question": "Ist es für die Teilnehmenden kompliziert?",
+        "answer": "Jede Person erhält einen persönlichen Link, um Geschenkwünsche hinzuzufügen und nach der Auslosung zu erfahren, wen sie beschenkt. Niemand muss dafür ein Konto erstellen oder eine App installieren."
+      },
+      "access": {
+        "question": "Was passiert, wenn jemand seinen Link verliert?",
+        "answer": "Teilnehmende können bei der organisierenden Person einen neuen Link anfordern. Wenn du die Runde organisierst, bewahre deinen Verwaltungslink und dein Passwort auf: Kado bietet keine Möglichkeit, diese Zugangsdaten wiederherzustellen."
+      }
+    }
   },
   "exchanges": {
     "title": "Geschenkaustausche",

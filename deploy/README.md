@@ -67,6 +67,16 @@ Le script acquiert un verrou commun aux opérations de base, vérifie l’archiv
 
 La migration `002_organizer_name.sql` est additive : elle ne requalifie aucun ancien organisateur. Appliquer les migrations par le script de livraison ; ne pas rejouer les fichiers SQL manuellement.
 
+## Suppression automatique des échanges
+
+La prochaine version contenant cette fonctionnalité nettoiera aussi les échanges existants dès le démarrage de l’API. Avant une future livraison, vérifier les délais de `deploy/env/api.env` : `EXCHANGE_RETENTION_AFTER_EVENT_MONTHS=3` et `EXCHANGE_RETENTION_WITHOUT_EVENT_MONTHS=6` par défaut (entiers de 1 à 1200). Aucun changement de schéma n’est nécessaire. Un redémarrage de l’API applique les nouvelles valeurs.
+
+Le calcul utilise des mois calendaires dans `EXCHANGE_TIME_ZONE`. Avec événement, l’échéance est à minuit trois mois après sa date; sans événement, elle est six mois après la création à la même heure locale. Les fins de mois sont ramenées au dernier jour du mois cible. Les dates prévues de pige et les dernières modifications ne prolongent pas le délai. Nettoyage au démarrage puis chaque heure, par lots de 100, avec une durée bornée d’environ 10 secondes par cycle; les échanges occupés sont reportés. Les données liées sont supprimées en cascade.
+
+Surveiller `exchange_cleanup_completed` (nombre de suppressions uniquement) et `exchange_cleanup_failed`. Une erreur au nettoyage initial empêche le démarrage; une erreur périodique est journalisée et le cycle suivant réessaie. Les sauvegardes ne sont pas modifiées : leur conservation est distincte. Une restauration ne protège pas les échanges expirés du nettoyage au redémarrage.
+
+Pour le contact public, `VITE_CONTACT_EMAIL` doit être fourni à l’environnement de construction du bundle (ou à l’argument Docker du même nom). Modifier seulement le fichier d’environnement du serveur ne modifie pas les fichiers web déjà construits. Laisser vide tant que l’adresse n’est pas choisie.
+
 ## Bilan des échanges en production
 
 Depuis le VPS, dans `/opt/kado` :

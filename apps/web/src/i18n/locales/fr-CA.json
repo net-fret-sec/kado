@@ -59,10 +59,11 @@
       "eyebrow": "Échange de cadeaux",
       "title": "Le plaisir d’offrir commence par une pige toute simple.",
       "description": "En famille, entre amis ou entre collègues, organisez un échange de cadeaux qui fait plaisir dès les préparatifs. Kado s’occupe de la pige et rassemble les suggestions de chacun.",
-      "micro": "Gratuit. Aucun compte à créer. Aucune application à installer."
+      "micro": "Gratuit. Aucun compte à créer. Aucune application à installer.",
+      "tryInvitation": "Essayez avant d’inviter votre monde. Aucune invitation n’est envoyée automatiquement; vous pouvez supprimer votre essai."
     },
     "support": {
-      "title": "Kado est gratuit et le restera.",
+      "title": "Kado est gratuit.",
       "subtext": "Si Kado vous a facilité les préparatifs, vous pouvez contribuer à son hébergement et à son développement. Un petit coup de pouce, toujours facultatif et apprécié.",
       "button": "Soutenir le projet"
     },
@@ -83,7 +84,7 @@
     },
     "privacy": {
       "title": "Votre échange vous appartient. Votre vie privée compte.",
-      "intro": "Organiser un échange de cadeaux ne devrait pas vous obliger à confier votre carnet d’adresses à un service. Kado fonctionne sans compte et sans demander les adresses courriel des participants.",
+      "intro": "Kado fonctionne sans compte et sans accès à votre carnet d’adresses. Les noms ou surnoms, suggestions et autres informations que vous saisissez sont conservés pour faire fonctionner votre échange.",
       "share": {
         "title": "Vous choisissez comment inviter",
         "body": "Vous transmettez vous-même les liens, dans vos conversations habituelles. Kado n’a pas besoin d’accéder à vos contacts."
@@ -105,7 +106,23 @@
       "title": "On prépare votre prochain échange?",
       "body": "Réunissez votre monde. Kado s’occupe de la pige."
     },
-    "stepLabel": "Étape {number}."
+    "stepLabel": "Étape {number}.",
+    "contact": "Une question ou une suggestion? Écrivez-nous.",
+    "faq": {
+      "title": "Quelques questions avant de commencer",
+      "try": {
+        "question": "Puis-je essayer avant d’organiser un vrai échange?",
+        "answer": "Oui! Créez un échange avec quelques participants fictifs pour découvrir le fonctionnement. Kado n’envoie aucune invitation : vous partagez vous-même les liens lorsque vous êtes prêt. Vous pouvez créer plusieurs échanges et supprimer vos essais."
+      },
+      "participants": {
+        "question": "Est-ce compliqué pour les participants?",
+        "answer": "Chaque personne reçoit un lien personnel qui lui permet d’ajouter ses suggestions de cadeaux et, une fois la pige faite, de découvrir à qui offrir un cadeau. Aucun compte à créer ni application à installer."
+      },
+      "access": {
+        "question": "Et si quelqu’un perd son lien?",
+        "answer": "Un participant peut demander un nouveau lien à l’organisateur. Pour organiser l’échange, conservez votre lien d’organisation et votre mot de passe : Kado ne propose pas de récupération de ces accès."
+      }
+    }
   },
   "exchanges": {
     "title": "Échanges",

@@ -6,22 +6,30 @@ import { checkDatabaseHealth, closePool } from "./db";
 import { stopImageWorker } from "./image-worker";
 import { runImageCleanup } from "./services/image.service";
 import { stopDrawWorker } from "./draw-worker";
+import { runExchangeCleanup } from "./services/exchange-retention.service";
 async function bootstrap() {
   const config = getConfig();
   if (!(await checkDatabaseHealth()).ok)
     throw new Error("Database is not ready.");
+  await runExchangeCleanup();
   await runImageCleanup();
-  let cleaning = false;
-  const cleanup = setInterval(async () => {
-    if (cleaning) return;
-    cleaning = true;
-    try {
-      await runImageCleanup();
-    } catch {
-      console.error(JSON.stringify({ event: "image_cleanup_failed" }));
-    } finally {
-      cleaning = false;
-    }
+  let cleanupTask: Promise<void> | undefined;
+  const cleanup = setInterval(() => {
+    if (cleanupTask) return;
+    cleanupTask = (async () => {
+      try {
+        await runExchangeCleanup();
+      } catch {
+        console.error(JSON.stringify({ event: "exchange_cleanup_failed" }));
+      }
+      try {
+        await runImageCleanup();
+      } catch {
+        console.error(JSON.stringify({ event: "image_cleanup_failed" }));
+      }
+    })().finally(() => {
+      cleanupTask = undefined;
+    });
   }, 3600000);
   cleanup.unref();
   const server = createApp().listen(
@@ -42,6 +50,7 @@ async function bootstrap() {
       );
     }, 10000);
     server.close(async () => {
+      await cleanupTask;
       await Promise.all([stopDrawWorker(), stopImageWorker()]);
       await closePool();
       clearTimeout(deadline);

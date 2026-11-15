@@ -180,6 +180,8 @@ Fichier d'exemple: `apps/api/.env.example`
 - `PARTICIPANT_RATE_LIMIT`: nombre de requêtes autorisées avant un refus 429.
 - `DATABASE_URL`: URL de connexion PostgreSQL.
 - `EXCHANGE_TIME_ZONE`: fuseau IANA validé au démarrage, défaut `America/Toronto`.
+- `EXCHANGE_RETENTION_AFTER_EVENT_MONTHS`: suppression après la date de l’événement, défaut `3` mois calendaires.
+- `EXCHANGE_RETENTION_WITHOUT_EVENT_MONTHS`: suppression après création si aucune date d’événement n’est définie, défaut `6` mois calendaires. Les deux délais acceptent des entiers de 1 à 1200; une valeur invalide bloque le démarrage.
 - `ENABLE_LOCAL_ADMIN_TOOLS`: `true` pour activer la liste globale uniquement avec `NODE_ENV=development`; défaut désactivé. Le serveur écoute alors exclusivement sur `127.0.0.1` et refuse les requêtes transférées par proxy.
 
 ### Web
@@ -189,7 +191,18 @@ Fichier d'exemple: `apps/web/.env.example`
 - `VITE_ENABLE_LOCAL_ADMIN_TOOLS`: `true` pour activer la page `/exchanges` uniquement en développement ; Vite écoute alors sur `127.0.0.1`. Nécessite aussi le drapeau API. Hors activation, cette route revient à l’accueil et la liste n’est jamais appelée.
 - `VITE_API_BASE`: base URL de l'API. Laisser vide en développement local pour utiliser le proxy Vite.
 - `VITE_DONATION_URL`: URL de soutien affichée sur l'accueil. Si vide ou absente, le bloc de soutien n'est pas rendu.
+- `VITE_CONTACT_EMAIL`: adresse publique de contact, sans préfixe `mailto:`. Affiche un lien courriel dans le pied de page, indépendamment du soutien. Vide, absente ou invalide : aucun lien. Variable intégrée au build; redémarrer Vite en développement ou reconstruire le frontend après modification. Le script `release:bundle` et le Dockerfile web transmettent cette variable au build.
 - `VITE_ADMIN_LINK_CONTINUE_COUNTDOWN_SECONDS`: délai (en secondes) avant activation du bouton "Continuer" après la création d’un échange. Valeur par défaut: `5`.
+
+## Suppression automatique des échanges
+
+Au démarrage de l’API puis chaque heure, les échanges arrivés à échéance sont supprimés de la base active, avec leurs participants, liens d’accès, sessions, piges, exclusions et images. La date d’événement, lorsqu’elle existe, prend priorité sur l’âge de création. Sans date d’événement, le calcul part de la création, pas de la dernière modification ni de la date prévue de pige.
+
+Les délais sont des mois calendaires dans `EXCHANGE_TIME_ZONE` : une date d’événement expire à minuit à la date obtenue après ajout des mois; une création sans événement conserve son heure locale. Une fin de mois inexistante est ramenée au dernier jour du mois cible (31 août + 6 mois → 28 ou 29 février). Les modifications de date et les changements de configuration sont pris en compte au nettoyage suivant, y compris pour les échanges existants.
+
+Le nettoyage traite des lots de 100 pendant environ 10 secondes par cycle. Les échanges verrouillés par une opération en cours sont reportés au prochain passage. Une panne, une forte charge ou un serveur arrêté peut retarder la suppression; le nettoyage reprend au démarrage. Les journaux ne contiennent qu’un événement et un nombre de suppressions, sans noms ni liens. L’archivage en lecture seule après 31 jours reste distinct de la suppression.
+
+Les sauvegardes existantes ne sont pas réécrites par cette opération et suivent leur propre conservation. Après restauration, les échanges déjà expirés seront de nouveau supprimés au démarrage. Voir aussi [les consignes de déploiement](deploy/README.md#suppression-automatique-des-échanges).
 
 ## Endpoints principaux
 

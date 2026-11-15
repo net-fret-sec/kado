@@ -59,10 +59,11 @@
       "eyebrow": "Scambio di regali",
       "title": "Il piacere di fare un regalo comincia da una semplice estrazione.",
       "description": "Organizza uno scambio di regali in famiglia, tra amici o tra colleghi. Kado pensa all’estrazione e raccoglie le idee regalo di tutti.",
-      "micro": "Gratis. Nessun account da creare. Nessuna app da installare."
+      "micro": "Gratis. Nessun account da creare. Nessuna app da installare.",
+      "tryInvitation": "Provalo prima di invitare il tuo gruppo. Nessun invito viene inviato automaticamente e puoi eliminare il tuo scambio di prova."
     },
     "support": {
-      "title": "Kado è gratuito e lo resterà.",
+      "title": "Kado è gratuito.",
       "subtext": "Se Kado ti è stato utile, un piccolo contributo per l’hosting e lo sviluppo è sempre apprezzato.",
       "button": "Sostieni il progetto"
     },
@@ -83,7 +84,7 @@
     },
     "privacy": {
       "title": "Lo scambio è tuo. La tua privacy conta.",
-      "intro": "Per organizzare uno scambio di regali non dovresti dover condividere la tua rubrica. Kado funziona senza account e non chiede gli indirizzi email dei partecipanti.",
+      "intro": "Kado funziona senza account e senza accedere alla tua rubrica. I nomi o soprannomi, i suggerimenti di regali e le altre informazioni che inserisci vengono conservati per far funzionare il tuo scambio.",
       "share": {
         "title": "Scegli tu come invitare",
         "body": "Condividi i link nelle conversazioni che usi di solito. Kado non ha bisogno di accedere ai tuoi contatti."
@@ -105,7 +106,23 @@
       "title": "Prepariamo il tuo prossimo scambio?",
       "body": "Riunisci il gruppo. All’estrazione pensa Kado."
     },
-    "stepLabel": "Passo {number}."
+    "stepLabel": "Passo {number}.",
+    "contact": "Hai una domanda o un suggerimento? Scrivici.",
+    "faq": {
+      "title": "Qualche domanda prima di iniziare",
+      "try": {
+        "question": "Posso provarlo prima di organizzare un vero scambio?",
+        "answer": "Certo! Crea uno scambio con alcuni partecipanti fittizi per scoprire come funziona. Kado non invia inviti: condividi tu i link quando vuoi. Puoi creare più scambi ed eliminare quelli di prova."
+      },
+      "participants": {
+        "question": "È complicato per i partecipanti?",
+        "answer": "Ogni persona riceve un link personale per aggiungere i propri suggerimenti di regali e, dopo il sorteggio, scoprire a chi fare un regalo. Non occorre creare un account né installare un’app."
+      },
+      "access": {
+        "question": "E se qualcuno perde il proprio link?",
+        "answer": "Un partecipante può chiedere un nuovo link all’organizzatore. Se organizzi lo scambio, conserva il tuo link di organizzazione e la tua password: Kado non offre un modo per recuperarli."
+      }
+    }
   },
   "exchanges": {
     "title": "Scambi",

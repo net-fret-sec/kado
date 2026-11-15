@@ -40,6 +40,21 @@ export function getConfig() {
   if (!IANAZone.isValidZone(zone))
     throw new Error("Invalid EXCHANGE_TIME_ZONE.");
   return {
+    exchangeRetention: {
+      afterEventMonths: integer(
+        "EXCHANGE_RETENTION_AFTER_EVENT_MONTHS",
+        3,
+        1,
+        1200,
+      ),
+      withoutEventMonths: integer(
+        "EXCHANGE_RETENTION_WITHOUT_EVENT_MONTHS",
+        6,
+        1,
+        1200,
+      ),
+      timeZone: zone,
+    },
     images: {
       sourceBytes: integer(
         "IMAGE_SOURCE_MAX_BYTES",

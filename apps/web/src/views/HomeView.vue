@@ -22,6 +22,7 @@ const isCreateModalOpen = ref(false)
             {{ t('actions.createExchange') }}
           </button>
           <p class="home-hero__micro small mt-3 mb-0">{{ t('home.hero.micro') }}</p>
+          <p class="small text-body-secondary mt-2 mb-0">{{ t('home.hero.tryInvitation') }}</p>
         </div>
         <div class="home-hero__art">
           <GiftIllustration kind="hero" class="home-hero__illustration mx-auto" />
