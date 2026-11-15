@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CreateExchangeModal from '@/components/CreateExchangeModal.vue'
-import GiftIllustration from '@/components/GiftIllustration.vue'
+import celebrateGift from '@/assets/illustrations/kado-celebrate.webp'
 
 import HomeContent from '@/components/HomeContent.vue'
 
@@ -25,7 +25,8 @@ const isCreateModalOpen = ref(false)
           <p class="small text-body-secondary mt-2 mb-0">{{ t('home.hero.tryInvitation') }}</p>
         </div>
         <div class="home-hero__art">
-          <GiftIllustration kind="hero" class="home-hero__illustration mx-auto" />
+          <img :src="celebrateGift" class="home-hero__illustration d-block h-auto mx-auto"
+            alt="" aria-hidden="true" width="1254" height="1254" />
         </div>
       </div>
     </section>

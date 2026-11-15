@@ -29,10 +29,10 @@ describe('Language selection', () => {
     ['en-US', 'en-CA'],
     ['es-MX', 'es'],
     ['es-419', 'es'],
-    ['it-CH', 'it'],
-    ['ru-RU', 'ru'],
-    ['de-AT', 'de'],
-    ['de-CH', 'de'],
+    ['it-CH', 'fr-CA'],
+    ['ru-RU', 'fr-CA'],
+    ['de-AT', 'fr-CA'],
+    ['de-CH', 'fr-CA'],
     ['ja-JP', 'fr-CA'],
   ])('recognizes %s as %s', (browser, expected) => {
     vi.spyOn(navigator, 'languages', 'get').mockReturnValue([browser])
@@ -40,25 +40,35 @@ describe('Language selection', () => {
   })
 
   it('uses the next supported browser preference and gives the saved choice priority', async () => {
-    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['ja-JP', 'de-DE', 'it-IT'])
-    expect(getStartingLocale()).toBe('de')
-    await setLocale('ru')
-    expect(getStartingLocale()).toBe('ru')
+    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['ja-JP', 'de-DE', 'es-MX', 'en-US'])
+    expect(getStartingLocale()).toBe('es')
+    await setLocale('en-CA')
+    expect(getStartingLocale()).toBe('en-CA')
     localStorage.setItem('locale', 'unknown')
     expect(getStoredLocale()).toBeNull()
-    expect(getStartingLocale()).toBe('de')
+    expect(getStartingLocale()).toBe('es')
   })
 
-  it('offers all six languages by their native names and updates the document and storage', async () => {
+  it.each(['it', 'ru', 'de'])('falls back safely from a saved %s preference', async (removed) => {
+    localStorage.setItem('locale', removed)
+    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['de-DE', 'es-MX', 'en-US'])
+    expect(getStoredLocale()).toBeNull()
+    expect(getStartingLocale()).toBe('es')
+    await setLocale(getStartingLocale())
+    expect(getStoredLocale()).toBe('es')
+    expect(document.documentElement.lang).toBe('es')
+    localStorage.setItem('locale', removed)
+    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['ru-RU', 'it-IT'])
+    expect(getStartingLocale()).toBe('fr-CA')
+  })
+
+  it('offers only the three supported languages by their native names and updates the document and storage', async () => {
     const wrapper = mount(LanguageSwitcher, { global: { plugins: [i18n] } })
     try {
       expect(wrapper.findAll('option').map((option) => option.text())).toEqual([
         'Français',
         'English',
         'Español',
-        'Italiano',
-        'Русский',
-        'Deutsch',
       ])
       for (const locale of SUPPORT_LOCALES) {
         await wrapper.get('select').setValue(locale)
@@ -68,17 +78,13 @@ describe('Language selection', () => {
         expect(getStoredLocale()).toBe(locale)
         expect(wrapper.get('label').text()).toBe(i18n.global.t('actions.changeLanguage'))
       }
-      await setLocale('ru')
-      expect(i18n.global.t('exchangeDetail.wishlistSuggestions', { count: 22 }, 22)).toBe(
-        '22 пожелания',
-      )
     } finally {
       wrapper.unmount()
     }
   })
 })
 
-it('joins excluded participants naturally in each newly supported language', async () => {
+it('joins excluded participants naturally in French and Spanish', async () => {
   const wrapper = mount(ExchangeDetails, {
     props: {
       exchange: { id: 'e', name: 'Test', isDrawn: false, isArchived: false },
@@ -94,9 +100,7 @@ it('joins excluded participants naturally in each newly supported language', asy
   try {
     for (const [locale, joined] of [
       ['es', 'Blair y Casey'],
-      ['it', 'Blair e Casey'],
-      ['ru', 'Blair и Casey'],
-      ['de', 'Blair und Casey'],
+      ['fr-CA', 'Blair et Casey'],
     ] as const) {
       await setLocale(locale)
       await flushPromises()
@@ -136,7 +140,7 @@ it('formats image limits without unnecessary decimals and removes reorder help w
       await setLocale(locale)
       await flushPromises()
       const help = wrapper.get('p[id$="-image-help"]').text()
-      expect(help).toContain(locale === 'fr-CA' ? '5 Mio' : locale === 'ru' ? '5 МиБ' : '5 MiB')
+      expect(help).toContain(locale === 'fr-CA' ? '5 Mio' : '5 MiB')
       expect(help).not.toMatch(/5[.,]0/)
       expect(wrapper.find('.drag-handle').exists()).toBe(true)
       expect(wrapper.find('[id^="reorder-"]').exists()).toBe(true)
@@ -152,7 +156,7 @@ it('formats image limits without unnecessary decimals and removes reorder help w
 })
 
 it('uses an exchange title rather than a personal name in conflict summaries', async () => {
-  await setLocale('ru')
+  await setLocale('es')
   const wrapper = mount(ConflictReview, {
     props: {
       fields: [],
@@ -164,9 +168,9 @@ it('uses an exchange title rather than a personal name in conflict summaries', a
     global: { plugins: [i18n] },
   })
   try {
-    expect(wrapper.get('dt').text()).toBe('Название обмена')
+    expect(wrapper.get('dt').text()).toBe('Nombre del intercambio')
     await wrapper.setProps({ fieldLabelKeys: undefined })
-    expect(wrapper.get('dt').text()).toBe('Имя')
+    expect(wrapper.get('dt').text()).toBe('Nombre')
   } finally {
     wrapper.unmount()
   }

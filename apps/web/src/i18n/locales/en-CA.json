@@ -19,10 +19,7 @@
   "languages": {
     "fr": "Français",
     "en": "English",
-    "es": "Español",
-    "it": "Italiano",
-    "ru": "Русский",
-    "de": "Deutsch"
+    "es": "Español"
   },
   "fonts": {
     "a": "Lagoon (Open Sans + Manrope)",
@@ -98,10 +95,6 @@
         "body": "Use your organizer link and password to manage the exchange and delete it when you’re done."
       }
     },
-    "open": {
-      "title": "Open code you can see for yourself",
-      "body": "Kado is free and open source software. Anyone can read the code, use it, improve it or host their own copy. You can see how it all works."
-    },
     "closing": {
       "title": "Ready for your next gift exchange?",
       "body": "Bring everyone together. Kado will take care of the draw."
@@ -134,18 +127,14 @@
       "name": "Give your exchange a name",
       "organizerName": "What is your name?",
       "adminPassword": "Password",
-      "whatHappensTitle": "What happens after creation",
-      "whatHappensCreated": "Your exchange is created and you are redirected to its management page.",
-      "whatHappensAdminSession": "An organizer session is automatically opened on this device.",
-      "whatHappensPassword": "<strong>Keep your password</strong>: no emails or password recovery are provided.",
-      "whatHappensEditable": "All exchange details remain editable after creation.",
       "submit": "Create exchange",
       "successTitle": "Exchange created",
       "successWarningTitle": "Keep your organizer access link safe",
       "successWarningText": "Bookmark this link to return to your exchange’s management page. You will also need your password after signing out.",
       "adminLinkLabel": "Organizer access link",
       "adminLinkHint": "You will need this link to manage your exchange.",
-      "continueButton": "Go to exchange"
+      "continueButton": "Go to exchange",
+      "afterCreationHint": "You can add participants and edit your exchange details afterwards."
     }
   },
   "common": {

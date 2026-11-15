@@ -1,8 +1,7 @@
 import { readStorage, writeStorage } from '@/composables/useStorage'
 import { createI18n } from 'vue-i18n'
-import { pluralRules } from './plurals'
 
-export const SUPPORT_LOCALES = ['fr-CA', 'en-CA', 'es', 'it', 'ru', 'de'] as const
+export const SUPPORT_LOCALES = ['fr-CA', 'en-CA', 'es'] as const
 export type AppLocale = (typeof SUPPORT_LOCALES)[number]
 
 type MessageSchema = Record<string, unknown>
@@ -16,7 +15,6 @@ export const i18n = createI18n({
   locale: defaultLocale,
   fallbackLocale: defaultLocale,
   messages: {},
-  pluralRules,
 })
 
 function isSupportedLocale(value: string): value is AppLocale {

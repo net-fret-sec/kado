@@ -226,15 +226,7 @@ async function handleHidden() {
         <p id="password-help" class="form-text">{{ t('review.passwordHelp') }}</p>
       </div>
 
-      <div class="alert alert-light border mb-0">
-        <p class="fw-semibold mb-2">{{ t('exchanges.createModal.whatHappensTitle') }}</p>
-        <ul class="mb-0 ps-3">
-          <li>{{ t('exchanges.createModal.whatHappensCreated') }}</li>
-          <li>{{ t('exchanges.createModal.whatHappensAdminSession') }}</li>
-          <li v-html="t('exchanges.createModal.whatHappensPassword')"></li>
-          <li>{{ t('exchanges.createModal.whatHappensEditable') }}</li>
-        </ul>
-      </div>
+      <p class="text-body-secondary mb-0">{{ t('exchanges.createModal.afterCreationHint') }}</p>
 
       <div v-if="formErrors.length" class="text-danger mt-2">
         <div v-for="err in formErrors" :key="err">{{ t('p2.invalidField') }}</div>
@@ -278,7 +270,7 @@ async function handleHidden() {
           {{ t('exchanges.createModal.submit') }}
         </button>
         <button type="button" class="btn btn-link order-1" data-bs-dismiss="modal">
-          {{ t('actions.discardChanges') }}
+          {{ t('actions.cancel') }}
         </button>
       </template>
 

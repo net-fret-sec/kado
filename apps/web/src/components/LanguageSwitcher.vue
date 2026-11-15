@@ -7,9 +7,6 @@ const labels: Record<AppLocale, string> = {
   'fr-CA': 'languages.fr',
   'en-CA': 'languages.en',
   es: 'languages.es',
-  it: 'languages.it',
-  ru: 'languages.ru',
-  de: 'languages.de',
 }
 </script>
 

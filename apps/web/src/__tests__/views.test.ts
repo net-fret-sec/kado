@@ -81,9 +81,6 @@ describe('participant form regressions', () => {
       ['fr-CA', 'Ce lien du participant est invalide ou périmé.'],
       ['en-CA', 'This participant link is invalid or has expired.'],
       ['es', 'Este enlace de participante no es válido o ha caducado.'],
-      ['it', 'Questo link del partecipante non è valido o è scaduto.'],
-      ['ru', 'Эта ссылка участника недействительна или больше не действует.'],
-      ['de', 'Dieser Teilnehmerlink ist ungültig oder abgelaufen.'],
     ] as const
     for (const [locale, message] of messages) {
       await setLocale(locale)

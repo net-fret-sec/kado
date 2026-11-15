@@ -19,10 +19,7 @@
   "languages": {
     "fr": "Français",
     "en": "English",
-    "es": "Español",
-    "it": "Italiano",
-    "ru": "Русский",
-    "de": "Deutsch"
+    "es": "Español"
   },
   "fonts": {
     "a": "Lagune (Open Sans + Manrope)",
@@ -98,10 +95,6 @@
         "body": "Votre lien d’organisation et votre mot de passe vous permettent de gérer l’échange et de le supprimer lorsque vous n’en avez plus besoin."
       }
     },
-    "open": {
-      "title": "Un projet ouvert, une confiance qui se vérifie",
-      "body": "Kado est un logiciel libre : son code est public. Il peut être consulté, utilisé, amélioré ou hébergé ailleurs. C’est aussi une façon de rendre son fonctionnement transparent."
-    },
     "closing": {
       "title": "On prépare votre prochain échange?",
       "body": "Réunissez votre monde. Kado s’occupe de la pige."
@@ -134,18 +127,14 @@
       "name": "Donnez un nom à l’échange",
       "organizerName": "Quel est votre nom?",
       "adminPassword": "Mot de passe",
-      "whatHappensTitle": "Ce qui va se passer après la création",
-      "whatHappensCreated": "Votre échange est créé et vous êtes redirigé vers sa page de gestion.",
-      "whatHappensAdminSession": "Une session organisateur est ouverte automatiquement sur cet appareil.",
-      "whatHappensPassword": "<strong>Conservez votre mot de passe</strong> : aucun courriel ni récupération ne sont proposés.",
-      "whatHappensEditable": "Tous les détails de l’échange restent modifiables après la création.",
       "submit": "Créer l’échange",
       "successTitle": "Échange créé",
       "successWarningTitle": "Conservez votre lien d’accès organisateur",
       "successWarningText": "Conservez ce lien dans vos signets pour retrouver la gestion de votre échange. Vous aurez aussi besoin de votre mot de passe après une déconnexion.",
       "adminLinkLabel": "Lien d’accès organisateur",
       "adminLinkHint": "Vous aurez besoin de ce lien pour gérer votre échange.",
-      "continueButton": "Continuer vers l’échange"
+      "continueButton": "Continuer vers l’échange",
+      "afterCreationHint": "Vous pourrez ajouter des participants et modifier les détails de votre échange par la suite."
     }
   },
   "common": {

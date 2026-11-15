@@ -2,8 +2,10 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseModal from '@/components/BaseModal.vue'
+import { copyText } from '@/composables/useClipboard'
+import { useToastsStore } from '@/stores/toasts'
 
-defineProps<{
+const props = defineProps<{
   modelValue: boolean
   link: string
   participantName?: string
@@ -15,6 +17,18 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const accessLinkInput = ref<HTMLInputElement | null>(null)
+const toasts = useToastsStore()
+
+async function copyParticipantLink() {
+  const copied = await copyText(props.link)
+  toasts[copied ? 'success' : 'error'](
+    t(copied ? 'exchangeDetail.linkCopied' : 'exchangeDetail.copyFailed'),
+  )
+  if (!copied) {
+    accessLinkInput.value?.focus()
+    accessLinkInput.value?.select()
+  }
+}
 </script>
 
 <template>
@@ -30,14 +44,19 @@ const accessLinkInput = ref<HTMLInputElement | null>(null)
           : t('exchangeDetail.linkModal.description')
       }}
     </p>
-    <input
-      ref="accessLinkInput"
-      :aria-label="t('exchangeDetail.linkModal.title')"
-      :value="link"
-      type="text"
-      class="form-control"
-      readonly
-    />
+    <div class="input-group">
+      <input
+        ref="accessLinkInput"
+        :aria-label="t('exchangeDetail.linkModal.title')"
+        :value="link"
+        type="text"
+        class="form-control"
+        readonly
+      />
+      <button type="button" class="btn btn-primary" :disabled="!link" @click="copyParticipantLink">
+        {{ t('actions.copy') }}
+      </button>
+    </div>
 
     <div class="alert alert-info mt-3 mb-0 small">
       <p class="mb-2">

@@ -6,7 +6,6 @@ import ts from 'typescript'
 import { createI18n } from 'vue-i18n'
 import { parse, compileTemplate } from 'vue/compiler-sfc'
 import fr from '../i18n/locales/fr-CA.json'
-import { pluralRules } from '../i18n/plurals'
 
 type Messages = { [key: string]: string | Messages }
 function flatten(messages: Messages, prefix = ''): Record<string, string> {
@@ -66,12 +65,10 @@ describe('French source of truth and translation integrity', () => {
         const translation = translated[key]!
         expect(text.trim(), key).not.toBe('')
         expect(translation.trim(), key).not.toBe('')
-        // A language may repeat a variable in more plural branches than French.
+        // Compare interpolation parameters independently of their repetition.
         expect([...new Set(parameters(translation))], key).toEqual([...new Set(parameters(text))])
         const forms = text.split('|').length
-        expect(translation.split('|').length, key).toBe(
-          locale === 'ru' && forms > 1 ? forms + 1 : forms,
-        )
+        expect(translation.split('|').length, key).toBe(forms)
         expect(links(translation), key).toEqual(links(text))
         expect(translation.match(/<\/?[a-z][^>]*>/gi), key).toEqual(text.match(/<\/?[a-z][^>]*>/gi))
       }
@@ -86,9 +83,6 @@ describe('French source of truth and translation integrity', () => {
         'languages.fr',
         'languages.en',
         'languages.es',
-        'languages.it',
-        'languages.ru',
-        'languages.de',
         'fonts.b',
         'fonts.f',
         'fonts.g',
@@ -106,9 +100,6 @@ describe('French source of truth and translation integrity', () => {
           'review.detailsExclusions',
         ],
         es: ['palettes.j'],
-        it: ['palettes.j', 'fields.budget'],
-        ru: [],
-        de: ['fonts.a', 'fields.budget'],
       }
       for (const key of exceptions[locale] ?? []) shared.add(key)
       for (const [key, message] of Object.entries(flatten(messages))) {
@@ -193,7 +184,6 @@ describe('French source of truth and translation integrity', () => {
         fallbackLocale: false,
         warnHtmlMessage: false,
         messages: { [locale]: messages },
-        pluralRules,
         missing: (_locale, key) => {
           throw new Error(`Missing ${key}`)
         },
@@ -213,9 +203,6 @@ describe('French source of truth and translation integrity', () => {
           'fr-CA': ['suggestion', 'suggestions'],
           'en-CA': ['suggestion', 'suggestions'],
           es: ['sugerencia', 'sugerencias'],
-          it: ['suggerimento', 'suggerimenti'],
-          ru: ['пожелание', 'пожелания'],
-          de: ['Wunsch', 'Wünsche'],
         }
         for (const key of [
           'exchangeDetail.wishlistSuggestions',
@@ -225,35 +212,6 @@ describe('French source of truth and translation integrity', () => {
         ]) {
           expect(instance.global.t(key, { count: 1 }, 1), key).toContain(`1 ${words[locale]![0]}`)
           expect(instance.global.t(key, { count: 2 }, 2), key).toContain(`2 ${words[locale]![1]}`)
-          if (locale === 'ru') {
-            for (const [count, word] of [
-              [0, 'пожеланий'],
-              [5, 'пожеланий'],
-              [11, 'пожеланий'],
-              [21, 'пожелание'],
-              [22, 'пожелания'],
-              [25, 'пожеланий'],
-              [101, 'пожелание'],
-            ] as const) {
-              expect(instance.global.t(key, { count }, count), key).toContain(`${count} ${word}`)
-            }
-          }
-        }
-        if (locale === 'ru') {
-          for (const [count, text] of [
-            [0, 'Нет ограничений'],
-            [1, '1 ограничение'],
-            [2, '2 ограничения'],
-            [5, '5 ограничений'],
-            [11, '11 ограничений'],
-            [21, '21 ограничение'],
-            [22, '22 ограничения'],
-            [25, '25 ограничений'],
-          ] as const) {
-            expect(
-              instance.global.t('exchangeDetail.dashboard.exclusionCount', { count }, count),
-            ).toBe(text)
-          }
         }
       } finally {
         instance.dispose()

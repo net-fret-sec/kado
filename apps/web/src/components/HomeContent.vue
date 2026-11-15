@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import celebrateGift from '@/assets/illustrations/kado-celebrate.webp'
+import GiftIllustration from '@/components/GiftIllustration.vue'
 
 defineEmits<{ create: [] }>()
 const { t } = useI18n()
@@ -78,15 +78,6 @@ const sections: {
     </div>
   </section>
 
-  <section class="feature-row d-flex align-items-center">
-    <div class="text-center">
-      <h2 class="h4">{{ t('home.open.title') }}</h2>
-      <p class="text-body-secondary">
-        {{ t('home.open.body') }}
-      </p>
-    </div>
-  </section>
-
   <section aria-labelledby="home-faq-title" class="home-faq d-flex flex-column gap-4 mx-auto w-100">
     <h2 id="home-faq-title" class="h4 mb-0 text-center">{{ t('home.faq.title') }}</h2>
     <article v-for="[question, answer] in faqItems" :key="question">
@@ -96,7 +87,9 @@ const sections: {
   </section>
 
   <section class="closing d-flex flex-column align-items-center gap-3 py-4 text-center">
-    <img :src="celebrateGift" alt="" aria-hidden="true" width="112" height="112" />
+    <div class="closing-art d-flex align-items-center justify-content-center" aria-hidden="true">
+      <GiftIllustration kind="hero" class="closing-gifts" />
+    </div>
     <h2 class="h4 mb-0 mx-auto">{{ t('home.closing.title') }}</h2>
     <p class="mb-0 mx-auto">{{ t('home.closing.body') }}</p>
     <button class="btn btn-primary px-4" type="button" @click="$emit('create')">
@@ -106,6 +99,15 @@ const sections: {
 </template>
 
 <style scoped>
+.closing-art {
+  width: 112px;
+  height: 112px;
+}
+
+.closing-gifts {
+  width: 84px;
+}
+
 .home-faq {
   max-width: 48rem;
 }
