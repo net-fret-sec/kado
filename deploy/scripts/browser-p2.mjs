@@ -43,6 +43,37 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
   }
   const saveProfile = page => page.locator('#participant-name').press('Enter');
   const refresh = page => ({ click: () => page.evaluate(() => document.dispatchEvent(new Event('visibilitychange'))) });
+  console.log('P2 browser: incomplete links recover with a sixth suggestion and image');
+  {
+    const f = await fixture('P2 liens incomplets');
+    await api('PUT', '/api' + f.members[0].accessLink, { wishlist: Array.from({ length: 5 }, (_, i) => ({ title: `Cadeau ${i + 1}` })) });
+    await api('PUT', '/api' + f.members[0].accessLink, { wishlist: [{ title: 'Lien invalide', linkUrl: 'https://' }] }, undefined, 400);
+    await f.page.setViewportSize({ width: 390, height: 844 });
+    await self(f);
+    await f.page.getByRole('button', { name: fr.participant.addSuggestion, exact: true }).click();
+    await f.page.locator('input[id$="-title"]').nth(5).fill('Sixième cadeau');
+    const link = f.page.locator('input[type=url]').nth(5);
+    await link.pressSequentially('https://');
+    await expect(link).toHaveAttribute('aria-invalid', 'true');
+    await f.page.locator('input[type=file]').nth(5).setInputFiles({ name: 'gift.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEklEQVQImWP4z8CAFWEXHbQSACj/P8FTKqelAAAAAElFTkSuQmCC', 'base64') });
+    await expect(f.page.locator('.suggestion-shell').nth(5).locator('img[src^="blob:"]')).toBeVisible();
+    await expect(link).toBeEnabled();
+    await link.fill('https://example.com/gift');
+    const saved = f.page.waitForResponse(r => r.request().method() === 'PUT' && r.url().includes('/api/p/'));
+    await f.page.locator('.participant-suggestions-card h2').click();
+    assert.equal((await saved).status(), 200);
+    await expect(f.page.locator('.suggestion-save-status')).toContainText(fr.autosave.saved);
+    const current = await api('GET', '/api' + f.members[0].accessLink);
+    assert.equal(current.participant.wishlist.length, 6);
+    assert.equal(current.participant.wishlist[5].linkUrl, 'https://example.com/gift');
+    assert.match(current.participant.wishlist[5].imageId, /^img_/);
+    await f.page.reload();
+    await expect(f.page.locator('input[id$="-title"]')).toHaveCount(6);
+    await f.page.locator('.suggestion-shell').nth(5).scrollIntoViewIfNeeded();
+    await expect(f.page.locator('.suggestion-shell').nth(5).locator('img[src^="blob:"]')).toBeVisible();
+    await f.page.screenshot({ path: path.join(output, 'incomplete-link-recovery-390.png'), fullPage: true });
+    await finish(f);
+  }
   console.log('P2 browser: wishlist payload, keyboard, mobile, languages and accessibility');
   {
     const f = await fixture('P2 souhaits'); await self(f);
