@@ -18,7 +18,13 @@ const optionalUrl = () =>
       .max(2048)
       .url()
       .refine(
-        (value) => ["http:", "https:"].includes(new URL(value).protocol),
+        (value) => {
+          try {
+            return ["http:", "https:"].includes(new URL(value).protocol);
+          } catch {
+            return false;
+          }
+        },
         "HTTP/HTTPS required.",
       )
       .optional(),

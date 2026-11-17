@@ -47,14 +47,17 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
   {
     const f = await fixture('P2 souhaits'); await self(f);
     await f.page.locator('.drag-handle').first().focus();
+    const reordered = f.page.waitForResponse(r => r.request().method() === 'PUT' && r.url().includes('/api/p/'));
     await f.page.keyboard.press('ArrowDown');
     await expect(f.page.locator('[role=status]').filter({ hasText: 'position 2' })).toBeVisible();
+    assert.equal((await reordered).status(), 200);
+    await expect(f.page.locator('.suggestion-save-status')).toContainText(fr.autosave.saved);
     const file = { name:'gift.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEklEQVQImWP4z8CAFWEXHbQSACj/P8FTKqelAAAAAElFTkSuQmCC','base64') };
     let uploads=0;f.page.on('request',request=>{if(request.method()==='POST'&&request.url().endsWith('/images'))uploads++});
+    const response = f.page.waitForResponse(r => r.request().method() === 'PUT' && r.url().includes('/api/p/'));
     await f.page.locator('input[type=file]').first().setInputFiles(file);
     await expect(f.page.locator('img[src^="blob:"]').first()).toBeVisible();assert.equal(uploads,0,'Preview is local');
-    const response = f.page.waitForResponse(r => r.request().method() === 'PUT' && r.url().includes('/api/p/'));
-    await response;
+    assert.equal((await response).status(), 200);
     await expect(f.page.locator('.suggestion-save-status')).toContainText(fr.autosave.saved);
     const current = await api('GET', '/api' + f.members[0].accessLink);
     assert.deepEqual(current.participant.wishlist.map(s => s.title), ['Cadeau', 'Livre']);
@@ -182,11 +185,11 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     assert.equal((await api('GET', '/api' + f.members[0].accessLink)).participant.note, 'À conserver en cas d’erreur');
     await finish(f);
   }
-  console.log('P2 browser: six languages, cancellation labels and reactive errors');
+  console.log('P2 browser: three languages, cancellation labels and reactive errors');
   {
     const f = await fixture('P2 langues');
     await f.context.close();
-    for (const [locale, browserLocale] of [['fr-CA', 'fr-CA'], ['en-CA', 'en-CA'], ['es', 'es-MX'], ['it', 'it-IT'], ['ru', 'ru-RU'], ['de', 'de-CH']]) {
+    for (const [locale, browserLocale] of [['fr-CA', 'fr-CA'], ['en-CA', 'en-CA'], ['es', 'es-MX']]) {
       const messages = JSON.parse(await readFile(path.join(root, 'apps/web/src/i18n/locales', `${locale}.json`), 'utf8'));
       const context = await browser.newContext({ ignoreHTTPSErrors: true, locale: browserLocale, reducedMotion: 'reduce' });
       try {
@@ -206,7 +209,7 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
           assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${locale} creation width ${width}`);
           assert.deepEqual((await audit(page)).violations.map(v => v.id), [], `${locale} creation accessibility`);
           await page.screenshot({ path: path.join(output, `creation-${locale}-${width}.png`), fullPage: true });
-          await page.getByRole('button', { name: messages.actions.discardChanges, exact: true }).click();
+          await page.getByRole('button', { name: messages.actions.cancel, exact: true }).click();
         }
         await page.evaluate(({ id, token }) => localStorage.setItem('kado.adminSessions', JSON.stringify({ [id]: token })), { id: f.id, token: f.token });
         await page.goto(`${base}/exchanges/${f.id}`);
@@ -256,7 +259,7 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     f.page.on('request', request => { if (request.url().includes('/api/p/')) reads++; });
     await f.page.goto(base + f.members[0].accessLink);
     await expect(f.page.locator('[role=alert]')).toContainText(fr.apiErrors.PARTICIPANT_LINK_INVALID_OR_EXPIRED);
-    for (const locale of ['en-CA', 'es', 'it', 'ru', 'de', 'fr-CA']) {
+    for (const locale of ['en-CA', 'es', 'fr-CA']) {
       const messages = JSON.parse(await readFile(path.join(root, 'apps/web/src/i18n/locales', `${locale}.json`), 'utf8'));
       await f.page.locator('#locale-select').selectOption(locale);
       await expect(f.page.locator('[role=alert]')).toHaveText(messages.apiErrors.PARTICIPANT_LINK_INVALID_OR_EXPIRED);

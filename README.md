@@ -4,6 +4,8 @@ Kado est une application web libre pour organiser des échanges de cadeaux sans 
 
 L'objectif du projet est de réduire la friction d'organisation tout en gardant des règles explicites, une pige fiable et un hébergement simple.
 
+Les anomalies confirmées à reprendre sont consignées dans le [suivi des correctifs](docs/SUIVI-CORRECTIFS.md).
+
 ## Vue d'ensemble
 
 Le monorepo PNPM contient trois briques:

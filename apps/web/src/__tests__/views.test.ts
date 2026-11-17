@@ -862,3 +862,96 @@ describe('participant modal autosave and closure', () => {
     expect(wrapper.find('.modal-save-feedback').exists()).toBe(false)
   })
 })
+
+describe('wishlist additions and invalid links', () => {
+  for (const invalid of [false, true])
+    it(
+      invalid
+        ? 'blocks all uploads and saves while one suggestion is invalid'
+        : 'saves a sixth and seventh suggestion with images',
+      async () => {
+        const current = personal()
+        current.participant.wishlist = Array.from({ length: 5 }, (_, i) => ({
+          title: `Gift ${i + 1}`,
+        }))
+        const writes: Record<string, unknown>[] = []
+        let uploads = 0
+        URL.createObjectURL = vi.fn(() => 'blob:preview')
+        URL.revokeObjectURL = vi.fn()
+        vi.stubGlobal(
+          'createImageBitmap',
+          vi.fn(async () => ({ width: 8, height: 8, close() {} })),
+        )
+        vi.stubGlobal(
+          'fetch',
+          vi.fn(async (path, init) => {
+            if (String(path).endsWith('/config'))
+              return json({
+                images: {
+                  sourceBytes: 5242880,
+                  pixels: 20000000,
+                  dimension: 1600,
+                  outputBytes: 524288,
+                  formats: ['image/png'],
+                },
+              })
+            if (init.method === 'POST') {
+              uploads++
+              return json(
+                {
+                  imageId: `img_00000000-0000-4000-8000-${String(uploads).padStart(12, '0')}`,
+                },
+                201,
+              )
+            }
+            if (init.method === 'PUT') {
+              const body = JSON.parse(init.body)
+              writes.push(body)
+              Object.assign(current.participant, body, {
+                updatedAt: `2026-01-0${writes.length + 1}T00:00:00.000Z`,
+              })
+            }
+            if (String(path).includes('/images/')) return new Response('image')
+            return json(current)
+          }),
+        )
+        const { wrapper } = await open(ParticipantSelfView, '/p/SYNTHETIC')
+        vi.useFakeTimers()
+        for (const count of [6, 7]) {
+          await wrapper
+            .findAll('button')
+            .find((b) => b.text() === 'Ajouter une suggestion')!
+            .trigger('click')
+          const titles = wrapper.findAll('input[id$="-title"]')
+          expect(titles).toHaveLength(count)
+          await titles[count - 1]!.setValue(`Gift ${count}`)
+          if (invalid && count === 6)
+            await wrapper.findAll('input[type=url]')[count - 1]!.setValue('www.example.com/gift')
+          const input = wrapper.findAll('input[type=file]')[count - 1]!
+          expect(input.attributes('disabled')).toBeUndefined()
+          Object.defineProperty(input.element, 'files', {
+            configurable: true,
+            value: [new File(['image'], 'gift.png', { type: 'image/png' })],
+          })
+          await input.trigger('change')
+          await flushPromises()
+          await wrapper.findAll('.suggestion-shell')[count - 1]!.trigger('focusout')
+          await vi.advanceTimersByTimeAsync(400)
+          await flushPromises()
+          expect(uploads).toBe(invalid ? 0 : count - 5)
+          expect(writes).toHaveLength(invalid ? 0 : count - 5)
+          if (!invalid) expect(writes.at(-1)?.wishlist as unknown[]).toHaveLength(count)
+        }
+        if (invalid) {
+          expect(wrapper.findAll('input[type=url]')[5]!.attributes('aria-invalid')).toBe('true')
+          await wrapper.findAll('input[type=url]')[5]!.setValue('https://example.com/gift')
+          await wrapper.findAll('.suggestion-shell')[5]!.trigger('focusout')
+          await vi.advanceTimersByTimeAsync(400)
+          await flushPromises()
+          expect(uploads).toBe(2)
+          expect(writes).toHaveLength(1)
+          expect(writes[0]?.wishlist as unknown[]).toHaveLength(7)
+        }
+      },
+    )
+})
