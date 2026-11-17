@@ -359,9 +359,10 @@ describe('participant form regressions', () => {
     await wrapper.get('form').trigger('submit')
     await flushPromises()
     expect((wrapper.get('#participant-note').element as HTMLTextAreaElement).value).toBe('Keep me')
-    expect(wrapper.get('#participant-note').attributes('aria-describedby')).toBe(
+    expect(wrapper.get('#participant-note').attributes('aria-describedby')?.split(' ')).toEqual([
+      'participant-note-help',
       'participant-note-error',
-    )
+    ])
     expect(wrapper.get('[role=alert]').exists()).toBe(true)
   })
   it('preserves dirty values on refresh but displays the newest permissions and recipient', async () => {
@@ -954,4 +955,61 @@ describe('wishlist additions and invalid links', () => {
         }
       },
     )
+})
+
+describe('contextual page titles', () => {
+  it('follows participant data, language and replacement links without retaining the previous name', async () => {
+    const current = personal()
+    current.participant.wishlist = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (path, init) => {
+        if (String(path).includes('/INVALID'))
+          return json({ error: { code: 'PARTICIPANT_LINK_INVALID_OR_EXPIRED' } }, 404)
+        if (init.method === 'PUT') Object.assign(current.participant, JSON.parse(init.body))
+        return json(current)
+      }),
+    )
+    const { wrapper, router } = await open(ParticipantSelfView, '/p/TEST')
+    expect(document.title).toBe('Alex · Échange · Participant · Kado')
+    await wrapper.get('#participant-name').setValue('Sam')
+    // The title reflects the saved identity, not an unsaved draft.
+    expect(document.title).toBe('Alex · Échange · Participant · Kado')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+    expect(document.title).toBe('Sam · Échange · Participant · Kado')
+    await setLocale('es')
+    await nextTick()
+    expect(document.title).toBe('Sam · Échange · Participante · Kado')
+    await router.push('/p/INVALID')
+    await flushPromises()
+    expect(document.title).toBe('Participante · Kado')
+  })
+
+  it('identifies the organizer and clears private details on an authentication failure', async () => {
+    let expired = false
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (path) => {
+        if (expired) return json({ error: { code: 'ADMIN_SESSION_INVALID_OR_EXPIRED' } }, 401)
+        if (String(path).endsWith('/exclusions')) return json([])
+        return json({
+          id: 'exchange',
+          name: 'Noël 2026',
+          organizerName: 'Dave',
+          participants: [],
+          updatedAt: startVersion,
+        })
+      }),
+    )
+    const { router } = await open(ExchangeDetailView, '/exchanges/exchange')
+    expect(document.title).toBe('Noël 2026 · Dave · Organisation · Kado')
+    await setLocale('en-CA')
+    await nextTick()
+    expect(document.title).toBe('Noël 2026 · Dave · Organizer · Kado')
+    expired = true
+    await router.push('/exchanges/other')
+    await flushPromises()
+    expect(document.title).toBe('Organizer · Kado')
+  })
 })

@@ -450,27 +450,19 @@ main > * + * {
   --bs-btn-disabled-color: #142f30;
 }
 
-/* Shared form rhythm; grid keeps labels, controls and errors aligned. */
+/* Floating fields share the same rhythm at every viewport width. */
 .form-field > .form-text,
 .form-field > .text-danger {
   margin: 0.35rem 0 0;
 }
-@media (min-width: 768px) {
-  .form-field {
-    display: grid;
-    grid-template-columns: minmax(8rem, 30%) minmax(0, 1fr);
-    column-gap: 1rem;
-    align-items: start;
-  }
-  .form-field > .form-label {
-    padding-top: 0.5rem;
-    margin-bottom: 0;
-  }
-  .form-field > .form-text,
-  .form-field > .text-danger {
-    grid-column: 2;
-  }
+.form-floating {
+  min-width: 0;
 }
+.form-floating > textarea.form-control {
+  height: 7rem;
+  min-height: 7rem;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -518,6 +510,7 @@ main > * + * {
   padding: 0.5rem 0.25rem;
 }
 .suggestion-content {
+  container-type: inline-size;
   padding: 0.75rem;
   flex: 1 1 0;
   min-width: 0;
@@ -557,12 +550,13 @@ main > * + * {
   line-height: 1;
   color: var(--bs-link-color);
 }
+// Keep gift fields readable inside narrow cards and modals, regardless of viewport.
+@container (max-width: 22rem) {
+  .suggestion-fields { grid-column: 1 / -1; }
+}
 .suggestion-fields {
   min-width: 0;
   overflow-wrap: anywhere;
-}
-.suggestion-fields .form-field {
-  grid-template-columns: minmax(6rem, 25%) minmax(0, 1fr);
 }
 .suggestion-item .form-text,
 .suggestion-item .text-danger {
@@ -641,7 +635,6 @@ main > * + * {
 .exchange-header {
   padding: clamp(1rem, 2vw, 1.5rem);
   border: 1px solid var(--bs-border-color);
-  border-inline-start: 4px solid var(--bs-primary);
   border-radius: 1rem;
   background: var(--bs-secondary-bg);
 }

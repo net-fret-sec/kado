@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { usePageTitle } from '@/composables/usePageTitle'
 import { ref, watch, computed } from 'vue'
 import BaseModal from '@/components/BaseModal.vue'
 import AccessReminder from '@/components/AccessReminder.vue'
@@ -123,6 +124,10 @@ watch(
 watch(requiresAdminAuth, (value) => {
   if (value) showDelete.value = false
 })
+usePageTitle(() => {
+  const current = requiresAdminAuth.value ? null : exchange.value
+  return [current?.name, current?.organizerName, t('pageTitles.organizer')]
+})
 </script>
 
 <template>
@@ -133,20 +138,23 @@ watch(requiresAdminAuth, (value) => {
         <p class="text-muted mb-3">{{ t('exchangeDetail.adminAuth.description') }}</p>
         <form class="d-flex flex-column gap-3" @submit.prevent="authenticateAdmin">
           <div class="form-field">
-            <label for="exchange-admin-password" class="form-label mb-1">{{
-              t('exchangeDetail.adminAuth.passwordLabel')
-            }}</label>
-            <input
-              id="exchange-admin-password"
-              v-model="adminPassword"
-              class="form-control"
-              type="password"
-              autocomplete="current-password"
-              minlength="8"
-              maxlength="256"
-              aria-describedby="login-password-help"
-              required
-            />
+            <div class="form-floating">
+              <input
+                placeholder=" "
+                id="exchange-admin-password"
+                v-model="adminPassword"
+                class="form-control"
+                type="password"
+                autocomplete="current-password"
+                minlength="8"
+                maxlength="256"
+                aria-describedby="login-password-help"
+                required
+              />
+              <label for="exchange-admin-password">{{
+                t('exchangeDetail.adminAuth.passwordLabel')
+              }}</label>
+            </div>
           </div>
           <div class="d-flex justify-content-end">
             <button
@@ -290,24 +298,25 @@ watch(requiresAdminAuth, (value) => {
                 >
                   {{ addParticipantError }}
                 </p>
-                <label for="new-participant-name" class="visually-hidden">{{
-                  t('fields.name')
-                }}</label>
+
                 <div class="input-group mb-3">
-                  <input
-                    id="new-participant-name"
-                    :aria-invalid="!!addParticipantFieldErrors.name || undefined"
-                    :aria-describedby="addParticipantError ? 'add-participant-error' : undefined"
-                    ref="newParticipantNameInput"
-                    :aria-label="t('fields.name')"
-                    maxlength="150"
-                    v-model="newParticipantName"
-                    type="text"
-                    class="form-control"
-                    :placeholder="t('fields.name')"
-                    :disabled="isAddingParticipant"
-                    required
-                  />
+                  <div class="form-floating">
+                    <input
+                      id="new-participant-name"
+                      :aria-invalid="!!addParticipantFieldErrors.name || undefined"
+                      :aria-describedby="addParticipantError ? 'add-participant-error' : undefined"
+                      ref="newParticipantNameInput"
+                      :aria-label="t('fields.name')"
+                      maxlength="150"
+                      v-model="newParticipantName"
+                      type="text"
+                      class="form-control"
+                      :placeholder="t('fields.name')"
+                      :disabled="isAddingParticipant"
+                      required
+                    />
+                    <label for="new-participant-name">{{ t('fields.name') }}</label>
+                  </div>
                   <button
                     type="submit"
                     class="btn btn-outline-secondary rounded-end"
@@ -472,29 +481,29 @@ watch(requiresAdminAuth, (value) => {
             @submit.prevent="addParticipantExclusion(editingParticipant.id)"
           >
             <div class="form-field mb-2">
-              <label for="exclusion-receiver" class="form-label">{{
-                t('exchangeDetail.dashboard.receiver')
-              }}</label>
-              <select
-                id="exclusion-receiver"
-                v-model="selectedExclusionReceiver"
-                class="form-select"
-                :disabled="
-                  mutationBusy ||
-                  imageUploading ||
-                  !getReceiverCandidates(editingParticipant.id).length
-                "
-                required
-              >
-                <option value="">{{ t('exchangeDetail.exceptions.selectReceiver') }}</option>
-                <option
-                  v-for="candidate in getReceiverCandidates(editingParticipant.id)"
-                  :key="candidate.id"
-                  :value="candidate.id"
+              <div class="form-floating">
+                <select
+                  id="exclusion-receiver"
+                  v-model="selectedExclusionReceiver"
+                  class="form-select"
+                  :disabled="
+                    mutationBusy ||
+                    imageUploading ||
+                    !getReceiverCandidates(editingParticipant.id).length
+                  "
+                  required
                 >
-                  {{ candidate.name }}
-                </option>
-              </select>
+                  <option value="">{{ t('exchangeDetail.exceptions.selectReceiver') }}</option>
+                  <option
+                    v-for="candidate in getReceiverCandidates(editingParticipant.id)"
+                    :key="candidate.id"
+                    :value="candidate.id"
+                  >
+                    {{ candidate.name }}
+                  </option>
+                </select>
+                <label for="exclusion-receiver">{{ t('exchangeDetail.dashboard.receiver') }}</label>
+              </div>
             </div>
             <button
               type="submit"
@@ -516,15 +525,18 @@ watch(requiresAdminAuth, (value) => {
     >
       <p>{{ t('review.deleteHelp', { name: exchange.name }) }}</p>
       <form class="form-field" id="delete-exchange-form" @submit.prevent="handleDelete(deleteName)">
-        <label for="delete-exchange-name" class="form-label">{{ t('review.confirmName') }}</label>
-        <input
-          id="delete-exchange-name"
-          v-model="deleteName"
-          class="form-control"
-          autocomplete="off"
-          :disabled="mutationBusy"
-          required
-        />
+        <div class="form-floating">
+          <input
+            placeholder=" "
+            id="delete-exchange-name"
+            v-model="deleteName"
+            class="form-control"
+            autocomplete="off"
+            :disabled="mutationBusy"
+            required
+          />
+          <label for="delete-exchange-name">{{ t('review.confirmName') }}</label>
+        </div>
         <p v-if="error && exchange && !requiresAdminAuth" class="alert alert-warning" role="alert">
           {{ error }}
         </p>

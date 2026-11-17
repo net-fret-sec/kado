@@ -189,37 +189,83 @@ async function handleHidden() {
 </script>
 
 <template>
-  <BaseModal :model-value="modelValue" :before-close="beforeClose" size="lg" :closeOnBackdrop="false"
-    :closeOnEscape="false" :title="modalState === ModalState.FORM
+  <BaseModal
+    :model-value="modelValue"
+    :before-close="beforeClose"
+    size="lg"
+    :closeOnBackdrop="false"
+    :closeOnEscape="false"
+    :title="
+      modalState === ModalState.FORM
         ? t('exchanges.createModal.title')
         : t('exchanges.createModal.successTitle')
-      " @update:model-value="(value) => emit('update:modelValue', value)" @hidden="handleHidden">
+    "
+    @update:model-value="(value) => emit('update:modelValue', value)"
+    @hidden="handleHidden"
+  >
     <!-- FORM STATE -->
-    <form v-if="modalState === ModalState.FORM" id="createExchangeForm" @submit.prevent="handleCreate">
+    <form
+      v-if="modalState === ModalState.FORM"
+      id="createExchangeForm"
+      @submit.prevent="handleCreate"
+    >
       <div class="form-field mb-3">
-        <label for="exchangeName" class="form-label">{{ t('exchanges.createModal.name') }}</label>
-        <input id="exchangeName" v-model="name" class="form-control" maxlength="150" required
-          aria-describedby="creation-required" :aria-invalid="!!fieldErrors.name || undefined" />
+        <div class="form-floating">
+          <input
+            placeholder=" "
+            id="exchangeName"
+            v-model="name"
+            class="form-control"
+            maxlength="150"
+            required
+            aria-describedby="creation-required"
+            :aria-invalid="!!fieldErrors.name || undefined"
+          />
+          <label for="exchangeName">{{ t('exchanges.createModal.name') }}</label>
+        </div>
       </div>
       <div class="form-field mb-3">
-        <label for="organizerName" class="form-label">{{
-          t('exchanges.createModal.organizerName')
-          }}</label>
-        <input id="organizerName" v-model="organizerName" class="form-control" maxlength="150" required
-          aria-describedby="creation-required" :aria-invalid="!!fieldErrors.organizerName || undefined" />
+        <div class="form-floating">
+          <input
+            placeholder=" "
+            id="organizerName"
+            v-model="organizerName"
+            class="form-control"
+            maxlength="150"
+            required
+            aria-describedby="creation-required"
+            :aria-invalid="!!fieldErrors.organizerName || undefined"
+          />
+          <label for="organizerName">{{ t('exchanges.createModal.organizerName') }}</label>
+        </div>
       </div>
       <p id="creation-required" class="visually-hidden">{{ t('review.requiredNames') }}</p>
       <div class="form-field mb-3">
-        <label for="adminPassword" class="form-label">{{
-          t('exchanges.createModal.adminPassword')
-          }}</label>
         <div class="input-group">
-          <input id="adminPassword" v-model="adminPassword" :type="passwordVisible ? 'text' : 'password'"
-            class="form-control" minlength="8" maxlength="256" autocomplete="new-password" autocapitalize="off"
-            :spellcheck="false" required aria-describedby="password-help"
-            :aria-invalid="!!fieldErrors.adminPassword || undefined" />
-          <button type="button" class="btn btn-outline-secondary" :aria-pressed="passwordVisible"
-            @click="passwordVisible = !passwordVisible">
+          <div class="form-floating">
+            <input
+              placeholder=" "
+              id="adminPassword"
+              v-model="adminPassword"
+              :type="passwordVisible ? 'text' : 'password'"
+              class="form-control"
+              minlength="8"
+              maxlength="256"
+              autocomplete="new-password"
+              autocapitalize="off"
+              :spellcheck="false"
+              required
+              aria-describedby="password-help"
+              :aria-invalid="!!fieldErrors.adminPassword || undefined"
+            />
+            <label for="adminPassword">{{ t('exchanges.createModal.adminPassword') }}</label>
+          </div>
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            :aria-pressed="passwordVisible"
+            @click="passwordVisible = !passwordVisible"
+          >
             {{ t(passwordVisible ? 'review.hide' : 'review.show') }}
           </button>
         </div>
@@ -248,11 +294,20 @@ async function handleHidden() {
       </div>
 
       <div class="mb-3">
-        <label class="form-label text-uppercase small fw-semibold text-body-secondary">
-          {{ t('exchanges.createModal.adminLinkLabel') }}
-        </label>
         <div class="input-group">
-          <input :value="adminLink" type="text" class="form-control font-monospace small" readonly />
+          <div class="form-floating">
+            <input
+              id="created-admin-link"
+              placeholder=" "
+              :value="adminLink"
+              type="text"
+              class="form-control font-monospace small"
+              readonly
+            />
+            <label for="created-admin-link">
+              {{ t('exchanges.createModal.adminLinkLabel') }}
+            </label>
+          </div>
           <button type="button" class="btn btn-primary rounded-end" @click="copyAdminLink">
             {{ t('actions.copy') }}
           </button>
@@ -265,8 +320,12 @@ async function handleHidden() {
 
     <template #footer>
       <template v-if="modalState === ModalState.FORM">
-        <button type="submit" class="btn btn-primary order-2" form="createExchangeForm"
-          :disabled="exchangesStore.isLoading || !valid">
+        <button
+          type="submit"
+          class="btn btn-primary order-2"
+          form="createExchangeForm"
+          :disabled="exchangesStore.isLoading || !valid"
+        >
           {{ t('exchanges.createModal.submit') }}
         </button>
         <button type="button" class="btn btn-link order-1" data-bs-dismiss="modal">
@@ -275,7 +334,12 @@ async function handleHidden() {
       </template>
 
       <template v-else-if="modalState === ModalState.SUCCESS">
-        <button type="button" class="btn btn-primary" :disabled="isContinueDisabled" @click="handleContinue">
+        <button
+          type="button"
+          class="btn btn-primary"
+          :disabled="isContinueDisabled"
+          @click="handleContinue"
+        >
           {{ t('exchanges.createModal.continueButton') }}
           <span v-if="isCountdownActive" class="ms-2"> ({{ countdownSeconds }}) </span>
         </button>

@@ -250,36 +250,42 @@ watch(
     />
     <form id="editParticipantForm" novalidate @submit.prevent="profileAutosave.saveNow()">
       <div class="mb-3 form-field">
-        <label for="editParticipantName" class="form-label">{{ t('fields.name') }}</label
-        ><input
-          id="editParticipantName"
-          v-model="name"
-          @blur="profileAutosave.request"
-          class="form-control"
-          maxlength="150"
-          :readonly="identityLocked"
-          :disabled="isSubmitting || saving || !!remote"
-          :aria-invalid="!name.trim() || !!fieldErrors?.name || undefined"
-          :aria-describedby="!name.trim() || fieldErrors?.name ? 'edit-name-error' : undefined"
-          required
-        />
+        <div class="form-floating">
+          <input
+            placeholder=" "
+            id="editParticipantName"
+            v-model="name"
+            @blur="profileAutosave.request"
+            class="form-control"
+            maxlength="150"
+            :readonly="identityLocked"
+            :disabled="isSubmitting || saving || !!remote"
+            :aria-invalid="!name.trim() || !!fieldErrors?.name || undefined"
+            :aria-describedby="!name.trim() || fieldErrors?.name ? 'edit-name-error' : undefined"
+            required
+          />
+          <label for="editParticipantName">{{ t('fields.name') }}</label>
+        </div>
         <p v-if="!name.trim() || fieldErrors?.name" id="edit-name-error" class="text-danger">
           {{ t('p2.invalidField') }}
         </p>
       </div>
       <div class="mb-3 form-field">
-        <label for="editParticipantNote" class="form-label">{{ t('common.comment') }}</label
-        ><textarea
-          id="editParticipantNote"
-          v-model="note"
-          @blur="profileAutosave.request"
-          class="form-control"
-          maxlength="2000"
-          :readonly="suggestionsLocked"
-          :disabled="isSubmitting || saving || !!remote"
-          :aria-invalid="!!fieldErrors?.note || undefined"
-          :aria-describedby="fieldErrors?.note ? 'edit-note-error' : undefined"
-        ></textarea>
+        <div class="form-floating">
+          <textarea
+            placeholder=" "
+            id="editParticipantNote"
+            v-model="note"
+            @blur="profileAutosave.request"
+            class="form-control"
+            maxlength="2000"
+            :readonly="suggestionsLocked"
+            :disabled="isSubmitting || saving || !!remote"
+            :aria-invalid="!!fieldErrors?.note || undefined"
+            :aria-describedby="fieldErrors?.note ? 'edit-note-error' : undefined"
+          ></textarea>
+          <label for="editParticipantNote">{{ t('common.comment') }}</label>
+        </div>
         <p v-if="fieldErrors?.note" id="edit-note-error" class="text-danger">
           {{ t('p2.invalidField') }}
         </p>

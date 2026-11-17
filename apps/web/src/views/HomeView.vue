@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { usePageTitle } from '@/composables/usePageTitle'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CreateExchangeModal from '@/components/CreateExchangeModal.vue'
@@ -8,6 +9,7 @@ import HomeContent from '@/components/HomeContent.vue'
 
 const { t } = useI18n()
 const isCreateModalOpen = ref(false)
+usePageTitle(() => [t('pageTitles.home')])
 </script>
 
 <template>

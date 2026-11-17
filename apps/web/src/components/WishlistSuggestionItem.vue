@@ -220,38 +220,43 @@ onBeforeUnmount(() => {
     <div class="suggestion-fields">
       <template v-if="mode === 'edit'">
         <div class="form-field mb-2">
-          <label :for="`${uniqueId}-title`" class="form-label">{{ t('fields.title') }}</label>
-          <input
-            :id="`${uniqueId}-title`"
-            :value="modelValue.title"
-            @input="change('title', ($event.target as HTMLInputElement).value)"
-            :disabled="disabled"
-            maxlength="200"
-            required
-            class="form-control"
-            :aria-invalid="!!titleError"
-            :aria-describedby="`${uniqueId}-title-error`"
-          />
+          <div class="form-floating">
+            <input
+              placeholder=" "
+              :id="`${uniqueId}-title`"
+              :value="modelValue.title"
+              @input="change('title', ($event.target as HTMLInputElement).value)"
+              :disabled="disabled"
+              maxlength="200"
+              required
+              class="form-control"
+              :aria-invalid="!!titleError"
+              :aria-describedby="`${uniqueId}-title-error`"
+            />
+            <label :for="`${uniqueId}-title`">{{ t('fields.title') }}</label>
+          </div>
           <p v-if="titleError" :id="`${uniqueId}-title-error`" class="text-danger">
             {{ titleError }}
           </p>
         </div>
         <div class="form-field">
-          <label :for="`${uniqueId}-linkUrl`" class="form-label">{{
-            t('participant.wishlistItem.linkLabel')
-          }}</label>
-          <input
-            :id="`${uniqueId}-linkUrl`"
-            :value="modelValue.linkUrl || ''"
-            @input="change('linkUrl', ($event.target as HTMLInputElement).value)"
-            :disabled="disabled"
-            maxlength="2048"
-            type="url"
-            class="form-control"
-            :placeholder="t('participant.wishlistItem.linkPlaceholder')"
-            :aria-invalid="!!linkError"
-            :aria-describedby="`${uniqueId}-link-error`"
-          />
+          <div class="form-floating">
+            <input
+              :id="`${uniqueId}-linkUrl`"
+              :value="modelValue.linkUrl || ''"
+              @input="change('linkUrl', ($event.target as HTMLInputElement).value)"
+              :disabled="disabled"
+              maxlength="2048"
+              type="url"
+              class="form-control"
+              :placeholder="t('participant.wishlistItem.linkPlaceholder')"
+              :aria-invalid="!!linkError"
+              :aria-describedby="`${uniqueId}-link-error`"
+            />
+            <label :for="`${uniqueId}-linkUrl`">{{
+              t('participant.wishlistItem.linkLabel')
+            }}</label>
+          </div>
           <p v-if="linkError" :id="`${uniqueId}-link-error`" class="text-danger">{{ linkError }}</p>
         </div>
       </template>

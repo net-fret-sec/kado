@@ -1,4 +1,9 @@
 {
+  "pageTitles": {
+    "home": "Intercambios de regalos",
+    "organizer": "Organización",
+    "participant": "Participante"
+  },
   "app": {
     "title": "Kado"
   },

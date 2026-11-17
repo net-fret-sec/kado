@@ -14,44 +14,38 @@ const sections: {
   cards: [string, string][]
   numbered?: boolean
   paper?: string[]
-  emblem?: 'private'
   intro?: string
 }[] = [
-    {
-      title: 'home.steps.title',
-      cards: [
-        ['home.steps.prepare.title', 'home.steps.prepare.body'],
-        ['home.steps.invite.title', 'home.steps.invite.body'],
-        ['home.steps.surprise.title', 'home.steps.surprise.body'],
-      ],
-      numbered: true,
-    },
-    {
-      title: 'home.privacy.title',
-      cards: [
-        ['home.privacy.share.title', 'home.privacy.share.body'],
-        ['home.privacy.tracking.title', 'home.privacy.tracking.body'],
-        ['home.privacy.manage.title', 'home.privacy.manage.body'],
-      ],
-      paper: ['invite', 'shield', 'keys'],
-      emblem: 'private' as const,
-      intro: 'home.privacy.intro',
-    },
-  ]
+  {
+    title: 'home.steps.title',
+    cards: [
+      ['home.steps.prepare.title', 'home.steps.prepare.body'],
+      ['home.steps.invite.title', 'home.steps.invite.body'],
+      ['home.steps.surprise.title', 'home.steps.surprise.body'],
+    ],
+    numbered: true,
+  },
+  {
+    title: 'home.privacy.title',
+    cards: [
+      ['home.privacy.share.title', 'home.privacy.share.body'],
+      ['home.privacy.tracking.title', 'home.privacy.tracking.body'],
+      ['home.privacy.manage.title', 'home.privacy.manage.body'],
+    ],
+    paper: ['invite', 'shield', 'keys'],
+    intro: 'home.privacy.intro',
+  },
+]
 </script>
 <template>
   <section v-for="section in sections" :key="section.title">
-
-    <div :class="section.emblem ? 'feature-row' : 'gap-3'">
-      <div class="text-center">
-        <h2 class="h4 mb-3">{{ t(section.title) }}</h2>
-        <p v-if="section.intro" class="text-body-secondary">{{ t(section.intro) }}</p>
-      </div>
+    <div class="home-section-heading mb-3 mx-auto w-100">
+      <h2 class="h4 mb-3">{{ t(section.title) }}</h2>
+      <p v-if="section.intro" class="text-body-secondary mb-0">{{ t(section.intro) }}</p>
     </div>
 
     <div class="d-flex flex-column flex-md-row gap-3">
       <div v-for="([title, body], i) in section.cards" :key="title" class="home-trust-slot">
-
         <article class="home-trust-card card h-100 border-0">
           <div class="card-body p-4">
             <div class="d-flex align-items-start gap-3" :class="{ 'flex-wrap': section.paper }">
@@ -62,24 +56,24 @@ const sections: {
               />
               <span v-if="section.numbered" class="step-number" aria-hidden="true">{{
                 i + 1
-                }}</span>
+              }}</span>
               <div :class="section.paper ? 'home-card-copy' : 'flex-grow-1'">
                 <h3 class="h5">
-                  <span v-if="section.numbered" class="visually-hidden">{{ t('home.stepLabel', { number: i + 1 }) }}
-                  </span>{{ t(title) }}
+                  <span v-if="section.numbered" class="visually-hidden"
+                    >{{ t('home.stepLabel', { number: i + 1 }) }} </span
+                  >{{ t(title) }}
                 </h3>
                 <p class="text-body-secondary mb-0">{{ t(body) }}</p>
               </div>
             </div>
           </div>
         </article>
-
       </div>
     </div>
   </section>
 
   <section aria-labelledby="home-faq-title" class="home-faq d-flex flex-column gap-4 mx-auto w-100">
-    <h2 id="home-faq-title" class="h4 mb-0 text-center">{{ t('home.faq.title') }}</h2>
+    <h2 id="home-faq-title" class="h4 mb-0">{{ t('home.faq.title') }}</h2>
     <article v-for="[question, answer] in faqItems" :key="question">
       <h3 class="h5 mb-2">{{ t(question) }}</h3>
       <p class="text-body-secondary mb-0">{{ t(answer) }}</p>
@@ -127,18 +121,8 @@ const sections: {
   line-height: 1;
 }
 
-@media (min-width: 992px) {
-  .feature-row {
-    width: 100%;
-    max-width: 40rem;
-    margin-inline: auto;
-    padding: 2rem 1.5rem;
-    column-gap: 2rem;
-  }
-
-  .feature-row p:last-child {
-    margin-bottom: 0;
-  }
+.home-section-heading {
+  max-width: 48rem;
 }
 
 .home-card-copy {

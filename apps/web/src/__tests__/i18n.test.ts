@@ -93,6 +93,7 @@ describe('French source of truth and translation integrity', () => {
         'en-CA': [
           'actions.changePaletteTheme',
           'common.participants',
+          'pageTitles.participant',
           'fields.budget',
           'fields.description',
           'exchangeDetail.wishlistSuggestions',

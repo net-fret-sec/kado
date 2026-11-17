@@ -176,3 +176,12 @@ html[data-palette-theme='i'] {
     }
   }
 }
+
+// Floating labels replace placeholders; match the label backing to Kado's input surface.
+html[data-palette-theme='i'] .form-floating {
+  > .form-control::placeholder { color: transparent; }
+  > label { color: var(--text-secondary); }
+  > label::after { background-color: var(--bg); }
+  > .form-control:disabled ~ label::after,
+  > .form-select:disabled ~ label::after { background-color: var(--surface-soft); }
+}

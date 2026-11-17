@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { usePageTitle } from '@/composables/usePageTitle'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
+usePageTitle(() => [t('p2.notFoundTitle')])
 </script>
 <template>
   <section>

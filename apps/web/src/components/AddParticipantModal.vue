@@ -54,10 +54,17 @@ function handleSubmit() {
   >
     <form id="addParticipantForm" @submit.prevent="handleSubmit">
       <div class="mb-3 form-field">
-        <label for="participantName" class="form-label">{{
-          t('fields.name')
-        }}</label>
-        <input v-model="name" type="text" class="form-control" id="participantName" required />
+        <div class="form-floating">
+          <input
+            placeholder=" "
+            v-model="name"
+            type="text"
+            class="form-control"
+            id="participantName"
+            required
+          />
+          <label for="participantName">{{ t('fields.name') }}</label>
+        </div>
       </div>
     </form>
 

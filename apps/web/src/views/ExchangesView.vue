@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { usePageTitle } from '@/composables/usePageTitle'
 import { formatMoney } from '@/composables/useCurrency'
 import { formatCivilDate } from '@/composables/useCivilDate'
 import { ref, onMounted, computed } from 'vue'
@@ -62,6 +63,7 @@ function participantsCount(exchange: ExchangeDto) {
 onMounted(() => {
   exchangesStore.fetchExchanges()
 })
+usePageTitle(() => [t('exchanges.title')])
 </script>
 
 <template>

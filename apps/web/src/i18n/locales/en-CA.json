@@ -1,4 +1,9 @@
 {
+  "pageTitles": {
+    "home": "Gift exchanges",
+    "organizer": "Organizer",
+    "participant": "Participant"
+  },
   "app": {
     "title": "Kado"
   },

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { usePageTitle } from '@/composables/usePageTitle'
 import ExchangeHeader from '@/components/ExchangeHeader.vue'
 import AutosaveStatus from '@/components/AutosaveStatus.vue'
 import { useAutosave } from '@/composables/useAutosave'
@@ -284,6 +285,11 @@ watch(
     void refresh()
   },
 )
+usePageTitle(() => [
+  view.value?.participant.name,
+  view.value?.exchange.name,
+  t('pageTitles.participant'),
+])
 </script>
 
 <template>
@@ -348,21 +354,24 @@ watch(
               <form class="card-body" novalidate @submit.prevent="profileAutosave.saveNow()">
                 <h2 class="h5">{{ t('participant.profileSectionTitle') }}</h2>
                 <div class="form-field mb-3">
-                  <label for="participant-name" class="form-label">{{ t('fields.name') }}</label
-                  ><input
-                    id="participant-name"
-                    v-model="name"
-                    @blur="profileAutosave.request"
-                    class="form-control"
-                    maxlength="150"
-                    :readonly="identityLocked"
-                    :disabled="isSaving || !!remote"
-                    :aria-invalid="!name.trim() || !!fieldErrors.name || undefined"
-                    :aria-describedby="
-                      !name.trim() || fieldErrors.name ? 'participant-name-error' : undefined
-                    "
-                    required
-                  />
+                  <div class="form-floating">
+                    <input
+                      placeholder=" "
+                      id="participant-name"
+                      v-model="name"
+                      @blur="profileAutosave.request"
+                      class="form-control"
+                      maxlength="150"
+                      :readonly="identityLocked"
+                      :disabled="isSaving || !!remote"
+                      :aria-invalid="!name.trim() || !!fieldErrors.name || undefined"
+                      :aria-describedby="
+                        !name.trim() || fieldErrors.name ? 'participant-name-error' : undefined
+                      "
+                      required
+                    />
+                    <label for="participant-name">{{ t('fields.name') }}</label>
+                  </div>
                   <p
                     v-if="!name.trim() || fieldErrors.name"
                     id="participant-name-error"
@@ -372,21 +381,26 @@ watch(
                   </p>
                 </div>
                 <div class="form-field">
-                  <label for="participant-note" class="form-label">{{
-                    t('participant.note')
-                  }}</label
-                  ><textarea
-                    id="participant-note"
-                    v-model="note"
-                    @blur="profileAutosave.request"
-                    class="form-control"
-                    rows="3"
-                    maxlength="2000"
-                    :readonly="suggestionsLocked"
-                    :disabled="isSaving || !!remote"
-                    :aria-invalid="!!fieldErrors.note || undefined"
-                    :aria-describedby="fieldErrors.note ? 'participant-note-error' : undefined"
-                  ></textarea>
+                  <div class="form-floating">
+                    <textarea
+                      placeholder=" "
+                      id="participant-note"
+                      v-model="note"
+                      @blur="profileAutosave.request"
+                      class="form-control"
+                      maxlength="2000"
+                      :readonly="suggestionsLocked"
+                      :disabled="isSaving || !!remote"
+                      :aria-invalid="!!fieldErrors.note || undefined"
+                      :aria-describedby="
+                        fieldErrors.note
+                          ? 'participant-note-help participant-note-error'
+                          : 'participant-note-help'
+                      "
+                    ></textarea>
+                    <label for="participant-note">{{ t('fields.note') }}</label>
+                  </div>
+                  <p id="participant-note-help" class="form-text">{{ t('participant.note') }}</p>
                   <p v-if="fieldErrors.note" id="participant-note-error" class="text-danger">
                     {{ t('p2.invalidField') }}
                   </p>

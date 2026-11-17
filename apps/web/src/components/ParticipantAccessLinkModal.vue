@@ -45,14 +45,18 @@ async function copyParticipantLink() {
       }}
     </p>
     <div class="input-group">
-      <input
-        ref="accessLinkInput"
-        :aria-label="t('exchangeDetail.linkModal.title')"
-        :value="link"
-        type="text"
-        class="form-control"
-        readonly
-      />
+      <div class="form-floating">
+        <input
+          id="participant-access-link"
+          placeholder=" "
+          ref="accessLinkInput"
+          :value="link"
+          type="text"
+          class="form-control"
+          readonly
+        />
+        <label for="participant-access-link">{{ t('exchangeDetail.linkModal.title') }}</label>
+      </div>
       <button type="button" class="btn btn-primary" :disabled="!link" @click="copyParticipantLink">
         {{ t('actions.copy') }}
       </button>
