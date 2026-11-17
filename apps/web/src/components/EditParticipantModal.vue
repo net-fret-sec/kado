@@ -227,43 +227,23 @@ watch(
 )
 </script>
 <template>
-  <BaseModal
-    :model-value="modelValue && !suspended"
-    :before-close="beforeClose"
-    :title="t('exchangeDetail.editModal.title')"
-    size="lg"
-    @update:model-value="visibility"
-  >
+  <BaseModal :model-value="modelValue && !suspended" :before-close="beforeClose"
+    :title="t('exchangeDetail.editModal.title')" size="lg" @update:model-value="visibility">
     <p v-if="uploadError && !saveError" class="alert alert-danger" role="alert">
       {{ uploadError }}
     </p>
     <p v-if="saveError" class="alert alert-danger" role="alert">{{ saveError }}</p>
     <p v-if="dirty" class="small text-body-secondary">{{ t('p2.unsaved') }}</p>
-    <ConflictReview
-      v-if="remote"
-      :fields="fields"
-      :choices="choices"
-      :ready="ready"
-      :current="remote"
-      @choice="(key, choice) => (choices[key] = choice)"
-      @apply="applyConflict"
-    />
+    <ConflictReview v-if="remote" :fields="fields" :choices="choices" :ready="ready" :current="remote"
+      @choice="(key, choice) => (choices[key] = choice)" @apply="applyConflict" />
     <form id="editParticipantForm" novalidate @submit.prevent="profileAutosave.saveNow()">
       <div class="mb-3 form-field">
         <div class="form-floating">
-          <input
-            placeholder=" "
-            id="editParticipantName"
-            v-model="name"
-            @blur="profileAutosave.request"
-            class="form-control"
-            maxlength="150"
-            :readonly="identityLocked"
+          <input placeholder=" " id="editParticipantName" v-model="name" @blur="profileAutosave.request"
+            class="form-control" maxlength="150" :readonly="identityLocked"
             :disabled="isSubmitting || saving || !!remote"
             :aria-invalid="!name.trim() || !!fieldErrors?.name || undefined"
-            :aria-describedby="!name.trim() || fieldErrors?.name ? 'edit-name-error' : undefined"
-            required
-          />
+            :aria-describedby="!name.trim() || fieldErrors?.name ? 'edit-name-error' : undefined" required />
           <label for="editParticipantName">{{ t('fields.name') }}</label>
         </div>
         <p v-if="!name.trim() || fieldErrors?.name" id="edit-name-error" class="text-danger">
@@ -272,58 +252,32 @@ watch(
       </div>
       <div class="mb-3 form-field">
         <div class="form-floating">
-          <textarea
-            placeholder=" "
-            id="editParticipantNote"
-            v-model="note"
-            @blur="profileAutosave.request"
-            class="form-control"
-            maxlength="2000"
-            :readonly="suggestionsLocked"
-            :disabled="isSubmitting || saving || !!remote"
-            :aria-invalid="!!fieldErrors?.note || undefined"
-            :aria-describedby="fieldErrors?.note ? 'edit-note-error' : undefined"
-          ></textarea>
+          <textarea placeholder=" " id="editParticipantNote" v-model="note" @blur="profileAutosave.request"
+            class="form-control" maxlength="2000" :readonly="suggestionsLocked"
+            :disabled="isSubmitting || saving || !!remote" :aria-invalid="!!fieldErrors?.note || undefined"
+            :aria-describedby="fieldErrors?.note ? 'edit-note-error' : undefined"></textarea>
           <label for="editParticipantNote">{{ t('common.comment') }}</label>
         </div>
         <p v-if="fieldErrors?.note" id="edit-note-error" class="text-danger">
           {{ t('p2.invalidField') }}
         </p>
       </div>
-      <AutosaveStatus
-        v-if="!suggestionsLocked"
-        profile
-        :status="profileStatus"
-        :retry-disabled="!profileValid || isSubmitting || saving || !!remote"
-        @retry="profileAutosave.saveNow"
-      />
+      <AutosaveStatus v-if="!suggestionsLocked" profile :status="profileStatus"
+        :retry-disabled="!profileValid || isSubmitting || saving || !!remote" @retry="profileAutosave.saveNow" />
     </form>
     <div class="mt-3">
       <h3 class="h6">{{ t('fields.wishlist') }}</h3>
-      <WishlistEditor
-        @commit="autosave.request"
-        v-model="wishlist"
-        :locked="suggestionsLocked"
-        :participant-id="participant?.id"
-        @validating="imageValidating = $event"
-        :busy="isSubmitting || saving || !!remote"
-      />
-      <AutosaveStatus
-        v-if="!suggestionsLocked"
-        :status="autosaveStatus"
-        :retry-disabled="!suggestionsValid || isSubmitting || imagesBusy || !!remote"
-        @retry="autosave.request"
-      />
+      <WishlistEditor @commit="autosave.request" v-model="wishlist" :locked="suggestionsLocked"
+        :participant-id="participant?.id" @validating="imageValidating = $event"
+        :busy="isSubmitting || saving || !!remote" />
+      <AutosaveStatus v-if="!suggestionsLocked" :status="autosaveStatus"
+        :retry-disabled="!suggestionsValid || isSubmitting || imagesBusy || !!remote" @retry="autosave.request" />
       <p v-if="fieldErrors?.wishlist" class="text-danger">{{ t('p2.invalidField') }}</p>
     </div>
     <slot name="exclusions" />
     <template #footer>
-      <button
-        type="button"
-        class="btn btn-primary participant-close"
-        :disabled="isSubmitting || imagesBusy || closing"
-        @click="close"
-      >
+      <button type="button" class="btn btn-primary participant-close" :disabled="isSubmitting || imagesBusy || closing"
+        @click="close">
         {{
           isSubmitting || saving || closing
             ? t('autosave.savingChanges')

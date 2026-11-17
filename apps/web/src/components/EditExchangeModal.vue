@@ -160,11 +160,11 @@ watch(
       ? Object.keys(serverValues(current))
       : current.isDrawn
         ? [
-            'organizerName',
-            'minWishlistSuggestions',
-            'lockSuggestionsAfterDraw',
-            'noMutualAssignments',
-          ]
+          'organizerName',
+          'minWishlistSuggestions',
+          'lockSuggestionsAfterDraw',
+          'noMutualAssignments',
+        ]
         : []
     conflict.open(values(), serverValues(current), locked)
   },
@@ -187,40 +187,20 @@ function visibility(value: boolean) {
 </script>
 
 <template>
-  <BaseModal
-    :model-value="modelValue && !suspended"
-    :before-close="beforeClose"
-    :title="t('exchangeDetail.editExchangeModal.title')"
-    size="lg"
-    @update:model-value="visibility"
-  >
+  <BaseModal :model-value="modelValue && !suspended" :before-close="beforeClose"
+    :title="t('exchangeDetail.editExchangeModal.title')" @update:model-value="visibility">
     <p v-if="saveError" class="alert alert-danger" role="alert">{{ saveError }}</p>
     <p v-if="dirty" class="small text-body-secondary">{{ t('p2.unsaved') }}</p>
-    <ConflictReview
-      :field-label-keys="{ name: 'fields.exchangeName' }"
-      v-if="remote"
-      :fields="fields"
-      :choices="choices"
-      :ready="ready"
-      :current="remote"
-      @choice="(key, choice) => (choices[key] = choice)"
-      @apply="applyConflict"
-    />
+    <ConflictReview :field-label-keys="{ name: 'fields.exchangeName' }" v-if="remote" :fields="fields"
+      :choices="choices" :ready="ready" :current="remote" @choice="(key, choice) => (choices[key] = choice)"
+      @apply="applyConflict" />
     <form id="editExchangeForm" @submit.prevent="handleSubmit">
       <fieldset :disabled="contentLocked || isSubmitting || !!remote">
         <div v-if="organizerEditable" class="mb-3 form-field">
           <div class="form-floating">
-            <input
-              placeholder=" "
-              id="editOrganizerName"
-              :aria-invalid="!!fieldErrors?.organizerName || undefined"
+            <input placeholder=" " id="editOrganizerName" :aria-invalid="!!fieldErrors?.organizerName || undefined"
               :aria-describedby="fieldErrors?.organizerName ? 'editOrganizerName-error' : undefined"
-              v-model="editOrganizerName"
-              :disabled="rulesLocked"
-              class="form-control"
-              maxlength="150"
-              required
-            />
+              v-model="editOrganizerName" :disabled="rulesLocked" class="form-control" maxlength="150" required />
             <label for="editOrganizerName">{{ t('fields.organizerName') }}</label>
           </div>
           <p v-if="fieldErrors?.organizerName" id="editOrganizerName-error" class="text-danger">
@@ -229,17 +209,9 @@ function visibility(value: boolean) {
         </div>
         <div class="mb-3 form-field">
           <div class="form-floating">
-            <input
-              placeholder=" "
-              v-model="editName"
-              type="text"
-              class="form-control"
-              id="editExchangeName"
-              maxlength="150"
-              :aria-invalid="!!fieldErrors?.name || undefined"
-              :aria-describedby="fieldErrors?.name ? 'editExchangeName-error' : undefined"
-              required
-            />
+            <input placeholder=" " v-model="editName" type="text" class="form-control" id="editExchangeName"
+              maxlength="150" :aria-invalid="!!fieldErrors?.name || undefined"
+              :aria-describedby="fieldErrors?.name ? 'editExchangeName-error' : undefined" required />
             <label for="editExchangeName">{{ t('fields.exchangeName') }}</label>
           </div>
           <p v-if="fieldErrors?.name" id="editExchangeName-error" class="text-danger">
@@ -248,17 +220,9 @@ function visibility(value: boolean) {
         </div>
         <div class="mb-3 form-field">
           <div class="form-floating">
-            <textarea
-              placeholder=" "
-              v-model="editDescription"
-              class="form-control"
-              id="editExchangeDescription"
-              maxlength="2000"
-              :aria-invalid="!!fieldErrors?.description || undefined"
-              :aria-describedby="
-                fieldErrors?.description ? 'editExchangeDescription-error' : undefined
-              "
-            ></textarea>
+            <textarea placeholder=" " v-model="editDescription" class="form-control" id="editExchangeDescription"
+              maxlength="2000" :aria-invalid="!!fieldErrors?.description || undefined" :aria-describedby="fieldErrors?.description ? 'editExchangeDescription-error' : undefined
+                "></textarea>
             <label for="editExchangeDescription">{{ t('fields.description') }}</label>
           </div>
           <p v-if="fieldErrors?.description" id="editExchangeDescription-error" class="text-danger">
@@ -267,30 +231,17 @@ function visibility(value: boolean) {
         </div>
         <div class="form-field mb-3">
           <div class="form-floating">
-            <input
-              placeholder=" "
-              id="editPlannedDrawDate"
-              v-model="editPlannedDrawDate"
-              class="form-control"
-              type="date"
-              aria-describedby="dates-help"
-              :aria-invalid="!!fieldErrors?.plannedDrawDate || undefined"
-            />
+            <input placeholder=" " id="editPlannedDrawDate" v-model="editPlannedDrawDate" class="form-control"
+              type="date" aria-describedby="dates-help" :aria-invalid="!!fieldErrors?.plannedDrawDate || undefined" />
             <label for="editPlannedDrawDate">{{ t('fields.plannedDrawDate') }}</label>
           </div>
           <p id="dates-help" class="form-text">{{ t('review.datesHelp') }}</p>
         </div>
         <div class="form-field mb-3">
           <div class="form-floating">
-            <input
-              placeholder=" "
-              v-model="editEventDate"
-              type="date"
-              class="form-control"
-              id="editExchangeEventDate"
+            <input placeholder=" " v-model="editEventDate" type="date" class="form-control" id="editExchangeEventDate"
               :aria-invalid="!!fieldErrors?.eventDate || undefined"
-              :aria-describedby="fieldErrors?.eventDate ? 'editExchangeEventDate-error' : undefined"
-            />
+              :aria-describedby="fieldErrors?.eventDate ? 'editExchangeEventDate-error' : undefined" />
             <label for="editExchangeEventDate">{{ t('fields.eventDate') }}</label>
           </div>
           <p v-if="fieldErrors?.eventDate" id="editExchangeEventDate-error" class="text-danger">
@@ -299,17 +250,9 @@ function visibility(value: boolean) {
         </div>
         <div class="form-field mb-3">
           <div class="form-floating">
-            <input
-              placeholder=" "
-              v-model.number="editBudget"
-              type="number"
-              min="0"
-              step="0.01"
-              class="form-control"
-              id="editExchangeBudget"
-              :aria-invalid="!!fieldErrors?.budget || undefined"
-              :aria-describedby="fieldErrors?.budget ? 'editExchangeBudget-error' : undefined"
-            />
+            <input placeholder=" " v-model.number="editBudget" type="number" min="0" step="0.01" class="form-control"
+              id="editExchangeBudget" :aria-invalid="!!fieldErrors?.budget || undefined"
+              :aria-describedby="fieldErrors?.budget ? 'editExchangeBudget-error' : undefined" />
             <label for="editExchangeBudget">{{ t('fields.budget') }} ({{ currencySymbol }})</label>
           </div>
           <p v-if="fieldErrors?.budget" id="editExchangeBudget-error" class="text-danger">
@@ -318,51 +261,26 @@ function visibility(value: boolean) {
         </div>
         <div class="form-field mb-3">
           <div class="form-floating">
-            <input
-              placeholder=" "
-              v-model.number="editMinWishlistSuggestions"
-              type="number"
-              min="0"
-              max="100"
-              step="1"
-              class="form-control"
-              id="editExchangeMinSuggestions"
-              :aria-invalid="!!fieldErrors?.minWishlistSuggestions || undefined"
-              :aria-describedby="
-                fieldErrors?.minWishlistSuggestions ? 'editExchangeMinSuggestions-error' : undefined
-              "
-              :disabled="rulesLocked"
-            />
+            <input placeholder=" " v-model.number="editMinWishlistSuggestions" type="number" min="0" max="100" step="1"
+              class="form-control" id="editExchangeMinSuggestions"
+              :aria-invalid="!!fieldErrors?.minWishlistSuggestions || undefined" :aria-describedby="fieldErrors?.minWishlistSuggestions ? 'editExchangeMinSuggestions-error' : undefined
+                " :disabled="rulesLocked" />
             <label for="editExchangeMinSuggestions">{{ t('fields.minWishlistSuggestions') }}</label>
           </div>
-          <p
-            v-if="fieldErrors?.minWishlistSuggestions"
-            id="editExchangeMinSuggestions-error"
-            class="text-danger"
-          >
+          <p v-if="fieldErrors?.minWishlistSuggestions" id="editExchangeMinSuggestions-error" class="text-danger">
             {{ t('p2.invalidField') }}
           </p>
         </div>
         <div class="mb-3 form-check">
-          <input
-            id="editLockSuggestionsAfterDraw"
-            :disabled="rulesLocked"
-            v-model="editLockSuggestionsAfterDraw"
-            type="checkbox"
-            class="form-check-input"
-          />
+          <input id="editLockSuggestionsAfterDraw" :disabled="rulesLocked" v-model="editLockSuggestionsAfterDraw"
+            type="checkbox" class="form-check-input" />
           <label class="form-check-label" for="editLockSuggestionsAfterDraw">
             {{ t('fields.lockSuggestionsAfterDraw') }}
           </label>
         </div>
         <div class="mb-3 form-check">
-          <input
-            id="editNoMutualAssignments"
-            :disabled="rulesLocked"
-            v-model="editNoMutualAssignments"
-            type="checkbox"
-            class="form-check-input"
-          />
+          <input id="editNoMutualAssignments" :disabled="rulesLocked" v-model="editNoMutualAssignments" type="checkbox"
+            class="form-check-input" />
           <label class="form-check-label" for="editNoMutualAssignments">
             {{ t('fields.noMutualAssignments') }}
           </label>
@@ -374,20 +292,11 @@ function visibility(value: boolean) {
     </form>
 
     <template #footer>
-      <button
-        type="submit"
-        class="btn btn-primary order-2"
-        form="editExchangeForm"
-        :disabled="contentLocked || !dirty || !isValid || !!props.isSubmitting || !!remote"
-      >
+      <button type="submit" class="btn btn-primary order-2" form="editExchangeForm"
+        :disabled="contentLocked || !dirty || !isValid || !!props.isSubmitting || !!remote">
         {{ t('actions.save') }}
       </button>
-      <button
-        type="button"
-        class="btn btn-link order-1"
-        data-bs-dismiss="modal"
-        :disabled="isSubmitting"
-      >
+      <button type="button" class="btn btn-link order-1" data-bs-dismiss="modal" :disabled="isSubmitting">
         {{ t('actions.discardChanges') }}
       </button>
     </template>
