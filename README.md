@@ -6,6 +6,10 @@ L'objectif du projet est de réduire la friction d'organisation tout en gardant 
 
 Les anomalies confirmées à reprendre sont consignées dans le [suivi des correctifs](docs/SUIVI-CORRECTIFS.md).
 
+Les règles de branches, de commits et de livraison sont décrites dans le
+[guide de contribution](CONTRIBUTING.md). `main` est la branche de référence;
+les anciens essais sont conservés par des tags d'archive.
+
 ## Vue d'ensemble
 
 Le monorepo PNPM contient trois briques:

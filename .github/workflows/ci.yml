@@ -1,5 +1,9 @@
 name: Validate and package Kado
-on: [push, pull_request]
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
 permissions:
   contents: read
 jobs:
