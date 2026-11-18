@@ -14,7 +14,7 @@ usePageTitle(() => [t('pageTitles.home')])
 
 <template>
   <section id="home-view" class="d-flex flex-column gap-4">
-    <section class="home-hero px-3 px-lg-4 py-4 py-lg-5">
+    <section class="home-hero px-3 px-lg-4 pt-4 pb-2 py-lg-5">
       <div class="d-flex flex-column flex-md-row align-items-center gap-4">
         <div class="home-hero__copy">
           <p class="home-hero__eyebrow kado-ui-label mb-3">{{ t('home.hero.eyebrow') }}</p>
@@ -24,11 +24,16 @@ usePageTitle(() => [t('pageTitles.home')])
             {{ t('actions.createExchange') }}
           </button>
           <p class="home-hero__micro small mt-3 mb-0">{{ t('home.hero.micro') }}</p>
-          <p class="small text-body-secondary mt-2 mb-0">{{ t('home.hero.tryInvitation') }}</p>
         </div>
         <div class="home-hero__art">
-          <img :src="celebrateGift" class="home-hero__illustration d-block h-auto mx-auto"
-            alt="" aria-hidden="true" width="1254" height="1254" />
+          <img
+            :src="celebrateGift"
+            class="home-hero__illustration d-block h-auto mw-100 mx-auto"
+            alt=""
+            aria-hidden="true"
+            width="1254"
+            height="1254"
+          />
         </div>
       </div>
     </section>
@@ -38,3 +43,9 @@ usePageTitle(() => [t('pageTitles.home')])
     <CreateExchangeModal v-model="isCreateModalOpen" />
   </section>
 </template>
+
+<style scoped>
+#home-view {
+  overflow-wrap: anywhere;
+}
+</style>
