@@ -66,7 +66,8 @@
     "support": {
       "title": "Kado is free.",
       "subtext": "If Kado has been useful to you, a small contribution towards hosting and development is always appreciated.",
-      "button": "Support the project"
+      "button": "Support the project",
+      "contribution": "Contributions are optional and help fund Kado’s hosting and development."
     },
     "steps": {
       "title": "Your gift exchange in three steps",
@@ -107,6 +108,11 @@
         "question": "What if someone loses their link?",
         "answer": "The organizer can generate a new link for a participant; the old one will stop working. As the organizer, keep your organizer link and password: Kado cannot recover them."
       }
+    },
+    "trust": {
+      "account": "No account required",
+      "tracking": "No ad tracking",
+      "openSource": "Free and open-source software"
     }
   },
   "exchanges": {

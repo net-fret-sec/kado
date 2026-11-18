@@ -30,6 +30,6 @@ const { t } = useI18n()
     <router-view />
   </main>
 
-  <SupportFooter />
+  <SupportFooter :home="$route.name === 'home'" />
   <AppToasts />
 </template>

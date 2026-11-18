@@ -66,7 +66,8 @@
     "support": {
       "title": "Kado es gratis.",
       "subtext": "Si Kado te ha sido útil, siempre se agradece una pequeña ayuda para el alojamiento y el desarrollo.",
-      "button": "Apoyar el proyecto"
+      "button": "Apoyar el proyecto",
+      "contribution": "Las contribuciones son opcionales y ayudan a financiar el alojamiento y el desarrollo de Kado."
     },
     "steps": {
       "title": "Tu intercambio en tres pasos",
@@ -107,6 +108,11 @@
         "question": "¿Y si alguien pierde su enlace?",
         "answer": "Quien organiza puede generar un nuevo enlace para un participante; el anterior dejará de funcionar. Como organizador, guarda tu enlace de organización y tu contraseña: Kado no permite recuperarlos."
       }
+    },
+    "trust": {
+      "account": "Sin cuenta obligatoria",
+      "tracking": "Sin seguimiento publicitario",
+      "openSource": "Software libre"
     }
   },
   "exchanges": {

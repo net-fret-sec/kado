@@ -90,6 +90,7 @@ const faqItems = [
 .paper {
   display: block;
   grid-row: span 3;
+  place-self: center;
   width: 100%;
   aspect-ratio: 1;
   background: url('../assets/illustrations/kado-paper.webp') 0 0 / 300% 300% no-repeat;
