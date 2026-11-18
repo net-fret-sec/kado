@@ -315,6 +315,8 @@ try {
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     ignoreHTTPSErrors: true,
+    // This scenario uses French labels; CI hosts may default to English.
+    locale: "fr-CA",
   });
   const page = await context.newPage();
   const violations = [];

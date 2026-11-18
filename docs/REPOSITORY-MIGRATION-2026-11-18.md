@@ -61,7 +61,21 @@ travail sont définies dans [CONTRIBUTING.md](../CONTRIBUTING.md).
   liens incomplets, autres parcours P2, sauvegarde/restauration de la base jetable,
   comportement du monitoring et arrêt des services vérifiés.
 - Syntaxe des scripts Bash vérifiée. ShellCheck n'était pas installé sur la
-  machine; son contrôle reste à confirmer par la CI GitHub après publication.
+  machine; son contrôle a réussi dans la CI GitHub lors de la publication.
 
 Ces vérifications utilisent des environnements jetables et ne constituent pas
 un déploiement en production.
+
+## Publication et ajustement de la CI
+
+`main` et les cinq tags d'archive ont été publiés. Les anciennes branches
+distantes `devel` et `test-sandstone` ont été supprimées après vérification de
+leur conservation. Les références locales et distantes correspondent; `alpha`
+reste inchangé. GitHub autorise désormais les fusions squash et supprime
+automatiquement les branches après fusion.
+
+La première CI sur `main` a révélé une dépendance à la langue de la machine dans
+`deploy/scripts/smoke.mjs` : le scénario cherchait les boutons français, tandis
+que le navigateur du runner démarrait en anglais. Le contexte de ce scénario
+utilise maintenant explicitement `fr-CA`. Les scénarios multilingues P2 conservent
+leurs propres langues. Ce correctif concerne le test, sans changement applicatif.
