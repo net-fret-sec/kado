@@ -14,7 +14,7 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     const id = created.exchange.id, token = created.adminSessionToken;
     const members = [];
     for (const member of ['Alex', 'Blair', 'Casey']) members.push(await api('POST', `/api/exchanges/${id}/participants`, { name: member, wishlist: [{ title: 'Livre', linkUrl: 'https://example.com/book' }, { title: 'Cadeau' }], note: 'Note initiale' }, token, 201));
-    const context = await browser.newContext({ ignoreHTTPSErrors: true, reducedMotion: 'reduce' });
+    const context = await browser.newContext({ ignoreHTTPSErrors: true, locale: 'fr-CA', reducedMotion: 'reduce' });
     await context.addInitScript(({ id, token }) => { try { localStorage.setItem('locale', 'fr-CA'); localStorage.setItem('kado.adminSessions', JSON.stringify({ [id]: token })); } catch { /* Simulated blocked storage starts without persisted sessions. */ } }, { id, token });
     const page = await context.newPage();
     const errors = [], violations = [];

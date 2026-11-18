@@ -77,5 +77,7 @@ automatiquement les branches après fusion.
 La première CI sur `main` a révélé une dépendance à la langue de la machine dans
 `deploy/scripts/smoke.mjs` : le scénario cherchait les boutons français, tandis
 que le navigateur du runner démarrait en anglais. Le contexte de ce scénario
-utilise maintenant explicitement `fr-CA`. Les scénarios multilingues P2 conservent
-leurs propres langues. Ce correctif concerne le test, sans changement applicatif.
+utilise maintenant explicitement `fr-CA`, tout comme les fixtures P2 qui doivent
+rester en français même lorsque le stockage local est bloqué. Les scénarios
+multilingues P2 conservent leurs propres langues. Ce correctif concerne le test,
+sans changement applicatif.
