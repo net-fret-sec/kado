@@ -315,6 +315,11 @@ try {
   );
   await api("GET", "/health");
   assert.equal(compose("exec", "-T", "db", "psql", "-U", "kado_test", "-d", db, "-Atc", "SELECT count(*) FROM information_schema.tables WHERE table_name IN ('page_view_counts','page_view_collection')").trim(), "0");
+  // Quotas were verified above with separate real proxy clients. Browser fixtures
+  // need a larger request budget, not container restarts: replacing Docker veth
+  // interfaces while Chromium runs causes intermittent ERR_NETWORK_CHANGED.
+  await writeFile(apiFile, (await readFile(apiFile, 'utf8')) + '\nAPI_RATE_LIMIT=100000\nCREATE_RATE_LIMIT=100000\nAUTH_RATE_LIMIT=100000\nAUTH_PAIR_RATE_LIMIT=100000\nPARTICIPANT_RATE_LIMIT=100000\nDRAW_RATE_LIMIT=100000\n');
+  compose('up', '-d', '--force-recreate', '--wait', '--wait-timeout', '90', 'api');
   // Browser verification against the production assets, CSP and real API.
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
@@ -444,16 +449,7 @@ try {
     false,
   );
   await context.close();
-  await browserP2({ browser, base, api, root, scratch, restart: async () => {
-    compose("restart", "api");
-    const deadline = Date.now() + 20000;
-    while (true) {
-      try { await api("GET", "/health"); break; } catch (error) {
-        if (Date.now() > deadline) throw error;
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-    }
-  } });
+  await browserP2({ browser, base, api, root, scratch, restart: async () => { await api('GET', '/health'); } });
   // Host report stays usable independently of API and database availability.
   const caFile = path.join(scratch, "caddy-root.crt");
   run(["docker", "cp", compose("ps", "-q", "caddy") + ":/data/caddy/pki/authorities/local/root.crt", caFile]);
