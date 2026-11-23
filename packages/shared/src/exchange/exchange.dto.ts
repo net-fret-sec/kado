@@ -56,7 +56,7 @@ export interface UpdateExchangeInputDto {
 
   eventDate?: string | null;
   plannedDrawDate?: string | null;
-  budget?: number;
+  budget?: number | null;
   minWishlistSuggestions?: number;
   lockSuggestionsAfterDraw?: boolean;
   noMutualAssignments?: boolean;

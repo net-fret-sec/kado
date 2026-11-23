@@ -4,6 +4,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   updateExchangeInputSchema,
+  budgetSchema,
   type ExchangeDto,
   type UpdateExchangeInputDto,
 } from '@kado/shared'
@@ -47,7 +48,8 @@ const editOrganizerName = ref('')
 const editDescription = ref('')
 const editEventDate = ref('')
 const editPlannedDrawDate = ref('')
-const editBudget = ref<number | null>(null)
+const editBudget = ref<number | string | null>(null)
+const budgetBadInput = ref(false)
 const editMinWishlistSuggestions = ref(0)
 const editLockSuggestionsAfterDraw = ref(true)
 const editNoMutualAssignments = ref(false)
@@ -62,7 +64,7 @@ function values(): FormValues {
     description: editDescription.value,
     eventDate: editEventDate.value,
     plannedDrawDate: editPlannedDrawDate.value,
-    budget: editBudget.value,
+    budget: editBudget.value === '' ? null : editBudget.value,
     minWishlistSuggestions: editMinWishlistSuggestions.value,
     lockSuggestionsAfterDraw: editLockSuggestionsAfterDraw.value,
     noMutualAssignments: editNoMutualAssignments.value,
@@ -74,6 +76,7 @@ function setValues(value: FormValues) {
   editDescription.value = String(value.description ?? '')
   editEventDate.value = String(value.eventDate ?? '')
   editPlannedDrawDate.value = String(value.plannedDrawDate ?? '')
+  budgetBadInput.value = false
   editBudget.value = value.budget == null ? null : Number(value.budget)
   editMinWishlistSuggestions.value = Number(value.minWishlistSuggestions ?? 0)
   editLockSuggestionsAfterDraw.value = Boolean(value.lockSuggestionsAfterDraw)
@@ -98,14 +101,23 @@ watch(dirty, (value) => emit('dirty', value))
 function beforeClose() {
   return props.suspended || (!props.isSubmitting && (!dirty.value || confirmDiscard()))
 }
+const budgetValue = computed(() => (editBudget.value === '' ? null : editBudget.value))
+const budgetChanged = computed(() =>
+  !equal(budgetValue.value, conflict.baseline.value.budget ?? null),
+)
+const budgetInvalid = computed(() =>
+  budgetBadInput.value ||
+  (budgetChanged.value && budgetValue.value !== null && !budgetSchema.safeParse(budgetValue.value).success),
+)
+
 function payload(): UpdateExchangeInputDto {
   return {
     name: editName.value,
     ...(props.organizerEditable ? { organizerName: editOrganizerName.value } : {}),
-    description: editDescription.value || undefined,
+    description: editDescription.value,
     eventDate: toDateInput(editEventDate.value) || null,
     plannedDrawDate: toDateInput(editPlannedDrawDate.value) || null,
-    budget: editBudget.value ?? undefined,
+    ...(budgetChanged.value ? { budget: budgetValue.value as number | null } : {}),
     minWishlistSuggestions: editMinWishlistSuggestions.value,
     lockSuggestionsAfterDraw: editLockSuggestionsAfterDraw.value,
     noMutualAssignments: editNoMutualAssignments.value,
@@ -113,7 +125,7 @@ function payload(): UpdateExchangeInputDto {
   }
 }
 const isValid = computed(
-  () => !!editName.value.trim() && updateExchangeInputSchema.safeParse(payload()).success,
+  () => !!editName.value.trim() && !budgetInvalid.value && updateExchangeInputSchema.safeParse(payload()).success,
 )
 
 function syncFromProps() {
@@ -122,6 +134,7 @@ function syncFromProps() {
   editDescription.value = props.description || ''
   editEventDate.value = toDateInput(props.eventDate)
   editPlannedDrawDate.value = toDateInput(props.plannedDrawDate)
+  budgetBadInput.value = false
   editBudget.value = props.budget ?? null
   editMinWishlistSuggestions.value = props.minWishlistSuggestions ?? 0
   editLockSuggestionsAfterDraw.value = props.lockSuggestionsAfterDraw ?? true
@@ -194,7 +207,8 @@ function visibility(value: boolean) {
     <ConflictReview :field-label-keys="{ name: 'fields.exchangeName' }" v-if="remote" :fields="fields"
       :choices="choices" :ready="ready" :current="remote" @choice="(key, choice) => (choices[key] = choice)"
       @apply="applyConflict" />
-    <form id="editExchangeForm" @submit.prevent="handleSubmit">
+    <!-- Shared validation permits an unchanged legacy budget despite native min/max/step. -->
+    <form id="editExchangeForm" novalidate @submit.prevent="handleSubmit">
       <fieldset :disabled="contentLocked || isSubmitting || !!remote">
         <div v-if="organizerEditable" class="mb-3 form-field">
           <div class="form-floating">
@@ -250,13 +264,13 @@ function visibility(value: boolean) {
         </div>
         <div class="form-field mb-3">
           <div class="form-floating">
-            <input placeholder=" " v-model.number="editBudget" type="number" min="0" step="0.01" class="form-control"
-              id="editExchangeBudget" :aria-invalid="!!fieldErrors?.budget || undefined"
-              :aria-describedby="fieldErrors?.budget ? 'editExchangeBudget-error' : undefined" />
+            <input placeholder=" " v-model.number="editBudget" type="number" min="0" max="1000" step="1" class="form-control"
+              id="editExchangeBudget" @input="budgetBadInput = ($event.target as HTMLInputElement).validity.badInput" :aria-invalid="budgetInvalid || !!fieldErrors?.budget || undefined"
+              :aria-describedby="budgetInvalid || fieldErrors?.budget ? 'editExchangeBudget-error' : undefined" />
             <label for="editExchangeBudget">{{ t('fields.budget') }} ({{ currencySymbol }})</label>
           </div>
-          <p v-if="fieldErrors?.budget" id="editExchangeBudget-error" class="text-danger">
-            {{ t('p2.invalidField') }}
+          <p v-if="budgetInvalid || fieldErrors?.budget" id="editExchangeBudget-error" class="text-danger">
+            {{ t('review.budgetInvalid') }}
           </p>
         </div>
         <div class="form-field mb-3">

@@ -327,6 +327,7 @@
     "validating": "Verificando la imagen…"
   },
   "review": {
+    "budgetInvalid": "Introduce un importe entero entre 0 y 1.000, o deja el campo vacío.",
     "suggestionCount": "Ninguna sugerencia | {count} sugerencia | {count} sugerencias",
     "keepAccess": "Guarda tus datos de acceso",
     "keepOrganizer": "Añade esta página a tus marcadores y guarda tu contraseña. No se ofrecen correos electrónicos ni recuperación de contraseña.",

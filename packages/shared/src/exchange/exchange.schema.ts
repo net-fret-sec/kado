@@ -24,6 +24,8 @@ const calendarDate = z
     );
   }, "Invalid calendar date.");
 
+export const budgetSchema = z.number().int().min(0).max(1000);
+
 export const createExchangeInputSchema = z.object({
   name: z.string().trim().min(1).max(150),
   description: optionalText(2000),
@@ -35,7 +37,7 @@ export const createExchangeInputSchema = z.object({
   plannedDrawDate: emptyStringToUndefined(
     calendarDate.nullable().optional(),
   ).transform((v) => v ?? undefined),
-  budget: z.number().nonnegative().optional(),
+  budget: budgetSchema.optional(),
   minWishlistSuggestions: z
     .number()
     .int()
@@ -62,7 +64,8 @@ export const updateExchangeInputSchema = z.object({
   plannedDrawDate: emptyStringToUndefined(
     calendarDate.nullable().optional(),
   ).transform((v) => v ?? undefined),
-  budget: z.number().nonnegative().optional(),
+  // Existing budgets may be outside the new rule; validate changes under the exchange lock.
+  budget: z.number().nonnegative().nullable().optional(),
   minWishlistSuggestions: z.number().int().min(0).max(100).optional(),
   lockSuggestionsAfterDraw: z.boolean().optional(),
   noMutualAssignments: z.boolean().optional(),

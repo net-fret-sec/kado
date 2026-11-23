@@ -327,6 +327,7 @@
     "validating": "Checking image…"
   },
   "review": {
+    "budgetInvalid": "Enter a whole amount between 0 and 1,000, or leave the field empty.",
     "suggestionCount": "No suggestions | {count} suggestion | {count} suggestions",
     "keepAccess": "Keep your access details",
     "keepOrganizer": "Bookmark this page and keep your password. No emails or password recovery are provided.",

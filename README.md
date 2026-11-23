@@ -367,7 +367,9 @@ La CI exécute ces vérifications frontend et les scénarios navigateur pendant 
 
 ### Compléments reportés
 
-L’effacement explicite des champs facultatifs (description, date, budget, commentaires) n’a pas été normalisé dans cette P2. Les contrats actuels restent inchangés : selon le champ et sa sérialisation, une valeur vidée peut être omise et laisser la valeur existante intacte. Cette limitation demande un lot séparé, sans migration ou réécriture de données dans la P2.
+Les champs facultatifs description, dates, budget et commentaires peuvent être effacés puis rechargés sans réapparition de la valeur précédente. Pour une modification API, un champ omis reste inchangé; le budget utilise `null` pour un effacement explicite et `0` pour un montant nul. La description et les commentaires acceptent une chaîne vide pour l’effacement; les dates acceptent `null` ou une chaîne vide.
+
+Un nouveau budget ou une nouvelle valeur de budget doit être un entier entre 0 et 1 000 inclus, sans arrondi automatique. Les anciens budgets décimaux ou supérieurs à 1 000 restent affichés et conservés lorsqu’ils sont omis ou renvoyés à l’identique. La validation d’une modification effective se fait sous le verrou de l’échange. Aucune migration ni conversion des budgets existants n’est nécessaire.
 
 Les sauvegardes hors VPS et la validation du serveur réel restent nécessaires avant ouverture publique.
 

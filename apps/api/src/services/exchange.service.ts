@@ -1,3 +1,4 @@
+import { budgetSchema } from "@kado/shared";
 import type {
   CreateExchangeInputDto,
   CreateExchangeResultDto,
@@ -90,9 +91,21 @@ async function createAdminSession(
   return adminSessionToken;
 }
 
+function assertValidBudget(value: number | null | undefined) {
+  if (value == null) return;
+  const result = budgetSchema.safeParse(value);
+  if (!result.success) {
+    throw new BadRequestError("Budget must be an integer between 0 and 1000.", {
+      code: "INVALID_REQUEST_BODY",
+      fieldErrors: { budget: ["Budget must be an integer between 0 and 1000."] },
+    });
+  }
+}
+
 export async function createExchange(
   input: CreateExchangeInputDto,
 ): Promise<CreateExchangeResultDto> {
+  assertValidBudget(input.budget);
   return withTransaction(async (db) => {
     const now = new Date().toISOString();
 
@@ -305,9 +318,13 @@ export async function updateExchange(
 ): Promise<ExchangeDto> {
   return withExchangeTransaction(exchangeId, async (exchange, db) => {
     assertNotArchived(exchange);
-    const { expectedUpdatedAt, eventDate, plannedDrawDate, ...fields } = input;
+    const { expectedUpdatedAt, eventDate, plannedDrawDate, budget, ...fields } = input;
+    if (Object.hasOwn(input, "budget") && budget !== exchange.budget) {
+      assertValidBudget(budget);
+    }
     const updates = {
       ...fields,
+      ...(Object.hasOwn(input, "budget") ? { budget: budget ?? undefined } : {}),
       ...(Object.hasOwn(input, "eventDate")
         ? { eventDate: eventDate ?? undefined }
         : {}),

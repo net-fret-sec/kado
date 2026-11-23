@@ -241,7 +241,7 @@ try {
   assert.deepEqual(errors, []);
   await ctx.close();
   console.log('UI review: full real-server lifecycle, dates, currency, exclusions, drop upload, keyboard order, names privacy, reconnect, case-insensitive password and deletion passed; desktop/mobile axe: 0 violations.');
-  if (process.env.KADO_REVIEW_SKIP_P2 !== '1') await browserP2({ browser, base, api, root, scratch: output, restart: async () => { await stop(apiServer); apiServer = startApi(); await until(() => api('GET', '/health')); } });
+  if (process.env.KADO_REVIEW_SKIP_P2 !== '1') await browserP2({ browser, base, api, root, scratch: output, seedLegacyBudget: (id, value) => pool.query('UPDATE exchanges SET budget=$2 WHERE id=$1', [id, value]), restart: async () => { await stop(apiServer); apiServer = startApi(); await until(() => api('GET', '/health')); } });
   const ux = spawnSync(process.execPath, ['deploy/scripts/browser-ux.mjs'], { cwd: root, env: { ...process.env, KADO_UX_BASE: base, KADO_UX_OUTPUT: path.join(output, 'large-group') }, encoding: 'utf8' });
   if (ux.status !== 0) throw new Error(ux.stderr || ux.stdout);
   console.log(ux.stdout.trim());
