@@ -417,6 +417,10 @@ main > * + * {
 .input-group {
   min-width: 0;
 }
+// Grouped buttons use the field radius; Bootstrap keeps the inner joins square.
+.input-group > .btn {
+  --bs-btn-border-radius: #{vars.$input-border-radius};
+}
 .card-body {
   overflow-wrap: anywhere;
 }
@@ -476,10 +480,6 @@ main > * + * {
 .participant-columns > * {
   width: 100%;
   min-width: 0;
-}
-.admin-actions-contents {
-  // The old Bootstrap row's negative top gutter offset the page spacing.
-  margin-top: -1.5rem;
 }
 @media (min-width: 992px) {
   .participant-details-column { flex: 1 1 0; }

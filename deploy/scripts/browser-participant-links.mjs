@@ -1,3 +1,4 @@
+import { expectTopSpacing, expectFieldGroup } from './browser-layout-checks.mjs';
 import assert from 'node:assert/strict';
 import { readFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
@@ -24,6 +25,9 @@ export async function browserParticipantLinks({ browser, base, api, root, scratc
       await page.goto(`${base}/exchanges/${id}`);
       const input = page.locator('#new-participant-name');
       await expect(input).toBeVisible();
+      const addGroup = page.locator('.input-group').filter({ has: input });
+      await expectFieldGroup(addGroup);
+      await expect(addGroup.locator('button')).toBeDisabled();
       await page.getByRole('button', { name: t.review.accessSaved, exact: true }).count().then(async count => {
         if (count) await page.getByRole('button', { name: t.review.accessSaved, exact: true }).click();
       });
@@ -34,11 +38,14 @@ export async function browserParticipantLinks({ browser, base, api, root, scratc
       await input.fill('Blair'); await input.press('Enter');
       await expect(page.locator('#participants .alert-danger')).toBeVisible();
       await expect(input).toHaveValue('Blair');
+      await expectFieldGroup(addGroup);
       await page.unroute('**/api/exchanges/*/participants');
       await input.press('Enter'); await expect(input).toHaveValue(''); await expect(input).toBeFocused();
       await input.fill('Casey'); await input.press('Enter'); await expect(input).toHaveValue(''); await expect(input).toBeFocused();
       await expect(page.locator('.modal.show')).toHaveCount(0);
       await expect(page.locator('#participants li')).toHaveCount(3);
+      await expectFieldGroup(addGroup);
+      await expectTopSpacing(page, page.locator('#detail'));
       await page.reload(); await expect(page.locator('#participants li')).toHaveCount(3);
       const row = page.locator('#participants li').filter({ has: page.locator('strong', { hasText: /^Blair$/ }) });
       await row.hover();
@@ -46,6 +53,9 @@ export async function browserParticipantLinks({ browser, base, api, root, scratc
       const modal = page.getByRole('dialog', { name: t.exchangeDetail.linkModal.title });
       await expect(modal).toBeVisible();
       assert.deepEqual(dialogs, [], 'First generation never warns about replacing a link');
+      await expectFieldGroup(modal.locator('.input-group'));
+      await modal.getByRole('button', { name: t.actions.copy, exact: true }).click();
+      await page.screenshot({ path: path.join(scratch, `copy-group-${locale}-${width}.png`), fullPage: true });
       const first = await modal.locator('input').inputValue();
       assert(first.startsWith(base + '/p/'));
       await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(first);

@@ -1,3 +1,4 @@
+import { expectTopSpacing, expectFieldGroup } from './browser-layout-checks.mjs';
 import assert from 'node:assert/strict';
 import { readFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
@@ -35,6 +36,9 @@ export async function browserRemindersExclusions({ browser, base, api, root, scr
       await page.goto(`${base}/exchanges/${id}`);
       const reminder = page.locator('.access-reminder');
       await expect(reminder).toBeVisible();
+      await expectTopSpacing(page, reminder);
+      await expectFieldGroup(reminder.locator('.input-group'));
+      await page.reload(); await expectTopSpacing(page, reminder);
       await gap(reminder, page.locator('#detail'));
       await page.screenshot({ path: path.join(scratch, `reminder-organizer-${locale}-${width}.png`), fullPage: true });
       // Copy through the real handler with a deterministic clipboard sink in headless Chromium.
@@ -45,7 +49,9 @@ export async function browserRemindersExclusions({ browser, base, api, root, scr
       await reminder.locator('.access-reminder-confirm').click();
       await expect(reminder).toHaveCount(0);
       assert(Math.abs((await page.locator('#detail').boundingBox()).y - top) < 1, 'No empty flex item after dismissal');
+      await expectTopSpacing(page, page.locator('.exchange-header'));
       await page.reload(); await expect(reminder).toHaveCount(0);
+      await expectTopSpacing(page, page.locator('.exchange-header'));
       const editor = page.getByRole('dialog', { name: t.exchangeDetail.editModal.title });
       const section = editor.locator('.participant-exclusions');
       async function edit() {
@@ -59,12 +65,14 @@ export async function browserRemindersExclusions({ browser, base, api, root, scr
       const select = section.locator('select'), add = section.getByRole('button', { name: t.actions.add, exact: true });
       const a = await select.boundingBox(), b = await add.boundingBox();
       assert(Math.abs(a.y - b.y) < 1 && Math.abs(a.height - b.height) < 1 && b.x >= a.x + a.width - 2, 'Aligned select and add button');
+      await expectFieldGroup(section.locator('.input-group'));
       await select.scrollIntoViewIfNeeded();
       await page.screenshot({ path: path.join(scratch, `exclusions-add-${locale}-${width}.png`), fullPage: true });
       await select.focus(); await select.selectOption(members[1].id); await select.press('Tab'); await expect(add).toBeFocused();
       await add.press('Enter'); await expect(section.locator('li')).toHaveCount(1);
       await select.selectOption(members[2].id); await add.click(); await expect(section.locator('li')).toHaveCount(2);
       await expect(select).toBeDisabled(); await expect(add).toBeDisabled();
+      await expectFieldGroup(section.locator('.input-group'));
       await audit('Exclusions with long names');
       await page.screenshot({ path: path.join(scratch, `exclusions-${locale}-${width}.png`), fullPage: true });
       await close(); await page.reload(); await edit(); await expect(section.locator('li')).toHaveCount(2);
@@ -83,13 +91,18 @@ export async function browserRemindersExclusions({ browser, base, api, root, scr
       await api('POST', `${url}/draw/cancel`, undefined, token);
       const personal = await api('POST', `${url}/participants/${members[0].id}/access/regenerate`, {}, token, 201);
       await page.goto(base + personal.accessLink); await expect(reminder).toBeVisible();
+      await expectTopSpacing(page, page.locator('.exchange-header'));
+      await page.reload(); await expect(reminder).toBeVisible();
+      await expectTopSpacing(page, page.locator('.exchange-header'));
       await gap(page.locator('.exchange-header'), reminder);
       await gap(reminder, page.locator('.participant-self-form'));
       await audit('Participant reminder');
       await page.screenshot({ path: path.join(scratch, `reminder-participant-${locale}-${width}.png`), fullPage: true });
       await reminder.locator('.access-reminder-confirm').click(); await expect(reminder).toHaveCount(0);
       await gap(page.locator('.exchange-header'), page.locator('.participant-self-form'));
+      await expectTopSpacing(page, page.locator('.exchange-header'));
       await page.reload(); await expect(reminder).toHaveCount(0);
+      await expectTopSpacing(page, page.locator('.exchange-header'));
       await api('PUT', url, { eventDate: '2000-01-01' }, token);
       assert.equal((await api('GET', url, undefined, token)).isArchived, true);
       await page.goto(`${base}/exchanges/${id}`);

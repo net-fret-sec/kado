@@ -326,7 +326,7 @@ usePageTitle(() => {
                   </div>
                   <button
                     type="submit"
-                    class="btn btn-outline-secondary rounded-end"
+                    class="btn btn-outline-secondary"
                     :disabled="!newParticipantName.trim() || isAddingParticipant"
                   >
                     {{ t('actions.add') }}
@@ -624,9 +624,5 @@ usePageTitle(() => {
 .exclusion-name {
   min-width: 0;
   overflow-wrap: anywhere;
-}
-.exclusion-add > .btn {
-  border-top-right-radius: var(--bs-border-radius);
-  border-bottom-right-radius: var(--bs-border-radius);
 }
 </style>

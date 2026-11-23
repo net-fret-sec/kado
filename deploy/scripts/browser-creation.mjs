@@ -1,3 +1,4 @@
+import { expectTopSpacing, expectFieldGroup } from './browser-layout-checks.mjs';
 import assert from 'node:assert/strict';
 import { readFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
@@ -45,6 +46,14 @@ export async function browserCreation({ browser, base, api, root, scratch }) {
         await page.locator('#exchangeName').fill(`Création ${locale} ${width}`);
         await page.locator('#organizerName').fill('Alex');
         await page.locator('#adminPassword').fill('creation123');
+        const passwordGroup = page.locator('.input-group').filter({ has: page.locator('#adminPassword') });
+        await expectFieldGroup(passwordGroup);
+        const originalType = await page.locator('#adminPassword').getAttribute('type');
+        await passwordGroup.locator('button').click();
+        await expect(page.locator('#adminPassword')).toHaveAttribute('type', originalType === 'text' ? 'password' : 'text');
+        await expectFieldGroup(passwordGroup);
+        await passwordGroup.locator('button').click();
+        await page.screenshot({ path: path.join(output, `password-group-${locale}-${width}.png`), fullPage: true });
         if (locale === 'fr-CA' && width === 360) {
           const failCreation = route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: { code: 'API_UNAVAILABLE' } }) });
           await page.route('**/api/exchanges', failCreation);
@@ -64,6 +73,8 @@ export async function browserCreation({ browser, base, api, root, scratch }) {
         await expect(page.locator('.modal.show, .modal-backdrop')).toHaveCount(0);
         const reminder = page.locator('.access-reminder');
         await expect(reminder).toBeVisible();
+        await expectTopSpacing(page, reminder);
+        await expectFieldGroup(reminder.locator('.input-group'));
         await expect(reminder.locator('input[readonly]')).toHaveValue(`${base}/exchanges/${id}`);
         await reminder.getByRole('button', { name: messages.actions.copy, exact: true }).click();
         await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(`${base}/exchanges/${id}`);
