@@ -55,6 +55,7 @@ export interface RegenerateParticipantAccessResultDto {
 }
 
 export interface ParticipantAssignmentDto {
+  receiverId: string;
   receiverName: string;
   receiverWishlist?: GiftSuggestionDto[];
   receiverNote?: string;
@@ -87,7 +88,7 @@ export interface ParticipantSelfViewDto {
     ParticipantDto,
     "id" | "name" | "email" | "wishlist" | "note" | "updatedAt"
   >;
-  participants?: { id: string; name: string }[];
+  participants?: { id: string; name: string; suggestionCount: number }[];
   exclusions?: ExchangeExclusionSummaryDto[];
   assignment?: ParticipantAssignmentDto;
 }

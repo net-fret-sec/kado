@@ -327,6 +327,7 @@
     "validating": "Vérification de l’image…"
   },
   "review": {
+    "suggestionCount": "Aucune suggestion | {count} suggestion | {count} suggestions",
     "keepAccess": "Conservez vos accès",
     "keepOrganizer": "Ajoutez cette page à vos signets et conservez votre mot de passe. Aucun courriel ni récupération de mot de passe ne sont proposés.",
     "keepParticipant": "Ajoutez cette page à vos signets dans le menu de votre navigateur. Ce lien personnel donne accès à votre profil.",

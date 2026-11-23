@@ -360,15 +360,16 @@ async function selfView(
       note: participant.note,
       updatedAt: participant.updatedAt,
     },
-    ...(!isExchangeDrawn(exchange)
-      ? {
-          participants: participants
-            .filter((p) => p.status === "active")
-            .map((p) => ({ id: p.id, name: p.name })),
-        }
-      : {}),
+    participants: participants
+      .filter((p) => p.status === "active")
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        suggestionCount: p.wishlist?.length ?? 0,
+      })),
     assignment: receiver
       ? {
+          receiverId: receiver.id,
           receiverName: receiver.name,
           receiverWishlist: receiver.wishlist,
           receiverNote: receiver.note,

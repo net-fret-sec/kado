@@ -212,7 +212,7 @@ try {
   await api('POST', `/api/exchanges/${id}/draw`, undefined, token);
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   await expect(page.getByRole('heading', { name: 'Personne pigée', exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Participants à l’échange' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Participants à l’échange' })).toBeVisible();
   await expect(page.locator('input[type=url]')).toHaveCount(0);
   await expect(page.locator('[id^=reorder-]')).toHaveCount(0);
   await expect(page.locator('.drag-handle')).toHaveCount(0);

@@ -327,6 +327,7 @@
     "validating": "Checking image…"
   },
   "review": {
+    "suggestionCount": "No suggestions | {count} suggestion | {count} suggestions",
     "keepAccess": "Keep your access details",
     "keepOrganizer": "Bookmark this page and keep your password. No emails or password recovery are provided.",
     "keepParticipant": "Bookmark this page using your browser menu. This personal link gives access to your profile.",

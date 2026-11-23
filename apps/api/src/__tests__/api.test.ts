@@ -1048,21 +1048,40 @@ describe("UI review contracts", () => {
     expect(fresh.body.eventDate).toBeUndefined();
     expect(fresh.body.plannedDrawDate).toBeUndefined();
   });
-  it("exposes only active names before a draw and only the assignment afterwards", async () => {
-    const f = await fixture();
-    const before = await request(app).get(`/api/p/${f.token}`).expect(200);
+  it("exposes only names and counts through draws, cancellation and archiving, identifying homonyms by ID", async () => {
+    const f = await fixture({ lockSuggestionsAfterDraw: false });
+    for (const member of f.members) {
+      await request(app).put(`${path(f.id)}/participants/${member.participant.id}`)
+        .set(f.auth).send({ name: "Alex" }).expect(200);
+    }
+    const url = `/api/p/${f.token}`;
+    const before = await request(app).get(url).expect(200);
     expect(before.body.participants).toHaveLength(3);
-    for (const p of before.body.participants)
-      expect(Object.keys(p).sort()).toEqual(["id", "name"]);
+    for (const p of before.body.participants) {
+      expect(Object.keys(p).sort()).toEqual(["id", "name", "suggestionCount"]);
+      expect(p.suggestionCount).toBe(1);
+    }
     expect(before.body.assignment).toBeUndefined();
     await drawExchange(f.id);
-    const after = await request(app).get(`/api/p/${f.token}`).expect(200);
-    expect(after.body.participants).toBeUndefined();
-    expect(after.body.assignment.receiverName).toBeTruthy();
+    const after = await request(app).get(url).expect(200);
+    expect(after.body.participants).toHaveLength(3);
+    const assignment = await assignmentRepository.findByExchangeAndGiver(f.id, f.members[0].participant.id);
+    expect(after.body.assignment.receiverId).toBe(assignment?.receiverParticipantId);
+    expect(after.body.assignment.receiverName).toBe("Alex");
+    await request(app).put(`${path(f.id)}/participants/${f.members[1].participant.id}`)
+      .set(f.auth).send({ wishlist: [] }).expect(200);
+    const refreshed = await request(app).get(url).expect(200);
+    expect(refreshed.body.participants.find((p: {id: string}) => p.id === f.members[1].participant.id).suggestionCount).toBe(0);
     await cancelExchangeDraw(f.id);
-    const again = await request(app).get(`/api/p/${f.token}`).expect(200);
-    expect(again.body.participants).toHaveLength(3);
+    const again = await request(app).get(url).expect(200);
+    expect(again.body.participants).toEqual(refreshed.body.participants);
     expect(again.body.assignment).toBeUndefined();
+    await drawExchange(f.id);
+    await query("UPDATE exchanges SET event_date = CURRENT_DATE - 40 WHERE id = $1", [f.id]);
+    const archived = await request(app).get(url).expect(200);
+    expect(archived.body.exchange.isArchived).toBe(true);
+    expect(archived.body.participants).toEqual(refreshed.body.participants);
+    expect(archived.body.assignment.receiverId).toBeTruthy();
   });
   it("makes exclusions reciprocal only in no-mutual mode and exposes readable details without private profiles", async () => {
     const f = await fixture({ noMutualAssignments: true });
@@ -1082,7 +1101,7 @@ describe("UI review contracts", () => {
     const assignments = await assignmentRepository.findByExchangeId(f.id);
     expect(assignments.some(r => r.giverParticipantId === b.id && r.receiverParticipantId === a.id)).toBe(true);
     const after = await request(app).get(`/api/p/${f.token}`).expect(200);
-    expect(after.body.participants).toBeUndefined();
+    expect(after.body.participants).toHaveLength(3);
     expect(after.body.exclusions).toEqual(view.body.exclusions);
   });
 

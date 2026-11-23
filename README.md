@@ -377,6 +377,17 @@ Une suggestion contient un titre, un lien cadeau facultatif et une image faculta
 
 La migration `003_suggestion_images.sql` purge les deux anciens champs et actualise les versions des profils concernés. **Sauvegarde préalable obligatoire avant application volontaire ; aucune récupération des images externes.** Aucun reset requis. Voir [le guide images](deploy/IMAGES.md) pour les routes, limites, quotas, nettoyage, sauvegarde/restauration et instructions de migration.
 
+Dans les suggestions éditables, le bouton de retrait est superposé à la miniature.
+Il retire seulement l’image et conserve le titre et le lien cadeau; il est absent
+en lecture seule.
+
+La page participant conserve la liste alphabétique avant et après la pige, après
+son annulation et à l’archivage. Chaque entrée fournit uniquement `id`, `name` et
+`suggestionCount`; les compteurs sont visibles pour tous. Après la pige, seul le
+nom du destinataire est en gras, identifié par `assignment.receiverId` pour éviter
+les confusions entre homonymes. Les suggestions et attributions des autres ne
+sont pas exposées par cette liste.
+
 ## Tableau de bord organisateur
 
 La gestion affiche les participants par ordre alphabétique, leurs détails et actions à la demande, et un bloc de détails partagé avec la vue participant. Les exclusions se gèrent depuis la fiche du participant et sont enregistrées immédiatement; leur résumé reste visible dans les détails. Lorsque `noMutualAssignments` est activé, la pige interdit les paires mutuelles et applique chaque exclusion dans les deux sens. Sinon, les exclusions restent directionnelles. La route publique `/x/:id` est retirée du frontend. Les liens individuels `/p/:token` et les contrats API existants sont conservés.

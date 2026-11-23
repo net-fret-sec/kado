@@ -71,6 +71,35 @@ afterEach(() => {
 })
 
 describe('participant form regressions', () => {
+  it('keeps sorted names and counts across draw states and highlights only the recipient ID', async () => {
+    const participants = [
+      { id: 'z', name: 'Zoé', suggestionCount: 0 },
+      { id: 'a', name: 'Alex', suggestionCount: 2 },
+      { id: 'b', name: 'Alex', suggestionCount: 1 },
+    ]
+    let current = { ...personal(), participants }
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(json(current))))
+    const { wrapper } = await open(ParticipantSelfView, '/p/TEST')
+    const list = () => wrapper.get('.participant-list')
+    expect(list().findAll('li').map(li => li.attributes('data-participant-id'))).toEqual(['a', 'b', 'z'])
+    expect(list().findAll('strong')).toHaveLength(0)
+    expect(list().findAll('.badge').map(b => b.text())).toEqual(['2', '1', '0'])
+    current = { ...current, exchange: { ...current.exchange, isDrawn: true }, assignment: { receiverId: 'b', receiverName: 'Alex' } }
+    document.dispatchEvent(new Event('visibilitychange'))
+    await flushPromises()
+    expect(list().findAll('strong')).toHaveLength(1)
+    expect(list().get('[data-participant-id="b"] strong').text()).toBe('Alex')
+    current = { ...current, exchange: { ...current.exchange, isArchived: true } }
+    document.dispatchEvent(new Event('visibilitychange'))
+    await flushPromises()
+    expect(list().findAll('li')).toHaveLength(3)
+    current = { ...current, assignment: undefined, exchange: { ...current.exchange, isDrawn: false, isArchived: false }, participants: participants.map(p => ({ ...p, suggestionCount: 3 })) }
+    document.dispatchEvent(new Event('visibilitychange'))
+    await flushPromises()
+    expect(list().findAll('strong')).toHaveLength(0)
+    expect(list().findAll('.badge').map(b => b.text())).toEqual(['3', '3', '3'])
+  })
+
   it('retranslates an invalid participant link on language changes without another request', async () => {
     const fetchMock = vi.fn(async () =>
       json({ error: { code: 'PARTICIPANT_LINK_INVALID_OR_EXPIRED' } }, 404),
@@ -376,7 +405,7 @@ describe('participant form regressions', () => {
     current = {
       ...personal(),
       exchange: { ...personal().exchange, isDrawn: true },
-      assignment: { receiverName: 'Blair' },
+      assignment: { receiverId: 'blair', receiverName: 'Blair' },
     }
     document.dispatchEvent(new Event('visibilitychange'))
     await flushPromises()
@@ -389,7 +418,7 @@ describe('participant form regressions', () => {
     let revoked = false
     const current = {
       ...personal(),
-      assignment: { receiverName: 'Private recipient' },
+      assignment: { receiverId: 'private', receiverName: 'Private recipient' },
       exchange: { ...personal().exchange, isDrawn: true },
     }
     vi.stubGlobal(

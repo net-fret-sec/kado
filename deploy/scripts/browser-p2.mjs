@@ -3,6 +3,7 @@ import { readFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { browserParticipantSuggestions } from './browser-participant-suggestions.mjs';
 import { browserParticipantLinks } from './browser-participant-links.mjs';
 import { browserCreation } from './browser-creation.mjs';
 
@@ -12,6 +13,7 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
   await mkdir(output, { recursive: true });
   await browserCreation({ browser, base, api, root, scratch: output });
   await browserParticipantLinks({ browser, base, api, root, scratch: output });
+  await browserParticipantSuggestions({ browser, base, api, root, scratch: output });
   async function fixture(name, options = {}) {
     await restart();
     const created = await api('POST', '/api/exchanges', { name, organizerName: 'Hôte P2', organizerParticipates: false, adminPassword: 'p2password123', ...options }, undefined, 201);

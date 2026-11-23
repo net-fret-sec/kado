@@ -327,6 +327,7 @@
     "validating": "Verificando la imagen…"
   },
   "review": {
+    "suggestionCount": "Ninguna sugerencia | {count} sugerencia | {count} sugerencias",
     "keepAccess": "Guarda tus datos de acceso",
     "keepOrganizer": "Añade esta página a tus marcadores y guarda tu contraseña. No se ofrecen correos electrónicos ni recuperación de contraseña.",
     "keepParticipant": "Añade esta página a tus marcadores desde el menú del navegador. Este enlace personal da acceso a tu perfil.",

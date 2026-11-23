@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onBeforeUnmount, onMounted, useId } from 'vue'
+import { computed, ref, nextTick, watch, onBeforeUnmount, onMounted, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { giftSuggestionSchema } from '@kado/shared'
 import { safeUrl } from '@/composables/useSafeUrl'
@@ -48,6 +48,7 @@ onMounted(() => {
     observer.observe(container.value)
   }
 })
+const imageButton = ref<HTMLButtonElement | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const dragging = ref(false)
 const imageError = ref(''),
@@ -153,11 +154,14 @@ async function acceptFile(file: File) {
     }
   }
 }
-function removeImage() {
+async function removeImage() {
+  if (props.disabled || validating.value) return
   selection++
   emit('update:modelValue', { ...props.modelValue, imageId: undefined, pendingImage: undefined })
   emit('commit')
   imageError.value = ''
+  await nextTick()
+  imageButton.value?.focus()
 }
 onBeforeUnmount(() => {
   selection++
@@ -168,7 +172,7 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <div ref="container" class="suggestion-item" :class="asListItem ? 'list-group-item' : ''">
-    <div>
+    <div class="position-relative">
       <template v-if="mode === 'edit'">
         <input
           ref="fileInput"
@@ -183,6 +187,7 @@ onBeforeUnmount(() => {
         />
         <button
           type="button"
+          ref="imageButton"
           class="suggestion-image-button"
           :class="{ 'is-dragging': dragging }"
           :disabled="disabled || validating || !limits"
@@ -203,11 +208,13 @@ onBeforeUnmount(() => {
         <button
           v-if="modelValue.imageId || modelValue.pendingImage"
           type="button"
-          class="btn btn-sm btn-link p-0 mt-1"
+          class="suggestion-remove-image btn btn-light rounded-circle shadow-sm position-absolute top-0 end-0 m-1 p-0 d-flex align-items-center justify-content-center"
+          :title="t('images.remove')"
+          :aria-label="t('images.remove')"
           :disabled="disabled || validating"
-          @click="removeImage"
+          @click.stop="removeImage"
         >
-          {{ t('images.remove') }}
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
       </template>
       <template v-else>
@@ -296,3 +303,11 @@ onBeforeUnmount(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.suggestion-remove-image.btn {
+  width: 2rem;
+  height: 2rem;
+  min-height: 2rem;
+}
+</style>

@@ -340,11 +340,22 @@ usePageTitle(() => [
         <div class="participant-columns d-flex flex-column flex-lg-row align-items-start gap-4">
           <aside class="participant-details-column">
             <ExchangeDetails :exchange="view.exchange" :exclusions="view.exclusions" />
-            <section v-if="!view.exchange.isDrawn && view.participants?.length" class="card mt-3">
+            <section v-if="view.participants?.length" class="card mt-3 participant-list">
               <div class="card-body">
                 <h2 class="h6">{{ t('review.participantList') }}</h2>
                 <ul class="mb-0">
-                  <li v-for="person in sortedParticipants" :key="person.id">{{ person.name }}</li>
+                  <li
+                    v-for="person in sortedParticipants"
+                    :key="person.id"
+                    :data-participant-id="person.id"
+                  >
+                    <strong v-if="view.exchange.isDrawn && person.id === view.assignment?.receiverId">
+                      {{ person.name }}
+                    </strong>
+                    <span v-else>{{ person.name }}</span>
+                    <span class="badge text-bg-secondary ms-2" aria-hidden="true">{{ person.suggestionCount }}</span>
+                    <span class="visually-hidden">{{ t('review.suggestionCount', person.suggestionCount) }}</span>
+                  </li>
                 </ul>
               </div>
             </section>

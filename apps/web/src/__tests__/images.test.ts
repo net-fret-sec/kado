@@ -39,7 +39,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
   vi.useRealTimers()
 })
-function fixture(items = [{ title: 'Gift' }] as Array<{ title: string; imageId?: string }>) {
+function fixture(items = [{ title: 'Gift' }] as Array<{ title: string; imageId?: string; linkUrl?: string }>) {
   let draft!: ReturnType<typeof useWishlist>, files!: ReturnType<typeof useSuggestionFiles>
   const child = defineComponent({
     setup() {
@@ -150,14 +150,18 @@ describe('Image drafts and authenticated previews', () => {
     expect(f.files.get(f.draft.wishlist.value[0]!.pendingImage!)).toBeTruthy()
     f.wrapper.unmount()
   })
-  it('removes image explicitly, keeps an empty wishlist and frees abandoned previews', async () => {
-    const f = fixture()
+  it('removes image explicitly, keeps title and link, and frees abandoned previews', async () => {
+    const f = fixture([{ title: 'Gift', linkUrl: 'https://example.com/gift' }])
     await flushPromises()
     await select(f, new File(['x'], 'gift.png', { type: 'image/png' }))
-    const remove = f.wrapper.findAll('button').find((b) => b.text().includes('image'))!
+    const remove = f.wrapper.get('button.suggestion-remove-image')
+    expect(remove.attributes('aria-label')).toBe(i18n.global.t('images.remove'))
+    expect(remove.element.closest('.suggestion-image-button')).toBeNull()
     await remove.trigger('click')
     await nextTick()
     expect(f.draft.wishlist.value[0]?.pendingImage).toBeUndefined()
+    expect(f.draft.wishlist.value[0]?.title).toBe('Gift')
+    expect(f.draft.wishlist.value[0]?.linkUrl).toBe('https://example.com/gift')
     expect(f.wrapper.find('img').exists()).toBe(false)
     expect(URL.revokeObjectURL).toHaveBeenCalled()
     f.draft.hydrate([])
