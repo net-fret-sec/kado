@@ -318,7 +318,12 @@ try {
   // Quotas were verified above with separate real proxy clients. Browser fixtures
   // need a larger request budget, not container restarts: replacing Docker veth
   // interfaces while Chromium runs causes intermittent ERR_NETWORK_CHANGED.
-  await writeFile(apiFile, (await readFile(apiFile, 'utf8')) + '\nAPI_RATE_LIMIT=100000\nCREATE_RATE_LIMIT=100000\nAUTH_RATE_LIMIT=100000\nAUTH_PAIR_RATE_LIMIT=100000\nPARTICIPANT_RATE_LIMIT=100000\nDRAW_RATE_LIMIT=100000\n');
+  // Compose config already resolved env_file into environment; update that resolved config.
+  Object.assign(config.services.api.environment, {
+    API_RATE_LIMIT: '100000', CREATE_RATE_LIMIT: '100000', AUTH_RATE_LIMIT: '100000',
+    AUTH_PAIR_RATE_LIMIT: '100000', PARTICIPANT_RATE_LIMIT: '100000', DRAW_RATE_LIMIT: '100000',
+  });
+  await writeFile(override, JSON.stringify(config));
   compose('up', '-d', '--force-recreate', '--wait', '--wait-timeout', '90', 'api');
   // Browser verification against the production assets, CSP and real API.
   browser = await chromium.launch({ headless: true });

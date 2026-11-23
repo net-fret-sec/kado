@@ -12,6 +12,10 @@ import { browserCreation } from './browser-creation.mjs';
 export async function browserP2({ browser, base, api, restart, root, scratch, seedLegacyBudget }) {
   // Surface transport failures separately from failed UI assertions in the isolated stack.
   browser.on('context', context => context.on('page', page => {
+    page.on('response', response => {
+      const url = new URL(response.url());
+      if (url.pathname.startsWith('/api/') && response.status() >= 400) console.error('P2 API response:', response.request().method(), url.pathname.replace(/\/p\/.*/, '/p/[redacted]'), response.status());
+    });
     page.on('requestfailed', request => {
       const url = new URL(request.url());
       if (url.pathname.startsWith('/api/')) console.error('P2 transport failure:', request.method(), url.pathname.replace(/\/p\/.*/, '/p/[redacted]'), request.failure()?.errorText);

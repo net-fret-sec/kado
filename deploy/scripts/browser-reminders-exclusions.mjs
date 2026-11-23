@@ -71,7 +71,11 @@ export async function browserRemindersExclusions({ browser, base, api, root, scr
       await page.screenshot({ path: path.join(scratch, `exclusions-add-${locale}-${width}.png`), fullPage: true });
       await select.focus(); await select.selectOption(members[1].id); await select.press('Tab'); await expect(add).toBeFocused();
       await add.press('Enter'); await expect(section.locator('li')).toHaveCount(1);
-      await select.selectOption(members[2].id); await add.click(); await expect(section.locator('li')).toHaveCount(2);
+      await select.selectOption(members[2].id);
+      await expect(select).toHaveValue(members[2].id);
+      const added = page.waitForResponse(r => r.request().method() === 'POST' && r.url().endsWith('/exclusions'));
+      await add.click(); assert.equal((await added).status(), 201);
+      await expect(section.locator('li')).toHaveCount(2);
       await expect(select).toBeDisabled(); await expect(add).toBeDisabled();
       await expectFieldGroup(section.locator('.input-group'));
       await audit('Exclusions with long names');
