@@ -82,8 +82,12 @@ export async function browserRemindersExclusions({ browser, base, api, root, scr
       const failed = page.waitForResponse(r => r.request().method() === 'DELETE' && r.url().includes('/exclusions/'));
       await section.locator('li button').first().click(); assert.equal((await failed).status(), 503);
       await expect(section.locator('li')).toHaveCount(2);
+      await expect(page.locator('.toast-container').getByRole('alert')).toBeVisible();
+      await expect(section.locator('li button').first()).toBeEnabled();
       await page.unroute('**/exclusions/*');
-      await section.locator('li button').first().click(); await expect(section.locator('li')).toHaveCount(1);
+      const retry = page.waitForResponse(r => r.request().method() === 'DELETE' && r.url().includes('/exclusions/'));
+      await section.locator('li button').first().click(); assert.equal((await retry).status(), 204);
+      await expect(section.locator('li')).toHaveCount(1);
       await section.locator('li button').first().click(); await expect(section.locator('li')).toHaveCount(0);
       await close(); await page.reload(); await edit(); await expect(section).toContainText(t.review.noParticipantExclusions);
       await select.selectOption(members[1].id); await add.click(); await expect(section.locator('li')).toHaveCount(1); await close();
