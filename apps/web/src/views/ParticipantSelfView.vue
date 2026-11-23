@@ -328,6 +328,7 @@ usePageTitle(() => [
       />
       <p v-if="dirty" class="small text-body-secondary">{{ t('p2.unsaved') }}</p>
       <ConflictReview
+        :heading-level="2"
         v-if="remote"
         :fields="fields"
         :choices="choices"
@@ -342,7 +343,7 @@ usePageTitle(() => [
             <ExchangeDetails :exchange="view.exchange" :exclusions="view.exclusions" />
             <section v-if="view.participants?.length" class="card mt-3 participant-list">
               <div class="card-body">
-                <h2 class="h6">{{ t('review.participantList') }}</h2>
+                <h2 class="h4">{{ t('review.participantList') }}</h2>
                 <ul class="mb-0">
                   <li
                     v-for="person in sortedParticipants"
@@ -363,7 +364,7 @@ usePageTitle(() => [
           <div class="participant-content-column">
             <section class="card mb-3 participant-profile-card">
               <form class="card-body" novalidate @submit.prevent="profileAutosave.saveNow()">
-                <h2 class="h5">{{ t('participant.profileSectionTitle') }}</h2>
+                <h2 class="h4">{{ t('participant.profileSectionTitle') }}</h2>
                 <div class="form-field mb-3">
                   <div class="form-floating">
                     <input
@@ -427,7 +428,7 @@ usePageTitle(() => [
             </section>
             <section class="card mb-3 participant-suggestions-card">
               <div class="card-body">
-                <h2 class="h5">{{ t('participant.suggestionsSectionTitle') }}</h2>
+                <h2 class="h4">{{ t('participant.suggestionsSectionTitle') }}</h2>
                 <p v-if="requiredMinSuggestions > 0" class="small">
                   {{
                     t(
@@ -470,7 +471,7 @@ usePageTitle(() => [
               class="card mb-3"
             >
               <div class="card-body">
-                <h2 class="h5">{{ t('participant.recipientSectionTitle') }}</h2>
+                <h2 class="h4">{{ t('participant.recipientSectionTitle') }}</h2>
                 <p>
                   <strong>{{ t('fields.name') }}:</strong>
                   {{ view.assignment.receiverName }}

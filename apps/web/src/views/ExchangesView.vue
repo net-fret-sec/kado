@@ -119,7 +119,7 @@ usePageTitle(() => [t('exchanges.title')])
             <article class="card h-100 border shadow-sm">
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                  <h5 class="card-title mb-0">{{ exchange.name }}</h5>
+                  <h2 class="card-title h4 mb-0">{{ exchange.name }}</h2>
                   <span class="badge" :class="statusBadgeClass(exchange)">
                     {{ statusLabel(exchange) }}
                   </span>

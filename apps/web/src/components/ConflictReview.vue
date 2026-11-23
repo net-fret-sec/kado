@@ -3,6 +3,7 @@ import { useSuggestionFiles } from '@/composables/useWishlist'
 import { useI18n } from 'vue-i18n'
 import type { ConflictField, FormValues } from '@/composables/useConflict'
 const props = defineProps<{
+  headingLevel?: 2 | 3
   fields: ConflictField[]
   choices: Record<string, 'local' | 'remote'>
   ready: boolean
@@ -39,7 +40,9 @@ function display(value: unknown): string {
 </script>
 <template>
   <section class="alert alert-warning" role="region" :aria-label="t('p2.conflictTitle')">
-    <h3 class="h5">{{ t('p2.conflictTitle') }}</h3>
+    <component :is="`h${headingLevel ?? 3}`" :class="headingLevel === 2 ? 'h4' : 'h5'">{{
+      t('p2.conflictTitle')
+    }}</component>
     <p>{{ t('p2.conflictHelp') }}</p>
     <details class="mb-3">
       <summary>{{ t('p2.currentVersion') }}</summary>

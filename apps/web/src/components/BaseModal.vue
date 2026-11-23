@@ -169,7 +169,7 @@ onBeforeUnmount(() => {
       <div class="modal-content">
         <div class="modal-header">
           <slot name="header">
-            <h2 :id="titleId" class="modal-title h5">{{ title }}</h2>
+            <h2 :id="titleId" class="modal-title h4">{{ title }}</h2>
             <button
               v-if="props.closeButton"
               type="button"

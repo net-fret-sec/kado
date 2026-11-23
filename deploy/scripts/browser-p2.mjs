@@ -323,12 +323,14 @@ export async function browserP2({ browser, base, api, restart, root, scratch, se
     await api('PUT', `/api/exchanges/${f.id}/participants/${p.id}`, { name: 'Alex serveur' }, f.token);
     await saveProfile(f.page);
     await expect(f.page.getByRole('region', { name: fr.p2.conflictTitle })).toBeVisible();
+    await expect(f.page.getByRole('region', { name: fr.p2.conflictTitle }).locator('h2')).toHaveText(fr.p2.conflictTitle);
     await f.page.getByRole('button', { name: fr.p2.prepareDraft }).click();
     await expect(f.page.locator('#participant-name')).toHaveValue('Alex serveur');
     await expect(f.page.locator('#participant-note')).toHaveValue('Brouillon local');
     await api('PUT', `/api/exchanges/${f.id}/participants/${p.id}`, { note: 'Note serveur' }, f.token);
     await saveProfile(f.page);
     await expect(f.page.getByRole('region', { name: fr.p2.conflictTitle })).toBeVisible();
+    await expect(f.page.getByRole('region', { name: fr.p2.conflictTitle }).locator('h2')).toHaveText(fr.p2.conflictTitle);
     await f.page.getByRole('radio').first().check();
     await f.page.getByRole('button', { name: fr.p2.prepareDraft }).click();
     await saveProfile(f.page);

@@ -139,9 +139,12 @@ usePageTitle(() => {
 
 <template>
   <section id="exchange-detail-view">
+    <h1 v-if="!requiresAdminAuth && (isLoading || !exchange)" class="visually-hidden">
+      {{ t('pageTitles.organizer') }}
+    </h1>
     <div v-if="requiresAdminAuth" class="card border shadow-sm mb-3">
       <div class="card-body">
-        <h3 class="h5 mb-2">{{ t('exchangeDetail.adminAuth.title') }}</h3>
+        <h1 class="h4 mb-2">{{ t('exchangeDetail.adminAuth.title') }}</h1>
         <p class="text-muted mb-3">{{ t('exchangeDetail.adminAuth.description') }}</p>
         <form class="d-flex flex-column gap-3" @submit.prevent="authenticateAdmin">
           <div class="form-field">
@@ -289,7 +292,7 @@ usePageTitle(() => {
           <div class="card border shadow-sm">
             <div class="card-body">
               <div class="d-flex">
-                <h2 class="d-inline-flex align-items-center gap-2 mb-3">
+                <h2 class="h4 d-inline-flex align-items-center gap-2 mb-3">
                   <span>{{ t('common.participants') }}</span>
                   <span class="badge fs-6 text-bg-light">{{ participants.length }}</span>
                 </h2>
@@ -476,7 +479,7 @@ usePageTitle(() => {
     >
       <template #exclusions>
         <section v-if="editingParticipant" class="participant-exclusions border-top mt-3 pt-3">
-          <h3 class="h6">{{ t('review.editExclusions') }}</h3>
+          <h3 class="h5">{{ t('review.editExclusions') }}</h3>
           <p class="small text-body-secondary">{{ t('review.exclusionsHelp') }}</p>
           <p v-if="exchange?.noMutualAssignments" class="small text-body-secondary">
             {{ t('review.reciprocalExclusions') }}

@@ -72,6 +72,7 @@ export async function browserBudget({ browser, base, api, root, scratch, seedLeg
       await save.click();
       const conflict = page.getByRole('region', { name: t.p2.conflictTitle });
       await expect(conflict).toBeVisible();
+      await expect(conflict.locator('h3')).toHaveText(t.p2.conflictTitle);
       assert.equal((await api('GET', url, undefined, token)).budget, 80);
       await page.locator('input[name=conflict-budget]').first().check();
       await conflict.getByRole('button', { name: t.p2.prepareDraft, exact: true }).click();

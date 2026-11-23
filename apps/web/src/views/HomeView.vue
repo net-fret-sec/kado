@@ -18,7 +18,7 @@ usePageTitle(() => [t('pageTitles.home')])
       <div class="d-flex flex-column flex-md-row align-items-center gap-4">
         <div class="home-hero__copy">
           <p class="home-hero__eyebrow kado-ui-label mb-3">{{ t('home.hero.eyebrow') }}</p>
-          <h2 class="home-hero__title fw-semibold mb-4">{{ t('home.hero.title') }}</h2>
+          <h1 class="home-hero__title fw-semibold mb-4">{{ t('home.hero.title') }}</h1>
           <p class="text-body-secondary mb-4">{{ t('home.hero.description') }}</p>
           <button type="button" class="btn btn-primary px-4" @click="isCreateModalOpen = true">
             {{ t('actions.createExchange') }}

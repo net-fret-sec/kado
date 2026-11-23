@@ -12,9 +12,9 @@ const { t } = useI18n()
   <header class="app-topbar">
     <div class="app-header container-xl d-flex justify-content-between align-items-center">
       <nav class="navbar p-0">
-        <h1 class="mb-0">
+        <div class="h1 mb-0">
           <a class="navbar-brand h2" href="/">{{ t('app.title') }}</a>
-        </h1>
+        </div>
       </nav>
 
       <div class="d-flex align-items-center flex-wrap gap-2">

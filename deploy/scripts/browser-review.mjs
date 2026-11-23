@@ -8,6 +8,7 @@ import net from 'node:net';
 import assert from 'node:assert/strict';
 import { chromium, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { browserHeadings } from './browser-headings.mjs';
 import { browserP2 } from './browser-p2.mjs';
 const root = path.resolve(import.meta.dirname, '../..');
 const apiRequire = createRequire(path.join(root, 'apps/api/package.json'));
@@ -16,7 +17,7 @@ const output = process.env.KADO_E2E_OUTPUT ?? '/tmp/kado-review-e2e';
 const database = `kado_test_${randomUUID().replaceAll('-', '')}`;
 const container = `kado-review-${randomUUID().slice(0, 8)}`;
 const password = randomUUID();
-let started = false, pool, apiServer, webServer, browser;
+let started = false, pool, apiServer, webServer, localWebServer, browser;
 function docker(args) {
   const r = spawnSync('docker', args, { encoding: 'utf8' });
   if (r.status !== 0) throw new Error(r.stderr || r.error?.message);
@@ -72,6 +73,9 @@ try {
     assert.equal(r.status, status, `${method} ${url}: ${await r.clone().text()}`);
     return r.status === 204 ? undefined : r.json();
   }
+  const localPort = await port(), localBase = `http://127.0.0.1:${localPort}`;
+  localWebServer = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', String(localPort), '--strictPort'], { cwd: path.join(root, 'apps/web'), env: { ...webEnv, VITE_ENABLE_LOCAL_ADMIN_TOOLS: 'true' }, stdio: 'ignore' });
+  await until(async () => assert.equal((await fetch(localBase)).status, 200));
   browser = await chromium.launch({ headless: true });
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 }, locale: 'fr-CA', reducedMotion: 'reduce' });
   await ctx.addInitScript(() => localStorage.setItem('locale', 'fr-CA'));
@@ -241,13 +245,14 @@ try {
   assert.deepEqual(errors, []);
   await ctx.close();
   console.log('UI review: full real-server lifecycle, dates, currency, exclusions, drop upload, keyboard order, names privacy, reconnect, case-insensitive password and deletion passed; desktop/mobile axe: 0 violations.');
+  await browserHeadings({ browser, base, localBase, api, root, scratch: output });
   if (process.env.KADO_REVIEW_SKIP_P2 !== '1') await browserP2({ browser, base, api, root, scratch: output, seedLegacyBudget: (id, value) => pool.query('UPDATE exchanges SET budget=$2 WHERE id=$1', [id, value]), restart: async () => { await stop(apiServer); apiServer = startApi(); await until(() => api('GET', '/health')); } });
   const ux = spawnSync(process.execPath, ['deploy/scripts/browser-ux.mjs'], { cwd: root, env: { ...process.env, KADO_UX_BASE: base, KADO_UX_OUTPUT: path.join(output, 'large-group') }, encoding: 'utf8' });
   if (ux.status !== 0) throw new Error(ux.stderr || ux.stdout);
   console.log(ux.stdout.trim());
 } finally {
   await browser?.close();
-  await stop(webServer); await stop(apiServer);
+  await stop(localWebServer); await stop(webServer); await stop(apiServer);
   if (pool) await pool.end();
   if (started) docker(['rm', '-f', container]);
 }
