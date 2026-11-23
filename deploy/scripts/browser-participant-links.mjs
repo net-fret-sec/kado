@@ -5,13 +5,14 @@ import path from 'node:path';
 import { expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-export async function browserParticipantLinks({ browser, base, api, root, scratch }) {
+export async function browserParticipantLinks({ browser, base, api, root, scratch, restart = async () => {} }) {
   await mkdir(scratch, { recursive: true });
   for (const locale of ['fr-CA', 'en-CA', 'es']) for (const width of [360, 1440]) {
+    await restart();
     const t = JSON.parse(await readFile(path.join(root, `apps/web/src/i18n/locales/${locale}.json`), 'utf8'));
     const created = await api('POST', '/api/exchanges', { name: 'Participant links', organizerName: 'Alex', adminPassword: 'testpassword123' }, undefined, 201);
     const id = created.exchange.id, token = created.adminSessionToken;
-    const context = await browser.newContext({ locale, viewport: { width, height: 1000 }, reducedMotion: 'reduce', permissions: ['clipboard-read', 'clipboard-write'] });
+    const context = await browser.newContext({ ignoreHTTPSErrors: true, locale, viewport: { width, height: 1000 }, reducedMotion: 'reduce', permissions: ['clipboard-read', 'clipboard-write'] });
     try {
       await context.addInitScript(({ id, token, locale }) => {
         localStorage.setItem('locale', locale);

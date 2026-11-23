@@ -5,9 +5,10 @@ import path from 'node:path';
 import { expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-export async function browserRemindersExclusions({ browser, base, api, root, scratch }) {
+export async function browserRemindersExclusions({ browser, base, api, root, scratch, restart = async () => {} }) {
   await mkdir(scratch, { recursive: true });
   for (const locale of ['fr-CA', 'en-CA', 'es']) for (const width of [360, 1440]) {
+    await restart();
     const t = JSON.parse(await readFile(path.join(root, `apps/web/src/i18n/locales/${locale}.json`), 'utf8'));
     const created = await api('POST', '/api/exchanges', { name: 'Rappels et exclusions', organizerParticipates: false, lockSuggestionsAfterDraw: false, adminPassword: 'password123' }, undefined, 201);
     const id = created.exchange.id, token = created.adminSessionToken, url = `/api/exchanges/${id}`;
@@ -15,7 +16,7 @@ export async function browserRemindersExclusions({ browser, base, api, root, scr
     for (const name of ['Alex', 'Camille avec un nom particulièrement long pour vérifier le retour à la ligne', 'Dominique']) {
       members.push((await api('POST', `${url}/participants`, { name }, token, 201)).participant);
     }
-    const context = await browser.newContext({ locale, viewport: { width, height: 1000 }, reducedMotion: 'reduce' });
+    const context = await browser.newContext({ ignoreHTTPSErrors: true, locale, viewport: { width, height: 1000 }, reducedMotion: 'reduce' });
     try {
       await context.addInitScript(({ id, token, locale }) => {
         localStorage.setItem('locale', locale);

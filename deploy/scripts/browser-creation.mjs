@@ -6,12 +6,13 @@ import { expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 // Called only by the isolated acceptance suites, with their disposable API/database.
-export async function browserCreation({ browser, base, api, root, scratch }) {
+export async function browserCreation({ browser, base, api, root, scratch, restart = async () => {} }) {
   const output = path.join(scratch, 'creation-access');
   await mkdir(output, { recursive: true });
   for (const locale of ['fr-CA', 'en-CA', 'es']) {
     const messages = JSON.parse(await readFile(path.join(root, 'apps/web/src/i18n/locales', `${locale}.json`), 'utf8'));
     for (const width of [360, 1440]) {
+    await restart();
       const context = await browser.newContext({
         ignoreHTTPSErrors: true, locale, reducedMotion: 'reduce', viewport: { width, height: 1000 },
         permissions: ['clipboard-read', 'clipboard-write'],

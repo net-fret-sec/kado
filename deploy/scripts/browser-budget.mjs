@@ -4,15 +4,16 @@ import path from 'node:path';
 import { expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-export async function browserBudget({ browser, base, api, root, scratch, seedLegacyBudget }) {
+export async function browserBudget({ browser, base, api, root, scratch, seedLegacyBudget, restart = async () => {} }) {
   await mkdir(scratch, { recursive: true });
   for (const locale of ['fr-CA', 'en-CA', 'es']) for (const width of [360, 1440]) {
+    await restart();
     const t = JSON.parse(await readFile(path.join(root, `apps/web/src/i18n/locales/${locale}.json`), 'utf8'));
     const created = await api('POST', '/api/exchanges', { name: 'Champs facultatifs', organizerParticipates: false, adminPassword: 'password123', description: 'Description', budget: 25, eventDate: '2099-12-25', plannedDrawDate: '2099-12-01' }, undefined, 201);
     const id = created.exchange.id, token = created.adminSessionToken, url = `/api/exchanges/${id}`;
     const legacy = width === 360 ? 25.75 : 1500;
     if (seedLegacyBudget) await seedLegacyBudget(id, legacy);
-    const context = await browser.newContext({ locale, viewport: { width, height: 1000 }, reducedMotion: 'reduce' });
+    const context = await browser.newContext({ ignoreHTTPSErrors: true, locale, viewport: { width, height: 1000 }, reducedMotion: 'reduce' });
     try {
       await context.addInitScript(({ id, token, locale }) => {
         localStorage.setItem('locale', locale);

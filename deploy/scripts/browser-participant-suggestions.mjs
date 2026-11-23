@@ -4,14 +4,15 @@ import path from 'node:path';
 import { expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-export async function browserParticipantSuggestions({ browser, base, api, root, scratch }) {
+export async function browserParticipantSuggestions({ browser, base, api, root, scratch, restart = async () => {} }) {
   await mkdir(scratch, { recursive: true });
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEklEQVQImWP4z8CAFWEXHbQSACj/P8FTKqelAAAAAElFTkSuQmCC', 'base64');
   for (const locale of ['fr-CA', 'en-CA', 'es']) for (const width of [360, 1440]) {
+    await restart();
     const t = JSON.parse(await readFile(path.join(root, `apps/web/src/i18n/locales/${locale}.json`), 'utf8'));
     const created = await api('POST', '/api/exchanges', { name: 'Participants et suggestions', organizerParticipates: false, adminPassword: 'testpassword123' }, undefined, 201);
     const id = created.exchange.id, token = created.adminSessionToken;
-    const context = await browser.newContext({ locale, viewport: { width, height: 1000 }, reducedMotion: 'reduce', hasTouch: width === 360 });
+    const context = await browser.newContext({ ignoreHTTPSErrors: true, locale, viewport: { width, height: 1000 }, reducedMotion: 'reduce', hasTouch: width === 360 });
     try {
       const members = [];
       for (const name of ['Zoé', 'Alex', 'Alex']) members.push((await api('POST', `/api/exchanges/${id}/participants`, { name, wishlist: [{ title: 'Livre', linkUrl: 'https://example.com/book' }] }, token, 201)).participant);

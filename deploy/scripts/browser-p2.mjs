@@ -13,11 +13,11 @@ export async function browserP2({ browser, base, api, restart, root, scratch, se
   const fr = JSON.parse(await readFile(path.join(root, 'apps/web/src/i18n/locales/fr-CA.json'), 'utf8'));
   const output = process.env.KADO_E2E_OUTPUT ?? path.join(scratch, 'p2-browser');
   await mkdir(output, { recursive: true });
-  await browserRemindersExclusions({ browser, base, api, root, scratch: output });
-  await browserBudget({ browser, base, api, root, scratch: output, seedLegacyBudget });
-  await browserCreation({ browser, base, api, root, scratch: output });
-  await browserParticipantLinks({ browser, base, api, root, scratch: output });
-  await browserParticipantSuggestions({ browser, base, api, root, scratch: output });
+  await browserRemindersExclusions({ browser, base, api, root, scratch: output, restart });
+  await browserBudget({ browser, base, api, root, scratch: output, seedLegacyBudget, restart });
+  await browserCreation({ browser, base, api, root, scratch: output, restart });
+  await browserParticipantLinks({ browser, base, api, root, scratch: output, restart });
+  await browserParticipantSuggestions({ browser, base, api, root, scratch: output, restart });
   async function fixture(name, options = {}) {
     await restart();
     const created = await api('POST', '/api/exchanges', { name, organizerName: 'Hôte P2', organizerParticipates: false, adminPassword: 'p2password123', ...options }, undefined, 201);
