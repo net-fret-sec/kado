@@ -350,6 +350,7 @@
     "mutual": "{a} y {b} no pueden sacarse mutuamente.",
     "directional": "{name} no puede sacar a {others}.",
     "editExclusions": "Exclusiones de esta persona",
+    "noParticipantExclusions": "No hay exclusiones para esta persona.",
     "exclusionsHelp": "Los botones Añadir y Eliminar guardan las exclusiones inmediatamente.",
     "linkFor": "Comparte este enlace personal con {name}.",
     "confirmDeleteSuggestion": "¿Eliminar esta sugerencia de regalo? La eliminación se guardará automáticamente.",

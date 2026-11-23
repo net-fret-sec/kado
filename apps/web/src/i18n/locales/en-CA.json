@@ -350,6 +350,7 @@
     "mutual": "{a} and {b} cannot draw each other.",
     "directional": "{name} cannot draw {others}.",
     "editExclusions": "Exclusions for this person",
+    "noParticipantExclusions": "No exclusions for this person.",
     "exclusionsHelp": "The Add and Delete buttons save exclusions immediately.",
     "linkFor": "Share this personal link with {name}.",
     "confirmDeleteSuggestion": "Delete this gift suggestion? The deletion will be saved automatically.",

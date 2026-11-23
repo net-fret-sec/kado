@@ -220,7 +220,7 @@ usePageTitle(() => {
         class="admin-actions-contents d-flex flex-wrap align-items-start gap-4"
       >
         <legend class="visually-hidden">{{ t('p2.adminActions') }}</legend>
-        <div class="w-100"><AccessReminder :access-id="exchange.id" :link="organizerLink" organizer /></div>
+        <AccessReminder :access-id="exchange.id" :link="organizerLink" organizer />
         <section id="detail" class="w-100">
           <ExchangeHeader
             :title="exchange.name"
@@ -475,7 +475,7 @@ usePageTitle(() => {
       @update:model-value="setEditParticipantModalVisibility"
     >
       <template #exclusions>
-        <section v-if="editingParticipant" class="border-top mt-3 pt-3">
+        <section v-if="editingParticipant" class="participant-exclusions border-top mt-3 pt-3">
           <h3 class="h6">{{ t('review.editExclusions') }}</h3>
           <p class="small text-body-secondary">{{ t('review.exclusionsHelp') }}</p>
           <p v-if="exchange?.noMutualAssignments" class="small text-body-secondary">
@@ -484,16 +484,22 @@ usePageTitle(() => {
           <p v-if="isExclusionEditingLocked" class="small">
             {{ t('exchangeDetail.exceptions.locked') }}
           </p>
-          <ul class="list-unstyled">
+          <p
+            v-if="!getParticipantExclusions(editingParticipant.id).length"
+            class="small text-body-secondary"
+          >
+            {{ t('review.noParticipantExclusions') }}
+          </p>
+          <ul v-else class="list-group mb-3">
             <li
               v-for="rule in getParticipantExclusions(editingParticipant.id)"
               :key="rule.id"
-              class="d-flex justify-content-between align-items-center gap-2 mb-2"
+              class="list-group-item d-flex justify-content-between align-items-center gap-3"
             >
-              <span>{{ participantNameById[rule.receiverParticipantId] }}</span>
+              <span class="exclusion-name">{{ participantNameById[rule.receiverParticipantId] }}</span>
               <button
                 type="button"
-                class="btn btn-sm btn-outline-secondary"
+                class="btn btn-sm btn-outline-secondary flex-shrink-0"
                 :disabled="isExclusionEditingLocked || mutationBusy || imageUploading"
                 @click="removeParticipantExclusion(rule.id)"
               >
@@ -505,7 +511,7 @@ usePageTitle(() => {
             v-if="!isExclusionEditingLocked"
             @submit.prevent="addParticipantExclusion(editingParticipant.id)"
           >
-            <div class="form-field mb-2">
+            <div class="exclusion-add input-group flex-nowrap">
               <div class="form-floating">
                 <select
                   id="exclusion-receiver"
@@ -529,14 +535,14 @@ usePageTitle(() => {
                 </select>
                 <label for="exclusion-receiver">{{ t('exchangeDetail.dashboard.receiver') }}</label>
               </div>
+              <button
+                type="submit"
+                class="btn btn-outline-primary"
+                :disabled="!selectedExclusionReceiver || mutationBusy || imageUploading"
+              >
+                {{ t('actions.add') }}
+              </button>
             </div>
-            <button
-              type="submit"
-              class="btn btn-sm btn-outline-primary"
-              :disabled="!selectedExclusionReceiver || mutationBusy || imageUploading"
-            >
-              {{ t('actions.add') }}
-            </button>
           </form>
         </section>
       </template>
@@ -613,5 +619,14 @@ usePageTitle(() => {
     opacity: 1;
     pointer-events: auto;
   }
+}
+
+.exclusion-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.exclusion-add > .btn {
+  border-top-right-radius: var(--bs-border-radius);
+  border-bottom-right-radius: var(--bs-border-radius);
 }
 </style>

@@ -295,7 +295,7 @@ usePageTitle(() => [
 <template>
   <section id="participant-self-view" :aria-busy="isLoading || isSaving || isRefreshing">
     <ExchangeHeader
-      class="mb-3"
+      class="mb-4"
       :title="view?.exchange.name || t('participant.profileSectionTitle')"
       :label="view?.participant.name"
     >

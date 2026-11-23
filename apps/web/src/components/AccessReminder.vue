@@ -37,7 +37,8 @@ async function copyLink() {
 </script>
 <template>
   <aside
-    class="access-reminder alert alert-info d-flex flex-column align-items-start gap-3"
+    class="access-reminder alert alert-info d-flex flex-column align-items-start gap-3 w-100"
+    :class="organizer ? 'mb-0' : 'mb-4'"
     v-if="!dismissed"
   >
     <div>

@@ -5,6 +5,7 @@ import { expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { browserParticipantSuggestions } from './browser-participant-suggestions.mjs';
 import { browserParticipantLinks } from './browser-participant-links.mjs';
+import { browserRemindersExclusions } from './browser-reminders-exclusions.mjs';
 import { browserBudget } from './browser-budget.mjs';
 import { browserCreation } from './browser-creation.mjs';
 
@@ -12,6 +13,7 @@ export async function browserP2({ browser, base, api, restart, root, scratch, se
   const fr = JSON.parse(await readFile(path.join(root, 'apps/web/src/i18n/locales/fr-CA.json'), 'utf8'));
   const output = process.env.KADO_E2E_OUTPUT ?? path.join(scratch, 'p2-browser');
   await mkdir(output, { recursive: true });
+  await browserRemindersExclusions({ browser, base, api, root, scratch: output });
   await browserBudget({ browser, base, api, root, scratch: output, seedLegacyBudget });
   await browserCreation({ browser, base, api, root, scratch: output });
   await browserParticipantLinks({ browser, base, api, root, scratch: output });
