@@ -241,6 +241,13 @@ Les sauvegardes existantes ne sont pas réécrites par cette opération et suive
   - `GET /api/p/:token`
   - `PUT /api/p/:token`
 
+L’ajout d’un participant renvoie `{ participant }` sans générer de lien. Le champ
+`hasGeneratedAccess` des profils organisateur indique si un accès a déjà été créé,
+y compris s’il a ensuite été révoqué. L’endpoint `access/regenerate` sert aussi à la
+première génération. Son paramètre facultatif `expectedAccessGenerated` protège
+contre un état périmé (HTTP 409); `revokeExisting` conserve sa valeur par défaut
+`true`. Les liens déjà émis restent valides jusqu’à leur remplacement ou révocation.
+
 ## Scripts de maintenance API
 
 Réinitialiser les mots de passe des organisateurs des échanges listés dans `apps/api/src/test-data.json`:

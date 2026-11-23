@@ -163,6 +163,8 @@
   "exchangeDetail": {
     "noParticipants": "No participants for this exchange.",
     "wishlistSuggestions": "{count} suggestion | {count} suggestions",
+    "createLink": "Generate participant link",
+    "linkNotGenerated": "Link not generated",
     "generateLink": "Regenerate participant link",
     "triggerDraw": "Perform draw",
     "cancelDraw": "Cancel draw",

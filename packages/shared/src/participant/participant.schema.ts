@@ -65,6 +65,7 @@ export const updateParticipantInputSchema = z.object({
 
 export const regenerateParticipantAccessInputSchema = z.object({
   revokeExisting: z.boolean().optional().default(true),
+  expectedAccessGenerated: z.boolean().optional(),
 });
 
 export const participantIdParamSchema = z.object({

@@ -671,7 +671,7 @@ export function useExchangeAdmin() {
           }
         : undefined
 
-      const result = await api.post<{ participant: ParticipantDto; accessLink: string }>(
+      const result = await api.post<{ participant: ParticipantDto }>(
         `/api/exchanges/${exchange.value.id}/participants`,
         {
           name: payload.name,
@@ -685,7 +685,6 @@ export function useExchangeAdmin() {
         participants.value = [...participants.value, result.participant]
       }
 
-      if (result.accessLink) openAccessLinkModal(result.accessLink, result.participant.name)
       newParticipantName.value = ''
       newParticipantEmail.value = ''
     } catch (err) {
@@ -780,8 +779,11 @@ export function useExchangeAdmin() {
   }
 
   async function perform_regenerateParticipantLink(participantId: string) {
-    if (!confirm(t('p2.confirmReplaceLink'))) return
     if (!exchange.value) return
+    const participant = participants.value.find((p) => p.id === participantId)
+    if (!participant) return
+    const hasGeneratedAccess = participant.hasGeneratedAccess !== false
+    if (hasGeneratedAccess && !confirm(t('p2.confirmReplaceLink'))) return
     try {
       const exchangeId = exchange.value.id
       const token = adminAuthStore.getSessionToken(exchangeId)
@@ -793,13 +795,14 @@ export function useExchangeAdmin() {
           }
         : undefined
 
-      const payload = { revokeExisting: true }
+      const payload = { revokeExisting: true, expectedAccessGenerated: hasGeneratedAccess }
       const result = await api.post<{ participantId: string; accessLink: string }, typeof payload>(
         `/api/exchanges/${exchange.value.id}/participants/${participantId}/access/regenerate`,
         payload,
         init,
       )
       if (result?.accessLink) {
+        participant.hasGeneratedAccess = true
         const resolvedAccessLink = resolveParticipantAccessLink(result.accessLink)
         await copyToClipboard(resolvedAccessLink)
         openAccessLinkModal(resolvedAccessLink, participantNameById.value[participantId] ?? '')

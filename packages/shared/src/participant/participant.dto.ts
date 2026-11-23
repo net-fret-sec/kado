@@ -17,6 +17,8 @@ export interface ParticipantDto {
   email?: string;
   wishlist?: GiftSuggestionDto[];
   note?: string;
+  /** Whether an access link has ever been generated (including revoked links). */
+  hasGeneratedAccess?: boolean;
   status: ParticipantStatus;
   createdAt: string;
   updatedAt: string;
@@ -39,12 +41,12 @@ export interface UpdateParticipantInputDto {
 
 export interface CreateParticipantResultDto {
   participant: ParticipantDto;
-  accessLink: string;
 }
 
 export interface RegenerateParticipantAccessInputDto {
   participantId: string;
   revokeExisting: boolean;
+  expectedAccessGenerated?: boolean;
 }
 
 export interface RegenerateParticipantAccessResultDto {

@@ -73,7 +73,7 @@ try {
     return r.status === 204 ? undefined : r.json();
   }
   browser = await chromium.launch({ headless: true });
-  const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 }, locale: 'fr-CA', reducedMotion: 'reduce' });
   await ctx.addInitScript(() => localStorage.setItem('locale', 'fr-CA'));
   const page = await ctx.newPage();
   const errors = [];
@@ -85,7 +85,7 @@ try {
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${label}: no horizontal overflow`);
   }
   await page.goto(base);
-  await expect(page.locator('footer .home-support')).toHaveCount(1);
+  await expect(page.locator('footer.home-footer')).toHaveCount(1);
   await page.evaluate(() => { document.activeElement?.blur(); window.scrollTo(0, 0); });
   await page.screenshot({ path: path.join(output, 'review-home.png'), fullPage: true });
   await page.locator('.home-hero').getByRole('button', { name: 'Créer un échange', exact: true }).click();
@@ -119,8 +119,9 @@ try {
     const response = page.waitForResponse(r => r.request().method() === 'POST' && r.url().endsWith('/participants'));
     await page.locator('#participants button[type=submit]').click();
     const member = await (await response).json(); members.push({ participant: member.participant.id, name });
-    await expect(page.getByRole('dialog', { name: 'Lien du participant' })).toContainText(name);
-    await page.getByRole('button', { name: 'Fermer', exact: true }).click();
+    assert.equal(member.accessLink, undefined);
+    await expect(page.getByRole('dialog', { name: 'Lien du participant' })).not.toBeVisible();
+    await expect(page.locator('#new-participant-name')).toBeFocused();
   }
   assert.deepEqual(await page.locator('#participants li strong').allTextContents(), ['Alex', 'Blair', 'Casey']);
   await page.getByRole('button', { name: 'Modifier les détails', exact: true }).click();

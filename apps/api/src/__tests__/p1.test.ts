@@ -1,3 +1,4 @@
+import { createParticipantWithAccess } from "./participant-fixture";
 import request from "supertest";
 import { createApp } from "../app";
 import { closePool, query, getPool, withTransaction } from "../db";
@@ -149,7 +150,7 @@ it("limits creation before writing and counts failed auth without counting succe
 });
 it("limits participant reads and writes together", async () => {
   const f = await fixture();
-  const member = await createParticipant(f.id, { name: "Me" });
+  const member = await createParticipantWithAccess(f.id, { name: "Me" });
   process.env.PARTICIPANT_RATE_LIMIT = "1";
   const a = createApp();
   const token = member.accessLink.split("/").pop();

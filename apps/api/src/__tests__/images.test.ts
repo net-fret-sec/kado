@@ -1,3 +1,4 @@
+import { createParticipantWithAccess } from "./participant-fixture";
 import request from "supertest";
 import sharp from "sharp";
 import fs from "node:fs";
@@ -10,7 +11,6 @@ import {
   revokeAdminSession,
 } from "../services/exchange.service";
 import {
-  createParticipant,
   updateParticipant,
   regenerateParticipantAccess,
 } from "../services/participant.service";
@@ -53,7 +53,7 @@ async function fixture(count = 3, unlocked = false) {
   const members = [];
   for (let n = 0; n < count; n++)
     members.push(
-      await createParticipant(created.exchange.id, { name: `Member ${n}` }),
+      await createParticipantWithAccess(created.exchange.id, { name: `Member ${n}` }),
     );
   return {
     id: created.exchange.id,

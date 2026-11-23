@@ -1,3 +1,4 @@
+import { createParticipantWithAccess } from "./participant-fixture";
 import { closePool, getPool, query } from "../db";
 import { getConfig } from "../lib/config";
 import {
@@ -10,7 +11,6 @@ import {
   getExchangeById,
 } from "../services/exchange.service";
 import {
-  createParticipant,
   getParticipantSelfViewByToken,
 } from "../services/participant.service";
 import { createExclusionRule } from "../services/exclusion-rule.service";
@@ -149,7 +149,7 @@ it("cascades to all exchange data and invalidates participant access", async () 
   const members = [];
   for (let i = 0; i < 3; i++)
     members.push(
-      await createParticipant(exchange.id, {
+      await createParticipantWithAccess(exchange.id, {
         name: `Member ${i}`,
         wishlist: [{ title: "Gift" }],
       }),

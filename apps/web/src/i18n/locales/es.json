@@ -163,6 +163,8 @@
   "exchangeDetail": {
     "noParticipants": "Este intercambio no tiene participantes.",
     "wishlistSuggestions": "{count} sugerencia | {count} sugerencias",
+    "createLink": "Generar el enlace del participante",
+    "linkNotGenerated": "Enlace no generado",
     "generateLink": "Regenerar el enlace del participante",
     "triggerDraw": "Realizar el sorteo",
     "cancelDraw": "Anular el sorteo",

@@ -1,3 +1,4 @@
+import { createParticipantWithAccess } from "./participant-fixture";
 import request from "supertest";
 import { createApp } from "../app";
 import { closePool, query } from "../db";
@@ -41,7 +42,7 @@ async function fixture(
   const members = [];
   for (let i = 0; i < count; i++)
     members.push(
-      await createParticipant(exchange.id, {
+      await createParticipantWithAccess(exchange.id, {
         name: `Member ${i}`,
         email: `member${i}@example.com`,
         wishlist: [{ title: "Gift" }],
@@ -288,9 +289,15 @@ describe("Transactions and concurrency", () => {
   });
   it("rolls back participant creation and failed token rotation", async () => {
     const f = await fixture({}, 1);
+    const originalCreate = participantRepository.create.bind(
+      participantRepository,
+    );
     jest
-      .spyOn(participantRepository, "createAccess")
-      .mockRejectedValueOnce(new Error("injected"));
+      .spyOn(participantRepository, "create")
+      .mockImplementationOnce(async (...args) => {
+        await originalCreate(...args);
+        throw new Error("injected");
+      });
     await expect(createParticipant(f.id, { name: "Failed" })).rejects.toThrow(
       "injected",
     );
@@ -453,6 +460,16 @@ describe("Business state and contracts", () => {
             .expect(201)
         ).body,
       );
+    for (const member of members) {
+      const link = await request(app)
+        .post(
+          `${path(id)}/participants/${member.participant.id}/access/regenerate`,
+        )
+        .set(auth)
+        .send({ expectedAccessGenerated: false })
+        .expect(201);
+      member.accessLink = link.body.accessLink;
+    }
     const rule = await request(app)
       .post(`${path(id)}/exclusions`)
       .set(auth)

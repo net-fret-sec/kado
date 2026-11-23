@@ -180,6 +180,10 @@ try {
         201,
       ),
     );
+  for (const member of members) {
+    const link = await api('POST', `/api/exchanges/${id}/participants/${member.participant.id}/access/regenerate`, { expectedAccessGenerated: false }, token, 201);
+    member.accessLink = link.accessLink;
+  }
   // Actual production Sharp pipeline + private bytea restored by the normal dump scripts.
   const imageSource = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEklEQVQImWP4z8CAFWEXHbQSACj/P8FTKqelAAAAAElFTkSuQmCC','base64');
   const imageBase = `/api/exchanges/${id}/participants/${members[0].participant.id}/images`;

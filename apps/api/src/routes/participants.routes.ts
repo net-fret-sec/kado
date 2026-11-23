@@ -122,7 +122,7 @@ router.post(
     req: Request<
       { exchangeId: string; participantId: string },
       any,
-      { revokeExisting?: boolean }
+      { revokeExisting?: boolean; expectedAccessGenerated?: boolean }
     >,
     res,
     next,
@@ -132,6 +132,7 @@ router.post(
         req.params.exchangeId,
         req.params.participantId,
         req.body?.revokeExisting ?? true,
+        req.body?.expectedAccessGenerated,
       );
       res.status(201).json(result);
     } catch (error) {

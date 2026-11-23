@@ -101,14 +101,14 @@ export async function createParticipantInTransaction(
     exchangeId: exchange.id,
     ...input,
     status: "active",
+    hasGeneratedAccess: false,
     createdAt: now,
     updatedAt: now,
   };
   await participantRepository.create(participant, db);
   if (input.wishlist)
     await syncSuggestionImages(participant.id, input.wishlist, db);
-  const accessLink = await createAccess(exchange.id, participant.id, db);
-  return { participant, accessLink };
+  return { participant };
 }
 
 export function createParticipant(
@@ -220,9 +220,18 @@ export function regenerateParticipantAccess(
   exchangeId: string,
   participantId: string,
   revokeExisting = true,
+  expectedAccessGenerated?: boolean,
 ) {
   return withExchangeTransaction(exchangeId, async (_exchange, db) => {
-    await requireParticipant(exchangeId, participantId, db);
+    const participant = await requireParticipant(exchangeId, participantId, db);
+    if (
+      expectedAccessGenerated !== undefined &&
+      participant.hasGeneratedAccess !== expectedAccessGenerated
+    ) {
+      throw new ConflictError("Access changed. Refresh and try again.", {
+        code: "RESOURCE_MODIFIED_CONCURRENTLY",
+      });
+    }
     if (revokeExisting)
       await participantRepository.revokeActiveAccessForParticipant(
         exchangeId,
@@ -319,7 +328,10 @@ async function selfView(
   const rules = await exclusionRuleRepository.findByExchangeId(exchange.id, db);
   return {
     exclusions: rules
-      .filter((r) => names.has(r.giverParticipantId) && names.has(r.receiverParticipantId))
+      .filter(
+        (r) =>
+          names.has(r.giverParticipantId) && names.has(r.receiverParticipantId),
+      )
       .map((r) => ({
         giverParticipantId: r.giverParticipantId,
         receiverParticipantId: r.receiverParticipantId,

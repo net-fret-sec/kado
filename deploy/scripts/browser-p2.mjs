@@ -3,6 +3,7 @@ import { readFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { browserParticipantLinks } from './browser-participant-links.mjs';
 import { browserCreation } from './browser-creation.mjs';
 
 export async function browserP2({ browser, base, api, restart, root, scratch }) {
@@ -10,12 +11,17 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
   const output = process.env.KADO_E2E_OUTPUT ?? path.join(scratch, 'p2-browser');
   await mkdir(output, { recursive: true });
   await browserCreation({ browser, base, api, root, scratch: output });
+  await browserParticipantLinks({ browser, base, api, root, scratch: output });
   async function fixture(name, options = {}) {
     await restart();
     const created = await api('POST', '/api/exchanges', { name, organizerName: 'Hôte P2', organizerParticipates: false, adminPassword: 'p2password123', ...options }, undefined, 201);
     const id = created.exchange.id, token = created.adminSessionToken;
     const members = [];
-    for (const member of ['Alex', 'Blair', 'Casey']) members.push(await api('POST', `/api/exchanges/${id}/participants`, { name: member, wishlist: [{ title: 'Livre', linkUrl: 'https://example.com/book' }, { title: 'Cadeau' }], note: 'Note initiale' }, token, 201));
+    for (const name of ['Alex', 'Blair', 'Casey']) {
+      const member = await api('POST', `/api/exchanges/${id}/participants`, { name, wishlist: [{ title: 'Livre', linkUrl: 'https://example.com/book' }, { title: 'Cadeau' }], note: 'Note initiale' }, token, 201);
+      const link = await api('POST', `/api/exchanges/${id}/participants/${member.participant.id}/access/regenerate`, { expectedAccessGenerated: false }, token, 201);
+      members.push({ ...member, accessLink: link.accessLink });
+    }
     const context = await browser.newContext({ ignoreHTTPSErrors: true, locale: 'fr-CA', reducedMotion: 'reduce' });
     await context.addInitScript(({ id, token }) => { try { localStorage.setItem('locale', 'fr-CA'); localStorage.setItem('kado.adminSessions', JSON.stringify({ [id]: token })); } catch { /* Simulated blocked storage starts without persisted sessions. */ } }, { id, token });
     const page = await context.newPage();
@@ -385,8 +391,9 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
     const addedResponse = f.page.waitForResponse(r => r.request().method() === 'POST' && r.url().endsWith('/participants'));
     await add.click(); const added = await (await addedResponse).json();
     const dialog = f.page.getByRole('dialog', { name: fr.exchangeDetail.linkModal.title });
-    await expect(dialog).toBeVisible(); await expect(dialog.getByRole('textbox')).toHaveValue(base + added.accessLink);
-    await dialog.getByRole('button', { name: fr.actions.close }).click();
+    assert.equal(added.accessLink, undefined);
+    await expect(f.page.locator('#new-participant-name')).toHaveValue('');
+    await expect(f.page.locator('#new-participant-name')).toBeFocused();
     await expect(dialog).not.toBeVisible();
     f.page.once('dialog', dialog => dialog.dismiss());
     await f.page.locator('#participants li').first().hover();

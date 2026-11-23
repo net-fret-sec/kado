@@ -2,6 +2,7 @@ import type { GiftSuggestionDto } from "@kado/shared";
 import { query, type DbExecutor } from "../db";
 
 interface ParticipantRecord {
+  hasGeneratedAccess?: boolean;
   id: string;
   exchangeId: string;
   name: string;
@@ -25,6 +26,7 @@ interface ParticipantAccessRecord {
 }
 
 interface ParticipantRow {
+  access_generated: boolean;
   id: string;
   exchange_id: string;
   name: string;
@@ -49,6 +51,7 @@ interface ParticipantAccessRow {
 
 function mapParticipantRow(row: ParticipantRow): ParticipantRecord {
   return {
+    hasGeneratedAccess: row.access_generated,
     id: row.id,
     exchangeId: row.exchange_id,
     name: row.name,
@@ -121,7 +124,10 @@ export const participantRepository = {
   async findById(exchangeId: string, participantId: string, db?: DbExecutor) {
     const result = await query<ParticipantRow>(
       `
-        SELECT *
+        SELECT *, EXISTS (
+          SELECT 1 FROM participant_access
+          WHERE participant_id = participants.id AND exchange_id = participants.exchange_id
+        ) AS access_generated
         FROM participants
         WHERE id = $1 AND exchange_id = $2
       `,
@@ -136,7 +142,10 @@ export const participantRepository = {
   async findByExchangeId(exchangeId: string, db?: DbExecutor) {
     const result = await query<ParticipantRow>(
       `
-        SELECT *
+        SELECT *, EXISTS (
+          SELECT 1 FROM participant_access
+          WHERE participant_id = participants.id AND exchange_id = participants.exchange_id
+        ) AS access_generated
         FROM participants
         WHERE exchange_id = $1
         ORDER BY created_at ASC
@@ -184,7 +193,10 @@ export const participantRepository = {
           ${setClauses.length > 0 ? `${setClauses.join(", ")},` : ""}
           updated_at = GREATEST(clock_timestamp(), updated_at + interval '1 millisecond')
         WHERE id = $1 AND exchange_id = $${values.length + 2}
-        RETURNING *
+        RETURNING *, EXISTS (
+          SELECT 1 FROM participant_access
+          WHERE participant_id = participants.id AND exchange_id = participants.exchange_id
+        ) AS access_generated
       `,
       [participantId, ...values, exchangeId],
       db,
@@ -232,7 +244,10 @@ export const participantRepository = {
           updated_at = GREATEST(clock_timestamp(), updated_at + interval '1 millisecond')
         WHERE id = $1 AND exchange_id = $${values.length + 3}
           AND date_trunc('milliseconds', updated_at) = date_trunc('milliseconds', $${values.length + 2}::timestamptz)
-        RETURNING *
+        RETURNING *, EXISTS (
+          SELECT 1 FROM participant_access
+          WHERE participant_id = participants.id AND exchange_id = participants.exchange_id
+        ) AS access_generated
       `,
       [participantId, ...values, expectedUpdatedAt, exchangeId],
       db,

@@ -361,6 +361,12 @@ usePageTitle(() => {
                       >
                     </div>
                     <p
+                      v-if="participant.hasGeneratedAccess === false"
+                      class="small text-body-secondary mt-1 mb-0"
+                    >
+                      {{ t('exchangeDetail.linkNotGenerated') }}
+                    </p>
+                    <p
                       v-if="participant.note"
                       class="preserve-lines small text-body-secondary mt-1 mb-0"
                     >
@@ -385,11 +391,23 @@ usePageTitle(() => {
                     <button
                       type="button"
                       class="btn btn-outline-secondary"
-                      :title="t('exchangeDetail.generateLink')"
+                      :title="
+                        t(
+                          participant.hasGeneratedAccess === false
+                            ? 'exchangeDetail.createLink'
+                            : 'exchangeDetail.generateLink',
+                        )
+                      "
                       @click="regenerateParticipantLink(participant.id)"
                     >
                       <i class="bi bi-link-45deg" aria-hidden="true"></i
-                      ><span class="visually-hidden">{{ t('exchangeDetail.generateLink') }}</span>
+                      ><span class="visually-hidden">{{
+                        t(
+                          participant.hasGeneratedAccess === false
+                            ? 'exchangeDetail.createLink'
+                            : 'exchangeDetail.generateLink',
+                        )
+                      }}</span>
                     </button>
                     <button
                       type="button"

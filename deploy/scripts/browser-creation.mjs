@@ -91,7 +91,8 @@ export async function browserCreation({ browser, base, api, root, scratch }) {
         await expect(page.locator('#detail')).toBeVisible();
         await expect(reminder).toHaveCount(0);
         const member = await api('POST', `/api/exchanges/${id}/participants`, { name: 'Blair' }, token, 201);
-        await page.goto(base + member.accessLink);
+        const personal = await api('POST', `/api/exchanges/${id}/participants/${member.participant.id}/access/regenerate`, { expectedAccessGenerated: false }, token, 201);
+        await page.goto(base + personal.accessLink);
         await expect(page.locator('#participant-name')).toHaveValue('Blair');
         await expect(reminder.getByRole('button', { name: messages.review.participantLinkSaved, exact: true })).toBeVisible();
         await expect(reminder.locator('input')).toHaveCount(0);

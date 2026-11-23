@@ -163,6 +163,8 @@
   "exchangeDetail": {
     "noParticipants": "Aucun participant pour cet échange.",
     "wishlistSuggestions": "{count} suggestion | {count} suggestions",
+    "createLink": "Générer le lien du participant",
+    "linkNotGenerated": "Lien non généré",
     "generateLink": "Régénérer le lien du participant",
     "triggerDraw": "Effectuer la pige",
     "cancelDraw": "Annuler la pige",
