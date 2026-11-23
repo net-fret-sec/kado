@@ -104,7 +104,9 @@ try {
   const creation = page.waitForResponse(r => r.request().method() === 'POST' && r.url().endsWith('/api/exchanges'));
   await page.locator('button[form=createExchangeForm]').click();
   const created = await (await creation).json(), id = created.exchange.id, token = created.adminSessionToken;
-  await page.getByRole('button', { name: /Continuer vers/ }).click();
+  await expect(page).toHaveURL(`${base}/exchanges/${id}`);
+  await expect(page.locator('.modal.show')).toHaveCount(0);
+  await expect(page.locator('.access-reminder input[readonly]')).toHaveValue(`${base}/exchanges/${id}`);
   await expect(page.locator('#detail')).toBeVisible();
   await expect(page.locator('.access-reminder')).toBeVisible();
   await page.getByRole('button', { name: 'J’ai conservé mes accès' }).click();

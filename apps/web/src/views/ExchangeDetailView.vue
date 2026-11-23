@@ -5,7 +5,7 @@ import BaseModal from '@/components/BaseModal.vue'
 import AccessReminder from '@/components/AccessReminder.vue'
 import ExchangeHeader from '@/components/ExchangeHeader.vue'
 import ExchangeDetails from '@/components/ExchangeDetails.vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAdminAuthStore } from '@/stores/useAdminAuthStore'
 import { provideImageAccess } from '@/composables/useImageAccess'
 import { useExchangeAdmin } from '@/composables/useExchangeAdmin'
@@ -18,6 +18,13 @@ const showDelete = ref(false)
 const deleteName = ref('')
 const route = useRoute(),
   auth = useAdminAuthStore()
+const router = useRouter()
+const organizerLink = computed(() =>
+  new URL(
+    router.resolve({ name: 'exchange-detail', params: { id: String(route.params.id) } }).href,
+    window.location.origin,
+  ).href,
+)
 const imageUploading = ref(false)
 provideImageAccess((participantId) => {
   const id = String(route.params.id),
@@ -213,7 +220,7 @@ usePageTitle(() => {
         class="admin-actions-contents d-flex flex-wrap align-items-start gap-4"
       >
         <legend class="visually-hidden">{{ t('p2.adminActions') }}</legend>
-        <div class="w-100"><AccessReminder :access-id="exchange.id" organizer /></div>
+        <div class="w-100"><AccessReminder :access-id="exchange.id" :link="organizerLink" organizer /></div>
         <section id="detail" class="w-100">
           <ExchangeHeader
             :title="exchange.name"

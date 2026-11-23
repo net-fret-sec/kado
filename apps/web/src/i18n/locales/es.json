@@ -126,12 +126,6 @@
       "organizerName": "¿Cómo te llamas?",
       "adminPassword": "Contraseña",
       "submit": "Crear el intercambio",
-      "successTitle": "Intercambio creado",
-      "successWarningTitle": "Guarda tu enlace de acceso como organizador",
-      "successWarningText": "Guarda este enlace en tus marcadores para volver a gestionar el intercambio. También necesitarás la contraseña si cierras la sesión.",
-      "adminLinkLabel": "Enlace de acceso del organizador",
-      "adminLinkHint": "Necesitarás este enlace para gestionar el intercambio.",
-      "continueButton": "Ir al intercambio",
       "afterCreationHint": "Podrás añadir participantes y modificar los detalles de tu intercambio más adelante."
     }
   },
@@ -365,7 +359,9 @@
     "detailsMutual": "Las asignaciones recíprocas están permitidas. Aunque A saque a B, B también puede sacar a A.",
     "detailsExclusions": "Exclusiones",
     "reciprocalExclusions": "En este modo, cada exclusión se aplica en ambos sentidos.",
-    "participantActions": "Acciones para {name}"
+    "participantActions": "Acciones para {name}",
+    "organizerLinkLabel": "Enlace de acceso del organizador",
+    "participantLinkSaved": "He guardado mi enlace personal"
   },
   "development": {
     "paletteTitle": "Paleta visual",

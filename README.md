@@ -198,7 +198,6 @@ Fichier d'exemple: `apps/web/.env.example`
 - `VITE_API_BASE`: base URL de l'API. Laisser vide en développement local pour utiliser le proxy Vite.
 - `VITE_DONATION_URL`: URL de soutien affichée sur l'accueil. Si vide ou absente, le bloc de soutien n'est pas rendu.
 - `VITE_CONTACT_EMAIL`: adresse publique de contact, sans préfixe `mailto:`. Affiche un lien courriel dans le pied de page, indépendamment du soutien. Vide, absente ou invalide : aucun lien. Variable intégrée au build; redémarrer Vite en développement ou reconstruire le frontend après modification. Le script `release:bundle` et le Dockerfile web transmettent cette variable au build.
-- `VITE_ADMIN_LINK_CONTINUE_COUNTDOWN_SECONDS`: délai (en secondes) avant activation du bouton "Continuer" après la création d’un échange. Valeur par défaut: `5`.
 
 ## Suppression automatique des échanges
 

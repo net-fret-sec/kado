@@ -126,12 +126,6 @@
       "organizerName": "Quel est votre nom?",
       "adminPassword": "Mot de passe",
       "submit": "Créer l’échange",
-      "successTitle": "Échange créé",
-      "successWarningTitle": "Conservez votre lien d’accès organisateur",
-      "successWarningText": "Conservez ce lien dans vos signets pour retrouver la gestion de votre échange. Vous aurez aussi besoin de votre mot de passe après une déconnexion.",
-      "adminLinkLabel": "Lien d’accès organisateur",
-      "adminLinkHint": "Vous aurez besoin de ce lien pour gérer votre échange.",
-      "continueButton": "Continuer vers l’échange",
       "afterCreationHint": "Vous pourrez ajouter des participants et modifier les détails de votre échange par la suite."
     }
   },
@@ -365,7 +359,9 @@
     "detailsMutual": "Les piges mutuelles sont permises. Même si A pige B, B peut tout de même piger A.",
     "detailsExclusions": "Exclusions",
     "reciprocalExclusions": "Dans ce mode, chaque exclusion s’applique dans les deux sens.",
-    "participantActions": "Actions pour {name}"
+    "participantActions": "Actions pour {name}",
+    "organizerLinkLabel": "Lien d’accès organisateur",
+    "participantLinkSaved": "J’ai conservé mon lien personnel"
   },
   "development": {
     "paletteTitle": "Palette visuelle",

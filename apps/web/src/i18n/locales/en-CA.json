@@ -126,12 +126,6 @@
       "organizerName": "What is your name?",
       "adminPassword": "Password",
       "submit": "Create exchange",
-      "successTitle": "Exchange created",
-      "successWarningTitle": "Keep your organizer access link safe",
-      "successWarningText": "Bookmark this link to return to your exchange’s management page. You will also need your password after signing out.",
-      "adminLinkLabel": "Organizer access link",
-      "adminLinkHint": "You will need this link to manage your exchange.",
-      "continueButton": "Go to exchange",
       "afterCreationHint": "You can add participants and edit your exchange details afterwards."
     }
   },
@@ -365,7 +359,9 @@
     "detailsMutual": "Mutual draws are allowed. If A draws B, B can still draw A.",
     "detailsExclusions": "Exclusions",
     "reciprocalExclusions": "In this mode, each exclusion applies in both directions.",
-    "participantActions": "Actions for {name}"
+    "participantActions": "Actions for {name}",
+    "organizerLinkLabel": "Organizer access link",
+    "participantLinkSaved": "I saved my personal link"
   },
   "development": {
     "paletteTitle": "Visual palette",

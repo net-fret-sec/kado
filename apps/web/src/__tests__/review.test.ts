@@ -1,5 +1,6 @@
 import { describe, expect, it, afterEach, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createPinia } from 'pinia'
 import {
   adminPasswordSchema,
   normalizeAdminPassword,
@@ -54,14 +55,14 @@ describe('UI review shared contracts', () => {
   it('remembers confirmation per access and shows the reminder for a different access', async () => {
     const wrapper = mount(AccessReminder, {
       props: { accessId: 'one', organizer: true },
-      global: { plugins: [i18n] },
+      global: { plugins: [i18n, createPinia()] },
     })
     await wrapper.get('button').trigger('click')
     expect(wrapper.find('aside').exists()).toBe(false)
     wrapper.unmount()
     const reopened = mount(AccessReminder, {
       props: { accessId: 'one', organizer: true },
-      global: { plugins: [i18n] },
+      global: { plugins: [i18n, createPinia()] },
     })
     expect(reopened.find('aside').exists()).toBe(false)
     await reopened.setProps({ accessId: 'two' })

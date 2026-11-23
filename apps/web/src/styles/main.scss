@@ -485,9 +485,6 @@ main > * + * {
   .participant-details-column { flex: 1 1 0; }
   .participant-content-column { flex: 2 1 0; }
 }
-.access-reminder > div {
-  flex-basis: 26rem;
-}
 .suggestion-shell {
   border: 1px solid var(--bs-border-color);
   border-radius: 0.65rem;

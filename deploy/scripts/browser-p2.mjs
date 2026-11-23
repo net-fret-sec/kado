@@ -3,11 +3,13 @@ import { readFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { browserCreation } from './browser-creation.mjs';
 
 export async function browserP2({ browser, base, api, restart, root, scratch }) {
   const fr = JSON.parse(await readFile(path.join(root, 'apps/web/src/i18n/locales/fr-CA.json'), 'utf8'));
   const output = process.env.KADO_E2E_OUTPUT ?? path.join(scratch, 'p2-browser');
   await mkdir(output, { recursive: true });
+  await browserCreation({ browser, base, api, root, scratch: output });
   async function fixture(name, options = {}) {
     await restart();
     const created = await api('POST', '/api/exchanges', { name, organizerName: 'Hôte P2', organizerParticipates: false, adminPassword: 'p2password123', ...options }, undefined, 201);
@@ -240,7 +242,7 @@ export async function browserP2({ browser, base, api, restart, root, scratch }) 
           assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${locale} creation width ${width}`);
           assert.deepEqual((await audit(page)).violations.map(v => v.id), [], `${locale} creation accessibility`);
           await page.screenshot({ path: path.join(output, `creation-${locale}-${width}.png`), fullPage: true });
-          await page.getByRole('button', { name: messages.actions.cancel, exact: true }).click();
+          await page.getByRole('button', { name: messages.actions.discardChanges, exact: true }).click();
         }
         await page.evaluate(({ id, token }) => localStorage.setItem('kado.adminSessions', JSON.stringify({ [id]: token })), { id: f.id, token: f.token });
         await page.goto(`${base}/exchanges/${f.id}`);

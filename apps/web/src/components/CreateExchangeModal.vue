@@ -1,34 +1,11 @@
 <script setup lang="ts">
-import { computed, ref, watch, onUnmounted, nextTick } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { createExchangeInputSchema, type ExchangeDto } from '@kado/shared'
-import { copyText } from '@/composables/useClipboard'
-import { computed as draftComputed } from 'vue'
 import { useDraftGuard, confirmDiscard } from '@/composables/useDraftGuard'
 import BaseModal from '@/components/BaseModal.vue'
 import { useExchangesStore } from '@/stores/exchanges'
-import { useToastsStore } from '@/stores/toasts'
-
-enum ModalState {
-  FORM = 'form',
-  SUCCESS = 'success',
-}
-
-const DEFAULT_CONTINUE_COUNTDOWN_SECONDS = 5
-
-function resolveContinueCountdownSeconds() {
-  const rawValue = import.meta.env.VITE_ADMIN_LINK_CONTINUE_COUNTDOWN_SECONDS
-  const parsedValue = Number.parseInt(rawValue ?? '', 10)
-
-  if (!Number.isFinite(parsedValue) || parsedValue < 0) {
-    return DEFAULT_CONTINUE_COUNTDOWN_SECONDS
-  }
-
-  return parsedValue
-}
-
-const CONTINUE_COUNTDOWN_SECONDS = resolveContinueCountdownSeconds()
 
 const props = defineProps<{
   modelValue: boolean
@@ -42,18 +19,12 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const router = useRouter()
 const exchangesStore = useExchangesStore()
-const toasts = useToastsStore()
 
 const name = ref('')
 const organizerName = ref('')
 const passwordVisible = ref(true)
 const adminPassword = ref('')
 const pendingRedirectExchangeId = ref<string | null>(null)
-const modalState = ref<ModalState>(ModalState.FORM)
-const adminLink = ref('')
-const countdownSeconds = ref(CONTINUE_COUNTDOWN_SECONDS)
-let countdownTimer: ReturnType<typeof setInterval> | null = null
-
 const valid = computed(
   () =>
     !!organizerName.value.trim() &&
@@ -65,76 +36,39 @@ const valid = computed(
 )
 const fieldErrors = computed(() => exchangesStore.fieldErrors || {})
 const formErrors = computed(() => exchangesStore.formErrors || [])
-const isCountdownActive = computed(() => countdownSeconds.value > 0)
-const isContinueDisabled = computed(() => isCountdownActive.value)
 
 function resetForm() {
   name.value = ''
   organizerName.value = ''
   passwordVisible.value = true
   adminPassword.value = ''
-  adminLink.value = ''
-  modalState.value = ModalState.FORM
-  countdownSeconds.value = CONTINUE_COUNTDOWN_SECONDS
-  stopCountdown()
   exchangesStore.fieldErrors = null
   exchangesStore.formErrors = null
 }
 
-function stopCountdown() {
-  if (countdownTimer) {
-    clearInterval(countdownTimer)
-    countdownTimer = null
-  }
-}
-
-function startCountdown() {
-  stopCountdown()
-  countdownSeconds.value = CONTINUE_COUNTDOWN_SECONDS
-
-  countdownTimer = setInterval(() => {
-    countdownSeconds.value -= 1
-    if (countdownSeconds.value <= 0) {
-      stopCountdown()
-    }
-  }, 1000)
-}
-
-const dirty = draftComputed(
+const dirty = computed(
   () =>
     props.modelValue &&
-    modalState.value === ModalState.FORM &&
+    !pendingRedirectExchangeId.value &&
     Boolean(name.value || organizerName.value || adminPassword.value),
 )
 useDraftGuard(dirty)
 function beforeClose() {
   return !exchangesStore.isLoading && (!dirty.value || confirmDiscard())
 }
-async function copyAdminLink() {
-  const copied = await copyText(adminLink.value)
-  toasts[copied ? 'success' : 'error'](
-    t(copied ? 'exchangeDetail.linkCopied' : 'exchangeDetail.copyFailed'),
-  )
-}
-
 watch(
   () => props.modelValue,
   (isOpen) => {
     if (isOpen) {
+      exchangesStore.error = null
       exchangesStore.fieldErrors = null
       exchangesStore.formErrors = null
-    } else {
-      stopCountdown()
     }
   },
 )
 
-onUnmounted(() => {
-  stopCountdown()
-})
-
 async function handleCreate() {
-  if (exchangesStore.isLoading || !valid.value) return
+  if (exchangesStore.isLoading || pendingRedirectExchangeId.value || !valid.value) return
   exchangesStore.fieldErrors = null
   exchangesStore.formErrors = null
 
@@ -153,26 +87,10 @@ async function handleCreate() {
     pendingRedirectExchangeId.value = result.id
     emit('created', result)
 
-    // Build the admin link with full URL
-    adminLink.value =
-      window.location.origin +
-      router.resolve({
-        name: 'exchange-detail',
-        params: { id: result.id },
-      }).href
-
-    // Switch to success state and start countdown
-    modalState.value = ModalState.SUCCESS
-    await nextTick()
-    startCountdown()
+    emit('update:modelValue', false)
   } catch {
     // Error state is managed in the store and displayed in the modal.
   }
-}
-
-function handleContinue() {
-  stopCountdown()
-  emit('update:modelValue', false)
 }
 
 async function handleHidden() {
@@ -182,31 +100,49 @@ async function handleHidden() {
   }
 
   const exchangeId = pendingRedirectExchangeId.value
+  resetForm()
   pendingRedirectExchangeId.value = null
   await router.push({ name: 'exchange-detail', params: { id: exchangeId } })
-  resetForm()
 }
 </script>
 
 <template>
-  <BaseModal :model-value="modelValue" :before-close="beforeClose" :closeOnBackdrop="false" :closeOnEscape="false"
-    :title="modalState === ModalState.FORM
-      ? t('exchanges.createModal.title')
-      : t('exchanges.createModal.successTitle')
-      " @update:model-value="(value) => emit('update:modelValue', value)" @hidden="handleHidden">
-    <!-- FORM STATE -->
-    <form v-if="modalState === ModalState.FORM" id="createExchangeForm" @submit.prevent="handleCreate">
+  <BaseModal
+    :model-value="modelValue"
+    :before-close="beforeClose"
+    :close-on-backdrop="false"
+    :title="t('exchanges.createModal.title')"
+    @update:model-value="(value) => emit('update:modelValue', value)"
+    @hidden="handleHidden"
+  >
+    <form id="createExchangeForm" @submit.prevent="handleCreate">
       <div class="form-field mb-3">
         <div class="form-floating">
-          <input placeholder=" " id="exchangeName" v-model="name" class="form-control" maxlength="150" required
-            aria-describedby="creation-required" :aria-invalid="!!fieldErrors.name || undefined" />
+          <input
+            placeholder=" "
+            id="exchangeName"
+            v-model="name"
+            class="form-control"
+            maxlength="150"
+            required
+            aria-describedby="creation-required"
+            :aria-invalid="!!fieldErrors.name || undefined"
+          />
           <label for="exchangeName">{{ t('exchanges.createModal.name') }}</label>
         </div>
       </div>
       <div class="form-field mb-3">
         <div class="form-floating">
-          <input placeholder=" " id="organizerName" v-model="organizerName" class="form-control" maxlength="150"
-            required aria-describedby="creation-required" :aria-invalid="!!fieldErrors.organizerName || undefined" />
+          <input
+            placeholder=" "
+            id="organizerName"
+            v-model="organizerName"
+            class="form-control"
+            maxlength="150"
+            required
+            aria-describedby="creation-required"
+            :aria-invalid="!!fieldErrors.organizerName || undefined"
+          />
           <label for="organizerName">{{ t('exchanges.createModal.organizerName') }}</label>
         </div>
       </div>
@@ -214,14 +150,29 @@ async function handleHidden() {
       <div class="form-field mb-3">
         <div class="input-group">
           <div class="form-floating">
-            <input placeholder=" " id="adminPassword" v-model="adminPassword"
-              :type="passwordVisible ? 'text' : 'password'" class="form-control" minlength="8" maxlength="256"
-              autocomplete="new-password" autocapitalize="off" :spellcheck="false" required
-              aria-describedby="password-help" :aria-invalid="!!fieldErrors.adminPassword || undefined" />
+            <input
+              placeholder=" "
+              id="adminPassword"
+              v-model="adminPassword"
+              :type="passwordVisible ? 'text' : 'password'"
+              class="form-control"
+              minlength="8"
+              maxlength="256"
+              autocomplete="new-password"
+              autocapitalize="off"
+              :spellcheck="false"
+              required
+              aria-describedby="password-help"
+              :aria-invalid="!!fieldErrors.adminPassword || undefined"
+            />
             <label for="adminPassword">{{ t('exchanges.createModal.adminPassword') }}</label>
           </div>
-          <button type="button" class="btn btn-outline-secondary" :aria-pressed="passwordVisible"
-            @click="passwordVisible = !passwordVisible">
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            :aria-pressed="passwordVisible"
+            @click="passwordVisible = !passwordVisible"
+          >
             {{ t(passwordVisible ? 'review.hide' : 'review.show') }}
           </button>
         </div>
@@ -230,61 +181,31 @@ async function handleHidden() {
 
       <p class="text-body-secondary mb-0">{{ t('exchanges.createModal.afterCreationHint') }}</p>
 
-      <div v-if="formErrors.length" class="text-danger mt-2">
+      <p v-if="exchangesStore.error" class="text-danger mt-2" role="alert">
+        {{ exchangesStore.error }}
+      </p>
+      <div v-else-if="formErrors.length" class="text-danger mt-2" role="alert">
         <div v-for="err in formErrors" :key="err">{{ t('p2.invalidField') }}</div>
       </div>
     </form>
 
-    <!-- SUCCESS STATE -->
-    <div v-else-if="modalState === ModalState.SUCCESS">
-      <div class="alert alert-warning border-0 mb-3">
-        <div class="d-flex align-items-start gap-2">
-          <span class="text-warning fw-bold fs-5">⚠️</span>
-          <div>
-            <p class="fw-semibold mb-1">{{ t('exchanges.createModal.successWarningTitle') }}</p>
-            <p class="mb-0 small">
-              {{ t('exchanges.createModal.successWarningText') }}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <div class="input-group">
-          <div class="form-floating">
-            <input id="created-admin-link" placeholder=" " :value="adminLink" type="text"
-              class="form-control font-monospace small" readonly />
-            <label for="created-admin-link">
-              {{ t('exchanges.createModal.adminLinkLabel') }}
-            </label>
-          </div>
-          <button type="button" class="btn btn-primary rounded-end" @click="copyAdminLink">
-            {{ t('actions.copy') }}
-          </button>
-        </div>
-        <small class="text-body-secondary d-block mt-2">
-          {{ t('exchanges.createModal.adminLinkHint') }}
-        </small>
-      </div>
-    </div>
-
     <template #footer>
-      <template v-if="modalState === ModalState.FORM">
-        <button type="submit" class="btn btn-primary order-2" form="createExchangeForm"
-          :disabled="exchangesStore.isLoading || !valid">
-          {{ t('exchanges.createModal.submit') }}
-        </button>
-        <button type="button" class="btn btn-link order-1" data-bs-dismiss="modal">
-          {{ t('actions.cancel') }}
-        </button>
-      </template>
-
-      <template v-else-if="modalState === ModalState.SUCCESS">
-        <button type="button" class="btn btn-primary" :disabled="isContinueDisabled" @click="handleContinue">
-          {{ t('exchanges.createModal.continueButton') }}
-          <span v-if="isCountdownActive" class="ms-2"> ({{ countdownSeconds }}) </span>
-        </button>
-      </template>
+      <button
+        type="submit"
+        class="btn btn-primary order-2"
+        form="createExchangeForm"
+        :disabled="exchangesStore.isLoading || !!pendingRedirectExchangeId || !valid"
+      >
+        {{ t('exchanges.createModal.submit') }}
+      </button>
+      <button
+        type="button"
+        class="btn btn-link order-1"
+        data-bs-dismiss="modal"
+        :disabled="exchangesStore.isLoading || !!pendingRedirectExchangeId"
+      >
+        {{ t('actions.discardChanges') }}
+      </button>
     </template>
   </BaseModal>
 </template>
