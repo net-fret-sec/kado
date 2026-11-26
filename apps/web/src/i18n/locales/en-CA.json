@@ -238,7 +238,9 @@
     "recipientSectionTitle": "Your gift recipient",
     "suggestionsSectionTitle": "My gift suggestions",
     "wishlistItem": {
-      "reorder": "Reorder",
+      "reorderPosition": "Reorder suggestion {position}",
+      "deleteSuggestion": "Delete suggestion",
+      "openLink": "Open link in a new tab",
       "linkLabel": "Link (optional)",
       "linkPlaceholder": "https://example.com/product",
       "titleRequired": "Enter a name or description.",
@@ -321,6 +323,7 @@
     "initialVersion": "Initial reference"
   },
   "images": {
+    "confirmRemove": "Remove this image? The suggestion will be kept.",
     "label": "Image (optional)",
     "remove": "Delete image",
     "unavailable": "Image unavailable.",
@@ -328,7 +331,6 @@
   },
   "review": {
     "budgetInvalid": "Enter a whole amount between 0 and 1,000, or leave the field empty.",
-    "suggestionCount": "No suggestions | {count} suggestion | {count} suggestions",
     "keepAccess": "Keep your access details",
     "keepOrganizer": "Bookmark this page and keep your password. No emails or password recovery are provided.",
     "keepParticipant": "Bookmark this page using your browser menu. This personal link gives access to your profile.",

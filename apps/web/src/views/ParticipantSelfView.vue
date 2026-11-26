@@ -343,7 +343,7 @@ usePageTitle(() => [
             <ExchangeDetails :exchange="view.exchange" :exclusions="view.exclusions" />
             <section v-if="view.participants?.length" class="card mt-3 participant-list">
               <div class="card-body">
-                <h2 class="h4">{{ t('review.participantList') }}</h2>
+                <h2 class="h4 mb-3">{{ t('review.participantList') }}</h2>
                 <ul class="mb-0">
                   <li
                     v-for="person in sortedParticipants"
@@ -354,8 +354,9 @@ usePageTitle(() => [
                       {{ person.name }}
                     </strong>
                     <span v-else>{{ person.name }}</span>
-                    <span class="badge text-bg-secondary ms-2" aria-hidden="true">{{ person.suggestionCount }}</span>
-                    <span class="visually-hidden">{{ t('review.suggestionCount', person.suggestionCount) }}</span>
+                    <span v-if="person.suggestionCount" class="badge text-bg-light rounded-pill ms-2">{{
+                      t('exchangeDetail.wishlistSuggestions', person.suggestionCount)
+                    }}</span>
                   </li>
                 </ul>
               </div>
@@ -364,7 +365,7 @@ usePageTitle(() => [
           <div class="participant-content-column">
             <section class="card mb-3 participant-profile-card">
               <form class="card-body" novalidate @submit.prevent="profileAutosave.saveNow()">
-                <h2 class="h4">{{ t('participant.profileSectionTitle') }}</h2>
+                <h2 class="h4 mb-3">{{ t('participant.profileSectionTitle') }}</h2>
                 <div class="form-field mb-3">
                   <div class="form-floating">
                     <input
@@ -428,7 +429,7 @@ usePageTitle(() => [
             </section>
             <section class="card mb-3 participant-suggestions-card">
               <div class="card-body">
-                <h2 class="h4">{{ t('participant.suggestionsSectionTitle') }}</h2>
+                <h2 class="h4 mb-3">{{ t('participant.suggestionsSectionTitle') }}</h2>
                 <p v-if="requiredMinSuggestions > 0" class="small">
                   {{
                     t(
@@ -471,21 +472,26 @@ usePageTitle(() => [
               class="card mb-3"
             >
               <div class="card-body">
-                <h2 class="h4">{{ t('participant.recipientSectionTitle') }}</h2>
+                <h2 class="h4 mb-3">{{ t('participant.recipientSectionTitle') }}</h2>
                 <p>
                   <strong>{{ t('fields.name') }}:</strong>
                   {{ view.assignment.receiverName }}
                 </p>
                 <ol
                   v-if="view.assignment.receiverWishlist?.length"
-                  class="list-group list-group-numbered"
+                  class="list-group suggestion-list"
                 >
                   <li
                     v-for="(suggestion, index) in view.assignment.receiverWishlist"
                     :key="index"
-                    class="list-group-item"
+                    class="list-group-item suggestion-shell d-flex p-0"
                   >
-                    <WishlistSuggestionItem :model-value="suggestion" mode="detail" />
+                    <div class="suggestion-controls">
+                      <span class="suggestion-position">#{{ index + 1 }}</span>
+                    </div>
+                    <div class="suggestion-content">
+                      <WishlistSuggestionItem :model-value="suggestion" mode="detail" />
+                    </div>
                   </li>
                 </ol>
                 <p v-if="view.assignment.receiverNote">

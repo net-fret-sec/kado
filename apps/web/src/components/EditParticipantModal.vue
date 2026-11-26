@@ -266,7 +266,7 @@ watch(
         :retry-disabled="!profileValid || isSubmitting || saving || !!remote" @retry="profileAutosave.saveNow" />
     </form>
     <div class="mt-3">
-      <h3 class="h5">{{ t('fields.wishlist') }}</h3>
+      <h3 class="h5 mb-3">{{ t('fields.wishlist') }}</h3>
       <WishlistEditor @commit="autosave.request" v-model="wishlist" :locked="suggestionsLocked"
         :participant-id="participant?.id" @validating="imageValidating = $event"
         :busy="isSubmitting || saving || !!remote" />

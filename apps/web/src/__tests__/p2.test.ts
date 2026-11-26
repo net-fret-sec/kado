@@ -8,6 +8,7 @@ import { readStorage, writeStorage, storageUnavailable } from '../composables/us
 import { useRefresh } from '../composables/useRefresh'
 import { copyText } from '../composables/useClipboard'
 import WishlistEditor from '../components/WishlistEditor.vue'
+import WishlistSuggestionItem from '../components/WishlistSuggestionItem.vue'
 import BaseModal from '../components/BaseModal.vue'
 import { i18n, setLocale } from '../i18n'
 
@@ -236,6 +237,48 @@ describe('wishlist parity and accessibility', () => {
     })
     expect(locked.findAll('input, button')).toHaveLength(0)
     locked.unmount()
+  })
+  it('updates the link action from the current draft without activating invalid URLs', async () => {
+    const wrapper = mount(WishlistSuggestionItem, {
+      props: { modelValue: { title: 'Book' }, mode: 'edit' },
+      global: { plugins: [i18n] },
+    })
+    for (const linkUrl of ['', 'https://', 'javascript:alert(1)', 'data:text/html,test']) {
+      await wrapper.setProps({ modelValue: { title: 'Book', linkUrl } })
+      expect(wrapper.find('a.suggestion-open-link').exists()).toBe(false)
+      expect(wrapper.get('button.suggestion-open-link').attributes('disabled')).toBeDefined()
+    }
+    for (const linkUrl of ['https://example.com/book', 'http://example.com/new']) {
+      await wrapper.setProps({ modelValue: { title: 'Book', linkUrl } })
+      const link = wrapper.get('a.suggestion-open-link')
+      expect(link.attributes('href')).toBe(linkUrl)
+      expect(link.attributes('target')).toBe('_blank')
+      expect(link.attributes('rel')).toBe('noopener noreferrer')
+      expect(wrapper.emitted('commit')).toBeUndefined()
+    }
+    wrapper.unmount()
+  })
+  it('keeps numbered handles and keyboard focus with reordered items', async () => {
+    const wrapper = mount(WishlistEditor, {
+      attachTo: document.body,
+      props: {
+        modelValue: [
+          { title: 'A', _clientId: 'a' },
+          { title: 'B', _clientId: 'b' },
+        ],
+        'onUpdate:modelValue': (value) => {
+          void wrapper.setProps({ modelValue: value })
+        },
+      },
+      global: { plugins: [i18n], stubs: { WishlistSuggestionItem: true } },
+    })
+    await wrapper.get('.drag-handle').trigger('keydown', { key: 'ArrowDown' })
+    await nextTick()
+    expect(wrapper.props('modelValue').map((item) => item.title)).toEqual(['B', 'A'])
+    expect(wrapper.findAll('.drag-handle').map((button) => button.text())).toEqual(['#1', '#2'])
+    expect(document.activeElement).toBe(wrapper.findAll('.drag-handle')[1]!.element)
+    expect(wrapper.findAll('.drag-handle')[1]!.attributes('aria-label')).toContain('2')
+    wrapper.unmount()
   })
 })
 
