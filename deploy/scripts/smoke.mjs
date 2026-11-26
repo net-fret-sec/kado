@@ -337,6 +337,9 @@ try {
   Object.assign(config.services.api.environment, {
     API_RATE_LIMIT: '100000', CREATE_RATE_LIMIT: '100000', AUTH_RATE_LIMIT: '100000',
     AUTH_PAIR_RATE_LIMIT: '100000', PARTICIPANT_RATE_LIMIT: '100000', DRAW_RATE_LIMIT: '100000',
+    // The expanded viewport/palette matrix uploads more than 20 images per minute.
+    // Image rate limiting is covered separately by the API tests.
+    IMAGE_UPLOAD_RATE_LIMIT: '100000',
   });
   await writeFile(override, JSON.stringify(config));
   compose('up', '-d', '--force-recreate', '--wait', '--wait-timeout', '90', 'api');
