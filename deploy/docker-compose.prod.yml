@@ -31,6 +31,14 @@ services:
       PGDATABASE: ${POSTGRES_DB}
       PGUSER: ${POSTGRES_USER}
       PGPASSWORD: ${POSTGRES_PASSWORD}
+      LEGAL_CONTENT_DIR: /app/legal
+    volumes:
+      - type: bind
+        source: ${LEGAL_CONTENT_DIR:-/var/lib/kado/legal}
+        target: /app/legal
+        read_only: true
+        bind:
+          create_host_path: false
     depends_on:
       db: {condition: service_healthy}
     healthcheck:

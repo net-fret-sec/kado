@@ -7,6 +7,7 @@ import healthRoutes from "./routes/health.routes";
 import exchangesRoutes from "./routes/exchanges.routes";
 import participantsRoutes from "./routes/participants.routes";
 import publicRoutes from "./routes/public.routes";
+import legalRoutes from "./routes/legal.routes";
 import adminAuthRoutes from "./routes/admin-auth.routes";
 import { errorHandler } from "./middleware/error-handler";
 import { createRateLimits } from "./middleware/rate-limits";
@@ -83,6 +84,7 @@ export function createApp() {
   );
   app.use("/api", imageRoutes());
   app.use("/api", publicRoutes);
+  app.use("/api", legalRoutes);
   app.use("/api/exchanges", exchangesRoutes);
   app.use("/api/exchanges", participantsRoutes);
   app.use("/api/exchanges", adminAuthRoutes);

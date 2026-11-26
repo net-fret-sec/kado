@@ -63,6 +63,13 @@ api.env
 .secret
 notes/*
 
+# Editable legal content, maintained independently from application releases.
+/apps/web/public/conditions.md
+/apps/web/public/conditions-*.md
+/apps/web/public/confidentiality.md
+/apps/web/public/confidentiality-*.md
+/apps/web/public/legal-config.json
+
 # Python monitoring caches
 __pycache__/
 *.pyc

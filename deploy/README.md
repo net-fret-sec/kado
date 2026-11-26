@@ -253,3 +253,10 @@ La validation navigateur P2 est incluse dans le smoke test, sur la même stack �
 ## Images de suggestions
 
 Le [guide images](IMAGES.md) détaille la migration de purge `003_suggestion_images.sql`, ses précautions et les quotas. Les images sont incluses dans les dumps PostgreSQL existants ; surveiller la croissance du disque, du WAL et des sauvegardes. La validation éphémère inclut une restauration réelle des contenus WebP.
+
+## Contenu juridique externe
+
+Les pages juridiques nécessitent un dossier hôte préparé et validé avant le démarrage
+de cette version. Voir [la configuration et la procédure de mise à jour](../docs/LEGAL-CONTENT.md).
+Le dossier est monté en lecture seule dans l'API, dans les deux modes de déploiement;
+il doit être sauvegardé séparément de PostgreSQL et des bundles applicatifs.

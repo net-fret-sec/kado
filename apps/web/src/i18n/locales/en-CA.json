@@ -1,4 +1,16 @@
 {
+  "legal": {
+    "fallback": "This document is shown in {language} because the requested translation is not available.",
+    "navigation": "Legal information",
+    "terms": "Terms of use",
+    "privacy": "Privacy",
+    "loading": "Loading document…",
+    "unavailable": "This document is temporarily unavailable. Please try again.",
+    "retry": "Reload document",
+    "draft": "Draft for review — this text is not yet in effect.",
+    "effectiveDate": "Effective date:",
+    "updatedDate": "Last updated:"
+  },
   "pageTitles": {
     "home": "Gift exchanges",
     "organizer": "Organizer",

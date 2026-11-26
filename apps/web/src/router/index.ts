@@ -5,7 +5,22 @@ import ExchangesView from '../views/ExchangesView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior(to, _from, savedPosition) {
+    if (to.name === 'terms' || to.name === 'privacy') return savedPosition ?? { top: 0 }
+  },
   routes: [
+    {
+      path: '/conditions-utilisation',
+      name: 'terms',
+      component: () => import('../views/LegalView.vue'),
+      props: { document: 'conditions-utilisation' },
+    },
+    {
+      path: '/confidentialite',
+      name: 'privacy',
+      component: () => import('../views/LegalView.vue'),
+      props: { document: 'confidentialite' },
+    },
     {
       path: '/',
       name: 'home',

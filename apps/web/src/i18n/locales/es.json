@@ -1,4 +1,16 @@
 {
+  "legal": {
+    "fallback": "Este documento se muestra en {language} porque la traducción solicitada no está disponible.",
+    "navigation": "Información legal",
+    "terms": "Condiciones de uso",
+    "privacy": "Privacidad",
+    "loading": "Cargando el documento…",
+    "unavailable": "Este documento no está disponible temporalmente. Inténtalo de nuevo.",
+    "retry": "Volver a cargar",
+    "draft": "Borrador para revisión: este texto aún no está en vigor.",
+    "effectiveDate": "Entrada en vigor:",
+    "updatedDate": "Última actualización:"
+  },
   "pageTitles": {
     "home": "Intercambios de regalos",
     "organizer": "Organización",

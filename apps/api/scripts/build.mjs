@@ -3,7 +3,11 @@ import { cp, mkdir, rm } from "node:fs/promises";
 await rm("dist", { recursive: true, force: true });
 await mkdir("dist", { recursive: true });
 await build({
-  entryPoints: { server: "src/server.ts", migrate: "scripts/migrate.ts" },
+  entryPoints: {
+    server: "src/server.ts",
+    migrate: "scripts/migrate.ts",
+    "validate-legal": "scripts/validate-legal.ts",
+  },
   outdir: "dist",
   outExtension: { ".js": ".cjs" },
   bundle: true,

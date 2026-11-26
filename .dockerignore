@@ -19,3 +19,8 @@ deploy/backups
 **/__tests__
 **/backups
 release-artifacts
+
+# Runtime legal content is mounted separately, never baked into release images.
+apps/web/public/conditions*.md
+apps/web/public/confidentiality*.md
+apps/web/public/legal-config.json

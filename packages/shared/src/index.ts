@@ -8,3 +8,4 @@ export * from './domain/exclusion-rule.schema'
 export * from './password'
 
 export * from './exclusions'
+export * from './legal'

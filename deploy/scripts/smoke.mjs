@@ -11,6 +11,8 @@ const httpsPort = listener.address().port;
 await new Promise((r) => listener.close(r));
 import assert from "node:assert/strict";
 import { browserP2 } from "./browser-p2.mjs";
+import { createLegalFixture } from "./legal-fixture.mjs";
+import { browserLegal } from "./browser-legal.mjs";
 import { chromium } from "@playwright/test";
 const root = path.resolve(import.meta.dirname, "../..");
 const scratch = await mkdtemp(path.join(tmpdir(), "kado-p1-smoke-"));
@@ -37,6 +39,7 @@ const envFile = path.join(scratch, "env"),
 // The host collector runs as the test user; the private parent protects its spool.
 // Production keeps both a root-only parent and 0600 files.
 await mkdir(path.join(scratch, "access"), { mode: 0o700 });
+await createLegalFixture(path.join(scratch, "legal"));
 await writeFile(
   apiFile,
   `FRONTEND_BASE_URL=https://kado.test\nFRONTEND_ALLOWED_ORIGINS=https://kado.test,https://localhost:${httpsPort}\nAPI_RATE_LIMIT=80\nAPI_RATE_WINDOW_MS=300000\nCREATE_RATE_LIMIT=10\nMAX_ACTIVE_PARTICIPANTS=50\n`,
@@ -44,7 +47,7 @@ await writeFile(
 );
 await writeFile(
   envFile,
-  `COMPOSE_PROJECT_NAME=${project}\nPOSTGRES_DB=${db}\nPOSTGRES_USER=kado_test\nPOSTGRES_PASSWORD=${password}\nIMAGE_TAG=${tag}\nDOMAIN=https://localhost\nACME_EMAIL=smoke@example.com\nKADO_API_ENV_FILE=${apiFile}\nKADO_MONITOR_LOG_DIR=${scratch}/access\n`,
+  `COMPOSE_PROJECT_NAME=${project}\nPOSTGRES_DB=${db}\nPOSTGRES_USER=kado_test\nPOSTGRES_PASSWORD=${password}\nIMAGE_TAG=${tag}\nDOMAIN=https://localhost\nACME_EMAIL=smoke@example.com\nKADO_API_ENV_FILE=${apiFile}\nKADO_MONITOR_LOG_DIR=${scratch}/access\nLEGAL_CONTENT_DIR=${scratch}/legal\n`,
   { mode: 0o600 },
 );
 const production = run([
@@ -139,8 +142,20 @@ async function api(method, url, body, token, expected = 200) {
 try {
   compose("up", "-d", "--wait", "--wait-timeout", "90", "db");
   compose("run", "--rm", "--no-deps", "api", "node", "dist/migrate.cjs");
+  compose("run", "--rm", "--no-deps", "api", "node", "dist/validate-legal.cjs", "--published");
   compose("up", "-d", "--wait", "--wait-timeout", "90");
   base = `https://localhost:${httpsPort}`;
+  for (const document of ['conditions-utilisation', 'confidentialite']) {
+    for (const locale of ['fr-CA', 'en-CA', 'es']) {
+      const legal = await localFetch(`${base}/api/legal/${document}?locale=${locale}`);
+      assert.equal(legal.status, 200);
+      assert.equal(legal.headers.get('cache-control'), 'no-store');
+      const content = JSON.parse(await legal.text());
+      assert.equal(content.locale, locale);
+      assert.equal(content.status, 'published');
+      assert(content.html.includes('Fictitious'));
+    }
+  }
   const response = await localFetch(base, { headers: { Host: "localhost" } });
   assert.equal(response.status, 200);
   const csp = response.headers.get("content-security-policy");
@@ -326,7 +341,10 @@ try {
   await writeFile(override, JSON.stringify(config));
   compose('up', '-d', '--force-recreate', '--wait', '--wait-timeout', '90', 'api');
   // Browser verification against the production assets, CSP and real API.
-  browser = await chromium.launch({ headless: true });
+  // This isolated stack uses a temporary self-signed CA. Context-level HTTPS
+  // bypass alone does not cover service worker registration in Chromium.
+  browser = await chromium.launch({ headless: true, args: ['--ignore-certificate-errors'] });
+  await browserLegal({ browser, base, legalDirectory: path.join(scratch, 'legal'), scratch });
   const context = await browser.newContext({
     ignoreHTTPSErrors: true,
     // This scenario uses French labels; CI hosts may default to English.

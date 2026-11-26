@@ -1,4 +1,16 @@
 {
+  "legal": {
+    "fallback": "Ce document est affiché en {language}, car la traduction demandée n’est pas disponible.",
+    "navigation": "Informations légales",
+    "terms": "Conditions d’utilisation",
+    "privacy": "Confidentialité",
+    "loading": "Chargement du document…",
+    "unavailable": "Ce document est temporairement indisponible. Veuillez réessayer.",
+    "retry": "Réessayer le chargement",
+    "draft": "Brouillon pour relecture — ce texte n’est pas encore en vigueur.",
+    "effectiveDate": "Entrée en vigueur :",
+    "updatedDate": "Dernière mise à jour :"
+  },
   "pageTitles": {
     "home": "Échanges de cadeaux",
     "organizer": "Organisation",

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { z } from 'zod'
+import LegalLinks from './LegalLinks.vue'
 
 defineProps<{ home?: boolean }>()
 
@@ -47,10 +48,11 @@ const trustItems = [
         <p v-if="contactEmail" class="small mt-3 mb-0">
           <a :href="`mailto:${contactEmail}`">{{ t('home.contact') }}</a>
         </p>
+        <LegalLinks />
       </div>
     </div>
   </footer>
-  <footer v-else-if="donationUrl || contactEmail" class="container-xl py-3 mt-auto">
+  <footer v-else class="container-xl py-3 mt-auto">
     <section
       v-if="donationUrl"
       class="home-support d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-2"
@@ -71,6 +73,7 @@ const trustItems = [
     <p v-if="contactEmail" class="small mb-0" :class="{ 'mt-3': donationUrl }">
       <a :href="`mailto:${contactEmail}`">{{ t('home.contact') }}</a>
     </p>
+    <LegalLinks />
   </footer>
 </template>
 
