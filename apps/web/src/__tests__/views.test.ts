@@ -83,7 +83,7 @@ describe('participant form regressions', () => {
     const list = () => wrapper.get('.participant-list')
     expect(list().findAll('li').map(li => li.attributes('data-participant-id'))).toEqual(['a', 'b', 'z'])
     expect(list().findAll('strong')).toHaveLength(0)
-    expect(list().findAll('.badge').map(b => b.text())).toEqual(['2', '1', '0'])
+    expect(list().findAll('.badge').map(b => b.text())).toEqual(['2 suggestions', '1 suggestion'])
     current = { ...current, exchange: { ...current.exchange, isDrawn: true }, assignment: { receiverId: 'b', receiverName: 'Alex' } }
     document.dispatchEvent(new Event('visibilitychange'))
     await flushPromises()
@@ -97,7 +97,7 @@ describe('participant form regressions', () => {
     document.dispatchEvent(new Event('visibilitychange'))
     await flushPromises()
     expect(list().findAll('strong')).toHaveLength(0)
-    expect(list().findAll('.badge').map(b => b.text())).toEqual(['3', '3', '3'])
+    expect(list().findAll('.badge').map(b => b.text())).toEqual(['3 suggestions', '3 suggestions', '3 suggestions'])
   })
 
   it('retranslates an invalid participant link on language changes without another request', async () => {
@@ -252,7 +252,7 @@ describe('participant form regressions', () => {
     )
     expect(wrapper.get('.suggestion-save-status').text()).toContain('Suggestions enregistrées')
     vi.spyOn(window, 'confirm').mockReturnValue(true)
-    await wrapper.get('.suggestion-controls .btn-outline-danger').trigger('click')
+    await wrapper.get('.suggestion-actions .suggestion-delete').trigger('click')
     await vi.advanceTimersByTimeAsync(400)
     await flushPromises()
     expect(writes).toHaveLength(2)

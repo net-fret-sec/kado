@@ -54,7 +54,7 @@ const summary = computed(() => {
     <div class="card-body">
       <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
         <div>
-          <h2 class="h4 mb-1">{{ t('exchangeDetail.dashboard.settings') }}</h2>
+          <h2 class="h4 mb-3">{{ t('exchangeDetail.dashboard.settings') }}</h2>
           <p v-if="exchange.organizerName" class="small text-body-secondary mb-0">
             {{ t('review.detailsOrganizer', { name: exchange.organizerName }) }}
           </p>

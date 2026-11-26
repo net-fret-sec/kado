@@ -186,11 +186,11 @@ export async function browserP2({ browser, base, api, restart, root, scratch, se
     assert.equal((await clearMessage).status(), 200);
     assert.equal((await api('GET', '/api' + f.members[0].accessLink)).participant.note, undefined);
     f.page.once('dialog', dialog => dialog.accept());
-    await f.page.locator('.suggestion-controls .btn-outline-danger').last().click();
+    await f.page.locator('.suggestion-actions .suggestion-delete').last().click();
     for (let remaining = 1; remaining >= 0; remaining--) {
       f.page.once('dialog', dialog => dialog.accept());
       const removal = f.page.waitForResponse(r => r.request().method() === 'PUT' && r.url().includes('/api/p/'));
-      await f.page.locator('.suggestion-controls .btn-outline-danger').first().click();
+      await f.page.locator('.suggestion-actions .suggestion-delete').first().click();
       assert.equal((await removal).status(), 200);
       await expect(f.page.locator('.suggestion-save-status')).toContainText(fr.autosave.saved);
       assert.equal((await api('GET', '/api' + f.members[0].accessLink)).participant.wishlist.length, remaining);

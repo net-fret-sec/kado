@@ -84,49 +84,29 @@ function add() {
       {{ t('review.reorderHelp') }}
     </p>
     <p class="visually-hidden" role="status">{{ announcement }}</p>
-    <Draggable
-      :model-value="modelValue"
-      @update:model-value="reorder"
-      item-key="_clientId"
-      handle=".drag-handle"
-      :disabled="locked || busy"
-      :animation="reducedMotion ? 0 : 200"
-      class="d-flex flex-column gap-3 mb-2"
-    >
+    <Draggable :model-value="modelValue" @update:model-value="reorder" item-key="_clientId" handle=".drag-handle"
+      :disabled="locked || busy" :animation="reducedMotion ? 0 : 200" class="list-group suggestion-list mb-3">
       <template #item="{ element, index }">
-        <article @focusout="leaveItem" class="suggestion-shell d-flex">
-          <div v-if="!locked" class="suggestion-controls">
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-secondary drag-handle"
-              :disabled="busy"
-              :aria-label="t('participant.wishlistItem.reorder')"
-              :aria-describedby="helpId"
-              @keydown.up.prevent="move(index, -1)"
-              @keydown.down.prevent="move(index, 1)"
-            >
+        <article @focusout="leaveItem" class="suggestion-shell list-group-item d-flex p-0">
+          <div class="suggestion-controls">
+            <button v-if="!locked" type="button" class="btn btn-sm btn-outline-secondary drag-handle" :disabled="busy"
+              :aria-label="t('participant.wishlistItem.reorderPosition', { position: index + 1 })"
+              :aria-describedby="helpId" @keydown.up.prevent="move(index, -1)" @keydown.down.prevent="move(index, 1)">
               <i class="bi bi-grip-vertical" aria-hidden="true"></i>
             </button>
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-danger"
-              :disabled="busy"
-              :aria-label="t('actions.delete')"
-              @click="remove(index)"
-            >
-              <i class="bi bi-trash" aria-hidden="true"></i>
-            </button>
+            <span v-else class="suggestion-position">#{{ index + 1 }}</span>
           </div>
           <div class="suggestion-content">
-            <WishlistSuggestionItem
-              @commit="emit('commit')"
-              :model-value="element"
-              :participant-id="participantId"
-              @validating="validating(element._clientId, $event)"
-              :mode="locked ? 'detail' : 'edit'"
-              :disabled="locked || busy"
-              @update:model-value="change(index, $event)"
-            />
+            <WishlistSuggestionItem @commit="emit('commit')" :model-value="element" :participant-id="participantId"
+              @validating="validating(element._clientId, $event)" :mode="locked ? 'detail' : 'edit'"
+              :disabled="locked || busy" @update:model-value="change(index, $event)" />
+          </div>
+          <div v-if="!locked" class="suggestion-actions d-flex align-items-center pe-2">
+            <button type="button" class="btn btn-sm btn-outline-danger suggestion-delete" :disabled="busy"
+              :title="t('participant.wishlistItem.deleteSuggestion')"
+              :aria-label="t('participant.wishlistItem.deleteSuggestion')" @click="remove(index)">
+              <i class="bi bi-trash" aria-hidden="true"></i>
+            </button>
           </div>
         </article>
       </template>
@@ -134,13 +114,8 @@ function add() {
     <p v-if="!modelValue.length" class="text-body-secondary">
       {{ t('participant.noSuggestions') }}
     </p>
-    <button
-      v-if="!locked"
-      type="button"
-      class="btn btn-sm btn-outline-primary"
-      :disabled="busy || modelValue.length >= 100"
-      @click="add"
-    >
+    <button v-if="!locked" type="button" class="btn btn-sm btn-outline-primary"
+      :disabled="busy || modelValue.length >= 100" @click="add">
       {{ t('participant.addSuggestion') }}
     </button>
   </div>

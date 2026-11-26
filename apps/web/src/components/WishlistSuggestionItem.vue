@@ -66,6 +66,7 @@ const linkError = computed(() =>
     ? ''
     : t('participant.wishlistItem.linkUrlInvalid'),
 )
+const linkHref = computed(() => safeUrl(props.modelValue.linkUrl))
 function change(key: 'title' | 'linkUrl', value: string) {
   emit('update:modelValue', { ...props.modelValue, [key]: value || undefined })
 }
@@ -156,6 +157,7 @@ async function acceptFile(file: File) {
 }
 async function removeImage() {
   if (props.disabled || validating.value) return
+  if (!window.confirm(t('images.confirmRemove'))) return
   selection++
   emit('update:modelValue', { ...props.modelValue, imageId: undefined, pendingImage: undefined })
   emit('commit')
@@ -171,8 +173,12 @@ onBeforeUnmount(() => {
 })
 </script>
 <template>
-  <div ref="container" class="suggestion-item" :class="asListItem ? 'list-group-item' : ''">
-    <div class="position-relative">
+  <div
+    ref="container"
+    class="suggestion-item"
+    :class="{ 'list-group-item': asListItem, 'suggestion-item-edit': mode === 'edit' }"
+  >
+    <div class="suggestion-thumbnail position-relative">
       <template v-if="mode === 'edit'">
         <input
           ref="fileInput"
@@ -208,7 +214,7 @@ onBeforeUnmount(() => {
         <button
           v-if="modelValue.imageId || modelValue.pendingImage"
           type="button"
-          class="suggestion-remove-image btn btn-light rounded-circle shadow-sm position-absolute top-0 end-0 m-1 p-0 d-flex align-items-center justify-content-center"
+          class="suggestion-remove-image btn rounded-circle shadow-sm position-absolute top-0 end-0 m-1 p-0 d-flex align-items-center justify-content-center"
           :title="t('images.remove')"
           :aria-label="t('images.remove')"
           :disabled="disabled || validating"
@@ -247,35 +253,53 @@ onBeforeUnmount(() => {
           </p>
         </div>
         <div class="form-field">
-          <div class="form-floating">
-            <input
-              :id="`${uniqueId}-linkUrl`"
-              :value="modelValue.linkUrl || ''"
-              @input="change('linkUrl', ($event.target as HTMLInputElement).value)"
-              :disabled="disabled"
-              maxlength="2048"
-              type="url"
-              class="form-control"
-              :placeholder="t('participant.wishlistItem.linkPlaceholder')"
-              :aria-invalid="!!linkError"
-              :aria-describedby="`${uniqueId}-link-error`"
-            />
-            <label :for="`${uniqueId}-linkUrl`">{{
-              t('participant.wishlistItem.linkLabel')
-            }}</label>
+          <div class="input-group">
+            <div class="form-floating">
+              <input
+                :id="`${uniqueId}-linkUrl`"
+                :value="modelValue.linkUrl || ''"
+                @input="change('linkUrl', ($event.target as HTMLInputElement).value)"
+                :disabled="disabled"
+                maxlength="2048"
+                type="url"
+                class="form-control"
+                :placeholder="t('participant.wishlistItem.linkPlaceholder')"
+                :aria-invalid="!!linkError"
+                :aria-describedby="`${uniqueId}-link-error`"
+              />
+              <label :for="`${uniqueId}-linkUrl`">{{
+                t('participant.wishlistItem.linkLabel')
+              }}</label>
+            </div>
+            <a
+              v-if="linkHref"
+              class="btn btn-outline-secondary suggestion-open-link d-flex align-items-center justify-content-center"
+              :href="linkHref"
+              target="_blank"
+              rel="noopener noreferrer"
+              :title="t('participant.wishlistItem.openLink')"
+              :aria-label="t('participant.wishlistItem.openLink')"
+              ><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i
+            ></a>
+            <button
+              v-else
+              type="button"
+              class="btn btn-outline-secondary suggestion-open-link"
+              disabled
+              :title="t('participant.wishlistItem.openLink')"
+              :aria-label="t('participant.wishlistItem.openLink')"
+            >
+              <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+            </button>
           </div>
           <p v-if="linkError" :id="`${uniqueId}-link-error`" class="text-danger">{{ linkError }}</p>
         </div>
       </template>
       <template v-else>
         <p class="fw-semibold mb-1">{{ modelValue.title }}</p>
-        <a
-          v-if="safeUrl(modelValue.linkUrl)"
-          :href="safeUrl(modelValue.linkUrl)"
-          target="_blank"
-          rel="noopener noreferrer"
-          >{{ modelValue.linkUrl }}</a
-        >
+        <a v-if="linkHref" :href="linkHref" target="_blank" rel="noopener noreferrer">{{
+          modelValue.linkUrl
+        }}</a>
       </template>
     </div>
     <div class="suggestion-help">
@@ -306,6 +330,19 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .suggestion-remove-image.btn {
+  --bs-btn-focus-shadow-rgb: 255, 255, 255;
+  --bs-btn-color: #fff;
+  --bs-btn-bg: rgba(0, 0, 0, 0.65);
+  --bs-btn-border-color: transparent;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: rgba(0, 0, 0, 0.85);
+  --bs-btn-hover-border-color: transparent;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: rgba(0, 0, 0, 0.9);
+  --bs-btn-active-border-color: transparent;
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: rgba(0, 0, 0, 0.65);
+  --bs-btn-disabled-border-color: transparent;
   width: 2rem;
   height: 2rem;
   min-height: 2rem;
